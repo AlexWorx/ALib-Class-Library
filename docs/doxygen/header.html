@@ -1,13 +1,16 @@
 <!-- HTML header for doxygen 1.8.12-->
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="$langISO">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen $doxygenversion"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="icon" href="ALib-Icon.png" type="image/x-icon" />
 <!--BEGIN PROJECT_NAME--><title>$projectname: $title</title><!--END PROJECT_NAME-->
 <!--BEGIN !PROJECT_NAME--><title>$title</title><!--END !PROJECT_NAME-->
+<!--BEGIN PROJECT_ICON--><link rel="icon" href="$relpath^$projecticon" type="image/x-icon" /><!--END PROJECT_ICON-->
+
 <link href="$relpath^tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="$relpath^jquery.js"></script>
 <script type="text/javascript" src="$relpath^dynsections.js"></script>
@@ -16,6 +19,26 @@ $search
 $mathjax
 <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css" />
 $extrastylesheet
+
+<!--Fix hashtarget links to work with Doxygen's internal JavaScript-->
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+  // Grab all in-page anchor links, i.e. <a href="#...">
+  document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+    link.addEventListener('click', function() {
+      const href = link.getAttribute('href');
+      // Let Doxygen’s scripts do their thing first:
+      setTimeout(function() {
+        if (href && href.startsWith('#')) {
+          // Force the hash into the URL
+          window.location.hash = href.substring(1);
+        }
+      }, 50);
+    });
+  });
+});
+</script>
+
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -65,6 +88,5 @@ $extrastylesheet
 </table>
 </div>
 <!--END TITLEAREA-->
-
 
 <!-- end header part -->

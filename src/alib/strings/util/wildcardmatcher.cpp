@@ -1,16 +1,25 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/util/wildcardmatcher.hpp"
-#   include "alib/strings/substring.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings.Search;
+#else
+#   include "ALib.Strings.Search.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace strings { namespace util  {
 
 #define    STRING    -1

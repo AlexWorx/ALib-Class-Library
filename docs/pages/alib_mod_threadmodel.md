@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,7 +11,7 @@
 \tableofcontents
 
 \attention 
-   This \alibmod was introduced only with the latest release version 24TODO
+   This \alibmod was introduced only with the \alib version 2412
    and is considered unfinished and highly experimental.<br>
    Both attributes likewise apply to this "manual"!<br>
    Please do not read it and please do not use this module, yet - <b>unless you are like 
@@ -26,11 +26,11 @@ registration and identification and several locking and asynchronous notificatio
 
 In contrast to that, this module introduces a <em>thread model</em>. So what is that? The answer
 is that programmers have various different options to implement and manage parallelism. The
-choice is dependent from the type of application and quite a lot also a matter of "taste".
+choice is dependent of the type of application and quite a lot also a matter of "taste".
 Once more, \alib here chooses a rather traditional design. 
 
 This is the main reason why this module is separated from the low-level functionality: It is purely
-a matter of the library's user to select this module into an \alibdist or not.
+a matter of the library's user to select this module into an \alibbuild or not.
 The second important reason for separating this module from module \alib_threads is simply
 to avoid massive cyclic dependencies with other modules.
 
@@ -76,7 +76,7 @@ Each task is handled by the next available thread, regardless of its type or dat
 
 Advantages:
 - <b>High Throughput and Scalability:</b><br>
-  Pools can dynamically balance load by assigning tasks to any available thread, which makes 
+  Pools can dynamically balance a load by assigning tasks to any available thread, which makes 
   them very flexible for handling a large number of small, independent tasks.
 - <b>Optimal for Short-Lived, Independent Tasks:</b><br>
   This approach works well when tasks are quick and mostly independent, as it maximizes 
@@ -155,7 +155,7 @@ and disadvantages (explained in the comments above and in the reference document
 
 In more complicated cases it may be necessary to receive the job to be able to periodically
 check for processing, but then the sender may "lose interest" in it. 
-To enable a due deletion of an unprocessed job, method 
+To enable a due deletion of an unprocessed job, the method 
 \alib{threadmodel::DedicatedWorker;DeleteJobDeferred} is offered. 
 This pushes a new job (of a special internal type) into the execution queue of the worker, which
 cares for deletion.

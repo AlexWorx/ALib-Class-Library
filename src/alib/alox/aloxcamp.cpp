@@ -1,32 +1,52 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/variables/variables.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+#include "alib/alox/alox.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/alox/aloxcamp.hpp"
-#   include "alib/alox/alox.hpp"
-#   include "alib/alox/detail/logger.hpp"
-#   include "alib/alox/textlogger/textlogger.hpp"
+#include "ALib.Strings.Vector.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.ALox;
+    import   ALib.Lang;
+    import   ALib.EnumOps;
+    import   ALib.Containers.List;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.ALox.H"
+#   include "ALib.Containers.List.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 
-#   include "alib/lang/basecamp/basecamp.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#   include "alib/enums/serialization.hpp"
-#   include "alib/lang/resources/resources.hpp"
-#   include "alib/enums/recordbootstrap.hpp"
-#   include "alib/lang/message/report.hpp"
-#   include "alib/containers/list.hpp"
-#   include "alib/monomem/localallocator.hpp"
-
-    ALIB_BOXING_VTABLE_DEFINE( alib::lox::Verbosity               , vt_lox_verbosity )
-    ALIB_BOXING_VTABLE_DEFINE( alib::lox::Scope                   , vt_lox_scope     )
-    ALIB_BOXING_VTABLE_DEFINE( alib::lox::detail::Logger*         , vt_lox_logger    )
-    ALIB_BOXING_VTABLE_DEFINE( std::pair<alib::lox::Verbosity
-                              ALIB_COMMA alib::config::Priority>, vt_lox_pair_verby_prio )
-#endif // !DOXYGEN
 
 namespace alib {
 
@@ -41,127 +61,59 @@ lox::ALoxCamp ALOX;
 //==================================================================================================
 namespace lox {
 
-
-
 ALoxCamp::ALoxCamp()
 : Camp( "ALOX" )
 {
-    ALIB_ASSERT_ERROR( this == &ALOX, "ALOX",
-        "Instances of class ALox must not be created. Use singleton alib::ALOX" )
+    #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
+      ALIB_ASSERT_ERROR( this == &ALOX, "ALOX",
+          "Instances of class ALox must not be created. Use singleton alib::ALOX" )
+    #endif
+}
+
+void  ALoxCamp::Reset()
+{
+    #if ALOX_DBG_LOG
+        if (Log::DebugLogger != nullptr )
+            Log_RemoveDebugLogger()
+
+        lang::Destruct(*DEBUG_LOX);
+    #endif
+
+    ALIB_ASSERT_ERROR(detail::dbgCountLoxes() == 0, "ALOX", "A Lox remained from the last test" )
+
+    #if ALOX_DBG_LOG
+        new (DEBUG_LOX) Lox( "LOG" );
+    #endif
 }
 
 // #################################################################################################
 // Compilation Flags
 // #################################################################################################
 
-// check compiler symbols, give warning once (therefore not in HPP)
+// check the compiler-symbols, give warning once (therefore not in HPP)
 #if !ALOX_DBG_LOG && ALOX_DBG_LOG_CI
-#   pragma message ( "Warning: ALox compiler symbol mismatch: ALOX_DBG_LOG_CI is true, while ALOX_DBG_LOG is false." )
+#   pragma message ( "Warning: ALox compiler-symbol mismatch: ALOX_DBG_LOG_CI is true, while ALOX_DBG_LOG is false." )
 #endif
 #if !ALOX_REL_LOG && ALOX_REL_LOG_CI
-#   pragma message ( "Warning: ALox compiler symbol mismatch: ALOX_REL_LOG_CI is true, while ALOX_REL_LOG is false" )
+#   pragma message ( "Warning: ALox compiler-symbol mismatch: ALOX_REL_LOG_CI is true, while ALOX_REL_LOG is false" )
 #endif
-
-// #################################################################################################
-// Lox management
-// #################################################################################################
-#if !DOXYGEN
-    namespace
-    {
-        List<MonoAllocator, Lox*>      loxes(monomem::GLOBAL_ALLOCATOR);
-    }
-
-#if ALOX_DBG_LOG
-    Lox*                theDebugLox = nullptr;  // will be created in ALoxCamp::Bootstrap
-#endif
-
-#endif
-
-
-// The lox singletons for debug and release logging
-Lox*     ALoxCamp::Get( const NString& name, lang::CreateIfNotExists create )
-{
-    ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
-
-    // search
-    for( auto* it : loxes )
-        if( it->GetName().Equals<CHK, lang::Case::Ignore>( name ) )
-            return it;
-
-
-    // create?
-    if ( create == lang::CreateIfNotExists::Yes )
-    {
-        Lox* newLox= new Lox ( name, false );
-        loxes.EmplaceBack( newLox );
-        return newLox;
-    }
-
-    // not found
-    return nullptr;
-}
-
-void     ALoxCamp::Register( Lox* lox, lang::ContainerOp operation )
-{
-    ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
-
-    // check
-    if ( lox == nullptr )
-    {
-        ALIB_ERROR( "ALOX", "Nullptr given" )
-        return;
-    }
-
-    // remove
-    if( operation == lang::ContainerOp::Remove )
-    {
-        for( auto search= loxes.begin() ; search != loxes.end() ; ++search )
-            if ( *search == lox )
-            {
-                (void) loxes.Erase( search );
-                return;
-            }
-        ALIB_WARNING( "ALOX", "Given lox named {!Q} could not be found for removal.",
-                      lox != nullptr ? lox->GetName() : "<null>"          )
-    }
-
-    // insert
-    else
-    {
-        for( auto* it : loxes )
-            if( it->GetName().Equals<NC>( lox->GetName() ) )
-            {
-                ALIB_ERROR( "ALOX", "Given lox named {!Q} was already registered. Registration ignored.",
-                            lox->GetName() )
-                return;
-            }
-        loxes.EmplaceBack( lox );
-   }
-}
-
 
 // #################################################################################################
 // ALox module initialization
 // #################################################################################################
 
-void  ALoxCamp::bootstrap( BootstrapPhases phase )
+void  ALoxCamp::Bootstrap()
 {
-    if( phase == BootstrapPhases::PrepareResources )
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
     {
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_verbosity       )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_scope           )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_logger          )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_pair_verby_prio )
-
-
-#if !ALIB_RESOURCES_OMIT_DEFAULTS
+#if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
         "Var0" ,   A_CHAR( "1|ALOX/NO_IDE_LOGGER|"                        "B"       )  ,
         "Var1" ,   A_CHAR( "2|ALOX/CONSOLE_TYPE|"                         "S"       )  ,
-DOX_MARKER([DOX_CONFIG_REPLACEMENTS1])
+DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
 "Var2",  A_CHAR( "3|ALOX/%2/VERBOSITY_WITH_%1|ALOXV"),
-DOX_MARKER([DOX_CONFIG_REPLACEMENTS1])
+DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
         "Var3" ,   A_CHAR( "4|ALOX/GLOBAL_SOURCE_PATH_TRIM_RULES|"        "S"       )  ,
         "Var4" ,   A_CHAR( "5|ALOX/%1/SOURCE_PATH_TRIM_RULES|"            "S"       )  ,
         "Var5" ,   A_CHAR( "6|ALOX/%1/DOMAIN_SUBSTITUTION|"               "SV;"     )  ,
@@ -260,7 +212,7 @@ DOX_MARKER([DOX_CONFIG_REPLACEMENTS1])
         "Var_C26",  A_CHAR("Pairs of search and replacement strings for text logger \"%1\"."               "\n"
                            "   Format: [search,replacement] [,...]"),
 
-        "Var_C27",  A_CHAR("Evaluated by colorful loggers that dispose about light and dark colors. Those may adjust"  "\n"
+        "Var_C27",  A_CHAR("Evaluated by colorful loggers that dispose of light and dark colors. Those may adjust"  "\n"
                            "their foreground and background color accordingly. If not given, under Windows OS the right" "\n"
                            "value is detected. Otherwise the value defaults to \"foreground\". In some occasions, the"     "\n"
                            "(detected or set) runtime environment might also indicate a different default value."     "\n"
@@ -322,59 +274,53 @@ DOX_MARKER([DOX_CONFIG_REPLACEMENTS1])
 
         // end of BootstrapBulk()
         nullptr  );
-#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
-
-        // Add box-functions
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::Verbosity)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::Scope)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::detail::Logger*)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(std::pair<Verbosity ALIB_COMMA Priority>)
+#endif // !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
 
     } // BootstrapPhases::PrepareResources
 
-DOX_MARKER([DOX_CONFIG_DEFINETYPE3])
+DOX_MARKER([DOX_VARIABLES_DEFINETYPE3])
 //...
 //...
-else if( phase == BootstrapPhases::PrepareConfig )
+else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )
 {
-    ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatMetaInfo )
+    ALIB_VARIABLES_REGISTER_TYPE( FormatMetaInfo )
     //...
     //...
-DOX_MARKER([DOX_CONFIG_DEFINETYPE3])
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( CVVerbosities            )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatDateTime           )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatTimeDiff           )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatMultiLine          )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatOther              )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( FormatAutoSizes          )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( Replacements             )
-        ALIB_CONFIG_VARIABLE_REGISTER_TYPE( ColorfulLoggerParameters )
+DOX_MARKER([DOX_VARIABLES_DEFINETYPE3])
+        ALIB_VARIABLES_REGISTER_TYPE( CVVerbosities            )
+        ALIB_VARIABLES_REGISTER_TYPE( FormatDateTime           )
+        ALIB_VARIABLES_REGISTER_TYPE( FormatTimeDiff           )
+        ALIB_VARIABLES_REGISTER_TYPE( FormatMultiLine          )
+        ALIB_VARIABLES_REGISTER_TYPE( FormatOther              )
+        ALIB_VARIABLES_REGISTER_TYPE( FormatAutoSizes          )
+        ALIB_VARIABLES_REGISTER_TYPE( Replacements             )
+        ALIB_VARIABLES_REGISTER_TYPE( ColorfulLoggerParameters )
 
         // Parse enum records
-        EnumRecords<Verbosity                   >::Bootstrap( *this, "Verbosity"        );
-        EnumRecords<Scope                       >::Bootstrap( *this, "Scope"            );
-        EnumRecords<StateInfo                   >::Bootstrap( *this, "StateInfo"        );
-        EnumRecords<textlogger::
-                    ColorfulLoggerParameters::
-                    LightColorUsage             >::Bootstrap( *this, "LCU"  );
+        enumrecords::bootstrap::Bootstrap<Verbosity   >( *this, "Verbosity"        );
+        enumrecords::bootstrap::Bootstrap<Scope       >( *this, "Scope"            );
+        enumrecords::bootstrap::Bootstrap<StateInfo   >( *this, "StateInfo"        );
+        enumrecords::bootstrap::Bootstrap<textlogger::
+                                    ColorfulLoggerParameters::
+                                    LightColorUsage             >( *this, "LCU"  );
 
-        EnumRecords<Variables                   >::Bootstrap( '|' );
+        enumrecords::bootstrap::Bootstrap<Variables                   >( '|' );
 
         // preload all variable with declarations (and without placeholders)
         config->PreloadVariables<lox::Variables>();
     }
 
-    else if( phase == BootstrapPhases::Final )
+    else if( GetBootstrapState() == BootstrapPhases::Final )
     {
         #if ALOX_DBG_LOG
-            if ( !theDebugLox )
-                theDebugLox=monomem::GLOBAL_ALLOCATOR().New<Lox>("LOG");
+            if ( !DEBUG_LOX )
+                DEBUG_LOX=monomem::GLOBAL_ALLOCATOR().New<Lox>("LOG");
         #endif
     }
 }
 
 
-void ALoxCamp::shutdown( ShutdownPhases phase )
+void ALoxCamp::Shutdown( ShutdownPhases phase )
 {
     (void) phase;
     #if ALOX_DBG_LOG
@@ -383,128 +329,43 @@ void ALoxCamp::shutdown( ShutdownPhases phase )
         if ( Log::DebugLogger != nullptr )
             Log_RemoveDebugLogger()
 
-        if ( !theDebugLox )
-            lang::Destruct( *theDebugLox );
+        if ( DEBUG_LOX )
+            lang::Destruct( *DEBUG_LOX );
 
-        while ( loxes.IsNotEmpty() )
-            detail::LI::Destruct( loxes.Back() );
-        loxes.Reset();
+        detail::shutdownLoxes();
     }
     #endif
 }
 
-
-void  ALoxCamp::Reset()
-{
-    #if ALOX_DBG_LOG
-        if (Log::DebugLogger != nullptr )
-            Log_RemoveDebugLogger()
-
-        lang::Destruct(*theDebugLox);
-    #endif
-
-    ALIB_ASSERT_ERROR(loxes.Count() == 0, "ALOX", "A Lox remained from the last test" )
-
-    #if ALOX_DBG_LOG
-        new (theDebugLox) Lox( "LOG" );
-    #endif
-}
-
-void ESC::ReplaceToReadable( AString& target, integer startIdx )
-{
-    while( (startIdx= target.IndexOf( '\033', startIdx ) ) >= 0 )
-    {
-        String32 val("{ESC::");
-        character c=  target.CharAt( startIdx + 1 );
-        character c2= target.CharAt( startIdx + 2 );
-
-        const character* code= A_CHAR("ERROR");
-
-        // colors
-        if( c == 'c' || c == 'C' )
-        {
-            if ( c == 'C' )
-                val._<NC>( A_CHAR("BG_") );
-            switch( c2 - '0' )
-            {
-                case 0:  code= A_CHAR("RED")     ; break;
-                case 1:  code= A_CHAR("GREEN")   ; break;
-                case 2:  code= A_CHAR("YELLOW")  ; break;
-                case 3:  code= A_CHAR("BLUE")    ; break;
-                case 4:  code= A_CHAR("MAGENTA") ; break;
-                case 5:  code= A_CHAR("CYAN")    ; break;
-                case 6:  code= A_CHAR("BLACK")   ; break;
-                case 7:  code= A_CHAR("WHITE")   ; break;
-                case 8:  code= A_CHAR("GRAY")    ; break;
-                case 9:  code= A_CHAR("RESET")   ; break;
-                default: code= A_CHAR("COL_ERR"); break;
-            }
-
-        }
-
-        // styles
-        else if( c == 's' )
-        {
-            switch( c2 )
-            {
-                case 'B': code= A_CHAR("BOLD")         ; break;
-                case 'I': code= A_CHAR("ITALICS")      ; break;
-                case 'r': code= A_CHAR("STYLE_RESET")  ; break;
-                case 'a': code= A_CHAR("RESET")        ; break;
-                default:  code= A_CHAR("STYLE_ERR")    ; break;
-            }
-        }
-
-        // styles
-        else if( c == 'l' )
-        {
-            switch( c2 )
-            {
-                case 'S': code= A_CHAR("URL_START")    ; break;
-                case 'E': code= A_CHAR("URL_END")      ; break;
-                default:  code= A_CHAR("URL_ERR")      ; break;
-            }
-        }
-
-        // others
-        else if( c == 't' && c2 == '0' )    code= A_CHAR("TAB");
-        else if( c == 'A' && c2 == '0' )    code= A_CHAR("EOMETA");
-
-        // Replace
-        val._<NC>(code)._('}');
-        target.ReplaceSubstring<NC>( val, startIdx, 3 );
-        startIdx+= 3;
-    }
-}
 
 }} // namespace [alib::lox]
 
 #if !DOXYGEN
 namespace alib {  namespace strings {
-void    T_Append<Scope,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const lox::Scope src )
+void    AppendableTraits<Scope,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const lox::Scope src )
 {
     Scope scope= src;
-    int pathLevel= UnderlyingIntegral( scope - Scope::Path );
+    int pathLevel= int( scope - Scope::Path );
     if(pathLevel > 0 )
         scope= Scope::Path;
 
-    target << "Scope::" << enums::GetRecord(scope).EnumElementName;
+    target << "Scope::" << enumrecords::GetRecord(scope).EnumElementName;
 
     if( pathLevel > 0 )
         target << '+' << pathLevel;
 }
 
-void T_Append<std::pair<Verbosity, Priority>,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const std::pair<Verbosity, Priority>& src )
+void AppendableTraits<Pair<Verbosity, Priority>,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const Pair<Verbosity, Priority>& src )
 {
-    target._( NFormat::Field( src.first, 7, lang::Alignment::Left) );
-    target._( '(' )._( src.second );
+    target._( NField( src.First, 7, lang::Alignment::Left) );
+    target._( '(' )._( src.Second );
     target.InsertAt( ")", target.LastIndexOfAny<lang::Inclusion::Exclude>( NDEFAULT_WHITESPACES )  + 1 );
 }
 }}
 
 // CVVerbosities
-namespace alib::config::detail {
-ALIB_API void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const StringEscaper& esc, const String& src)
+namespace alib::variables::detail {
+ALIB_DLL void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const StringEscaper& esc, const String& src)
 {
     auto& cvVerbosities= data->As<alib::lox::CVVerbosities>();
     auto& exportAllKeyWord= alib::ALOX.GetResource("VVEA");
@@ -514,7 +375,7 @@ ALIB_API void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const St
     StringVectorMA results(la);
     esc.UnescapeTokens(results, src, A_CHAR(";"));
     cvVerbosities.Clear();
-    for( auto it : results )
+    for( auto& it : results )
     {
         Substring value= it;
         value.ConsumeChar('\n');
@@ -531,7 +392,7 @@ ALIB_API void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const St
     }
 }
 
-ALIB_API void  VMeta_CVVerbosities::exPort(VDATA* data, Configuration&, const StringEscaper& esc, AString& dest)
+ALIB_DLL void  VMeta_CVVerbosities::exPort(VDATA* data, Configuration&, const StringEscaper& esc, AString& dest)
 {
     auto& cvVerbosities= data->As<alib::lox::CVVerbosities>();
     auto& exportAllKeyWord= alib::ALOX.GetResource("VVEA");
@@ -550,7 +411,7 @@ ALIB_API void  VMeta_CVVerbosities::exPort(VDATA* data, Configuration&, const St
             dest << NEW_LINE;
         }
 }
-} //namespace [alib::config::detail]
+} //namespace [alib::variables::detail]
 
 #endif // !DOXYGEN
 

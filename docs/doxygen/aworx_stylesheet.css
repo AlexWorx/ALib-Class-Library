@@ -113,7 +113,7 @@ div.toc h3 {
 
 .sm:after {
     content: "\00a0";
-    display: block;
+    display: block;                                                                      
     height: 0;
     font: 0/0 serif;
     clear: both;
@@ -763,16 +763,18 @@ a.code
     font-family: "ALibCode", monospace;
     font-size: 100%;
     white-space: nowrap;
+    vertical-align: unset;
 }
 
 code
 {
     font-family: "Courier New", monospace;
     font-style: italic;
-    font-weight: bold;
+    font-weight: bolder;
     font-size: 100%;
     white-space: nowrap;
-    color: #000030;
+    color: #51637b;
+    vertical-align: unset;
 }
 
 /*------ Source sample ------- */
@@ -1870,6 +1872,7 @@ dl.section dd {
     font-family: "ALibSerif";
     margin: 0px;
     padding: 0px;
+    padding-right: 5px;
     padding-bottom: 5px;
     vertical-align: middle;
     color: black;
@@ -2029,3 +2032,4 @@ tr.heading h2 {
     display:inline;
   }
 }
+

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -36,8 +36,7 @@ just provides some few step-by-step demo samples.
 # 2. Tutorial # {#alib_files_tut}
 \I{################################################################################################}
 ## 2.1 Scanning a File Tree  ## {#alib_files_tut_scan}
-A simple application needs to include just headers \alibheader{files/ftree.hpp} and
-\alibheader{files/fscanner.hpp}:
+A simple application needs to include just header \implude{Files}.
 \snippet "DOX_FILES.cpp"     DOX_FILES_HEADER
 
 For scanning a path including its subdirectories, a few objects are needed:
@@ -103,11 +102,11 @@ The next chapter introduces a filter which is run-time compiled!
 
 \I{################################################################################################}
 ## 2.3 Class FileExpressions  ## {#alib_files_tut_fex}
-In case module \alib_expressions is included in the \alibdist, this module exposes class
-\alib{files;FileExpressions}. This class implements a \alib{expressions;CompilerPlugin} dedicated
-to articulate run-time expressions working with \alib{files;FInfo} objects.
+In case module \alib_expressions is included in the \alibbuild, this module \alib_files_nl exposes 
+the \alib{files;FileExpressions} class, which implements a \alib{expressions;CompilerPlugin} 
+that allows articulate run-time expressions working with \alib{files;FInfo} objects.
 
-The class exposes public inner type \alib{files;FileExpressions::Filter} which implements the
+The class exposes the public inner type \alib{files;FileExpressions::Filter} which implements the
 \b %FFilter interface. With construction, the filter accepts a character string containing the
 filter expression.
 
@@ -120,7 +119,7 @@ result type of an expression can be checked.
 
 We just look at some samples:
 
-We have to add header file \alibheader{files/fileexpressions.hpp}:
+We have to add the header-file \implude{Files.Expressions}:
 
 \snippet "DOX_FILES.cpp"     DOX_FILES_HEADER2
 

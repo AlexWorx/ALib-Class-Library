@@ -1,7 +1,7 @@
 # #################################################################################################
 #  ALibTools.cmake - CMake Tools for projects using ALib
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
@@ -84,7 +84,7 @@ ENDFUNCTION(AddResourceTarget)
 # 1. How to create a variable in the parent scope:
 #    - Have a function parameter that specifies the name (!) of the variable.
 #    - Use an own local variable to create the result value.
-#    - At the end, before the function returns, assign the local variable into the gloabl
+#    - At the end, before the function returns, assign the local variable into the global
 #      scope using parameter  PARENT_SCOPE of the SET command.
 #
 #    Here is a sample:
@@ -99,7 +99,7 @@ ENDFUNCTION(AddResourceTarget)
 #    - Copy the contents of the existing variable into a local one. This has to be done with
 #      a nested ${} operator! (Yes, when you think about it...)
 #    - Do modifications only with the local copy (e.g. add or remove list entries)
-#    - At the end, before the function returns, assign the local variable into the gloabl
+#    - At the end, before the function returns, assign the local variable into the global
 #      scope using parameter  PARENT_SCOPE of the SET command.
 #
 #    Here is a sample:
@@ -191,3 +191,36 @@ FUNCTION (ALibDumpCMakeVariables)
 
 ENDFUNCTION()
 
+#-------------------------------------------------------------------------------------------------
+# Writes the given variable as boolean into the cache.
+#-------------------------------------------------------------------------------------------------
+function(CacheAsBool var description)
+    # Check the contents of the variable (use default if undefined)
+    if(${var}) # If the variable has any truthy value
+        set(${var} "On" CACHE BOOL "${description}")
+    else()
+        set(${var} "Off" CACHE BOOL "${description}")
+    endif()
+endfunction()
+
+function(Negate var)
+    # Check the value of source_var (truthy or falsy)
+    if(${var})
+        # Negate the value and set target_var to Off
+        set(${var} Off PARENT_SCOPE)
+    else()
+        # Negate the value and set target_var to On
+        set(${var} On PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(SetToNot target_var source_var)
+    # Check the value of source_var (truthy or falsy)
+    if(${source_var})
+        # Negate the value and set target_var to Off
+        set(${target_var} Off PARENT_SCOPE)
+    else()
+        # Negate the value and set target_var to On
+        set(${target_var} On PARENT_SCOPE)
+    endif()
+endfunction()

@@ -1,24 +1,37 @@
 // #################################################################################################
 //  alib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
+#include "alib_precompile.hpp"
 #if defined( _WIN32 )
-#include "alib/alox/loggers/windowsconsolelogger.hpp"
-
-#if !DOXYGEN
-#   include "alib/alox/aloxcamp.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#   include "alib/lang/message/report.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#endif // !DOXYGEN
-
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
 #include <iostream>
 #include <string.h>
 
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Strings.Tokenizer;
+    import   ALib.Camp;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.Camp.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 using namespace alib::lox::textlogger;
 
 namespace alib::lox::loggers {
@@ -58,7 +71,6 @@ using namespace detail;
 // #################################################################################################
 // Constructor/Destructor
 // #################################################################################################
-
 WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
 :    TextLogger( name, "WINDOWS_CONSOLE",  true)
 {
@@ -82,8 +94,7 @@ void WindowsConsoleLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::Container
 
     // evaluate environment variable "ALOX_CONSOLE_LIGHT_COLORS"
     // If default, we assume dark background, hence use light color on foreground
-    ALIB_LOCK_WITH(ALOX.GetConfigLock())
-    Variable useLightColors(ALOX, Variables::CONSOLE_LIGHT_COLORS );
+    Variable useLightColors= variables::CampVariable( ALOX, Variables::CONSOLE_LIGHT_COLORS );
     (void) useLightColors.Define();
     CFP= useLightColors.Get<ColorfulLoggerParameters>();
 
@@ -103,7 +114,7 @@ void WindowsConsoleLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::Container
     fmt.VerbosityVerbose.Reset(ESC::GRAY);
 
     // evaluate config variable CODEPAGE
-    Variable codePage(ALOX, Variables::CODEPAGE );
+    Variable codePage= variables::CampVariable( ALOX, Variables::CODEPAGE );
     if( codePage.IsDefined() )
         CodePage= UINT(codePage.GetInt());
 }
@@ -164,7 +175,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
             c= rest.ConsumeChar();
             int colNo= c - '0';
-            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ALOX", "ConsoleLogger: Unknown ESC-c code" )
+            ALIB_ASSERT_WARNING(colNo >=0 && colNo <=9, "ALOX", "ConsoleLogger: Unknown ESC-c code")
 
             WORD attr= 0;
             WORD light=      CFP.LCU!= ColorfulLoggerParameters::LightColorUsage::Never

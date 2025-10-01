@@ -1,19 +1,34 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/expression.hpp"
-#   include "alib/expressions/detail/program.hpp"
-#   include "alib/expressions/scope.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#endif // !DOXYGEN
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions;
+    import   ALib.Expressions.Impl;
+    import   ALib.Lang;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.H"
+#   include "ALib.Expressions.H"
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace expressions {
 
 
@@ -33,7 +48,7 @@ ExpressionVal::~ExpressionVal()
 {
     allocator.DbgLock(false);
     if(program)
-       delete program;
+       delete static_cast<detail::Program*>(program);
     lang::Destruct(*ctScope);
 }
 
@@ -47,21 +62,18 @@ String   ExpressionVal::Name()
 alib::Box  ExpressionVal::ResultType()
 {
     ALIB_ASSERT_ERROR( program, "EXPR", "Internal error: Expression without program" )
-        return program->ResultType();
+        return static_cast<detail::Program*>(program)->ResultType();
 }
 
 alib::Box  ExpressionVal::Evaluate( Scope& scope )
 {
     ALIB_ASSERT_ERROR( program, "EXPR","Internal error: Expression without program" )
-    #if ALIB_TIME && ALIB_DEBUG
-        Ticks startTime;
-    #endif
+    ALIB_DBG( Ticks startTime; )
 
-        Box result= program->Run( scope );
+        Box result= static_cast<detail::Program*>(program)->Run( scope );
 
-    #if ALIB_TIME && ALIB_DEBUG
-        DbgLastEvaluationTime= startTime.Age();
-    #endif
+
+    ALIB_DBG( DbgLastEvaluationTime= startTime.Age(); )
 
     return result;
 }
@@ -70,10 +82,20 @@ alib::Box  ExpressionVal::Evaluate( Scope& scope )
 String     ExpressionVal::GetOptimizedString()
 {
     if( optimizedString.IsNull() )
-        dynamic_cast<detail::Program*>( program )->compiler.getOptimizedExpressionString(*this);
+        static_cast<detail::Program*>(program)->compiler.getOptimizedExpressionString(*this);
     return optimizedString;
 }
 
+integer   ExpressionVal::GetProgramLength()
+{ return static_cast<detail::Program*>(program)->Length(); }
+
+int       ExpressionVal::CtdOptimizations()
+{ return static_cast<detail::Program*>(program)->CtdOptimizations(); }
+
+#if ALIB_DEBUG
+AString  DbgList(Expression expression)
+{ return detail::VirtualMachine::DbgList( *static_cast<detail::Program*>(expression->GetProgram()) ); }
+#endif
 
 }} // namespace [alib::expressions]
 

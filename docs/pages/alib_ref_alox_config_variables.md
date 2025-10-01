@@ -1,28 +1,28 @@
 // #################################################################################################
 //  Documentation - ALox Logging Library
 //
-//  Copyright 2015-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
 \page alib_alox_cfgvars    ALox Configuration Variables
 
 ## Description ##
-Trough the use of camp module \alib_config of the \aliblong, external configuration variables can be comfortably defined and accessed.
+Trough the use of camp module \alib_variables of the \aliblong, external configuration variables can be comfortably defined and accessed.
 
 While this is a reference appendix chapter, for general information, please refer to:
-- The \ref alib_mod_config "Programmer's Manual" of module \alib_config_nl.
-- The \ref alib::config "Reference Documentation" of module \alib_config_nl.
+- The \ref alib_mod_variables "Programmer's Manual" of module \alib_variables_nl.
+- The \ref alib::variables "Reference Documentation" of module \alib_variables_nl.
 - A quick sample how to attach an INI-file with minimum effort to an \alib enabled application
-  is provided in chapter \ref alib_mod_external_verbosity_configuration of the
+  is provided in chapter \ref alib_mod_alox_external_verbosity_configuration of the
   Programmer's Manual of module \alib_alox.
 
-A few further configuration variables that \alib internally uses are defined by module \alib_basecamp.
+A few further configuration variables that \alib internally uses are defined by camp \alib{BASECAMP}.
 The variables defined with that module are \ref alib_cfgvars "documented here".
 
 <b>Default Behavior:</b><p>
 \alox and the \aliblong are designed to run fine without setting configuration variables, because
-all of them have \ref alib_basecamp_resources_intro "resourced" default values.
+all of them have \ref alib_resources_intro "resourced" default values.
 Therefore, these variables provide an additional way to tweak \alox and change its default
 behavior.
 
@@ -79,7 +79,7 @@ Possible values are:
 <em>Type</em>: \c "ALOXCLP" (\alib{lox::textlogger;ColorfulLoggerParameters})
 <em>Default Value</em>: \c "Auto"<br>
 
-Evaluated by colorful loggers that dispose about light and dark colors to adjust their foreground
+Evaluated by colorful loggers that dispose of light and dark colors to adjust their foreground
 color accordingly. E.g., for instances of class \alib{lox::loggers;AnsiLogger}, field
 \alib{lox::loggers::AnsiLogger;CFP} is set.
 
@@ -136,7 +136,7 @@ While the format definition above looks rather complicated, in fact it is just t
 This variable is used by \e Loggers derived from abstract type \alib{lox::textlogger;TextLogger}.
 It is read when a \b %TextLogger is registered with a \b %Lox.<br>
 This mechanism maintains automatically adjusted tabulator positions in the generated meta
-information across different runs of a software.
+information across different runs of software.
 
 Note that the portion <c>'LOGGERNAME'</c> in the variable name is replaced by \alox with the value of
 \alib{lox::detail;Logger::GetName}. This allows having different sizes for different \e %Loggers.
@@ -146,22 +146,22 @@ increase as needed, across sessions.
 
 \note Being a pure convenience feature that optimizes the log output slightly, this variable is
       considered a "session variable" in contrast to a real "configuration variable".
-      Consequently the variable is defined with \alib{config;Priority;Priority::Session} when written by
+      Consequently, the variable is defined with \alib{variables;Priority;Priority::Session} when written by
       a \b TextLogger.
       More information on this difference and how to best store this variable is given
-      with chapter \ref alib_config_external_session of the Programmer's Manual of module
-      \alib_config_nl.
+      with chapter \ref alib_variables_external_session of the Programmer's Manual of module
+      \alib_variables_nl.
 
 The value of the variable can be retrieved with \alib{lox::textlogger;TextLogger::GetAutoSizes}.
 If a certain set auf sizes is to be used and never changed, then flags
 \alib{strings::util;AutoSizes::WriteProtected} can be set in one or  both \b AutoSizes instances of
 this variable. The flag will also be set by the logger, if the configuration variable becomes
-defined with a priority higher than \alib{config;Priority;Priority::Session}.
+defined with a priority higher than \alib{variables;Priority;Priority::Session}.
 
 \see
 - Reference documentation of this \alib{lox::textlogger;FormatAutoSizes;variable's type}
   for further information.
-- Chapter \ref alib_mod_apdx_auto_config_list_logables_textlogger.
+- Chapter \ref alib_mod_alox_apdx_auto_config_list_logables_textlogger.
 
 
 \I{################################################################################################}
@@ -265,7 +265,7 @@ defines the fields of struct \alib{lox::textlogger;FormatOther}:
 
 \I{################################################################################################}
 ## ALOX/LOGGERNAME/VERBOSITY_WITH_LOXNAME ## {#alxcvALOX_LOGGERNAME_VERBOSITY_WITH_LOXNAME}
-<em>Type</em>: \c "SV;" (\alib{config;StringVectorSemicolon})
+<em>Type</em>: \c "SV;" (\alib{variables;StringVectorSemicolon})
 <em>Default Value</em>:  none.<br>
 
 This variable is used to set \e Verbosities for a \e %Logger attached to an instance of class <b>%Lox</b>.
@@ -274,7 +274,7 @@ the names of the instances of \b %Lox and \b %Logger in question.
 
 Format: <c> ALOX/\<LOGGERNAME\>/VERBOSITY_WITH_\<LOXNAME\> = [ExportAll ;]  [*]domainpath[*] = verbosity [ ; &hellip; ] </c>
 
-Details are described in chapter \ref alib_mod_external_verbosity_configuration_variable
+Details are described in chapter \ref alib_mod_alox_external_verbosity_configuration_variable
 of the Programmer's Manual.
 
 \I{################################################################################################}
@@ -294,7 +294,7 @@ need to be enclosed by quotation marks (<c>\"</c>).
 
 \I{################################################################################################}
 ## ALOX/LOXNAME/DOMAIN_SUBSTITUTION ## {#alxcvALOX_LOXNAME_DOMAIN_SUBSTITUTION}
-<em>Type</em>: \c "SV;" (\alib{config;StringVectorSemicolon})
+<em>Type</em>: \c "SV;" (\alib{variables;StringVectorSemicolon})
 <em>Default Value</em>: none.<br>
 This variable is used to define <em>Domain Substitution Rules</em> for a \b %Lox.
 The portion <c>'LOXNAME'</c> of the variable name has to be replaced by the name of the instance
@@ -302,7 +302,7 @@ of class \b %Lox in question.
 
 Format: <c> ALOX/\<LOXNAME\>/DOMAIN_SUBSTITUTION = [*]domainpath[*] -> replacement [ ; &hellip; ] </c>
 
-Details are described in \ref alib_mod_domain_substitution_config "Substitution Rules and External Configuration".
+Details are described in \ref alib_mod_alox_domain_substitution_config "Substitution Rules and External Configuration".
 
 
 \I{################################################################################################}
@@ -314,7 +314,7 @@ This variable is used to define global <em>Source Path Trim Rules</em>.
 
 Format: <c> ALOX/GLOBAL_SOURCE_PATH_TRIM_RULES = [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; &hellip; ] </c>
 
-Details are described in \ref alib_mod_trim_source_path_set_config "External Configuration of Trim Rules".
+Details are described in \ref alib_mod_alox_trim_source_path_set_config "External Configuration of Trim Rules".
 
 
 \I{################################################################################################}
@@ -328,7 +328,7 @@ class \b %Lox in question.
 
 Format: <c> ALOX/\<LOXNAME\>/SOURCE_PATH_TRIM_RULES = [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; &hellip; ] </c>
 
-Details are described in \ref alib_mod_trim_source_path_set_config "External Configuration of Trim Rules".
+Details are described in \ref alib_mod_alox_trim_source_path_set_config "External Configuration of Trim Rules".
 
 
 \I{################################################################################################}
@@ -365,7 +365,7 @@ Each definition contains of the following parameters:
 Used for debugging or for investigation into ALox enabled 3rd party libraries or applications.
 
 \note If you want to prevent such investigation for your software, refer to the documentation of
-      module \alib_config to learn how to protect external variables from being set.
+      module \alib_variables to learn how to protect external variables from being set.
 
 Format: <c> ALOX/\<LOXNAME\>/DUMP_STATE_ON_EXIT = arg1 [, arg2][, &hellip; ] </c>
 

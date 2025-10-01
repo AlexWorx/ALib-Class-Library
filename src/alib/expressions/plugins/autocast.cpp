@@ -1,19 +1,28 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/plugins/autocast.hpp"
-    // we are using method ToString
-#   include "alib/expressions/plugins/strings.hpp"
-    // ...and method ToBoolean
-#   include "alib/expressions/plugins/arithmetics.hpp"
-#endif // !DOXYGEN
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -53,9 +62,9 @@ SortedTypes   SortedType( Type type )
 }
 
 // conversion integer to float.
-FUNC( castI2F     , return static_cast<double >( INT(ARG0) );  )
-FUNC( castB2F     , return static_cast<double >( BOL(ARG0) );  )
-FUNC( castB2I     , return static_cast<integer>( BOL(ARG0));   )
+FUNC( castI2F     , return double ( INT(ARG0) );  )
+FUNC( castB2F     , return double ( BOL(ARG0) );  )
+FUNC( castB2I     , return integer( BOL(ARG0));   )
 
 } // anonymous namespace
 

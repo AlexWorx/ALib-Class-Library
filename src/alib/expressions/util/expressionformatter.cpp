@@ -1,17 +1,33 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/util/expressionformatter.hpp"
-#   include "alib/lang/format/fmtexceptions.hpp"
-#   include "alib/expressions/compiler.hpp"
-#endif // !DOXYGEN
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions;
+    import   ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#   if ALIB_CAMP
+      import ALib.Camp.Base;
+#   endif
+#else
+#   include "ALib.Expressions.Impl.H"
+#   include "ALib.Camp.Base.H"
+#endif
+// ======================================   Implementation   =======================================
 /// Utility types of camp \alib_expressions.
 namespace alib::expressions::util {
 
@@ -105,7 +121,7 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     }
     catch(Exception& e)
     {
-        e.Add( ALIB_CALLER_NULLED,  lang::format::FMTExceptions::ErrorInResultingFormatString,
+        e.Add( ALIB_CALLER_NULLED,  format::FMTExceptions::ErrorInResultingFormatString,
                originalFormatString );
         throw;
     }

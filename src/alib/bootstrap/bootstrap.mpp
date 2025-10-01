@@ -1,0 +1,253 @@
+//==================================================================================================
+/// \file
+/// This header-file is part of the \aliblong.
+/// With supporting legacy or module builds, .mpp-files are either recognized by the build-system
+/// as C++20 Module interface files, or are included by the
+/// \ref alib_manual_modules_impludes "import/include headers".
+///
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/singletons/singletons.prepro.hpp"
+#include "alib/monomem/monomem.prepro.hpp"
+#include "alib/strings/strings.prepro.hpp"
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/containers/containers.prepro.hpp"
+#include "alib/resources/resources.prepro.hpp"
+#include "alib/bitbuffer/bitbuffer.prepro.hpp"
+#include "alib/alox/alox.prepro.hpp"
+#include "alib/bootstrap/bootstrap.prepro.hpp"
+
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
+    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
+    /// or use.<br>
+    /// In general, the names equal the names of the header files listed in the chapter
+    /// \ref alib_manual_modules_impludes of the \alib User Manual.
+    /// This chapter, among others, provides further explanations.
+    export module ALib.Bootstrap;
+    import        ALib.Lang;
+#   if ALIB_CONTAINERS
+    import        ALib.Containers.List;
+#   endif
+#   if ALIB_CAMP
+      import   ALib.Monomem;
+      import   ALib.Camp;
+#   endif
+
+#else
+    #include "ALib.Lang.H"
+    #include "ALib.Containers.List.H"
+    #include "ALib.Monomem.H"
+    #include "ALib.Camp.H"
+#endif
+
+// ==========================================   Exports   ==========================================
+ALIB_EXPORT namespace alib {
+
+/// State of initialization of the \alibmods that do not dispose over a \alib{camp::Camp}
+/// instance.
+extern bool     NonCampModulesInitialized;
+
+// #################################################################################################
+// Compilation flags
+// Create a bitset from the ALib compilation features.
+// For this, we ensure that the individual headers tested are included
+// #################################################################################################
+
+/// This is a struct composing an entry in #COMPILATION_FLAG_MEANINGS.
+struct CompilationFlagMeaningsEntry
+{
+    int             Flag; ///< The bit number in the bitset.
+    const char*     Name; ///< The human-readable meaning of the bit.
+};
+
+/// This is for the creation of output on information about the bits found in
+/// field #COMPILATION_FLAGS.
+/// Declared public to allow exposure, e.g., in verbose logging.
+/// \see Method #AssertALibVersionAndFlags for more information.
+extern ALIB_DLL
+CompilationFlagMeaningsEntry    COMPILATION_FLAG_MEANINGS[40];
+
+
+/// The module version. Standard \alib versioning scheme is YYMM (as integer number)
+/// of the module release date.
+/// Besides this version number, field #REVISION indicates if this is a revised version
+/// of a former release.
+extern ALIB_DLL
+int                             VERSION;
+
+/// The revision number of this release. Usually a module is initially released as
+/// revision \e 0. Pure bug-fix releases that do not change the interface of \alib
+/// are holding the same #VERSION but an increased number in this field.
+extern ALIB_DLL
+unsigned char                   REVISION;
+
+/// These flags are used internally to detect incompatibilities when linking \alib to binaries that
+/// use different compilation flags. Declared public to allow exposure, e.g., in verbose logging.
+/// \see Function #AssertALibVersionAndFlags, which is invoked by overloaded functions
+///      #Bootstrap.
+extern ALIB_DLL
+TCompilationFlags               COMPILATION_FLAGS;
+
+/// Compares a given set of compilation flags with the ones set in the \alib library.
+/// If a mismatch is found, the configuration mismatch is written to <c>std::cerr</c>
+/// and <c>exit(255)</c> is performed.
+///
+/// This function called in all variants of function \ref alib::Bootstrap.
+/// If a using application wants to act different on such a mismatch, an own check of
+/// global variables \ref alib::VERSION, \ref alib::REVISION and \ref alib::COMPILATION_FLAGS against
+/// preprocessor symbols \ref ALIB_VERSION, \ref ALIB_REVISION and
+/// \doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}
+/// has to be performed \e before calling \b Bootstrap.
+///
+/// \attention A mismatch in \alib library version and compilation flags, may lead to very
+///            dubious misbehavior which is almost impossible to debug. This is true for any
+///            C/C++ software/library mismatch.
+///
+/// @param alibVersion      The \alib version required.
+///                         Defaults to \ref ALIB_VERSION and \b must not be passed when invoking
+///                         this function.
+/// @param alibRevision     The \alib sub-version required.
+///                         Defaults to \ref ALIB_REVISION and \b must not be passed when invoking
+///                         this function.
+/// @param compilationFlags The flags as defined in invoking compilation unit.
+///                         Defaults to \c ALIB_COMPILATION_FLAGS and \b must not be given.
+ALIB_DLL
+void            AssertALibVersionAndFlags( int               alibVersion     = ALIB_VERSION,
+                                           int               alibRevision    = ALIB_REVISION,
+                                           TCompilationFlags compilationFlags= TCompilationFlags{ALIB_COMPILATION_FLAGS} );
+
+//==================================================================================================
+//================================     Non-Camp Version      =======================================
+//==================================================================================================
+#if !ALIB_CAMP || DOXYGEN
+/// Performs standard bootstrapping of \alib. All details are explained
+/// in the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+///
+/// \note In addition, function \ref alib::AssertALibVersionAndFlags is invoked.
+///       For this, the parameters of this function must not be given, but left to their
+///       default values, which are read from corresponding preprocessor symbols.<br>
+///       For more information on this topic, see chapter
+///       \ref alib_mod_bs_assertcomp  of the \ref alib_manual.
+///
+/// \par Availability
+///   This function is replaced by a sibling method of the same name, but with more parameters,
+///   in case the module \alib_camp is included in the \alibbuild.
+///
+/// @param alibVersion      The \alib version used by the caller.
+///                         Defaults to \ref ALIB_VERSION and \b must not be passed.
+/// @param alibRevision     The \alib sub-version used by the caller.
+///                         Defaults to \ref ALIB_REVISION and \b must not be passed.
+/// @param compilationFlags The flags as defined in invoking compilation unit.
+///                         Defaults to
+///                         \doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}
+///                         and \b must not be passed.
+ALIB_DLL    void     Bootstrap(int               alibVersion        = ALIB_VERSION,
+                               int               alibRevision       = ALIB_REVISION,
+                               TCompilationFlags compilationFlags   = TCompilationFlags{ALIB_COMPILATION_FLAGS});
+
+/// Terminates \alib. All details are explained in the
+/// \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+/// \par Availability
+///   This function is replaced by a sibling method of the same name, but with more parameters,
+///   in case the module \alib_camp is included in the \alibbuild.
+ALIB_DLL    void    Shutdown();
+#endif
+
+//==================================================================================================
+//==================================     Camp Version      =========================================
+//==================================================================================================
+#if ALIB_CAMP || DOXYGEN
+/// Lists all \alibcamps in the order of bootstrapping. Shutdown is performed in reverse order.
+/// This list is used by overloaded functions
+/// - \doxlinkproblem{namespacealib.html;a78bb34888e5142adb87e265e23ee3c2e;alib::Bootstrap(BootstrapPhases, camp::Camp*, int,int,TCompilationFlags)},
+///   and
+/// - \doxlinkproblem{namespacealib.html;a4374717714582ef1a859b773367ec5d9;alib::Shutdown(ShutdownPhases, camp::Camp*)}.
+///
+/// For details on when and how to manipulate this list explicitly, see the detailed explanations in
+/// the \\ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+///
+/// \note Should for any reason it is needed to \b not use method \alib{BootstrapAddDefaultCamps}
+///       to default-fill this list before adding custom camps, then the allocator of this
+///       list has to be set before filling it. This can be done with:
+///
+///              CAMPS.GetAllocator()=  monomem::GLOBAL_ALLOCATOR;
+ALIB_DLL
+extern List<MonoAllocator, camp::Camp*>  CAMPS;
+
+///  Fills list \ref alib::CAMPS, taking the permutation of modules contained in the \alibbuild into
+///  account.<br>
+///  This function is usually invoked automatically.
+///
+///  For details on when and how to explicitly invoke this function, see the detailed explanations
+///  in the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+ALIB_DLL
+void            BootstrapAddDefaultCamps();
+
+//==================================================================================================
+/// This function is used to bootstrap \alib. It replaces the overloaded version
+/// #Bootstrap(int, int, TCompilationFlags) in the moment module \alib_camp is included in the
+/// \alibbuild.
+/// (The term "replace" here in deed means that this other version of this function is not available
+/// anymore.)
+///
+/// The difference of this version is that it makes it possible to fine-tune the bootstrap
+/// process in respect to the list of camps that are considered and it introduces
+/// different phases of bootstrapping.
+///
+/// For details on when and how to invoke this method explicitly, see the detailed explanations in
+/// the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+///
+/// @param targetPhase      The initialization level to perform.
+///                         Defaults to <c>BootstrapPhases::Final</c>.
+/// @param targetCamp       The "highest" \alibcamp in the list \alib{CAMPS} to bootstrap.
+///                         Defaults to <c>nullptr</c>, which chooses the end of the list.
+/// @param alibVersion      The \alib version required.
+///                         Defaults to \ref ALIB_VERSION and \b must not be passed when invoking
+///                         this function.
+/// @param alibRevision     The \alib sub-version required.
+///                         Defaults to \ref ALIB_REVISION and \b must not be passed when invoking
+///                         this function.
+/// @param compilationFlags The flags as defined in invoking compilation unit.
+///                         Defaults to
+///                         \doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}
+///                         and must not be passed when
+///                         invoking this function.
+//==================================================================================================
+ALIB_DLL
+void     Bootstrap( BootstrapPhases       targetPhase     = BootstrapPhases::Final,
+                    camp::Camp*           targetCamp      = nullptr,
+                    int                   alibVersion     = ALIB_VERSION,
+                    int                   alibRevision    = ALIB_REVISION,
+                    TCompilationFlags     compilationFlags= TCompilationFlags{ALIB_COMPILATION_FLAGS});
+
+//==================================================================================================
+/// This function is usually invoked automatically and rightfully with the standard, parameterless
+/// version \ref alib::Shutdown().
+///
+/// For details on when and how to invoke this method explicitly, see the detailed explanations in
+/// the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+///
+/// @param targetPhase The termination level to perform.
+/// @param targetCamp  The "lowest" \alibcamp in list \alib{CAMPS} to shut down.
+///                    Defaults to <c>nullptr</c>, which chooses the start of the list.
+//==================================================================================================
+ALIB_DLL
+void     Shutdown( ShutdownPhases     targetPhase= ShutdownPhases::Destruct,
+                   camp::Camp*        targetCamp = nullptr                        );
+#endif
+
+} // namespace [alib]
+
+
+

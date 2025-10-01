@@ -1,15 +1,27 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/bitbuffer/bitbuffer.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/bitbuffer/ac_v1/huffman.hpp"
-#   include "alib/containers/fixedcapacityvector.hpp"
-#endif // !DOXYGEN
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.BitBuffer;
+    import   ALib.Containers.FixedCapacityVector;
+#else
+#   include "ALib.Containers.FixedCapacityVector.H"
+#   include "ALib.BitBuffer.H"
+#endif
 
 namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
@@ -92,7 +104,6 @@ namespace
 #endif
 
 
-ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void HuffmanEncoder::Generate()
 {
     constexpr int maxNodesNeeded= 256 + 255;
@@ -166,7 +177,7 @@ TEMP_PT(Log_Warning("------ Huffman Encoding Table ----------")    )
                 for( int i= 0 ; i <= wordNo   ; ++i )
                     node->getSymbol()->words[i]= words[i];
 
-TEMP_PT(        NString512 bits; bits << Format::Bin(node->symbol->words[0], node->symbol->wordLength);
+TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbol->wordLength);
                 bits.Reverse();
                 Lox_Warning("HM I: {:3}: {:<15}  (len={!ATAB:2}, freq={:>5})",
                             (node->symbol - symbols),
@@ -271,7 +282,6 @@ ALIB_ASSERT_ERROR( npNext <= MAX_NODES, "BITBUFFER/AC/HFMN", "This can never hap
 TEMP_PT(  Log_Warning("------End of Huffman Decoding Table ----------")  )
 }
 
-ALIB_WARNINGS_RESTORE
 
 
 

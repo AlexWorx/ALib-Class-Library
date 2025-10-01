@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -11,28 +11,41 @@
 
 \alib is a general purpose, use-case agnostic, platform-independent, low-level C++ class library.
 
-Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
-As of today, \alib consists of \ref alib_manual_modules_dependencies "15 modules", each addressing
+Its mission is to provide foundational concepts, types, and idioms relevant to any C++ project.
+As of today, \alib consists of \ref alib_manual_modules_graph "25 modules", each addressing
 different topics.<br>
 A subset of the available modules can be selectively included in a custom library build.
-This means, you just get what you choose from the menu.
+This means you just get what you choose from the menu.
 
-Some highlights of the functionality:
-- \alib_strings: String-types with interfaces similar to Java/C#, compatible with anything that "smells" like a string
-  (due to some template meta programming magic).
-- \alib_boxing: Consider this "std::any on steroids".
-- \alib_enums: Finally, we get what we expected from C++ enums.
-- \alib_monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
-- \ref alib_mod_alox "ALib ALox": Logging for adults.
-- \alib_bitbuffer: Write bit-streams instead of human-readable text.
-- \alib_cli: Command line parser with support of environment variables and configuration files.
-- \alib_expressions: Type-safe run-time expression compiler. Easily extensible to support your
+## New In this Version ##
+Dropped support of language version C++17. With that:
+- All use of <c>std::enable_if</c> (and similar) have been replaced by <b>C++20 Concepts</b>.  
+- Support for <b>C++20 Modules</b> was added. (This is in alpha state and works only on newest Clang 
+  compilers).
+
+The latter was a little bit of a journey, and we have created a blog-page describing our 
+experiences. Here it is: \ref alib_c20module_shift.
+                                                                         
+For more news, consult the \ref alib_changelog.
+
+## Some highlights of the functionality ##
+- Module \alib_strings: String-types with interfaces similar to Java/C#, compatible with anything that 
+  "smells" like a string. 
+  (Technically, this is achieved by using some \ref alib_manual_appendix_tca "type traits" magic.)
+- Module \alib_boxing: Consider this as "std::any on steroids".
+- Modules \alib_enumops and \alib_enumrecords: Finally, we get what we expected from C++ enums.
+- Module \alib_monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
+- Module \ref alib_mod_alox "ALox": Logging for adults.
+- Module \alib_bitbuffer: Write bit-streams instead of human-readable text.
+- Module \alib_cli: Command line parser with support of environment variables and configuration files.
+- Module \alib_expressions: Type-safe run-time expression compiler. Easily extensible to support your
   custom expression functions. 130+ (optional) predefined functions (math, string compare, date/time, etc.)
-- \alib_config: Run-time variables for C++. 
+- Module \alib_variables: Run-time variables for C++. 
   Its priority-management allows hard-coding defaults and having them be overridden by
   configuration files, environment-variables or command-line parameters.  
-- \alib_files: A directory and file scanner (with run-time expression support).
-- \alib_threadmodel: A dynamic thread-pool implementation, dedicated worker threads with prioritized
+- Module \alib_files: A directory and file scanner (with run-time expression support).
+- Module \alib_format: Formatting of strings with Python-like and alternatively Java-like syntax.
+- Module \alib_threadmodel: A dynamic thread-pool implementation, dedicated worker threads with prioritized
   job-management, and periodic event-triggering.
 - And last but not least: Many more tools like managing bootstrapping of C++ software, externalized resources,
   configuration data, singletons with Windows DLLs, ...
@@ -41,7 +54,7 @@ Some highlights of the functionality:
 ## Main Characteristics And Design Goals ##
 
 - \alib is <b>free software</b>.
-- Compiles and tested with <b>C++ 17, 20 and  23</b>.
+- Compiles with standards <b>C++20 and 23</b>.
 - \b Modularization: Possible selective use of only parts of the library.
 - Extensive \b documentation.
 - <b>Least intrusive</b>: Designed to keep user code as independent of \alib types and idioms as possible.
@@ -58,7 +71,7 @@ The following documentation is provided.
 1. A \ref alib_manual "General Library Manual" is available describing the library structure,
    its setup and compilation, bootstrapping, etc.
 
-2. \b Fifteen separated \ref alib_manual_modules_overview "Programmer's Manuals" are published
+2. \b 25 separated \ref alib_manual_modules_table "Programmer's Manuals" are published
    on this website! (One for each \alibmod_nl).<br>
    The manuals are well-structured, provide <b>step-by-step source-code tutorials</b> and 
    often go into in-depth discussions in respect to design decisions and overall
@@ -80,17 +93,19 @@ The following documentation is provided.
    <b>1000 pages</b> if printed. Its all explained, for beginners and experts!
 
 ## IDE / Build System Setup ##
-The current release got tested on the following platform combinations:
-- GNU/Linux Arch 6.12.1, GNU C++ 14.2.1 / Clang++ 18.1.8, C++ 17/20/23, 32-Bit / 64-Bit<br>
-  (This is the main development platform.)
-- WindowsOS 10/11, MSC 19.42 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
-- WindowsOS 10/11, MinGW, GCC 13.47  C++ 17/20, 64-Bit 
-- macOS Sequoia 15.2, Apple M2 / ARM64, Apple Clang Version 16.0.0, C++ 17/20/23, 64-Bit
-- Raspberry 3, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
-- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
-
 Check out chapter \ref alib_manual_build "6. Building The Library" for details of how to compile
 and use ALib in your C++ environment.
+
+The current release got tested on the following platform combinations:
+- GNU/Linux Arch 6.16.8, Clang++ 20.1.8, C++20/23, 32-Bit / 64-Bit, optional <b>C++20 Module Support</b><br>
+  (This is the main development platform.)
+- GNU/Linux Arch 6.16.8, GNU C++ 15.2.1, C++20/23, 32-Bit / 64-Bit
+- WindowsOS 11, MSC 19.44 (Visual Studio 2026 Insiders, Platform v145), C++20, 32-Bit/64-Bit
+- WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
+- macOS Tahoe 26.0, Apple M2 / ARM64, Apple Clang Version 17.0.0, C++20/23, 64-Bit
+- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23 
 
 ##  C# and Java Versions Of ALib ##
 

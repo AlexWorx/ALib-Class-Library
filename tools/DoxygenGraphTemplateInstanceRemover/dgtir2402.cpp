@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library Tools - DoxygenGraphTemplateInstanceRemover
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -18,12 +18,12 @@
 // #################################################################################################
 
 // to preserve the right order, we are not includable directly from outside.
-#include "alib/alox.hpp"
-#include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/strings/astring.hpp"
-#include "alib/config/inifile.hpp"
-#include "alib/lang/message/report.hpp"
-#include "alib/lang/system/path.hpp"
+#include "ALib.ALox.H"
+#include "ALib.Strings.StdIOStream.H"
+#include "ALib.Strings.H"
+#include "ALib.Variables.IniFile.H"
+#include "ALib.System.H"
+#include "ALib.Camp.Base.H"
 
 #include <fstream>
 #include <iostream>
@@ -32,7 +32,7 @@
 using namespace alib;
 using namespace std;
 
-#include "alib/lang/callerinfo_functions.hpp"
+#include "ALib.Lang.CIFunctions.H"
 int main2402();
 int main2402()
 {
@@ -48,8 +48,7 @@ int main2402()
     AString     FileName;
     if (!DebugMode )
     {
-      //Log_SetVerbosity( "DEBUG_LOGGER",  Verbosity::Info , "/DOXGRAPH" );
-        lang::Report::GetDefault().PushHaltFlags( false, false );
+        Log_SetVerbosity( "DEBUG_LOGGER",  Verbosity::Info , "/DOXGRAPH" )
         FileName.Reset( NCString(alib::ARG_VN[1]) );
     }
     else
@@ -95,7 +94,6 @@ int main2402()
                                                          )
 
 
-
     ostream& out= DebugMode ? cout : *oFile;
 
 
@@ -118,30 +116,33 @@ int main2402()
 
             label.SearchAndReplace("\\l"                      , "" ); // new label characters
             label.SearchAndReplace("alib::"                   , "" );
+            label.SearchAndReplace("assert::"                 , "" );
             label.SearchAndReplace("bitbuffer::"              , "" );
             label.SearchAndReplace("boxing::"                 , "" );
+            label.SearchAndReplace("camp::"                   , "" );
             label.SearchAndReplace("characters::"             , "" );
+            label.SearchAndReplace("containers::"             , "" );
             label.SearchAndReplace("cli::"                    , "" );
             label.SearchAndReplace("compatibility::"          , "" );
-            label.SearchAndReplace("containers::"             , "" );
-            label.SearchAndReplace("config::"                 , "" );
-            label.SearchAndReplace("enums::"                  , "" );
+            label.SearchAndReplace("enumops::"                , "" );
+            label.SearchAndReplace("enumrecords::"            , "" );
+            label.SearchAndReplace("exceptions::"             , "" );
             label.SearchAndReplace("expressions::"            , "" );
             label.SearchAndReplace("files::"                  , "" );
-            label.SearchAndReplace("lang::basecamp::"         , "" );
-            label.SearchAndReplace("lang::format::"           , "" );
-            label.SearchAndReplace("lang::resources::"        , "" );
-            label.SearchAndReplace("lang::system::"           , "" );
+            label.SearchAndReplace("format::"                 , "" );
             label.SearchAndReplace("lang::"                   , "" );
-            label.SearchAndReplace("lox::textlogger::", "" );
+            label.SearchAndReplace("lox::textlogger::"        , "" );
             label.SearchAndReplace("lox::detail::"            , "" );
             label.SearchAndReplace("lox::"                    , "" );
             label.SearchAndReplace("monomem::"                , "" );
+            label.SearchAndReplace("resources::"              , "" );
             label.SearchAndReplace("singletons::"             , "" );
             label.SearchAndReplace("strings::"                , "" );
+            label.SearchAndReplace("system::"                 , "" );
             label.SearchAndReplace("threadmodel"              , "" );
             label.SearchAndReplace("threads"                  , "" );
             label.SearchAndReplace("time"                     , "" );
+            label.SearchAndReplace("variables::"              , "" );
 
             label.SearchAndReplace("std::",      "" );
             label.SearchAndReplace("< ",        "<" );
@@ -168,7 +169,6 @@ int main2402()
         }
         else
             out << line << endl;
-
     }
 
     //----- invoking dot ---------
@@ -189,10 +189,7 @@ int main2402()
     }
 
     pclose(pipe);
-
-
-    alib::Shutdown();
     return 0;
 }
 
-#include "alib/lang/callerinfo_methods.hpp"
+#include "ALib.Lang.CIMethods.H"

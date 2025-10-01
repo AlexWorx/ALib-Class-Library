@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -17,10 +17,10 @@
 \I{################################################################################################}
 # 1. Pretty Printers for GNU Debugger (gdb) ## {#alibtools_debug_helpers_gdb}
 
-GNU debugger supports python scripts that allow the display of complex data types with so called
+GNU debugger supports python scripts that allow the display of complex data types with so-called
 \https{pretty printers,sourceware.org/gdb/onlinedocs/gdb/Pretty-Printing-API.html#Pretty-Printing-API}.
 \alib provides such script for some of its most important classes, for example, all string types,
-class \alib{files;File}, class \alib{config;Variable} and several more.
+class \alib{files;File}, class \alib{variables;Variable} and several more.
 
 The script is found in the ALox source folder under
 

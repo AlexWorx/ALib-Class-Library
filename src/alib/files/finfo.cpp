@@ -1,23 +1,42 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#include "alib/files/finfo.hpp"
-
-#include "ftree.hpp"
-#if ALIB_DEBUG
-#   include "alib/lang/format/formatter.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
 #endif
-
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/files/files.prepro.hpp"
 #if !defined (_WIN32)
 #   include <pwd.h>
 #   include <grp.h>
 #endif
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Files;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+#  if ALIB_EXPRESSIONS
+    import   ALib.Expressions;
+#  endif
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.Expressions.H"
+#   include "ALib.Files.H"
+#endif
+// ======================================   Implementation   =======================================
 
-using namespace alib::lang::system;
+using namespace alib::system;
 namespace alib::files {
 
 void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathString& realTarget)
@@ -25,7 +44,6 @@ void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathStr
     EISymLinkFile& ei= *static_cast<EISymLinkFile*>(extendedInfo);
     auto& pool= tree.Pool;
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     // delete old values
     if(    ei.RealTarget.Buffer() != ei.Target.Buffer()
         && ei.RealTarget.Buffer() != nullptr             )

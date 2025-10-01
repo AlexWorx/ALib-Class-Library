@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Unit Tests
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -11,7 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
-cmake_minimum_required( VERSION 3.18.0 )
+cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 
 project("ALib_UnitTests")
 
@@ -19,9 +19,8 @@ project("ALib_UnitTests")
 # Settings prior to including the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    # Compile speed options. Uncomment during development ONLY!
-     set( ALIB_PRECOMPILED_HEADER           "On" )
-    # set( ALIB_UT_LINKER_MOLD               "On" )
+    # set( ALIB_C20_MODULES                  "On" )
+    set( ALIB_PRECOMPILED_HEADER           "On" )
     # set( ALIB_UT_REDUCED_COMPILE_TIME      "On" )
     # set( ALIB_UT_MEASURE_COMPILE_TIME      "On" )
     # set( CMAKE_VERBOSE_MAKEFILE            "On" )
@@ -30,7 +29,7 @@ project("ALib_UnitTests")
     # Allow valgrind runs?
     list( APPEND ALIB_SYMBOLS   "ALIB_UT_AVOID_ANALYZER_WARNINGS=0"   )
 
-    #set( ALIB_UT_NO_QT      "Off" )
+    #set( ALIB_UT_QT      "On" )
 
     # Uncomment to exclude huge loops, sleep times, thread races, etc
     #list( APPEND ALIB_SYMBOLS   "ALIB_UT_ROUGH_EXECUTION_SPEED_TEST"    )
@@ -43,7 +42,6 @@ project("ALib_UnitTests")
 
 
     # C++ Version selection
-    #set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD 20)
     #set(CMAKE_CXX_STANDARD 23)
 
@@ -51,24 +49,15 @@ project("ALib_UnitTests")
     #list( APPEND ALIB_LINKER_OPTIONS       "-m32"    )
     #list( APPEND ALIB_COMPILER_OPTIONS     "-m32"    )
 
-    # valgrind dwarf 4
-    #list( APPEND ALIB_COMPILER_OPTIONS    "-gdwarf-4"    )
-
     #### Module CAMP is mandatory to build the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "CAMP"  )
-
-    #### These "micro modules" are optional: may be commented out. #####
-    #list( APPEND ALIB_DISTRIBUTION         "TIME"    )
-    #list( APPEND ALIB_DISTRIBUTION         "THREADS"  )  # includes TIME
-
-    #### The "higher level" modules are optional to be included in the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "ALL"           )
-    #list( APPEND ALIB_DISTRIBUTION         "ALOX"          )
-    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"      )
-    #list( APPEND ALIB_DISTRIBUTION         "CONFIGURATION" )
-    #list( APPEND ALIB_DISTRIBUTION         "CLI"           )
-    #list( APPEND ALIB_DISTRIBUTION         "EXPRESSIONS"   )
-    #list( APPEND ALIB_DISTRIBUTION         "FILES"          )
+    #list( APPEND ALIB_BUILD         "CAMP"  )
+    #list( APPEND ALIB_BUILD         "ALL"           )
+    #list( APPEND ALIB_BUILD         "ALOX"          )
+    #list( APPEND ALIB_BUILD         "BITBUFFER"      )
+    #list( APPEND ALIB_BUILD         "VARIABLES" )
+    #list( APPEND ALIB_BUILD         "CLI"           )
+    #list( APPEND ALIB_BUILD         "EXPRESSIONS"   )
+    #list( APPEND ALIB_BUILD         "FILES"          )
 
     #### ALib Features ####
     #set( ALIB_FEAT_SINGLETON_MAPPED        "On" )
@@ -85,7 +74,7 @@ project("ALib_UnitTests")
 
     set( ALIB_DEBUG_CRITICAL_SECTIONS      "On" )
     set( ALIB_DEBUG_ALLOCATIONS            "On" )
-    #set( ALIB_DEBUG_MONOMEM                "On" )
+    #set( ALIB_DEBUG_MEMORY                "On" )
     #set( ALIB_DEBUG_CONTAINERS             "On" )
     #set( ALIB_DEBUG_ARRAY_COMPRESSION      "On" )
     #set( ALIB_DEBUG_STRINGS                "On" )

@@ -1,30 +1,55 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/alox/alox.hpp"
-#   include "alib/alox/aloxcamp.hpp"
-#   define HPP_ALIB_LOX_PROPPERINCLUDE
-#       include "alib/alox/detail/scopeinfo.inl"
-#   undef HPP_ALIB_LOX_PROPPERINCLUDE
-#   include "alib/compatibility/std_strings_functional.hpp"
-#   include "alib/enums/serialization.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#endif // !DOXYGEN
-
-
-// conditional expression is constant (which is a great thing for the compiler by the way ;-)
-#if defined(_MSC_VER)
-    #pragma warning( push )
-    #pragma warning( disable : 4127 )
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
 #endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include "alib/system/system.prepro.hpp"
+#include "alib/alox/alox.prepro.hpp"
+#include <vector>
+#   include "ALib.Strings.StdFunctors.H"
 
-using namespace alib::lang::system;
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Strings.Tokenizer;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.System.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
+
+using namespace alib::system;
 
 namespace alib {  namespace lox { namespace detail {
 
@@ -36,7 +61,7 @@ std::vector<ScopeInfo::SourcePathTrimRule>  ScopeInfo::GlobalSPTRs;
 bool                                        ScopeInfo::GlobalSPTRsReadFromConfig       = false;
 
 ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
 : threadDictionary   (allocator)
 ,
 #else
@@ -48,7 +73,8 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
 {
     callStack.reserve(2);
     characters::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
-    ALIB_ASSERT_ERROR( !loxName.Equals<NC>( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
+    ALIB_ASSERT_ERROR( !loxName.Equals<NC>( "GLOBAL" ), "ALOX",
+                       "Name \"GLOBAL\" not allowed for Lox instances" )
 
     IF_ALIB_THREADS( threadDictionary.EmplaceUnique(Thread::GetMain()->GetID(), "PROCESS" ); )
 
@@ -56,8 +82,8 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
     // do 2 times, 0== local list, 1== global list
     std::vector<SourcePathTrimRule>* trimInfoList;
     for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
-    { ALIB_LOCK_WITH(ALOX.GetConfigLock())
-        Variable variable(ALOX);
+    { ALIB_LOCK_WITH(ALOX.GetConfig())
+        Variable variable= variables::CampVariable(ALOX);
         
         // check if done... or set list
         if ( trimInfoNo == 0 )
@@ -105,9 +131,9 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
                 else
                     rule.Path.SearchAndReplace( '/' , '\\' );
 
-                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.IncludeString, lang::Inclusion::Exclude, lang::Inclusion::Include );
+                enumrecords::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.IncludeString, lang::Inclusion::Exclude, lang::Inclusion::Include );
                 ruleTknzr.Next().ConsumeInt( rule.TrimOffset );
-                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, lang::Case::Ignore, lang::Case::Sensitive );
+                enumrecords::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, lang::Case::Ignore, lang::Case::Sensitive );
 
                 rule.TrimReplacement.Reset( ruleTknzr.Next() );
             }
@@ -118,7 +144,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
 void ScopeInfo::Set ( const lang::CallerInfo& ci )
 {
     ++callStackSize;
-    ALIB_ASSERT( callStackSize < 8)
+    ALIB_ASSERT( callStackSize < 8, "ALOX")
     if( callStack.size() == size_t(callStackSize) )
         callStack.emplace_back();
 
@@ -268,7 +294,7 @@ void ScopeInfo::trimPath()
              maxIdx=  actual->trimmedPath.Length();
 
         while (  i < maxIdx &&    characters::ToUpper( currentDir[i] )
-                               == characters::ToUpper( static_cast<character>(actual->trimmedPath[i]) )  )
+                               == characters::ToUpper( character(actual->trimmedPath[i]) )  )
             ++i;
 
         if ( i > 1 )

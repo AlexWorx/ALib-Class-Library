@@ -1,0 +1,265 @@
+//==================================================================================================
+/// \file
+/// This header-file is part of the \aliblong.
+/// With supporting legacy or module builds, .mpp-files are either recognized by the build-system
+/// as C++20 Module interface files, or are included by the
+/// \ref alib_manual_modules_impludes "import/include headers".
+///
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/singletons/singletons.prepro.hpp"
+
+#if ALIB_FEAT_SINGLETON_MAPPED 
+#   if !ALIB_MONOMEM || !ALIB_CONTAINERS
+#      include <unordered_map>
+#   endif
+#   if !ALIB_MONOMEM
+#      include <mutex>
+#   endif
+#endif
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+/// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
+/// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
+/// or use.<br>
+/// In general, the names equal the names of the header files listed in the chapter
+/// \ref alib_manual_modules_impludes of the \alib User Manual.
+/// This chapter, among others, provides further explanations.
+    export module ALib.Singletons;
+    import        ALib.Lang;
+#   if ALIB_FEAT_SINGLETON_MAPPED
+#      if ALIB_DEBUG && ALIB_STRINGS
+           import ALib.Strings;
+#      endif
+#      if ALIB_MONOMEM
+           import ALib.Monomem;
+#          if ALIB_CONTAINERS
+             import ALib.Containers.HashTable;
+#          endif
+#      endif
+#   endif
+#else
+#   include "ALib.Lang.H"
+#   if ALIB_FEAT_SINGLETON_MAPPED
+#      if ALIB_DEBUG
+#          include "ALib.Strings.H"
+#      endif
+#      if ALIB_MONOMEM
+#          include "ALib.Monomem.H"
+#          if ALIB_CONTAINERS
+#             include "ALib.Containers.HashTable.H"
+#          endif
+#      endif
+#   endif
+#endif
+
+// ==========================================   Exports   ==========================================
+#if ALIB_FEAT_SINGLETON_MAPPED && !DOXYGEN
+namespace alib::singletons::hidden {
+#   if ALIB_MONOMEM && ALIB_CONTAINERS
+        extern HashMap<MonoAllocator, lang::TypeFunctors::Key, void *,
+                                      lang::TypeFunctors::Hash,
+                                      lang::TypeFunctors::EqualTo,
+                                      lang::Caching::Auto,
+                                      Recycling::None                      >  singletonMap;
+#   else
+        extern std::unordered_map<    lang::TypeFunctors::Key, void *,
+                                      lang::TypeFunctors::Hash,
+                                      lang::TypeFunctors::EqualTo          >  singletonMap;
+#   endif
+#   if !ALIB_MONOMEM && !ALIB_SINGLE_THREADED
+        extern std::mutex singletonMapMutex; // if monomem is included, we use lock of global allocator
+#   endif
+    extern ALIB_DLL void *getSingleton(const std::type_info &type);
+    extern ALIB_DLL void storeSingleton(const std::type_info &type, void *theSingleton);
+    extern ALIB_DLL void removeSingleton(const std::type_info &type);
+}
+#endif
+
+ALIB_EXPORT namespace alib::singletons {
+//==================================================================================================
+/// This class implements the "singleton pattern" for C++ using a common templated approach.
+/// In case of Windows OS and DLL usage, the class overcomes the problem of having
+/// a global data segment per DLL in addition to the one associated with the process that is using
+/// the DLL.
+///
+/// All details about implementation and usage of this class is provided in the module's
+/// \ref alib_mod_singletons "Programmer's Manual".
+///
+/// @tparam TDerivedClass Template parameter that denotes the name of the class that implements
+///                       the singleton.
+//==================================================================================================
+template<typename TDerivedClass>
+class Singleton {
+  public:
+    #include "ALib.Lang.CIFunctions.H"
+    /// Creates (if not done, yet) and returns the singleton of type \p{TDerivedClass}.
+    /// @return The singleton instance.
+    static TDerivedClass &GetSingleton() {
+            #if !ALIB_FEAT_SINGLETON_MAPPED
+                // local static atomic instance of the singleton
+                static TDerivedClass singleton;
+                return singleton;
+            #else
+                #if ALIB_SINGLE_THREADED
+                    using TSingletonStorage = TDerivedClass *;
+                #else
+                    using TSingletonStorage = std::atomic<TDerivedClass *>;
+                #endif
+
+        // local static atomic pointer to the singleton (initialized once)
+        static TSingletonStorage singleton = nullptr;
+
+        // already created and known?
+        TDerivedClass *result = singleton;
+        if (result != nullptr)
+            return *result;
+
+        // create it
+        {
+            // for debug purposes, mapped singletons may be used with single-threaded
+            // applications. Still we do not lock then.
+                    #if !ALIB_SINGLE_THREADED
+                    #   if ALIB_MONOMEM
+                            ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
+                    #   else
+                            std::lock_guard<std::mutex> guard(hidden::singletonMapMutex);
+                    #   endif
+                    #endif
+
+            // try loading from static map
+            void *storedSingleton = hidden::getSingleton(typeid(TDerivedClass));
+            if (storedSingleton != nullptr) {
+                singleton = dynamic_cast<TDerivedClass *>(
+                    reinterpret_cast<Singleton<TDerivedClass> *>(storedSingleton));
+                return *singleton;
+            }
+
+            // create and store in map
+            auto *firstInstance = new TDerivedClass();
+            hidden::storeSingleton(typeid(TDerivedClass),
+                                   dynamic_cast<Singleton<TDerivedClass> *>(firstInstance));
+
+            // In debug mode, do not set this singleton right away. This "simulates"
+            // a windows DLL/Exec scope change
+                    #if ALIB_DEBUG
+            return *firstInstance;
+                    #else
+            return *(singleton = firstInstance);
+                    #endif
+        }
+            #endif
+    }
+
+        #include "ALib.Lang.CIMethods.H"
+
+    /// Virtual destructor.
+    virtual ~Singleton() {
+            #if ALIB_FEAT_SINGLETON_MAPPED
+                #if !ALIB_SINGLE_THREADED
+                #   if ALIB_MONOMEM
+        ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
+                #   else
+        std::lock_guard<std::mutex> guard(hidden::singletonMapMutex);
+                #   endif
+                #endif
+        hidden::removeSingleton(typeid(TDerivedClass));
+            #endif
+    }
+}; // class Singleton
+
+//==================================================================================================
+/// Deletes the singletons.
+/// Upon exit of the process, programmers might want to explicitly free the hash table to avoid
+/// the detection of memory leaks by metrics tools like \http{Valgrind,valgrind.org/}.
+/// (Otherwise this can be omitted, as the memory is cleaned by the OS probably much faster when a
+/// process exits).
+///
+/// The \ref alib_mod_bs "standard bootstrap" code of \alib, hence the (overloaded)
+/// functions \ref alib::Shutdown will call this function.
+///
+/// \note This method is not thread-safe and hence must be called only on termination of the process
+///       when all threads that are using singletons are terminated.
+//==================================================================================================
+ALIB_DLL void shutdown();
+} // namespace [alib::singletons]
+
+ALIB_EXPORT namespace alib {
+/// Type alias in namespace \b alib.
+template<typename T>
+using Singleton = singletons::Singleton<T>;
+} // namespace [alib]
+
+//==================================================================================================
+//====== Debug functions
+//==================================================================================================
+#if ALIB_FEAT_SINGLETON_MAPPED  && ALIB_DEBUG
+ALIB_EXPORT namespace alib::singletons {
+
+
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+/// This debug helper function returns a type map with void pointers to all singletons.
+///
+/// The function may be used to investigate which singleton objects are created within a
+/// process and the point in (run-) time of creation.
+///
+/// \note
+///   This method is available only with debug-builds of %ALib and if
+///   code selection symbol \ref ALIB_FEAT_SINGLETON_MAPPED evaluates to true.<br>
+///
+/// \note
+///   If the \alibbuild includes \alib_strings then a simple dumping method is available with
+///   #DbgGetSingletons(NAString&).
+///
+/// \attention
+///   If modules \alib_monomem and \alib_containers are not included in the \alibbuild, then the
+///   result type of this method changes to <c>std::unordered_map<TypeKey, void*>&</c>.
+///
+/// @return A map of singleton types with void pointers to the singletons.
+//==============================================================================================
+ALIB_DLL  HashMap<MonoAllocator,
+                  lang::TypeFunctors::Key, void *,
+                  lang::TypeFunctors::Hash,
+                  lang::TypeFunctors::EqualTo,
+                  lang::Caching::Auto,
+                  Recycling::None> &DbgGetSingletons();
+#else
+ALIB_DLL  std::unordered_map<lang::TypeFunctors::Key, void *,
+                             lang::TypeFunctors::Hash,
+                             lang::TypeFunctors::EqualTo> &DbgGetSingletons();
+#endif
+
+#if ALIB_STRINGS
+/// This debug function writes all type names and addresses of each currently defined
+/// instance of class
+/// \alib{singletons;Singleton}
+/// into the given AString.<br>
+///
+/// \note
+///   This method is available only
+///   - with \ref ALIB_DEBUG "debug-builds" of the software,
+///   - if module \ref alib::strings "ALib Strings" is included in the \alibbuild, and
+///   - if code selection symbol \ref ALIB_FEAT_SINGLETON_MAPPED is \c true.
+///
+/// \note
+///   In case module <b>%ALib Strings</b> is not available, then alternative method
+///  \alib{singletons;DbgGetSingletons} can be used. This returns a list of
+///  \c std::type_info structs together with (void-) pointers to the singletons.
+///
+/// @param target The target string to write the list of singletons to.
+///
+/// @return The number of singletons written.
+    ALIB_DLL  int DbgGetSingletons(NAString & target);
+#endif
+
+} // namespace [alib::singletons]
+#endif

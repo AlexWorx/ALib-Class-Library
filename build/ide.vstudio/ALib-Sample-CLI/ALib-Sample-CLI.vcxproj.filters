@@ -6,7 +6,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\samples\CLI\sample.cpp">
+    <ClCompile Include="..\..\..\src.samples\CLI\sample.cpp">
       <Filter>CLI</Filter>
     </ClCompile>
   </ItemGroup>

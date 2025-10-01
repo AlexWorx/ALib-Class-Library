@@ -1,32 +1,39 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/resources/resources.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/detail/virtualmachine.hpp"
-#   if ALIB_CAMP
-#       include "alib/lang/system/systemerrors.hpp"
-#   endif
-#   if ALIB_CAMP
-#      include "alib/expressions/plugins/dateandtime.hpp"
-#   endif
-#      include "alib/lang/basecamp/basecamp.hpp"
-#   if ALIB_CONFIGURATION
-#      include "alib/config/configcamp.hpp"
-#   endif
-#   include "alib/enums/serialization.hpp"
-#   include "alib/enums/recordbootstrap.hpp"
-#   if ALIB_CAMP
-#      include "alib/time/datetime.hpp"
-#   endif
-#endif // !DOXYGEN
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions;
+    import   ALib.Expressions.Impl;
+    import   ALib.Lang;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 
 ALIB_BOXING_VTABLE_DEFINE( alib::expressions::Exceptions                              , vt_expressions_exceptions )
-ALIB_BOXING_VTABLE_DEFINE( alib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
 
 namespace alib {
 
@@ -46,8 +53,8 @@ namespace expressions {
 // ##########################################################################################
 Box Types::Void    = nullptr;
 Box Types::Boolean = false;
-Box Types::Integer = static_cast<integer>(0);
-Box Types::Float   = static_cast<double >(0.0);
+Box Types::Integer = integer(0);
+Box Types::Float   = double(0.0);
 Box Types::String  = A_CHAR("");
 
 #if ALIB_CAMP
@@ -88,24 +95,25 @@ Box* Signatures::DDur[2]  = { &Types::DateTime   ,  &Types::Duration            
 ExpressionsCamp::ExpressionsCamp()
 : Camp( "EXPR" )
 {
-    ALIB_ASSERT_ERROR( this == &EXPRESSIONS, "EXPR",
-       "Instances of class Expressions must not be created. Use singleton alib::EXPRESSIONS" )
+    #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
+      ALIB_ASSERT_ERROR( this == &EXPRESSIONS, "EXPR",
+         "Instances of class Expressions must not be created. Use singleton alib::EXPRESSIONS" )
+    #endif
 }
 
 
-void ExpressionsCamp::bootstrap( BootstrapPhases phase )
+void ExpressionsCamp::Bootstrap()
 {
-    if( phase == BootstrapPhases::PrepareResources )
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
     {
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_exceptions )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_vmopcodes  )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::Exceptions )
-ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::detail::VirtualMachine::Command::OpCodes ) )
+        ALIB_DBG(
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::detail::VirtualMachine::Command::OpCodes ) )
 
-        IF_ALIB_CAMP( plugins::DateAndTime::Bootstrap(); )
+        plugins::DateAndTime::Bootstrap();
 
         // add resources
-#if !ALIB_RESOURCES_OMIT_DEFAULTS
+#if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
     // Type names
@@ -278,7 +286,7 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expre
 
     "ProgListHeader",      A_CHAR( "@HL-"
                                    "ALib Expression Compiler\n"
-                                   "(c) 2024 AWorx GmbH. Published under MIT License (Open Source).\n"
+                                   "(c) 2025 AWorx GmbH. Published under MIT License (Open Source).\n"
                                    "More Info: https://alib.dev\n"
                                    "@HL-"
                                    "Expression name: {}\n"
@@ -444,26 +452,23 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expre
 
             // end of BootstrapBulk()
             nullptr);
-#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
+#endif // !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
 
 
         // parse enum records
-        EnumRecords<Exceptions                              >::Bootstrap();
-        EnumRecords<DefaultUnaryOperators                   >::Bootstrap( *this, "UO"  );
-        EnumRecords<DefaultBinaryOperators                  >::Bootstrap( *this, "BO"  );
-        EnumRecords<DefaultAlphabeticUnaryOperatorAliases   >::Bootstrap( *this, "UOA" );
-        EnumRecords<DefaultAlphabeticBinaryOperatorAliases  >::Bootstrap( *this, "BOA" );
+        enumrecords::bootstrap::Bootstrap<Exceptions                              >();
+        enumrecords::bootstrap::Bootstrap<DefaultUnaryOperators                   >( *this, "UO"  );
+        enumrecords::bootstrap::Bootstrap<DefaultBinaryOperators                  >( *this, "BO"  );
+        enumrecords::bootstrap::Bootstrap<DefaultAlphabeticUnaryOperatorAliases   >( *this, "UOA" );
+        enumrecords::bootstrap::Bootstrap<DefaultAlphabeticBinaryOperatorAliases  >( *this, "BOA" );
         #if ALIB_DEBUG
-        EnumRecords<detail::VirtualMachine::Command::OpCodes>::Bootstrap( *this, "VM_CMD_OPCODES" );
+        enumrecords::bootstrap::Bootstrap<detail::VirtualMachine::Command::OpCodes>( *this, "VM_CMD_OPCODES" );
         #endif
 
     }
 
-    else if( phase == BootstrapPhases::PrepareConfig )
-    {}
-
-    else if( phase == BootstrapPhases::Final )
-    {}
+    else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )    {}
+    else if( GetBootstrapState() == BootstrapPhases::Final )            {}
 }
 
 
@@ -473,14 +478,14 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expre
 // #################################################################################################
 void ERBinaryOperator::Parse()
 {
-    enums::EnumRecordParser::Get( Symbol      );
-    enums::EnumRecordParser::Get( Precedence  , true );
+    enumrecords::bootstrap::EnumRecordParser::Get( Symbol      );
+    enumrecords::bootstrap::EnumRecordParser::Get( Precedence  , true );
 }
 
 void EROperatorAlias::Parse()
 {
-    enums::EnumRecordParser::Get( Symbol      );
-    enums::EnumRecordParser::Get( Replacement , true );
+    enumrecords::bootstrap::EnumRecordParser::Get( Symbol      );
+    enumrecords::bootstrap::EnumRecordParser::Get( Replacement , true );
 }
 
 

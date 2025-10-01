@@ -1,21 +1,35 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/plugins/dateandtime.hpp"
-#endif // !DOXYGEN
-
-#if ALIB_CAMP
-
-#if !DOXYGEN
-#   include "alib/lang/system/calendar.hpp"
-#endif // !DOXYGEN
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Time;
+    import   ALib.Strings;
+    import   ALib.Strings.Calendar;
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Time.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Calendar.H"
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -32,7 +46,7 @@
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 #   define TOINT(arg)                      arg
 #else
-#   define TOINT(arg) static_cast<integer>(arg)
+#   define TOINT(arg) integer(arg)
 #endif
 
 namespace alib {  namespace expressions { namespace plugins {
@@ -112,25 +126,25 @@ void FToLiteral_DateTime( const Box& constantValue, AString& expressionString )
 // ### DateTime
 // #################################################################################################
 FUNC( dateTime        , auto qtyArgs= end-args;
-                        return CalendarDateTime(                static_cast<int>( INT(ARG0) )         , // year
-                                             ( qtyArgs> 1  ) ?  static_cast<int>( INT(*(args+1)) ) : 1, // month
-                                             ( qtyArgs> 2  ) ?  static_cast<int>( INT(*(args+2)) ) : 1, // day
-                                             ( qtyArgs> 3  ) ?  static_cast<int>( INT(*(args+3)) ) : 0, // hour
-                                             ( qtyArgs> 4  ) ?  static_cast<int>( INT(*(args+4)) ) : 0, // minute
-                                             ( qtyArgs> 5  ) ?  static_cast<int>( INT(*(args+5)) ) : 0, // second
-                                             ( qtyArgs> 6  ) ?  static_cast<int>( INT(*(args+6)) ) : 0  // millisecond
+                        return CalendarDateTime(                int( INT(ARG0) )         , // year
+                                             ( qtyArgs> 1  ) ?  int( INT(*(args+1)) ) : 1, // month
+                                             ( qtyArgs> 2  ) ?  int( INT(*(args+2)) ) : 1, // day
+                                             ( qtyArgs> 3  ) ?  int( INT(*(args+3)) ) : 0, // hour
+                                             ( qtyArgs> 4  ) ?  int( INT(*(args+4)) ) : 0, // minute
+                                             ( qtyArgs> 5  ) ?  int( INT(*(args+5)) ) : 0, // second
+                                             ( qtyArgs> 6  ) ?  int( INT(*(args+6)) ) : 0  // millisecond
                                            )
                                .Get(lang::Timezone::Local);
            )
 
 FUNC( utcDateTime     , auto qtyArgs= end-args;
-                        return CalendarDateTime(                static_cast<int>( INT(ARG0) )         , // year
-                                             ( qtyArgs> 1  ) ?  static_cast<int>( INT(*(args+1)) ) : 1, // month
-                                             ( qtyArgs> 2  ) ?  static_cast<int>( INT(*(args+2)) ) : 1, // day
-                                             ( qtyArgs> 3  ) ?  static_cast<int>( INT(*(args+3)) ) : 0, // hour
-                                             ( qtyArgs> 4  ) ?  static_cast<int>( INT(*(args+4)) ) : 0, // minute
-                                             ( qtyArgs> 5  ) ?  static_cast<int>( INT(*(args+5)) ) : 0, // second
-                                             ( qtyArgs> 6  ) ?  static_cast<int>( INT(*(args+6)) ) : 0  // millisecond
+                        return CalendarDateTime(                int( INT(ARG0) )         , // year
+                                             ( qtyArgs> 1  ) ?  int( INT(*(args+1)) ) : 1, // month
+                                             ( qtyArgs> 2  ) ?  int( INT(*(args+2)) ) : 1, // day
+                                             ( qtyArgs> 3  ) ?  int( INT(*(args+3)) ) : 0, // hour
+                                             ( qtyArgs> 4  ) ?  int( INT(*(args+4)) ) : 0, // minute
+                                             ( qtyArgs> 5  ) ?  int( INT(*(args+5)) ) : 0, // second
+                                             ( qtyArgs> 6  ) ?  int( INT(*(args+6)) ) : 0  // millisecond
                                            )
                                .Get(lang::Timezone::UTC);
            )
@@ -217,10 +231,10 @@ FUNC( add_DURDUR , return  DUR(ARG0)  +  DUR(ARG1);   )
 FUNC( sub_DURDUR , return  DUR(ARG0)  -  DUR(ARG1);   )
 FUNC( mul_DURF   , return  DUR(ARG0)  *  FLT(ARG1);   )
 FUNC( mul_FDUR   , return  DUR(ARG1)  *  FLT(ARG0);   )
-FUNC( mul_DURI   , return  DUR(ARG0)  *  static_cast<int64_t>( INT(ARG1) );   )
-FUNC( mul_IDUR   , return  DUR(ARG1)  *  static_cast<int64_t>( INT(ARG0) );   )
+FUNC( mul_DURI   , return  DUR(ARG0)  *  int64_t( INT(ARG1) );   )
+FUNC( mul_IDUR   , return  DUR(ARG1)  *  int64_t( INT(ARG0) );   )
 FUNC( div_DURF   , return  DUR(ARG0)  /  FLT(ARG1);   )
-FUNC( div_DURI   , return  DUR(ARG0)  /  static_cast<int64_t>( INT(ARG1) );   )
+FUNC( div_DURI   , return  DUR(ARG0)  /  int64_t( INT(ARG1) );   )
 
 FUNC(   eqDUR    , return  DUR(ARG0)  == DUR(ARG1);   )
 FUNC(  neqDUR    , return  DUR(ARG0)  != DUR(ARG1);   )
@@ -273,9 +287,9 @@ void  DateAndTime::Bootstrap()
 {
 DOX_MARKER([DOX_EXPR_FToLiteral_2])
 // register ToLiteral interface for class DateTime::Duration with boxing
-boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
+boxing::BootstrapRegister<FToLiteral, time::DateTime::Duration>( FToLiteral_Duration );
 DOX_MARKER([DOX_EXPR_FToLiteral_2])
-boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
+boxing::BootstrapRegister<FToLiteral, time::DateTime          >( FToLiteral_DateTime );
 }
 
 DateAndTime::DateAndTime( Compiler& compiler )
@@ -284,9 +298,8 @@ DateAndTime::DateAndTime( Compiler& compiler )
     // load identifier/function names from resources
     constexpr int tableSize= 58;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPD", functionNames
-                                ALIB_DBG(,tableSize)                                     );
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    strings::util::LoadResourcedTokens( EXPRESSIONS, "CPD", functionNames
+                                        ALIB_DBG(,tableSize)                );
     Token* descriptor= functionNames;
 
     // Constant identifiers
@@ -364,7 +377,6 @@ DOX_MARKER([DOX_EXPR_FToLiteral_1])
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize  )
-    ALIB_WARNINGS_RESTORE
 }
 
 
@@ -379,6 +391,5 @@ DOX_MARKER([DOX_EXPR_FToLiteral_1])
 #undef BIN_MAP_ENTRY
 #undef BIN_ALIAS_ENTRY
 
-#endif // ALIB_CAMP
 
 //! @endcond

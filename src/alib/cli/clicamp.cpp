@@ -1,20 +1,40 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/cli/commandline.hpp"
-
-#   include "alib/enums/serialization.hpp"
-#   include "alib/enums/recordbootstrap.hpp"
-#   include "alib/lang/basecamp/basecamp.hpp"
-#endif // !DOXYGEN
-
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/resources/resources.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.CLI;
+#  if ALIB_STRINGS
+    import   ALib.Strings;
+#  endif
+#  if ALIB_BOXING
+    import   ALib.Boxing;
+#  endif
+#  if ALIB_CAMP
+    import   ALib.Camp;
+#  endif
+#else
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.Camp.H"
+#   include "ALib.CLI.H"
+#endif
+#   include "ALib.Characters.Functions.H"
+// ======================================   Implementation   =======================================
 ALIB_BOXING_VTABLE_DEFINE( alib::cli::Exceptions, vt_cli_exceptions )
 
 namespace alib {
@@ -33,20 +53,19 @@ namespace cli {
 CliCamp::CliCamp()
 : Camp( "CLI" )
 {
-    ALIB_ASSERT_ERROR( this == &CLI, "CLI",
-        "Instances of class Cli must not be created. Use singleton alib::CLI" )
+    #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
+      ALIB_ASSERT_ERROR( this == &CLI, "CLI",
+          "Instances of class Cli must not be created. Use singleton alib::CLI" )
+    #endif
 }
 
 #define EOS ,
-void CliCamp::bootstrap( BootstrapPhases phase )
+void CliCamp::Bootstrap()
 {
-    if( phase == BootstrapPhases::PrepareResources )
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
     {
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_cli_exceptions )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( cli::Exceptions )
 
-
-#if !ALIB_RESOURCES_OMIT_DEFAULTS
+#if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
             //--------- Exceptions ------
@@ -96,16 +115,16 @@ DOX_MARKER([DOX_CLI_DRYRUN_RESOURCES])
 DOX_MARKER([DOX_CLI_DRYRUN_RESOURCES])
        // end of BootstrapBulk()
         nullptr );
-#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
+#endif // !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
 
         // parse enum records
-        EnumRecords<Exceptions >::Bootstrap();
-        EnumRecords<DryRunModes>::Bootstrap( *this, "DRM" );
+        enumrecords::bootstrap::Bootstrap<Exceptions >();
+        enumrecords::bootstrap::Bootstrap<DryRunModes>( *this, "DRM" );
     }
 
-    else if( phase == BootstrapPhases::PrepareConfig )
+    else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )
     {}
-    else if( phase == BootstrapPhases::Final )
+    else if( GetBootstrapState() == BootstrapPhases::Final )
     {}
 
 }

@@ -1,51 +1,22 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_alox of the \aliblong.
+/// This header-file is part of module \alib_alox of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#ifndef HPP_ALIB_LOX_DETAIL_LOXPIMPL
-#define HPP_ALIB_LOX_DETAIL_LOXPIMPL 1
-#pragma once
-#if !defined(HPP_ALIB_LOX_LOX)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
-
-// #################################################################################################
-// includes
-// #################################################################################################
-#include "alib/monomem/monoallocator.hpp"
-#include "alib/time/ticks.hpp"
-
-// forwards
-namespace alib {
-
-namespace threads
-{
-    class Thread;
-    class RecursiveLock;
-    using ThreadID=    integer;
-}
-
-namespace config
-{
-    class Variable;
-}
-
-namespace lox { namespace detail {
-    class Domain;
-    class Logger;
-}
-    namespace textlogger
-    {
+ALIB_EXPORT namespace alib::lox {
+    namespace detail {
+        class Domain;
+        class Logger;
+    }
+    namespace textlogger {
         class TextLogger;
     }
+} // namespace [alib::lox]
 
-}} // namespace [alib::lox]
 
-
-namespace alib {  namespace lox { namespace detail {
+ALIB_EXPORT namespace alib {  namespace lox { namespace detail {
 
 struct LoxImpl;
 
@@ -57,21 +28,30 @@ struct LI
 {
     //==============================================================================================
     /// Implementation of the constructor \alib{lox;Lox::Lox;the constructor} of class \b %Lox.
-    ///
-    /// @param lox The \b %Lox that is to be constructed.
     /// @param name The name of the Lox. Will be copied and converted to upper case.
-    /// @param doRegister If \c true, this object is registered with static class
-    ///                   \alib{lox,ALoxCamp}.
+    /// @return The implementation for the calling \b Lox.
     //==============================================================================================
-    ALIB_API static
-    void            Construct( Lox* lox, const NString& name, bool doRegister );
+    ALIB_DLL static
+    LoxImpl*        Construct( const NString& name );
 
     //==============================================================================================
     /// Destructs a lox.
     /// @param lox The \b %Lox that is to be destructed.
     //==============================================================================================
-    ALIB_API static
-    void            Destruct( Lox* lox );
+    ALIB_DLL static
+    void            Destruct( LoxImpl* lox );
+
+    /// Resets this object. Concretely, the following steps are performed:
+    /// - If the debug lox singleton exists, it is deleted.
+    /// - It is asserted that no other lox object is registered.
+    /// - The \alox path of the configuration is deleted.
+    ///
+    /// \attention
+    ///   This method was introduced to support resetting \alox in the unit tests.
+    ///   In real applications, this method should NOT be used.
+    ///   Side effects might appear using this method and it is not tested otherwise than
+    ///   used in tests!
+    ALIB_DLL void   Reset();
 
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::GetName}.
@@ -79,7 +59,7 @@ struct LI
     /// @param impl  The implementation struct of the \b Lox.
     /// @returns The name of this %Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     const NString&  GetName(LoxImpl* impl);
 
     //==============================================================================================
@@ -88,7 +68,7 @@ struct LI
     /// @param impl  The implementation struct of the \b Lox.
     /// @returns The name of this %Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     integer&        GetLogCounter(LoxImpl* impl);
 
     //==============================================================================================
@@ -98,28 +78,28 @@ struct LI
     /// @param ci    The source location that the call is placed at.
     ///              Usually macro \ref ALIB_CALLER is passed here.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            Acquire(LoxImpl* impl, const lang::CallerInfo& ci );
 
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::Release}.
     /// @param impl  The implementation struct of the \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            Release(LoxImpl* impl);
 
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::Reset}.
     /// @param impl         The implementation struct of the \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            Reset(LoxImpl* impl);
 
     /// Implementation of method \alib{lox;Lox::SetFileNameCacheCapacity}.
     /// @param impl           The implementation struct of the \b Lox.
     /// @param numberOfLists  The number of LRU-lists to use.
     /// @param entriesPerList The maximum length of each cache list.
-    ALIB_API static
+    ALIB_DLL static
     void SetFileNameCacheCapacity(LoxImpl* impl, integer numberOfLists, integer entriesPerList );
 
     //==============================================================================================
@@ -141,9 +121,9 @@ struct LI
     ///                        or applies to all instances of class \b %Lox.
     ///                        Defaults to \b %Reach::Global.
     /// @param priority        The priority of the setting. Defaults to
-    ///                        \alib{config;Priority;DefaultValues}.
+    ///                        \alib{variables;Priority;DefaultValues}.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetSourcePathTrimRule( LoxImpl* impl,
                                            const NCString& path,
                                            lang::Inclusion includeString  ,
@@ -157,10 +137,10 @@ struct LI
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::GetLogger}.
     /// @param impl          The implementation struct of the \b Lox.
-    /// @param loggerName    The name of the \e Logger to search for (case insensitive).
+    /// @param loggerName    The name of the \e Logger to search for (case-insensitive).
     /// @return  The logger, nullptr if not found.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     detail::Logger* GetLogger( LoxImpl* impl, const NString& loggerName );
 
     //==============================================================================================
@@ -169,30 +149,30 @@ struct LI
     /// @param logger    The logger to be removed.
     /// @returns \c true, if the \e Logger was found and removed, \c false otherwise.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     bool            RemoveLogger( LoxImpl* impl, detail::Logger* logger );
 
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::RemoveLogger}.
     /// @param impl          The implementation struct of the \b Lox.
-    /// @param loggerName    The name of the \e Logger(s) to be removed (case insensitive).
+    /// @param loggerName    The name of the \e Logger(s) to be removed (case-insensitive).
     /// @returns The logger that was removed, \c nullptr if not found.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     detail::Logger* RemoveLogger( LoxImpl* impl, const NString& loggerName );
 
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::SetVerbosity}.
     /// @param impl       The implementation struct of the \b Lox.
-    /// @param logger     The logger to be to be affected (case insensitive).
+    /// @param logger     The logger to be to be affected (case-insensitive).
     /// @param verbosity  The 'level of verboseness' to be set.
     /// @param domain     The parent (start) domain to be set. The use of absolute paths
     ///                   starting with <c> '/'</c> are recommended.
     ///                   Defaults to root domain \"/\".
     /// @param priority   The priority of the setting. Defaults to
-    ///                   \alib{config;Priority;DefaultValues}.
+    ///                   \alib{variables;Priority;DefaultValues}.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetVerbosity( LoxImpl* impl,
                                   detail::Logger*  logger,
                                   Verbosity        verbosity,
@@ -209,9 +189,9 @@ struct LI
     ///                   starting with <c> '/'</c> are recommended.
     ///                   Defaults to root domain \"/\".
     /// @param priority   The priority of the setting. Defaults to
-    ///                   \alib{config;Priority;DefaultValues}.
+    ///                   \alib{variables;Priority;DefaultValues}.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetVerbosity( LoxImpl* impl,
                                   const NString&   loggerName,
                                   Verbosity        verbosity,
@@ -227,7 +207,7 @@ struct LI
     ///                    values, an internal error is logged.
     /// @param thread      The thread to set/unset a thread-related Scope Domains for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetDomain( LoxImpl* impl, const NString& scopeDomain, Scope scope,
                                threads::Thread* thread );
 
@@ -237,7 +217,7 @@ struct LI
     /// @param domainPath  The path to search. Has to start with either  <c> '/'</c> or <c> '*'</c>.
     /// @param replacement The replacement path.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetDomainSubstitutionRule( LoxImpl*       impl,
                                                const NString& domainPath,
                                                const NString& replacement );
@@ -250,7 +230,7 @@ struct LI
     ///                    values, an internal error is logged.
     /// @param thread      The thread to set/unset a thread-related Scope Domains for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            RemoveThreadDomain( LoxImpl* impl, const NString& scopeDomain, Scope scope,
                                         threads::Thread* thread );
 
@@ -266,7 +246,7 @@ struct LI
     ///                    are ignored and only domain-related <em>Prefix Logables</em> are passed to
     ///                    the \e Loggers.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetPrefix( LoxImpl* impl, const Box& prefix, const NString& domain,
                                lang::Inclusion otherPLs );
 
@@ -276,26 +256,26 @@ struct LI
     /// @param startTime  Optional parameter with the new start time. Defaults
     ///                   to current time if omitted.
     /// @param loggerName The name of the \e Logger(s) whose start time is to be set
-    ///                   (case insensitive).
+    ///                   (case-insensitive).
     ///                   Defaults to nullptr, which indicates that all loggers are to
     ///                   be affected.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            SetStartTime( LoxImpl*        impl,
                                   Ticks           startTime,
                                   const NString&  loggerName  );
 
-    #if defined (__GLIBCXX__) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         //==========================================================================================
         /// Implementation of method \alib{lox;Lox::SetStartTime}.
         /// @param impl       The implementation struct of the \b Lox.
-        /// @param startTime  The new start time in system specific time unit.
+        /// @param startTime  The new start time in system-specific time unit.
         /// @param loggerName The name of the \e Logger whose start time is to be set (case
         ///                   insensitive).
         ///                   Defaults to empty string, which indicates that all loggers are to
         ///                   be affected.
         //==========================================================================================
-        ALIB_API static
+        ALIB_DLL static
         void        SetStartTime( LoxImpl* impl, time_t startTime, const NString& loggerName );
 
 
@@ -305,13 +285,13 @@ struct LI
         //==========================================================================================
         /// Implementation of method \alib{lox;Lox::SetStartTime}.
         /// @param impl       The implementation struct of the \b Lox.
-        /// @param startTime  The new start time in system specific time unit.
+        /// @param startTime  The new start time in system-specific time unit.
         /// @param loggerName The name of the \e Logger whose start time is to be set (case
         ///                   insensitive).
         ///                   Defaults to empty string, which indicates that all loggers are to
         ///                   be affected.
         //==========================================================================================
-        ALIB_API static
+        ALIB_DLL static
         void        SetStartTime( LoxImpl*          impl,
                                   const FILETIME&   startTime,
                                   const NString&    loggerName );
@@ -323,7 +303,7 @@ struct LI
     /// @param threadName  The name of the thread as it should be displayed in the logs.
     /// @param id          The thread ID.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            MapThreadName( LoxImpl* impl, const String& threadName, threads::ThreadID id );
 
     //==============================================================================================
@@ -335,7 +315,7 @@ struct LI
     /// @param headLine      If given, a separated headline will be logged at first place.
     /// @param flags         Flag bits that define which state information is logged.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            State( LoxImpl* impl,
                            const NString&    domain,
                            Verbosity         verbosity,
@@ -348,7 +328,7 @@ struct LI
     /// @param buf        The target string.
     /// @param flags      Bits that define which state information is collected.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            GetState( LoxImpl* impl, NAString& buf, StateInfo flags );
 
     //==============================================================================================
@@ -356,7 +336,7 @@ struct LI
     /// @param impl        The implementation struct of the \b Lox.
     /// @return An empty list of boxes.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     BoxesMA&        GetLogableContainer( LoxImpl* impl );
 
     //==============================================================================================
@@ -365,7 +345,7 @@ struct LI
     /// @param domain      The domain.
     /// @param verbosity   The verbosity.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            Entry( LoxImpl* impl, const NString&  domain, Verbosity verbosity );
 
     //==============================================================================================
@@ -377,19 +357,19 @@ struct LI
     ///                    apply as with normal log statements.
     /// @return The number of active loggers.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     int IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain );
 
 // #################################################################################################
 // Debug methods
 // #################################################################################################
-#if ALIB_DEBUG_MONOMEM
+#if ALIB_DEBUG_MEMORY
     //==============================================================================================
     /// Implementation of method \alib{lox;Lox::DbgGetMonoAllocator}.
     /// @param impl   The implementation struct of the \b Lox.
     /// @return The monotonic allocator of this \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     MonoAllocator& DbgGetMonoAllocator( LoxImpl* impl );
 #endif
 
@@ -413,7 +393,7 @@ struct LI
     ///                   no scope domains are applied.
     /// @return The resulting \ref alib::lox::detail::Domain "Domain".
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     detail::Domain* evaluateResultDomain( LoxImpl* impl, const NString& domainPath );
 
     //==============================================================================================
@@ -425,7 +405,7 @@ struct LI
     /// @param domainPath    The domain path.
     /// @return The resulting \ref alib::lox::detail::Domain "Domain".
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     detail::Domain* findDomain( LoxImpl*            impl,
                                 detail::Domain&     domainSystem,
                                 NString domainPath );
@@ -441,7 +421,7 @@ struct LI
     /// @param logables     The objects to log.
     /// @param prefixes     Denotes if prefixes should be included or not.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            log( LoxImpl*         impl,
                          detail::Domain*  dom,
                          Verbosity        verbosity,
@@ -458,7 +438,7 @@ struct LI
     /// @param subDomain The subdomain of the internal domain to log into.
     /// @param msg       The message.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            logInternal( LoxImpl* impl, Verbosity verbosity, const NString& subDomain,
                                  BoxesMA& msg );
 
@@ -470,7 +450,7 @@ struct LI
     /// @param subDomain The subdomain of the internal domain to log into.
     /// @param msg       The message.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            logInternal( LoxImpl* impl, Verbosity verbosity, const NString& subDomain,
                                  const NString& msg );
 
@@ -482,7 +462,7 @@ struct LI
     /// @param impl      The implementation struct of the \b Lox.
     /// @return A list of boxes.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     BoxesMA&          acquireInternalLogables(LoxImpl* impl);
 
     //==============================================================================================
@@ -496,7 +476,7 @@ struct LI
     ///                    when invoked by interface method #RemoveThreadDomain.
     /// @param thread      The thread to set/unset a thread-related Scope Domain for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            setDomain( LoxImpl* impl, const NString& scopeDomain, Scope scope,
                                bool removeNTRSD, threads::Thread* thread  );
 
@@ -509,14 +489,14 @@ struct LI
     ///                    Available Scope definitions are platform/language dependent.
     /// @param thread      The thread to set/unset a thread-related <em>Prefix Logable</em> for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void  setPrefix( LoxImpl* impl, const Box& prefix, Scope scope, threads::Thread* thread );
 
     //==============================================================================================
     /// Increases the internal log counter of \p{impl}.
     /// @param impl      The implementation struct of the \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            IncreaseLogCounter( LoxImpl* impl);
 
     //==============================================================================================
@@ -525,7 +505,7 @@ struct LI
     /// @param impl      The implementation struct of the \b Lox.
     /// @param verbosity The verbosity.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            entryDetectDomainImpl( LoxImpl* impl, Verbosity verbosity);
 
     //==============================================================================================
@@ -548,7 +528,7 @@ struct LI
     /// @param quantity  The number of logs to be performed. As the name of the method indicates,
     ///                  this defaults to \c 1.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            once( LoxImpl*   impl    , const NString& domain, Verbosity verbosity,
                           const Box& logables, const String&  pGroup, Scope     scope,
                           int        quantity );
@@ -563,7 +543,7 @@ struct LI
     /// @param pKey      The key to the data.
     /// @param scope     The \e %Scope that the data is bound to.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            store( LoxImpl* impl, const Box& data, const NString& pKey, Scope scope );
 
     //==============================================================================================
@@ -574,7 +554,7 @@ struct LI
     /// @param scope     The \e %Scope that the data is bound to.
     /// @return The data, a \e nulled box if no value was found.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     Box             retrieve( LoxImpl* impl, const NString& pKey, Scope scope );
 
     //==============================================================================================
@@ -584,7 +564,7 @@ struct LI
     /// @param scope     The scope that is to be checked.
     /// @return \c true if \p{scope} is thread-related, \c false else.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     bool            isThreadRelatedScope( LoxImpl* impl, Scope scope );
 
     //==============================================================================================
@@ -598,7 +578,7 @@ struct LI
     /// @return A positive value providing the path level deduced from \p{scope} if all is fine,
     ///        \c -1 else.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     int             checkScopeInformation( LoxImpl*       impl          , Scope& scope,
                                            const NString& internalDomain                 );
 
@@ -606,11 +586,11 @@ struct LI
     /// Used on construction and with #Reset.
     /// @param impl      The implementation struct of the \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            init(LoxImpl* impl);
 
     //==============================================================================================
-    /// Reads the verbosity for the given logger and domain from the \alib configuration system.
+    /// Reads the verbosity for the given logger and domain from the \alib variable system.
     /// This internal method is used in two occasions:
     /// - when a new logger is added: recursively for all existing domains (\p{configStr} is
     ///   given)
@@ -623,25 +603,25 @@ struct LI
     /// @param logger    The logger to set the verbosity for.
     /// @param dom       The domain to set the verbosity for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            getVerbosityFromConfig( LoxImpl*             impl,
-                                            config::Variable&    variable,
+                                            variables::Variable&    variable,
                                             detail::Logger*      logger,
                                             detail::Domain&      dom                  );
 
     //==============================================================================================
-    /// Reads a prefix string from the \alib configuration system.
+    /// Reads a prefix string from the \alib variable system.
     /// This internal method is used when a new domain is created,
     ///
     /// @param impl      The implementation struct of the \b Lox.
     /// @param dom       The domain to set the verbosity for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            getDomainPrefixFromConfig( LoxImpl* impl, detail::Domain&  dom );
 
 
     //==============================================================================================
-    /// Reads the verbosity for the given logger and domain from the \alib configuration system.
+    /// Reads the verbosity for the given logger and domain from the \alib variable system.
     /// This internal method is used when a new logger is added.
     /// Walks recursively for all existing domains.
     ///
@@ -650,8 +630,8 @@ struct LI
     /// @param logger    The logger to set the verbosity for.
     /// @param dom       The domain to set the verbosity for.
     //==============================================================================================
-    ALIB_API static
-    void            getAllVerbosities( LoxImpl* impl, config::Variable& variable,
+    ALIB_DLL static
+    void            getAllVerbosities( LoxImpl* impl, variables::Variable& variable,
                                        detail::Logger* logger, detail::Domain& dom );
 
     //==============================================================================================
@@ -659,7 +639,7 @@ struct LI
     /// Is called when a logger is removed.
     /// @param impl      The implementation struct of the \b Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            dumpStateOnLoggerRemoval(LoxImpl* impl);
 
     //==============================================================================================
@@ -668,16 +648,16 @@ struct LI
     /// @param impl    The implementation struct of the \b Lox.
     /// @param logger  The logger to write the verbosity for.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     void            writeVerbositiesOnLoggerRemoval( LoxImpl* impl, Logger* logger );
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     //==============================================================================================
     /// Returns the internal lock.
     /// @param impl  The implementation struct of the \b Lox.
     /// @returns The internal \b RecursiveLock of this \b %Lox.
     //==============================================================================================
-    ALIB_API static
+    ALIB_DLL static
     threads::RecursiveLock&     getLock(LoxImpl* impl);
 #endif
 
@@ -685,5 +665,6 @@ struct LI
 
 }}} // namespace [alib::lox::detail]
 
-#endif // HPP_ALIB_LOX_DETAIL_LOXPIMPL
+ALIB_BOXING_VTABLE_DECLARE( std::pair<alib::lox::Verbosity
+                            ALIB_COMMA alib::variables::Priority> , vt_lox_pair_verby_prio )
 

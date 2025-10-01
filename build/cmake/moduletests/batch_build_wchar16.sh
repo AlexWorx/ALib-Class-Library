@@ -24,128 +24,95 @@ echo "n#########################################################################
 echo "############################     Single Modules    ###########################"
 echo "n#############################################################################"
 
-echo "\n\n############################  MONOMEM    ############################"
+echo "\n\n############################  ALOX    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=ALOX"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BITBUFFER    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  SINGLETONS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SINGLETONS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  CHARACTERS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CHARACTERS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  ENUMS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=ENUMS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  TIME    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=TIME"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BOXING    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BOXING"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  STRINGS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  THREADS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=THREADS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BOXING"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CAMP    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CAMP"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=CAMP"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CONFIGURATION    ############################"
+echo "\n\n############################  CONTAINERS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CONFIGURATION"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  ALOX    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=ALOX"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  EXPRESSIONS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=EXPRESSIONS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=CONTAINERS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CLI    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CLI"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=CLI"  ../../cmake/moduletests
 make -j
 
-#--------- wchar 4 ----------
-
-echo "\n\n############################  ALOX    ############################"
+echo "\n\n############################  ENUMRECORDS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=ALOX"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=ENUMRECORDS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  EXCEPTIONS    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=EXCEPTIONS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  EXPRESSIONS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=EXPRESSIONS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=EXPRESSIONS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CLI    ############################"
+echo "\n\n############################  FILES    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=CLI"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILES"  ../../cmake/moduletests
 make -j
 
-#--------- release wchar 2 ----------
-
-echo "\n\n############################  ALOX    ############################"
+echo "\n\n############################  FORMAT    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=ALOX" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FORMAT"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  EXPRESSIONS    ############################"
+echo "\n\n############################  MONOMEM    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=EXPRESSIONS" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=MONOMEM"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CLI    ############################"
+echo "\n\n############################  RESOURCES    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CLI" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=RESOURCES"  ../../cmake/moduletests
 make -j
 
-#--------- release wchar 4 ----------
-
-echo "\n\n############################  ALOX    ############################"
+echo "\n\n############################  SINGLETONS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=ALOX" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=SINGLETONS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  EXPRESSIONS    ############################"
+echo "\n\n############################  STRINGS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=EXPRESSIONS" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=STRINGS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CLI    ############################"
+echo "\n\n############################  SYSTEM    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=4"  "-DALIB_DISTRIBUTION=CLI" "-DCMAKE_BUILD_TYPE=Release" ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=SYSTEM"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  THREADMODEL    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=THREADMODEL"  ../../cmake/moduletests
+make -j
 
+echo "\n\n############################  VARIABLES    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=VARIABLES"  ../../cmake/moduletests
+make -j
 
 
 echo ""
@@ -154,57 +121,53 @@ echo "n#########################################################################
 echo "############################     Mixed Modules    ############################"
 echo "n#############################################################################"
 
-echo "\n\n############################  SINGLETONS;TIME    ############################"
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SINGLETONS;TIME"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  MONOMEM;STRINGS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;STRINGS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  MONOMEM;BOXING    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BITBUFFER;BOXING    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER;BOXING"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;BOXING"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  THREADS;STRINGS    ############################"
+echo "\n\n############################  BITBUFFER;FILES    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=THREADS;STRINGS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;FILES"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  THREADS;BOXING    ############################"
+echo "\n\n############################  BOXING;MONOMEM    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=THREADS;BOXING"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  MONOMEM;STRINGS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;STRINGS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  MONOMEM;BOXING    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BOXING;MONOMEM"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BOXING;STRINGS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BOXING;STRINGS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  SINGLETONS;TIME    ############################"
+echo "\n\n############################  EXCEPTIONS;VARIABLES    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SINGLETONS;TIME"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=EXCEPTIONS;VARIABLES"  ../../cmake/moduletests
 make -j
+
+echo "\n\n############################  FILES;THREADMODEL    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILES;THREADMODEL"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  FORMAT;THREADMODEL    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FORMAT;THREADMODEL"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  MONOMEM;CONTAINERS    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=MONOMEM;CONTAINERS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  MONOMEM;STRINGS    ############################"
+rm -r -f *
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_BUILD=MONOMEM;STRINGS"  ../../cmake/moduletests
+make -j
+

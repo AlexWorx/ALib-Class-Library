@@ -1,7 +1,7 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Tools: ResourceExport
+#  CMakeLists.txt - ALib Resource Export Tool
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Notes:
@@ -16,12 +16,13 @@
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.20.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
     project( "ResourceExport" )
 
 ## -------------------------------------------------------------------------------------------------
 ## include ALib/ALox base cmake file
 ## -------------------------------------------------------------------------------------------------
+    set( ALIB_SINGLE_THREADED              "On" )
 
     include( ${CMAKE_CURRENT_LIST_DIR}/../../build/cmake/ALib.cmake )
 

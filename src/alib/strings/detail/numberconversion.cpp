@@ -1,25 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/detail/numberconversion.hpp"
-#   include "alib/lang/bits.hpp"
-#   if defined( _WIN32 ) || defined(__APPLE__)
-#      include <clocale>
-#   endif
-#   include <cmath>
-#   include <algorithm>
-#   if defined(_WIN32)
-#       include <intrin.h>
-#   endif
-#endif // !DOXYGEN
-
-#include "alib/lang/callerinfo_functions.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include <math.h>
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings;
+    import   ALib.Lang;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#endif
+// ======================================   Implementation   =======================================
+#   include "ALib.Lang.CIFunctions.H"
 
 namespace alib {  namespace strings {
 
@@ -79,9 +83,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
     if( idx < 0  || idx >= length )
         return 0;
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=    src.Buffer();
-    ALIB_WARNINGS_RESTORE
 
     // read number
     while ( idx < length )
@@ -90,7 +92,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
         if ( c < '0' || c > '9' )
             break;
 
-        result= ( result * 10 ) + static_cast<uint64_t>( c - '0'  );
+        result= ( result * 10 ) + uint64_t( c - '0'  );
         ++idx;
     }
 
@@ -99,7 +101,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
 }
 
 // compilers can't know that the parse-methods above leave idx as it is or succeed.
-// Therefore it would warn that result may not be initialized. But this will never happen.
+// Therefore , it would warn that result may not be initialized. But this will never happen.
 ALIB_WARNINGS_UNINITIALIZED_OFF
 
 template<typename TChar>
@@ -112,9 +114,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
         return 0;
 
     // get buffer and index behind whitespaces
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buffer= src.Buffer();
-    ALIB_WARNINGS_RESTORE
 
     integer idx= src. template IndexOfAny<lang::Inclusion::Exclude, NC>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
@@ -140,7 +140,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
         &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
-        result=  static_cast<int64_t>( ParseHex( src, idx, nf ) );
+        result=  int64_t( ParseHex( src, idx, nf ) );
         if( idx - prefixLen == oldIdx )
             idx-= prefixLen;
     }
@@ -152,7 +152,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
              &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
-        result=  static_cast<int64_t>( ParseBin( src, idx, nf ) );
+        result=  int64_t( ParseBin( src, idx, nf ) );
         if( idx - prefixLen == oldIdx )
             idx-= prefixLen;
     }
@@ -164,7 +164,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
              &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
-        result=  static_cast<int64_t>( ParseOct( src, idx, nf ) );
+        result=  int64_t( ParseOct( src, idx, nf ) );
         if( idx - prefixLen == oldIdx )
             idx-= prefixLen;
     }
@@ -172,7 +172,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
 
     // parse decimal
     if ( idx == oldIdx )
-        result=  static_cast<int64_t>( ParseDec( src, idx, nf ) );
+        result=  int64_t( ParseDec( src, idx, nf ) );
 
     // Any success? if yes, we move the given start pointer
 
@@ -180,8 +180,8 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
         startIdx= idx;
 
 
-    return negative ? static_cast<int64_t>(-result)
-                    : static_cast<int64_t>( result);
+    return negative ? int64_t(-result)
+                    : int64_t( result);
 }
 
 ALIB_WARNINGS_RESTORE
@@ -199,9 +199,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
     // read number
     bool         charFound=  false;
     integer      length=     src.Length();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
-    ALIB_WARNINGS_RESTORE
     while ( idx < length )
     {
         const TChar c= buf[idx];
@@ -218,7 +216,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
             break;
 
         charFound= true;
-        result= ( result * 10 ) + static_cast<uint64_t>( c - '0' );
+        result= ( result * 10 ) + uint64_t( c - '0' );
 
         ++idx;
     }
@@ -241,10 +239,8 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // read number
     bool        charFound=  false;
-    integer    length=     src.Length();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    const TChar* buf=        src.Buffer();
-    ALIB_WARNINGS_RESTORE
+    integer    length    =  src.Length();
+    const TChar* buf     =  src.Buffer();
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -298,9 +294,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
     // read number
     bool         charFound=  false;
     integer      length=     src.Length();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
-    ALIB_WARNINGS_RESTORE
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -318,7 +312,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if ( c >= '0' && c <= '9' )
         {
             result<<= 4;
-            result|=  static_cast<uint64_t>(c - '0');
+            result|=  uint64_t(c - '0');
             ++idx;
             charFound= true;
             continue;
@@ -327,7 +321,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if ( c >= 'A' && c <= 'F' )
         {
             result<<= 4;
-            result|=  static_cast<uint64_t>(c - 'A' + 10 );
+            result|=  uint64_t(c - 'A' + 10 );
             ++idx;
             charFound= true;
             continue;
@@ -336,7 +330,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if ( c >= 'a' && c <= 'f' )
         {
             result<<= 4;
-            result|=  static_cast<uint64_t>(c - 'a' + 10 );
+            result|=  uint64_t(c - 'a' + 10 );
             ++idx;
             charFound= true;
             continue;
@@ -364,9 +358,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
     // read number
     bool         charFound=  false;
     integer      length=     src.Length();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -382,7 +374,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if ( c >= '0' && c <= '7' )
         {
             result<<= 3;
-            result|=  static_cast<uint64_t>(c - '0');
+            result|=  uint64_t(c - '0');
             ++idx;
             charFound= true;
             continue;
@@ -404,10 +396,8 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         return 0.0;
 
     // get pointers
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=    src.Buffer() + startIdx;
     const TChar* bufEnd= src.Buffer() + src.Length();
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
     // read whitespaces
     {
@@ -450,7 +440,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // read number before dot?
     TChar c= *buf;
-    bool integralPartFound= isdigit(c);
+    bool integralPartFound= isdigit(int(c));
     if ( integralPartFound )
     {
         if (  c < '0' || c > '9' )
@@ -458,7 +448,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
         {
             integer intIdx= 0;
-            result= static_cast<double>( ParseDec( TString<TChar>(buf, bufEnd - buf), intIdx, nf ) );
+            result= double( ParseDec( TString<TChar>(buf, bufEnd - buf), intIdx, nf ) );
             buf+= intIdx;
         }
 
@@ -480,10 +470,10 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if (      buf <  bufEnd
              &&  *buf >= '0'  &&  *buf <= '9' )
         {
-            integer intIdx= 0;
-            double intValue= static_cast<double>( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), intIdx) );
+            integer intIdx  = 0;
+            double  intValue= double( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), intIdx) );
             buf+= intIdx;
-            result+= ( intValue / pow( 10, static_cast<double>(intIdx) ) );
+            result+= ( intValue / pow( 10, double(intIdx) ) );
         }
     }
     else if( !integralPartFound )
@@ -520,7 +510,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
             if( buf < bufEnd )
             {
                 integer idx= 0;
-                int exp= static_cast<int>( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), idx ) );
+                int exp= int( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), idx ) );
                 if( idx > 0 )
                 {
                     buf+= idx;
@@ -565,9 +555,10 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
             if( value < pow10_0to19[digitsInValue-1] )
                 --digitsInValue;
 
-            ALIB_ASSERT_ERROR(                            value >= pow10_0to19[digitsInValue-1]
+            ALIB_ASSERT_ERROR(                               value >= pow10_0to19[digitsInValue-1]
                                   && (digitsInValue == 20 || value <  pow10_0to19[digitsInValue  ]),
-                              "STRINGS", "Error in digitsInValue calculation"   )
+                              "STRINGS", "Error calculating the number of digits in value {}",
+                              value )
         }
     }
 
@@ -605,8 +596,8 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     while ( actDigit > 0 )
     {
         // print normal digit
-        int digitValue=   static_cast<int>( ( value / pow10_0to19[actDigit-1] ) );
-        ALIB_ASSERT( digitValue <= 9 )
+        int digitValue=   int( ( value / pow10_0to19[actDigit-1] ) );
+        ALIB_ASSERT( digitValue <= 9, "STRINGS" )
 
         // write group character
         if(     hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.ThousandsGroupChar != '\0'
@@ -638,13 +629,13 @@ integer WriteDecSigned( int64_t value, TChar* buffer, integer idx, int overrideW
     uint64_t uValue;
     if ( value >= 0 )
     {
-        uValue= static_cast<uint64_t>( value );
+        uValue= uint64_t( value );
         if ( nf.PlusSign != '\0' )
             buffer[idx++]= nf.PlusSign;
     }
     else
     {
-        uValue= static_cast<uint64_t>( -value );
+        uValue= uint64_t( -value );
         buffer[idx++]= '-';
     }
 
@@ -695,7 +686,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
         digits=  value != 0 ? lang::MSB(value)
                             : 1;
 
-    uint64_t testValue= static_cast<uint64_t>(1) << (digits - 1);
+    uint64_t testValue= uint64_t(1) << (digits - 1);
     while ( digits > 0)
     {
         // write the separator
@@ -760,7 +751,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     unsigned int characterA= static_cast<unsigned int>( hasBits(nf.Flags, NumberFormatFlags::HexLowerCase) ? 'a' : 'A' );
     int          shiftBits= (digits -1 ) * 4;
-    uint64_t testMask=  static_cast<uint64_t>( 15 ) << shiftBits;
+    uint64_t testMask=  uint64_t( 15 ) << shiftBits;
     while ( digits > 0)
     {
         // write the separator
@@ -833,7 +824,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
         nextSeparator= 2; // from now on write separators
 
         // write digit
-        auto octet= ( value & (static_cast<uint64_t>(7) << shiftBits) ) >> shiftBits;
+        auto octet= ( value & (uint64_t(7) << shiftBits) ) >> shiftBits;
         buffer[idx++]= static_cast<TChar>('0' + octet);
 
         // next
@@ -881,7 +872,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
 
     // calc dot position
-    int exp10=      value != 0.0   ? static_cast<int>( floor(log10( value ) ) )
+    int exp10=      value != 0.0   ? int( floor(log10( value ) ) )
                                    : 0;
 
     // decide if we are using scientific format (with e) or not
@@ -891,8 +882,8 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                         || (  nf.FractionalPartWidth > 0 && exp10 != 0 && exp10 >= (MaxFloatSignificantDigits - nf.FractionalPartWidth - 1 ) )
                       );
 
-    integralWidth=         (std::min) ( integralWidth,                             15 );
-    int fractionalDigits=  (std::min) ( nf.FractionalPartWidth, static_cast<int8_t>(15) );
+    integralWidth=         (std::min) ( integralWidth,                 15 );
+    int fractionalDigits=  (std::min) ( nf.FractionalPartWidth, int8_t(15) );
 
 
 
@@ -906,7 +897,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
     if ( scientific )
     {
         auto dotPos= MaxFloatSignificantDigits - exp10;
-        intPart=     static_cast<uint64_t>(llrint( value * pow( 10, dotPos ) ));
+        intPart=     uint64_t(llrint( value * pow( 10, dotPos ) ));
         fractPart=   intPart %  pow10_0to19[ MaxFloatSignificantDigits ];
         intPart=     intPart /  pow10_0to19[ MaxFloatSignificantDigits ];
 
@@ -914,10 +905,10 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         firstNonZero= 0;
         if ( fractPart > 0 )
         {
-            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero < 20)
+            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero < 20, "STRINGS")
             while ( fractPart < pow10_0to19[ MaxFloatSignificantDigits - firstNonZero - 1 ] )
                 ++firstNonZero;
-            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero > 0)
+            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero > 0, "STRINGS")
         }
         ++firstNonZero;
 
@@ -929,8 +920,8 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
      else if (exp10 >= 0 )
      {
         int intPartSize= MaxFloatSignificantDigits - exp10;
-        ALIB_ASSERT( intPartSize > 0  && intPartSize <= MaxFloatSignificantDigits )
-        intPart=     static_cast<uint64_t>(llrint( value * pow( 10, intPartSize ) ));
+        ALIB_ASSERT( intPartSize > 0  && intPartSize <= MaxFloatSignificantDigits, "STRINGS" )
+        intPart=     uint64_t(llrint( value * pow( 10, intPartSize ) ));
         fractPart=   intPart %  pow10_0to19[ intPartSize ];
         intPart=     intPart /  pow10_0to19[ intPartSize ];
 
@@ -940,7 +931,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         {
             while ( fractPart < pow10_0to19[ intPartSize - firstNonZero - 1 ] )
                 ++firstNonZero;
-            ALIB_ASSERT( intPartSize - firstNonZero > 0 )
+            ALIB_ASSERT( intPartSize - firstNonZero > 0, "STRINGS" )
         }
         ++firstNonZero;
 
@@ -954,7 +945,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         // just zeros? -> write them and return
         firstNonZero= -exp10;
         intPart=      0;
-        fractPart=    static_cast<uint64_t>(llrint( value * pow( 10, MaxFloatSignificantDigits + firstNonZero) ));
+        fractPart=    uint64_t(llrint( value * pow( 10, MaxFloatSignificantDigits + firstNonZero) ));
         unusedFractDigits= fractionalDigits >= 0 ?  MaxFloatSignificantDigits - ( fractionalDigits - firstNonZero )
                                                  :  1;
      }
@@ -987,7 +978,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                 }
                 else
                 {
-                    ALIB_ASSERT( firstNonZero > 1 )
+                    ALIB_ASSERT( firstNonZero > 1, "STRINGS" )
                     --firstNonZero;
                 }
             }
@@ -1036,9 +1027,9 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
             --actDigit;
 
             // get next d
-            int digitValue=   static_cast<int>(  ( fractPart  / pow10_0to19[actDigit] ) );
+            int digitValue=   int(  ( fractPart  / pow10_0to19[actDigit] ) );
 
-            ALIB_ASSERT( digitValue <= 9 )
+            ALIB_ASSERT( digitValue <= 9, "STRINGS" )
 
             // don't write, yet?
             if ( (printStarted|= (digitValue != 0)) == false )
@@ -1097,7 +1088,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         else if ( hasBits(nf.Flags, NumberFormatFlags::WriteExponentPlusSign) )
             buffer[idx++]= '+';
 
-        idx= WriteDecUnsigned( static_cast<uint64_t>(exp10 >= 0 ? exp10 : -exp10), buffer, idx, 2, nf );
+        idx= WriteDecUnsigned( uint64_t(exp10 >= 0 ? exp10 : -exp10), buffer, idx, 2, nf );
     }
 
     return idx;
@@ -1146,7 +1137,7 @@ template integer  WriteHex        <xchar>( uint64_t, xchar*, integer, int , cons
 template integer  WriteOct        <xchar>( uint64_t, xchar*, integer, int , const TNumberFormat<xchar>& );
 template integer  WriteFloat      <xchar>( double  , xchar*, integer, int , const TNumberFormat<xchar>& );
 
-#include "alib/lang/callerinfo_methods.hpp"
+#   include "ALib.Lang.CIMethods.H"
 
 
 #endif // !DOXYGEN

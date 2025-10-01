@@ -1,17 +1,187 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
 \page alib_changelog         Change Log
-               
+                                        
 \I{################################################################################################}
-\I{############################        Version 24TODO R0       ######################################}
+\I{############################        Version 2510 R0       ######################################}
 \I{################################################################################################}
 
+# Version 2510, Revision 0, released October 1st, 2025 #
+
+The main decision that lead to the changes of this release, was 
+<b>dropping language support below C++20</b>. With that, this release constitutes a major update 
+of \alib and every single file of the library was touched. 
+
+The downside is: Users of \alib that for any reason cannot switch to C++20, have to continue 
+working with the previous \alib release <b>V2412</b>.
+
+\par Tested Platforms
+The minimum required CMake version is <b>3.20</b>.
+This version was successfully tested under the following platform and toolchain combinations:
+- GNU/Linux Arch 6.16.8, Clang++ 20.1.8, C++20/23, 32-Bit / 64-Bit, optional <b>C++20 Module Support</b><br>
+  (This is the main development platform.)
+- GNU/Linux Arch 6.16.8, GNU C++ 15.2.1, C++20/23, 32-Bit / 64-Bit
+- WindowsOS 11, MSC 19.44 (Visual Studio 2026 Insiders, Platform v145), C++20, 32-Bit/64-Bit
+- WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
+- macOS Tahoe 26.0, Apple M2 / ARM64, Apple Clang Version 17.0.0, C++20/23, 64-Bit
+- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23 
+
+
+\par C++20 Modules:
+We added some (!) support for C++20 Modules. 
+Because of this, we were forced to perform a complete overhaul of the library structure,
+the previously 17 <em>"ALib Modules"</em>, are now split into 25!
+Thus, the structure and \ref alib_manual_modules_graph "dependency graph" of the existing \alibmods 
+has been changed. 
+
+We managed to retain the previous flexibility, allowing users to exclude specific 
+<em>"ALib Modules"</em> from the build. 
+This approach helps minimize both build times and the size of the resulting executable. 
+However, due to technical reasons, two small changes have been made in this regard:
+- Module \alib_time is not selectable anymore. It will always be included in the 
+  \alibbuild.
+- Module \alib_threads is now included in the build in case the new compiler-symbol
+  \ref ALIB_SINGLE_THREADED is \b not provided. (Before, this module was included using the
+  now removed symbol \b ALIB_THREADS).
+      
+Also, by nature, <b>all header files have changed (!)</b>, because with C++20 Modules we had to 
+give up the previous <em>"one class - one header"</em> approach. 
+But we consider the new header files much easier to use.<br>  
+Please refer to the (rewritten) manual chapter \ref alib_manual_modules for all
+details about \alibmods_nl, C++-modules and header files.<br>
+
+\note We consider the current state of the use of C++ 20 Modules by \alib to be in an alpha
+      state. It works only with very recent clang compiler and we are all but satisfied with
+      the results. We will observe the evolution of the language and the compilers and will
+      adjust the \alib accordingly. But for now, we consider low-level libraries like \alib not 
+      being eligible for C++ 20 Modules.<br>
+      We have created a blog-page dedicated to share our \ref alib_c20module_shift.
+         
+\par C++20 Concepts
+All of \alib is now free of (ugly) template meta programming using <c>std::enable_if</c> and
+uses new keywords \c concept and \c requires instead.
+(An overview of all concepts introduced by \alib [is found here](concepts.html).)<br>
+The implications are:
+- Every <c>std::enable_if</c> and corresponding "helper-template-parameters" have been
+  removed. Altogether \b 493 replacements across the library! 
+- Removed almost all former template-meta-programming macros, as their use was mostly by C++20 
+  concepts or similar built-in type traits. The names of the removed macros all started with 
+  <b>ATMP_</b>. Now, the two remaining macros were renamed to use prefix <b>ALIB_</b> as all
+  other macros do.<br>
+  The remaining macros are \ref ALIB_TVALUE and \ref ALIB_HAS_METHOD.        
+- Changed the \ref alib_manual_appendix_naming "ALib naming conventions". 
+  Type-trait types, which had been prefixed with <b>T_</b> are now instead suffixed by
+  <b>Traits</b>. For example, this affects:
+  - <b>alib::characters::T_CharArray</b> -> \alib{characters;ArrayTraits}.  
+  - <b>alib::characters::T_ZTCharArray</b> -> \alib{characters;ZTArrayTraits}.  
+  - <b>alib::strings::T_Append</b> -> \alib{strings;AppendableTraits}.
+- Helper structs using template metaprogramming, which formerly were named with the prefix 
+  <b>TT_</b> have been replaced by modern idioms like concepts, type-aliases, etc. 
+  As an example, former types <b>alib::characters::TT_CharArrayType</b> and 
+  <b>alib::characters::TT_ZTCharArrayType</b>  were replaced by concepts \alib{characters;IsArray}
+  and \alib{characters;IsZTArray} along with type aliases \alib{characters;Type} and 
+  \alib{characters;ZTType}.<br>
+  Many more similar replacements have been performed. Please, consult the reference- and 
+  programmer's-manuals of the corresponding modules in case your code does not compile 
+  with a type prefixed <c>T_</c>, or <c>TT_</c>.      
+
+\par New Module Assert 
+This new module contains entities to raise <em>ALib Assertions</em>, <em>ALib Warnings</em>
+and other messages. It is implemented using the C++ standard libraries and its string-types.
+This replaces the former plug-in based concept implemented with now removed types 
+\b Report and \b ReportWriter.<br> 
+Likewise, the former plugin \b ALoxReportWriter was removed. However, as the new assertion system
+still supports a plug-in mechanism, module \alib_alox now plugs into it with its new 
+function \alib{lox;ALoxAssertionPlugin}.<br>
+The concepts are primarily made for internal use, but can be used by any software likewise.
+Thus, a corresponding \ref alib_mod_assert "Programmer's Manual is available". 
+         
+\par New Module Bootstrap 
+The bootstrap process itself did not change. Nevertheless, all functionality is now gathered
+in the new module \alib_bootstrap.
+                                                      
+\par Further General Changes
+- Renamed module <b>ALib Configuration</b> to \alib_variables. 
+  In fact, this should have happened with the last release already, where this module was rewritten  
+  from scratch.
+- Removed documentation of symbols \b ALIB_GDB_PP_FIND_POINTER_TYPES and 
+  \b ALIB_GDB_PP_SUPPRESS_CHILDREN (which had been discarded in the previous release already).  
+- Added macro \ref ALIB_WARNINGS_IGNORE_DEPRECATED.  
+- Removed macros \b ALIB_FORCE_INLINE and \b ALIB_NO_RETURN.  
+- Removed macro \b ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE because clang compiler became too strict
+  with that flag and it was necessary just too often. Instead, the warning is now disabled globally.  
+- Renamed macro \b ALIB_DEBUG_MONOMEN to \ref ALIB_DEBUG_MEMORY and removed its responsibility
+  from module \alib_monomem to let it have a general library association.  
+- The use of clang's \b libc++ under GNU/Linux is now supported with the new CMake variable
+  \b ALIB_CLANG_USE_LIBCPP, which is used with CMake function 
+  \ref alib_manual_build_cmake_5 "ALibSetCompilerAndLinker". 
+- Added the compiler option \b /utf-8 for MSVC with the shipped project files. 
+  
+\par Module Characters:
+- Added helper \alib{characters;ArrayLength}.
+
+\par Modules EnumOps and EnumRecords:
+- Former \alibmod_nl <b>"Enums"</b> was split into the modules \alib_enumops and \alib_enumrecords.
+- Former joint namespace \c alib::enums was replaced with #alib::enumops and #alib::enumrecords.
+- The bootstrap facilities of module \alib_enumrecords_nl have been extracted and moved 
+  to sub-namespace #alib::enumrecords::bootstrap.
+- The overloaded function of method \alib{enumrecords::bootstrap;Bootstrap} which accepts a 
+  \alib{camp;Camp} instance is now available only after the inclusion of the header \implude{Camp}.    
+
+\par Module Strings:
+- The default-constructor of class \alib{strings;TCString} now does not initialize an instance
+  to be \e nulled anymore. Instead, no initialization is performed. 
+  This is now in alignment with the default constructor of base class \alib{strings;TString}.
+- Pointers to instances of \ref alib_strings_assembly_ttostring "appendable" types are not
+  accepted by the append-methods of class \b %AString anymore. If desired, the pointer type 
+  has to be made \e appendable explicitly (optionally in parallel to the value type).          
+- The following classes had been subtypes of the removed type \b TFormat and were moved out:
+  -  \alib{strings;TField}, 
+  -  \alib{strings;TTab}, 
+  -  \alib{strings;TEscape}, 
+  -  \alib{strings;TDec}, 
+  -  \alib{strings;THex}, 
+  -  \alib{strings;TOct}, and 
+  -  \alib{strings;TBin}. 
+
+  And, class \alib{strings;TField} has now two different implementations, depending on the inclusion
+  of the module \alib_boxing in the \alibbuild.  
+- With the inclusion of the header \implude{Compatibility.StdStrings}, specializations of C++20 
+  struct <c>std::formatter</c> are now given. This allows to use \alib string types with
+  function <c>std::format</c>. 
+- Changed inner types and a few method names of classes \alib{strings;TString;String} and 
+  \alib{strings;TAString;AString} to gain compatibility with C++ container algorithms.
+- Added assign operator to class \alib{strings;TLocalString;LocalString}. (Before, assignment was
+  inefficient as the move constructor was used.) 
+   
+\par Module Boxing:
+- With the use of C++20 concepts and some relaxed rules in respect to C++ unions and their use
+  in \c constexpr contexts with that language version, module \alib_boxing was overhauled.
+- Some former techniques of customizations (to keep things \c constexpr) of boxing could be removed 
+  and thus simplified. If this breaks your code, please consult the updated 
+  \ref alib_mod_boxing Programmer's Manual      
+- Methods \b GetRecord and \b TryRecord of class \alib{boxing;Enum} have been moved to 
+  namespace-level with functions \alib{boxing;GetRecord} and \alib{boxing;TryRecord}.
+                                                                     
+\par Module Containers:
+Changed inner types and a few method names of classes \alib{containers;List} to gain compatibility 
+with C++ container algorithms.
+
+\par Module ALox:
+- Moved methods \alib{lox::Lox;Register} and \alib{lox::Lox;Get} from class \alib{lox;ALoxCamp}
+  to class \alib{lox;Lox}. 
+
+\I{################################################################################################}
+\I{############################        Version 2412 R0       ######################################}
+\I{################################################################################################}
 # Version 2412, Revision 0, released December 13th, 2024 #
 
 \par Platforms
@@ -28,7 +198,7 @@ This version was successfully tested under the following platform and toolchain 
 
 \par General Changes
 - Optimized ALib Homepage for mobile access and several smaller documentation improvements.
-- Renamed singleton types derived of class \alib{lang::Camp} along the scheme <em>"XYZCamp"</em>.
+- Renamed singleton types derived of class \b lang::Camp along the scheme <em>"XYZCamp"</em>.
 - Extended CMake script that defines the library filename to reflect various feature selections.
 - Fixed names of various global (namespace) variables to "UPPER_SNAKE_CASE". 
   (As stated in the project's \ref alib_manual_appendix_naming "naming conventions".) 
@@ -44,7 +214,7 @@ This version was successfully tested under the following platform and toolchain 
 - Fixed macro \ref ALIB_CONCAT to allow internal expansion if macros were given, and thus fixed
   macros \ref ALIB_IDENTIFIER, \ref ALIB_OWN, \ref ALIB_LOCK, \ref ALIB_LOCK_WITH, etc.
 - Added macro \ref ALIB_COMMA_CALLER_PRUNED.
-- Added template meta programming macros \ref ATMP_RESULT_TYPE and \ref ATMP_HAS_METHOD.
+- Added template meta programming macros \b ATMP_RESULT_TYPE and \b ATMP_HAS_METHOD.
  
 \par Library Core Types
 - Added types that support generic allocation mechanisms. Those are:
@@ -61,9 +231,9 @@ This version was successfully tested under the following platform and toolchain 
   \alox logging macros, mutex lock macros and assertions. 
   Information is given with the new manual appendix chapter \ref alib_manual_appendix_callerinfo.
 - Added namespace functions \alib{lang;IsNull}, \alib{lang;IsNotNull}, and \alib{lang;SetNull}.  
-- Added method \alib{lang;DbgTypeDemangler::GetShort}. 
+- Added method \b DbgTypeDemangler::GetShort. 
   This method is now used with functor 
-  \alib{strings::APPENDABLES;T_Append<std::type_info,TChar,TAllocator>} to shorten default output.
+  \b T_Append<std::type_info,TChar,TAllocator> to shorten default output.
   If the long output is needed, then a temporary of \b DbgTypeDemangler has to be created
   and the result of its \b Get method has to be appended.   
 - Added tag-types \alib{CHK} and \alib{NC}. 
@@ -126,7 +296,7 @@ This is a new module that introduces a proposal of how to organize threads in an
   \alib{BoxesHA} (equivalent to the prior type) and \alib{BoxesPA}.
 
 \par Module Enums:
-- Added namespace function \alib{enums::bitwise;HasOneOf}.
+- Added namespace function \b enums::bitwise::HasOneOf.
  
 \par Module Strings:
 - With dropping the support of C++ language versions below \c 17 (done in the previous release of 
@@ -158,11 +328,11 @@ This is a new module that introduces a proposal of how to organize threads in an
 - Added optional parameter \p{endIndex} method
   \doxlinkproblem{classalib_1_1strings_1_1TString.html;a02042c2357ac4830da72c80b169538f1;String::IndexOf} and
   and overloaded methods \alib{strings;TAString::SearchAndReplace}.
-- Fixed a bug in class \alib{strings;util::TSubstringSearch}, which may have caused wrong
+- Fixed a bug in class \b strings::util::TSubstringSearch, which may have caused wrong
   results.
 - Added classes \alib{strings;util::StringEscaper} and \alib{strings;util::StringEscaperStandard}.
   The functionality of these was previously implemented with similar types of camp
-  \alib_config and got generalized now.
+  \b Config and got generalized now.
 - Added optional second parameter \p{includeSeparator} to \alib{strings;Substring::ConsumeToken}.
 - Added an option to set an explicit writeable name to class \alib{strings::util::Token}.
   See methods \alib{strings::util::Token;Define} and \alib{strings::util::Token;GetExportName} for
@@ -179,7 +349,7 @@ This is a new module that introduces a proposal of how to organize threads in an
   that \alib once was with its siblings in Java and C#). More efficient replacement is possible
   with the use of the previously mentioned new type \alib{characters;AlignedCharArray}, as well
   as with the type of the next documented change.
-- Added formatting type \alib{strings;TFormat::Fill;Format::Fill}.    
+- Added formatting type \b strings::TFormat::Fill.    
 - Class \alib{strings::compatibility::std;StringWriter} now adjusts newline characters for
   to Windows- and non-Windows standards.     
 
@@ -224,7 +394,7 @@ module <b>"Containers"</b>. Due to the close relationship of topics, both module
 
 \par Module Monomem:
 Largely extended and refactored monotonic allocation facilities. To reach this goal, namespace
-#alib::lang (which is always included in any \alibdist) received new general allocation
+\b alib::lang (which is always included in any \alib Distribution) received new general allocation
 facilities, which use heap allocation (as noted above). 
 \par
 Note that the changes in this module are far-reaching and can't all be listed here.
@@ -252,13 +422,13 @@ Please refer to the \ref alib_mods_contmono "Programmer's Manual", which is almo
   \alib{StdDequeMono}, and \alib{StdDequePool}.
 - Added \b AString type definitions for \alib{MonoAllocator} as well as for new
   allocator type \alib{monomem;TPoolAllocator;PoolAllocator}. Those are:
-    \alib{AStringMA}, \alib{AStringPA}, \alib{ComplementAStringMA}, \alib{ComplementAStringPA},
-    \alib{StrangeAStringMA}, \alib{StrangeAStringPA}, \alib{NAStringMA}, \alib{NAStringPA},
-    \alib{WAStringMA}, \alib{WAStringPA}, \alib{XAStringMA} and \alib{XAStringPA}.<br>
+    \b AStringMA, \b AStringPA, \b ComplementAStringMA, \b ComplementAStringPA,
+    \b StrangeAStringMA, \b StrangeAStringPA, \b NAStringMA, \b NAStringPA,
+    \b WAStringMA, \b WAStringPA, \b XAStringMA} and \b XAStringPA}.<br>
   In turn, previous type \b TMAString and its former type definitions
   \b MAString, \b ComplementMAString, \b StrangeMAString, \b NMAString, \b WMAString, and 
   \b XMAString were removed.
-- With compiler symbol \ref ALIB_DEBUG_ALLOCATIONS is given, class \b MonoAllocator, as well as the
+- If the compiler symbol \ref ALIB_DEBUG_ALLOCATIONS is given, class \b MonoAllocator, as well as the
   two new allocators and type \alib{lang;HeapAllocator}, now add padding bytes around allocations 
   and test for validity when memory is freed. 
   Furthermore, freed memory is overwritten to detect illegal memory access early.
@@ -269,34 +439,34 @@ Please refer to the \ref alib_mods_contmono "Programmer's Manual", which is almo
 - Removed convenience functions \b monomem::AcquireGlobalAllocator and \b monomem::ReleaseGlobalAllocator. 
 
 \par  Camp BaseCamp:
-- Class \alib{lang::Exception} is now copyable and movable. While it is still recommended to catch
+- Class \b lang::Exception is now copyable and movable. While it is still recommended to catch
   \b references to instances of class \b Exception, instances may now, for example, be collected in
   lists.
 - Method \alib{lang;Exception::Format} now appends the \alib{lang;CallerInfo} 
   to the end of each exception entry.  
-- Renamed and refactored former class \b Directory to \alib{lang::system::Path}. The type was
+- Renamed and refactored the former class \b Directory to \b lang::system::Path. The type was
   never really well-developed, and this was also marked in its docs. Now it is in a quite useful
   state for the first time.
 - \alib{SPFormatter} is no of new type \alib{containers;SharedPtr} (was <c>std::shared_ptr</c> before).
-- Virtual method \alib{lang::format;Formatter::Default} now returns a value of type \b SPFormat.
+- Virtual method \b lang::format;Formatter::Default now returns a value of type \b SPFormat.
 - Removed static method <b>Formatter::GetDefault()</b> and instead gave public access to member
-  \alib{lang::format;Formatter::Default}. The former method <b>Formatter::ReplaceDefault()</b>
+  \b lang::format::Formatter::Default. The former method <b>Formatter::ReplaceDefault()</b>
   was not even defined, and this bug became now obsolete. 
-- Changed field \alib{lang::format;FormatterPythonStyle::Sizes} to being a pointer which by default
-  points to the new member \alib{lang::format;FormatterPythonStyle::SizesDefaultInstance}. 
+- Changed field \b lang::format::FormatterPythonStyle::Sizes to being a pointer which by default
+  points to the new member \b lang::format::FormatterPythonStyle::SizesDefaultInstance. 
   This allows attaching an external instance.
-- Fixed \alib{lang::format;FormatterPythonStyle} to correctly use tab stops when new-line characters
+- Fixed \b lang::format::FormatterPythonStyle to correctly use tab stops when new-line characters
   are given natively with <c>'\\n'</c>. (Before, this worked only when those were given with
   escape sequence <c>"\\n"</c>.)
-- Class \alib{lang::format;FormatterPythonStyle} now allows nested curly braces <b>"{...}"</b>
+- Class \b lang::format::FormatterPythonStyle now allows nested curly braces <b>"{...}"</b>
   within its fields. This enables custom format string definitions (implemented with box-function
-  \alib{lang::format;FFormat}) to contain curly braces.
+  \b lang::format::FFormat) to contain curly braces.
 - Several exceptions thrown by formatters now contain the argument type of the placeholder
   in question. With debug-builds, this information is displayed if the exception is formatted. 
-- Added type-definition \alib{lang;system::PathCharType}, which aliases C++ standard type 
+- Added type-definition \b lang::system::PathCharType, which aliases C++ standard type 
   <c>std::filesystem::path::value_type</c>. 
-  With that several string aliases like \alib{lang;system::PathString}, or 
-  \alib{lang;system::PathStringMA} have been added, and class \alib{lang;system::Path} uses this 
+  With that several string aliases like \b lang::system::PathString, or 
+  \b lang::system::PathStringMA have been added, and class \b lang::system::Path uses this 
   type as its underlying character type. 
     
 
@@ -307,7 +477,7 @@ straight forward, and it is now suited to cover an even wider range of use cases
 implementation was one of the few remainders in \alib resulting from its origin in languages
 Java and C# and thus was inefficient and not following modern C++ style at all.
 \par 
-The \ref alib_mod_config "Programmer's Manual" of this module was likewise rewritten and now
+The Programmer's Manual of this module was likewise rewritten and now
 contains step-by-step tutorial sections.
 
 \par  Camp Files:
@@ -316,8 +486,8 @@ contains step-by-step tutorial sections.
 - Added class \alib{files;File} which inherits the cursor type of class \alib{files;FTree}.
   This allows interfacing with entries in the file tree on different levels and paves the way
   for future features of this type that manipulate files on the system.
-- Implemented box-function \alib{lang::format;FFormat} for new class \b %File to support
-  the output of file data with formatter \alib{lang::format;FormatterPythonStyle}.
+- Implemented box-function \b lang::format::FFormat for new class \b %File to support
+  the output of file data with formatter \b lang::format::FormatterPythonStyle.
   The implementation makes use of method \alib{files;File::Format}, which therefore defines the
   format strings' syntax likewise for the python formatter.
 - Added new class \alib{files,TextFile}.
@@ -332,7 +502,7 @@ contains step-by-step tutorial sections.
   seemed useful.   
 
 \par  Camp ALox:
-- Tons of internal changes related to the rewrite of module \alib_config_nl. These are not listed
+- Tons of internal changes related to the rewrite of module \b Config. These are not listed
   here in detail as they mostly affect users which implemented custom loggers. Those are
   referred to the \ref alib_mod_alox "Programmer's Manual", \ref #alib::lox "reference documentation"
   and the source code.
@@ -407,16 +577,15 @@ The following gives a rough overview of what have been done:
   \alibmods are now directly located in outer namespace \ref alib.
 - The concept of "file-sets" has been dropped. Instead, the few files that did not find a home
   with one certain \alibmod have been moved to source folder <c>src/alib/lang</c>
-  and just have to be included with an \alibdist_nl, as
-  \ref alib_manual_modules_common_files "documented here".
+  and just have to be included with an \alib Distribution.
 - New namespace \ref alib::lang holds all library types which are very close to the C++ language
   and which are not related to specific \alibmods.
 - The terminology of <em>ALib Micro Module</em>, <em>ALib Full Module</em> has been dropped:<br>
   Everything is an \alibmod_nl now. Those that need configuration data and or resources
   (the ones that had been called "full modules"), are now called \alibcamps.<br>
   Instead of former class <b>aworx::lib::Module</b>, they now inherit
-  class \ref alib::lang::Camp.  For further information, \ref alib_manual_camp_modules "read here".
-- Special module <b>ALibDistribution</b> was renamed to \alib_basecamp. Then the
+  class \b alib::lang::Camp.  
+- Special module <b>ALibDistribution</b> was renamed to \b Basecamp. Then the
   following former modules have all been integrated into this single module:
   - <b>aworx::lib::resources</b>
   - <b>aworx::lib::text</b>
@@ -427,8 +596,8 @@ The following gives a rough overview of what have been done:
   presents \b 15 modules.
   
 - All bootstrapping and corresponding shutdown is now executed with overloaded namespace functions
-  \ref alib::Bootstrap and \ref alib::Shutdown. This is well documented in completely overhauled
-  chapter \ref alib_manual_bootstrapping of the module-agnostic Programmer's Manual of the library.
+  \ref alib::Bootstrap and \ref alib::Shutdown. This is well documented in the completely overhauled
+  Programmer's Manual of the library.
 
 
 #### Core library types: ####
@@ -446,19 +615,19 @@ The following gives a rough overview of what have been done:
   to assert a width overflow. Previously this was tolerated and corrected. This approach was
   considered inefficient in most cases
 - Added preprocessor macro \ref bitsof and namespace function \alib{lang,bitsofval}.
-- Added class \alib{lang,TBitSet} to new header \alibheader{lang/bitset.hpp}, which is a more
+- Added class \b lang::TBitSet to new header \b lang/bitset.hpp, which is a more
   sophisticated replica of <c>std::bitset</c>.
-- Added type definition \alib{enums,EnumBitSet} which allows to use new type \alib{lang,TBitSet}
+- Added type definition \b enums::EnumBitSet which allows to use new type \b lang::TBitSet
   conveniently with enumeration types.
 
 #### CommonEnums: ####
 - Added common enum \alib{lang,Recursive}.
 
 #### Module Enums: ####
-- Added macro \ref ALIB_ENUMS_UNDERLYING_TYPE.
-- Added class \alib{enums,EnumBitSet}, which is described in new chapter
+- Added macro \b ALIB_ENUMS_UNDERLYING_TYPE.
+- Added class \b enums::EnumBitSet, which is described in new chapter
   \ref alib_enums_iter_bitset "3.5 Using Class TBitSet with Iterable Enums"
-  of the \ref alib_mod_enums "Programmer's Manual" of module \alib_enums_nl.
+  of the \b "Programmer's Manual" of module \b Enums.
 
 #### Module Time: ####
 - Added method \alib{time,TimePointBase::Reset}.
@@ -506,11 +675,11 @@ The following gives a rough overview of what have been done:
   buffer size, which is application dependent.
 
 #### Module BASECAMP: ####
-- As explained above, \alib_basecamp is a new module aggregating the contents of other former modules.
-- Added parameter \p{nf} to \alib{lang::format,FFormat::Signature} to allow custom formatting functions of
+- As explained above, \b Basecamp is a new module aggregating the contents of other former modules.
+- Added parameter \p{nf} to \b lang::format::FFormat::Signature to allow custom formatting functions of
   boxes to access these configuration values of the formatter.
-- Added enum class \alib{lang::format,ByteSizeUnits} and format types \alib{lang::format,ByteSizeIEC} and
-  \alib{lang::format,ByteSizeSI}.
+- Added enum class \b lang::format::ByteSizeUnits and format types \b lang::format::ByteSizeIEC and
+  \b lang::format::ByteSizeSI.
 
 #### Module Files: ####
 This is a new module which provides powerful directory and file scanning capabilities.
@@ -566,7 +735,7 @@ have been reviewed and overhauled.
   besides C++ 17 const-expression if-statements.
 - Added further macros to temporarily suppress compiler warnings:
   - \ref ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
-  - \ref ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+  - \b ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
   - \ref ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
   - \ref ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
   - \ref ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
@@ -576,9 +745,9 @@ have been reviewed and overhauled.
 
 - Other changes in macros:
   - Added symbol \ref ALIB_BASE_DIR
-  - Added macro \ref ATMP_IS_INT
-  - Added macro \ref ATMP_IS_UINT
-  - Added macro \ref ATMP_IS_SINT
+  - Added macro \b ATMP_IS_INT
+  - Added macro \b ATMP_IS_UINT
+  - Added macro \b ATMP_IS_SINT
   - Added symbol \ref ALIB_INTGAP_TYPE. See documentation of \ref ALIB_SIZEOF_INTEGER
     as well as manual chapter \ref alib_manual_build_overview_platforms "4.1.1 Platforms and Toolchains"
     of the \alib Programmer's Manual.
@@ -588,7 +757,7 @@ have been reviewed and overhauled.
   and \https{GNU Compiler Collection 12.2.0,gcc.gnu.org/}. (As always a minimum set of
   notorious warnings are disabled, only)
 - Removed former filesets \e debug and \e integers in favour to reduce compilation/setup complexity.
-  Corresponding files are now included in each \alibdist with header files:
+  Corresponding files are now included in each \alib Distribution with header files:
   - \b lib/integers.hpp and
   - \b lib/tools.hpp
   The latter was available before, but now includes the contents of removed files <c>assert.hpp</c>
@@ -607,8 +776,8 @@ have been reviewed and overhauled.
 - Removed use of deprecated type <c>"std::iterator"</c>.
   (Replaced by use of <c>"std::iterator_traits"</c>.)
 - Renamed identifiers containing the misspelled word "iteratable" to "iterable".
-  I.e. template type\alib{enums,T_EnumIsIterable}, macro \ref ALIB_ENUMS_MAKE_ITERABLE
-  and also header file \alibheader{enums/iterable.hpp}
+  I.e. template type \b enums::T_EnumIsIterable, macro \b ALIB_ENUMS_MAKE_ITERABLE
+  and also header file \b iterable.hpp}
 - Slightly corrected bootstrapping order of micro modules to be
   1. \alib_time,
   2. \alib_boxing and
@@ -639,14 +808,14 @@ have been reviewed and overhauled.
   environments.
 
 #### Module Resources: ####
-- Added field \alib{lang::resources,LocalResourcePool::DbgResourceLoadObserver} and updated the
+- Added the field \b lang::resources::LocalResourcePool::DbgResourceLoadObserver and updated the
   corresponding manual chapter.
 
 #### Module Enums: ####
 - Added three more namespace functions for bitwise defined enumeration types:
-  \alib{enums::bitwise,CountElements},
-  \alib{enums::bitwise,ToBitwiseEnumeration} and
-  \alib{enums::bitwise,ToSequentialEnumeration}.
+  \b enums::bitwise::CountElements,
+  \b enums::bitwise::ToBitwiseEnumeration and
+  \b enums::bitwise::ToSequentialEnumeration.
 
 #### Module Boxing: ####
 - Defined \ref alib_boxing_more_opt_staticvt "static vtables for ALib Boxing" for the following types:
@@ -738,19 +907,19 @@ have been reviewed and overhauled.
   version.
 
 - Replaced abstract virtual method <b>FormatterStdImpl::replaceEscapeSequences</b> with
-  \alib{lang::format::FormatterStdImpl,writeStringPortion} (performance optimization).
-- \alib{lang::format,FormatterStdImpl} now performs custom formatting whenever a custom boxing
-  function \alib{lang::format,FFormat} is defined for a given boxed formatting argument.
+  \b lang::format::FormatterStdImpl::writeStringPortion (performance optimization).
+- \b lang::format::FormatterStdImpl now performs custom formatting whenever a custom boxing
+  function \b lang::format,FFormat is defined for a given boxed formatting argument.
   In previous versions, this was done only if a custom format string was provided with the
   corresponding placeholder of the format string.<br>
   Consequently, custom implementations of \b FFormat now have to cope with empty format strings,
   for example by using a (resourced) default string.
 
 #### Module Config: ####
-- Changed format of resourced \alib{config,VariableDecl,variable declarations}.
-- Fixed a bug that caused utility method \alib{config,Configuration::PreloadVariables} to overwrite
+- Changed the format of resourced variable declarations.
+- Fixed a bug that caused utility method \b config::Configuration::PreloadVariables to overwrite
   existing variables with default values.
-- Method \alib{config,Configuration::Load} now adds the default value to the given variable
+- Method \b config::Configuration::Load now adds the default value to the given variable
   instance, also when no default configuration plug-in is added.
 
 #### Module System: ####
@@ -758,10 +927,10 @@ have been reviewed and overhauled.
   The format string is resourced with key \b "DFMT".
 - Extracted system error definitions from \b system/system.hpp to
   \b system/systemerrors.hpp (to reduce inclusion dependencies)
-- Added class \alib{lang::system,CalendarDate}.
+- Added class \b lang::system::CalendarDate.
 
 #### Module ALox: ####
-- Fixed special shortcut header \alibheader{alox.hpp} to include \b distribution.hpp
+- Fixed special shortcut header \b alox.hpp to include \b distribution.hpp
   to allow single inclusion of "alib/alox.hpp" to automatically bootstrap and use
   \alox functionality as instructed in the tutorial.
 - Added method \alib{lox,Lox::IsActive} to detect the number of loggers that are active
@@ -815,15 +984,15 @@ A \ref alib_mod_bitbuffer "brief manual" explains the use of this new module.
 2. The concept of "ALib Enum Meta Data"
    - has been renamed to <b>ALib Enum Records</b> and was rewritten from scratch.
      It is now much more simple in use and yet more powerful.
-   - was formerly spread between modules \alib_enums_nl and \alib \b Resources,
-     and is now 100% located in \alib_enums.
+   - was formerly spread between modules \b Enums and \alib \b Resources,
+     and is now 100% located in \b Enums.
    - Its documentation had been spread over reference documentation of various types and is now
      concentrated in chapter \ref alib_enums_records "4. Enum Records" of the now available
      \ref alib_mod_enums "Programmer's Manual" of that module.
 3. Module \alib \b Resources has been revised. Resources are now more strictly defined to be \e static data.
    While the core principles remained intact, almost every entity in the module has been
    refactored to be simpler and faster.
-4. \ref alib_manual_bootstrapping "Bootstrapping of ALib" and custom modules was slightly revised.
+4. "Bootstrapping of ALib" and custom modules was slightly revised.
 5. The most important new feature: Module <em>Memory</em> (which was almost empty before) has been
    renamed to \alib_monomem and filled. Its new functionality has been documented with a new
    Programmer's Manual and it is used with almost every other module.<br>
@@ -862,16 +1031,16 @@ We hope that during the process of adopting your code, you will see the benefits
 - All variadic template types that had been named \p{Args} have been renamed to \p{TArgs} for
   consistency with \alib naming conventions.
 - Renamed all code selection symbol for modules from \b ALIB_MODULE_XYZ to \b ALIB_XYZ, for example
-  \b ALIB_MODULE_THREADS to \ref ALIB_THREADS.<br>
+  \b ALIB_MODULE_THREADS to \b ALIB_THREADS.<br>
   On the same token added macros \b ALIB_IF_XYZ and \b ALIB_IFN_XYZ for each module.
   (For example \b ALIB_IF_THREADS and \b ALIB_IFN_THREADS.)
   Those are useful to reduce <c>\#if</c>/<c>\#endif</c> clutter in the code.
-- Renamed symbol \b ALIB_DOCUMENTATION_PARSER to \ref ALIB_DOX and changed it from being
-  defined to \c 0  to being undefined with compiler runs.
+- Renamed the symbol \b ALIB_DOCUMENTATION_PARSER to \b ALIB_DOX and changed it from being
+  defined to \c 0 to being undefined with compiler runs.
 
 #### CMake Build System / Filesets / Sources: ####
 - Removed former filesets <b>PREDEF_PF</b> and <b>PREDEF_TMP</b>, and defined the associated
-  mostly preprocessor-related header files to be included in any \alibdist.
+  mostly preprocessor-related header files to be included in any \alib Distribution.
 - Moved sources of filesets to sub-directories named <b>src/lib/fs_XYZ</b>.
 - Added dependency to filesets "INTEGERS" and "DEBUG" for micro module \alib_singletons.
 - Removed fileset "TYPEMAP".
@@ -881,7 +1050,7 @@ We hope that during the process of adopting your code, you will see the benefits
   can now be added to list variable \b ALIB_COMPILER_WARNINGS. If so, this entry is removed and
   the script will not add any warning settings to the symbol.
 - Fixed bug in CMake script that prevented cached variable \b ALIB_PRECOMPILED_HEADER_DISABLED
-  to disable precompiled header \alibheader{alib_precompile.hpp}.
+  to disable precompiled header \b alib_precompile.hpp.
   Renamed the variable to be \b ALIB_PRECOMPILED_HEADER, defaulting it to \b Off.
 - The CMake script now searches the target system's thread library independent from the inclusion of
   module \alib_threads. Instead, new CMake variable
@@ -915,7 +1084,7 @@ Various changes have been made, for example:
 - Methods \b Init and \b TerminationCleanUp have been renamed to \b Module::Bootstrap and
   \b Module::Shutdown. Likewise, all interfaces throughout \alib that are deemed to be used
   exclusively during bootstrap, have also been renamed and prefixed by the term <b>Bootstrap</b>.
-  (For example \alib{lang::resources,ResourcePool::BootstrapBulk}.)
+  (For example, \b lang::resources::ResourcePool::BootstrapBulk.)
 
 #### Fileset "Common Enums": ####
 - Added common enumeration \b Side.
@@ -950,7 +1119,7 @@ doubly-linked lists.
     This intentionally disables implicit construction of an instance of the class with the invocation
     of methods that expect a parameter of type <b>const Boxes&</b>.
   - Methods \alib{boxing,Boxes::Add} now return a reference to the invoked object.
-- Renamed namespace function \b EnumValue to \alib{enums,UnderlyingIntegral}.
+- Renamed namespace function \b EnumValue to \b enums::UnderlyingIntegral.
 - Renamed method \b Enum::Value to \alib{boxing,Enum::Integral}.
 - Fixed a minor memory leak with custom box-functions that were not deleted on program termination.
   (This was only an issue for mem checking tools like \http{Valgrind,valgrind.org}.)
@@ -960,7 +1129,7 @@ doubly-linked lists.
 - Renamed macro \b ALIB_BOXING_VTABLE_REGISTER to \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
 - Removed debug tables \b DBG_KNOWN_VTABLES and \b DBG_KNOWN_VTABLES.
   Instead, method \alib{boxing,DbgBoxing::GetKnownVTables} was added and along with that, method
-  \alib{boxing,DbgBoxing::GetKnownFunctionTypes} is now available also in \alibdists that only
+  \alib{boxing,DbgBoxing::GetKnownFunctionTypes} is now available also in \alib Distributions that only
   contain module \b Boxing.
 - Changed management of custom box functions to using one global hash table instead of
   many linked lists. This might slightly decrease performance with small applications
@@ -1002,16 +1171,16 @@ doubly-linked lists.
 
 
 #### Module Threads: ####
-- This module can now be excluded from any permutation of modules of an \alibdist, which turns
+- This module can now be excluded from any permutation of modules of an \alib Distribution, which turns
   such distribution into a <em>"single threaded"</em> version of \alib.
   This is considered a new feature (as formerly, module \alib_alox_nl had a strict dependency).
-  More on that topic is found in the new manual section \ref alib_manual_modules_impact_singlethreaded.
+  More on that topic is found in the corresponding new manual section.
 - The module is now independent of module \alib_time (the prior minimal use pieces, exclusively in
   debug-builds, were re-implemented)
 - Uses \ref alib_mods_contmono "monotonic allocation" for thread management.
 - Already in previous versions, macros \ref ALIB_LOCK and \ref ALIB_LOCK_WITH remained defined
-  if module \alib_threads was \b not included in an \alibdist. Now in addition, these macros will
-  invoke test function \alib{DbgAssertSingleThreaded} in debug-compilations, that asserts
+  if module \alib_threads was \b not included in an \alib Distribution. Now in addition, these macros will
+  invoke test function \b DbgAssertSingleThreaded in debug-compilations, that asserts
   if a second thread visits library code that needs protection.
 - Re-implemented bigger parts of \alib{threads,ThreadLock} with slight changes in its interface.
 
@@ -1036,26 +1205,26 @@ doubly-linked lists.
   \alib{monomem,StdContMARecycling} to support monotonic allocation with C++ standard containers.
 - Added allocator instance \alib{monomem,GlobalAllocator}, which is used during bootstrap by
   various modules.
-- Added compiler symbol \ref ALIB_DEBUG_MONOMEM to enable debug-features for this module.
+- Added compiler symbol \b ALIB_DEBUG_MONOMEM to enable debug-features for this module.
 - Added a verbose \ref alib_mods_contmono "Programmer's Manual" for this module.
 
 #### Module Resources: ####
 - Overhauled resource management:
   - Programmer's Manual was rewritten.
-  - Renamed type \b Resources to \alib{lang::resources,ResourcePool} and made it pure abstract interface type.
-  - Renamed methods of \alib{lang::resources,ResourcePool} to more precise and better readable names.
+  - Renamed type \b Resources to \b lang::resources::ResourcePool and made it pure abstract interface type.
+  - Renamed methods of \b lang::resources::ResourcePool to more precise and better readable names.
   - Removed ability to store non-static resource strings.
-  - Added new type \alib{lang::resources,LocalResourcePool} as the default interface implementation
-  - Added new type \alib{lang::resources,ConfigResourcePool } an optional interface implementation.
+  - Added new type \b lang::resources::LocalResourcePool as the default interface implementation
+  - Added new type \b lang::resources::ConfigResourcePool an optional interface implementation.
   - Adopted changes in type \b Module.
-  - Adopted changes in library's Programmer's manual, chapter \ref alib_manual_bootstrapping.
-- Removed all previously included functionality of former concept <em>"ALib Enum Meta Data"</em>,
+  - Adopted changes in library's Programmer's manual chapter.
+- Removed all previously included functionality of the former concept <em>"ALib Enum Meta Data"</em>,
   which was completely rewritten to new concept \ref alib_enums_records "ALib Enum Records"
-  and located in module \alib_enums.
+  and located in module \b Enums.
 - Uses \ref alib_mods_contmono "monotonic allocation" for resource management.
 - Removed class \b ResourceString.
-- Fixed a bug that prevented to add resources for common enum types, if module \alib_config_nl
-  was not included in the \alibdist.
+- Fixed a bug that prevented to add resources for common enum types, if module \b Config
+  was not included in the \alib Distribution.
 
 
 #### Module Results: ####
@@ -1071,62 +1240,61 @@ doubly-linked lists.
 
 #### Module Text: (Formerly Stringformat) ####
 - Renamed module \b Stringformat to \alib \b Text
-- Method \alib{lang::format,Formatter::Acquire} now returns an internal container of type \b Boxes,
+- Method \b lang::format::Formatter::Acquire now returns an internal container of type \b Boxes,
   which optionally can be used to collect formatting arguments.
-  If it is used, new method\alib{lang::format,Formatter::FormatArgs(AString&)} allows using this list.
-- Overloaded methods method\alib{lang::format,Formatter::FormatArgs} to not acquire the formatter
+  If it is used, new method\b lang::format::Formatter::FormatArgs(AString&) allows using this list.
+- Overloaded methods method\b lang::format::Formatter::FormatArgs to not acquire the formatter
   anymore. Acquirement and a corresponding release of the formatter object, has to be performed
   explicitly by the calling code. In case of formatting exceptions, those have to be caught
   to release the formatter and eventually be rethrown or otherwise processed.
-- Fixed method  \alib{lang::format,FormatterStdImpl::writeStdArgument} to write raw integral box
+- Fixed method \b lang::format::FormatterStdImpl::writeStdArgument to write raw integral box
   contents with binary, octal and hexadecimal output formats.
   (This was broken since the most recent release only)<br>
   On the same token, the method was changed to use the full (platform-dependent) output width for
   pointer and array types, in the case no output width specifier had been given. E.g. if a pointer
   is given with hexadecimal output, 16 digits are printed on a 64-bit platform.
-- Extended conversion option <b>{!Quote}</b> of formatter \alib{lang::format,FormatterPythonStyle}
+- Extended conversion option <b>{!Quote}</b> of formatter \b lang::format::FormatterPythonStyle
   to optionally specify the quote character(s) that an argument should be surrounded by.
 - Removed creation of class \alib{boxing,Boxes} with method
-  \alib{lang::format,Formatter::Format(AString, const TArgs&...)}.
+  \b lang::format::Formatter::Format(AString, const TArgs&...).
   (This was accidentally inserted and totally superfluous.)
 
 #### Module Configuration: ####
 - Adopted concept \ref alib_enums_records "ALib Enum Records".
-- Class \alib{config,Variable} now inherits new struct \alib{monomem,SelfContained} and thus
+- Class \b config::Variable now inherits new struct \alib{monomem,SelfContained} and thus
   is very memory efficient. This caused various interface changes in the area of getting and
   setting variable attributes and values.
-- Constructors of class \alib{config,Variable} as well as method \alib{config,Variable::Declare}
+- Constructors of class \b config::Variable as well as method \b lang::config::Variable::Declare
   now accepts a single \alib{boxing,Box} instead of variadic template arguments to define
   replacement information. In the case that more than one replacement object should be passed,
   those have to be encapsulated in an instance of class \alib{boxing,Boxes}.
-- Class \alib{config,InMemoryPlugin} was rewritten and changes adopted by derived type
-  \alib{config,IniFile}.
+- Class \b config::InMemoryPlugin was rewritten and changes adopted by derived type
+  \b config::IniFile.
   It now uses \ref alib_mods_contmono "monotonic allocation" and shows better performance.
   Various changes in the rather internal interface are not listed here.
-- Added method \alib{config,IniFile::AddResourcedSectionComments}, which replaces a former
+- Added method \b lang::config::IniFile::AddResourcedSectionComments, which replaces a former
   less flexible approach to add resourced (externalized) comments to sections, when they
   get created programatically.
-- Added field \alib{config,IniFile::LineWidth}, which may be used to adjust the preferred line
+- Added field \b lang::config::IniFile::LineWidth, which may be used to adjust the preferred line
   width when formatting comments of sections and entries.
 
 #### Module ALox: ####
 - This module is now independent from the availability of module \alib_threads. If not
-  available, the library is deemed to be a
-  \ref alib_manual_modules_impact_singlethreaded "single-threaded version", which was formerly
-  not possible when module \alib_alox_nl was included in an \alibdist.
-- Reorganized code structure to reduce header dependencies. Header file \alibheader{alox.hpp}
-  is now a shortcut to \alibheader{alox/alox.hpp}, which now only includes
+  available, the library is deemed to be a "single-threaded version", which was formerly
+  not possible when module \alib_alox_nl was included in an \alib Distribution.
+- Reorganized code structure to reduce header dependencies. Header file \b alox.hpp
+  is now a shortcut to \b alox.hpp, which now only includes
   things needed to perform basic debug- and release-log operations.<br>
   Class \alib{lox,ALox} is not included by default anymore. If needed (e.g. for
   initialization of the module or for registration of instances of \b %Lox), header file
   "alox/aloxmodule.hpp" has to be explicitly included.<br>
   To allow the reduction, class \alib{lox,Lox} was implemented using the
   \https{Pimpl Idiom,en.cppreference.com/w/cpp/language/pimpl}.
-- Header file \b alib/alox.hpp is now included in all \alibdists, even those that do \b not
+- Header file \b alib/alox.hpp is now included in all \alib Distributions, even those that do \b not
   include module \alib_alox_nl. If \b ALox is not available, this header will define the logging
   macros empty. This simplifies the insertion of logging code into sources that are only optionally
   used in combination with \b ALox.
-- Text formatters now duly catch exceptions raised by their internal \alib{lang::format,Formatter}
+- Text formatters now duly catch exceptions raised by their internal \b lang::format::Formatter
   instances, e.g. when  malformed placeholder syntax occurs in logging code.
   In this case the originally intended log message is extended with information on the exception
   that was raised.
@@ -1164,7 +1332,7 @@ doubly-linked lists.
 - Resourced (externalized) names of built-in types \alib{expressions,Types}.
 
 #### Compatibility Headers: ####
-- Moved overloads of <c>operator<<</c> given with \alibheader{compatibility/std_strings_iostream.hpp}
+- Moved overloads of <c>operator<<</c> given with \b std_strings_iostream.hpp
   from namespace \b aworx to the global namespace. Documentation still resides in "fake namespace"
   \b aworx::lib::strings::compatibility::std.
 - Various minor changes not listed here.
@@ -1200,13 +1368,12 @@ The following provides a high level list of changes.
 
 
 - <b>Refactoring of the module structure:</b>
-  The former seven modules have been refactored to now \ref alib_manual_modules_overview "16 modules".
+  The former seven modules have been refactored to now 16 modules.
   With that, almost any type of the library found a new "home", respectively namespace.
-  The modules now strictly obey to a well defined dependency relationship which
-  \ref alib_manual_modules_dependencies "is documented here".
+  The modules now strictly obey to a well defined dependency relationship.
 
 - New \b CMake build scripts support the selection and compilation of only a subset of the 16 modules
-  into an so called \alibdist.<br>
+  into an so called \alib Distribution.<br>
   For users of other build systems, the \b CMake scripts allow to generate source listings
   to determine the exact subset of library files needed for a built.
 
@@ -1276,7 +1443,7 @@ this time is only given for module \alib_expressions:
   - Many built-in function abbreviations have changed to support abbreviation of single
     camel-case humps.
 - Added class \b expressions::util::ExpressionFormatter which is similar to existing
-  \alib{lang::format,PropertyFormatter}, but supports the use of expressions instead of just
+  \b lang::format::PropertyFormatter, but supports the use of expressions instead of just
   simple property callbacks.
 - Removed division and modulo operators from compiler plug-in \alib{expressions::plugins,Arithmetics}
   with boolean divisor type (not useful and dangerous in respect to division by zero exceptions).
@@ -1398,4 +1565,3 @@ for information on changes since the initial release in May 2013.
 
 <br><br><br><br><br><br> */
 
-*/

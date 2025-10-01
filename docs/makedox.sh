@@ -9,14 +9,14 @@ echo "      3. ALox Sample has to be run once (generates an INI-file in doxygen/
 #makeclean.sh
 
 # prior used doxygen version
-Doxygen="/opt/doxygen/current.git3/build/bin/doxygen"
 Doxygen="doxygen"
-
+Doxygen=/opt/doxygen/doxygen.git/_builds_/bin/doxygen
 
 echo "Doxygen version: "
 $Doxygen --version
-$Doxygen doxygen/doxyfile.ini
-#$Doxygen doxygen/doxyfile.ini  2>&1 | grep -i ".hpp"
+$Doxygen /tmp/alib_doxyfile.ini
+
+#$Doxygen /tmp/alib_doxyfile.ini  2>&1 | grep -i ".hpp"
 
 echo '*** Copying other additional resources ***'
 cp resources/*   /tmp/alib_html/
@@ -24,4 +24,5 @@ cp resources/*   /tmp/alib_html/
 echo '*** Patching menu.js ***'
 sed -i 's/).smartmenus()/).smartmenus({markCurrentItem:true})/g' /tmp/alib_html/menu.js
 
+# This is not needed anymore (after a doxygen bug was fixed)
 #doxygen/dot postprocess /tmp/alib_html/

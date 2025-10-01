@@ -2,7 +2,7 @@
 // ALib-Tests.pch will be the pre-compiled header
 // stdafx.obj will contain the pre-compiled type information
 
-#include "alib/alox.hpp"
+#include "alib_precompile.hpp"
 
 
 // Attention: reference any additional headers you need in STDAFX.H

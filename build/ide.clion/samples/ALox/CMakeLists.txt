@@ -1,7 +1,7 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Samples
+#  CMakeLists.txt - ALib Samples
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -11,7 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
-cmake_minimum_required( VERSION 3.18.0 )
+cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 project("ALox.Samples")
 
 
@@ -19,3 +19,6 @@ project("ALox.Samples")
 # All we do here is to include the "generic" sample CMake file
 #
 include( ../../../cmake/samples/ALox/CMakeLists.txt )
+
+# Uncomment for debugging CMake
+#ALibDumpCMakeVariables()

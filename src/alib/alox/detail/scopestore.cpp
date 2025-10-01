@@ -1,27 +1,51 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/alox/alox.hpp"
-#   include "alib/lang/message/report.hpp"
-#   define HPP_ALIB_LOX_PROPPERINCLUDE
-#       include "alib/alox/detail/scopestore.inl"
-#       include "alib/alox/detail/scopeinfo.inl"
-#   undef HPP_ALIB_LOX_PROPPERINCLUDE
-#endif // !DOXYGEN
-
-using namespace alib;
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
+#include "ALib.Monomem.StdContainers.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
+using namespace alib::strings;
 
 namespace alib {  namespace lox { namespace detail {
 
 #define    CMD_INSERT 0
 #define    CMD_REMOVE 1
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
 #   define CMD_GET    2
 #endif
 
@@ -78,7 +102,7 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
             if ( self.walkNextThreadIdx == -2 )
             {
                 self.walkNextThreadIdx= -1;
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     if ( self.threadStore.Size() != 0 )
                     {
                         auto it= self.threadStore.Find( typename ScopeStore<T, true>::ThreadMapKey(true, self.scopeInfo.GetThreadID()) );
@@ -132,7 +156,7 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
             // initialize
             if ( self.walkNextThreadIdx == -2 )
             {
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     if ( self.threadStore.Size() != 0 )
                     {
                         auto it= self.threadStore.Find( typename ScopeStore<T, true>::ThreadMapKey(false, self.scopeInfo.GetThreadID()) );
@@ -165,7 +189,7 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
         }
         break;
 
-        default: ALIB_ERROR("Illegal switch state.") break;
+        default: ALIB_ERROR("ALOX", "Illegal switch state.") break;
     }
 
     return nullptr;
@@ -188,7 +212,7 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
         return oldValue;
     }
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     // --------- thread-related scopes ---------
     if(     self.actScope == Scope::ThreadOuter
         ||  self.actScope == Scope::ThreadInner    )
@@ -205,7 +229,7 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
              self.actThreadID=   self.scopeInfo.GetThreadID();
 
         // --- implementation for non-stacked values (values stored in a ma) ---
-        ALIB_ASSERT( cmd != CMD_REMOVE ) // no remove implemented (needed)
+        ALIB_ASSERT( cmd != CMD_REMOVE, "ALOX" ) // no remove implemented (needed)
 
         // 'get'
         auto key = typename ScopeStore<T, true>::ThreadMapKey(isInner, self.actThreadID);
@@ -220,7 +244,7 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
         }
 
         // insert is simple, we do not even return an 'oldValue'
-        ALIB_ASSERT( cmd == CMD_INSERT )
+        ALIB_ASSERT( cmd == CMD_INSERT, "ALOX" )
         self.threadStore.InsertUnique( std::make_pair( key, value), hash );
 
         return oldValue;
@@ -255,14 +279,14 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
             if ( self.walkNextThreadIdx == -2 )
             {
                 self.walkNextThreadIdx= -1;
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     if ( self.threadStore.Size() != 0 )
                     {
                         auto it= self.threadStore.Find( typename ScopeStore<T, true>::ThreadMapKey(true, self.scopeInfo.GetThreadID()) );
                         if ( it != self.threadStore.end() )
                         {
                             self.walkThreadValues=    &it.Mapped();
-                            self.walkNextThreadIdx=   static_cast<int>( self.walkThreadValues->size() );
+                            self.walkNextThreadIdx=   int( self.walkThreadValues->size() );
                         }
                     }
                 #endif
@@ -309,14 +333,14 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
             // initialize
             if ( self.walkNextThreadIdx == -2 )
             {
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     if ( self.threadStore.Size() != 0 )
                     {
                         auto it= self.threadStore.Find( typename ScopeStore<T, true>::ThreadMapKey(false, self.scopeInfo.GetThreadID()) );
                         if ( it != self.threadStore.end() )
                         {
                             self.walkThreadValues=    &it.Mapped();
-                            self.walkNextThreadIdx=   static_cast<int>( self.walkThreadValues->size() );
+                            self.walkNextThreadIdx=   int( self.walkThreadValues->size() );
                         }
                     }
                 #endif
@@ -341,7 +365,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
         }
         break;
 
-        default: ALIB_ERROR("Illegal switch state.") break;
+        default: ALIB_ERROR("ALOX", "Illegal switch state.") break;
     }
 
     return nullptr;
@@ -362,7 +386,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
         return oldValue;
     }
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     // --------- thread-related scopes ---------
     if(     self.actScope == Scope::ThreadOuter
         ||  self.actScope == Scope::ThreadInner    )
@@ -463,7 +487,7 @@ void ScopeStore<T,TStackedThreadValues>::initCursor( bool create )
     if( !create )
     {
         // in non-creation mode, it is always scope Method
-        ALIB_ASSERT( actScope == Scope::Method )
+        ALIB_ASSERT( actScope == Scope::Method, "ALOX" )
 
         // in read only mode, we can leave as soon as a portion was not read
         auto remainingPath= actStringTreeNode.GoTo( path );
@@ -506,7 +530,7 @@ void ScopeStore<T,TStackedThreadValues>::InitAccess( Scope scope, int pathLevel,
 {
     actScope=           scope;
     actPathLevel=       pathLevel;
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     actThreadID=        threadID;
 #else
     (void) threadID;

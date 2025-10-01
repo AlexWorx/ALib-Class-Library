@@ -1,23 +1,56 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#include "alib/files/ftree.hpp"
-#include "alib/alox.hpp"
-
-#if ALIB_DEBUG
-#      include "alib/lang/format/formatter.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
 #endif
-
-#if !defined ( _WIN32 )                          
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
+#include "alib/files/files.prepro.hpp"
+#if !defined ( _WIN32 )
 #   include <pwd.h>
 #   include <grp.h>
 #endif
 
-using namespace alib::lang::system;
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Files;
+    import   ALib.Lang;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#  if ALIB_ALOX
+    import   ALib.ALox;
+    import   ALib.ALox.Impl;
+#  endif
+#  if ALIB_EXPRESSIONS
+    import   ALib.Expressions;
+#  endif
+#if ALIB_DEBUG
+#  include "ALib.Format.H"
+#endif
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#   include "ALib.Expressions.H"
+#if ALIB_DEBUG
+#  include "ALib.Format.H"
+#endif
+#   include "ALib.Files.H"
+#endif
+// ======================================   Implementation   =======================================
+
+using namespace alib::system;
 namespace alib::files {
 
 //==================================================================================================
@@ -25,7 +58,7 @@ namespace alib::files {
 //==================================================================================================
 namespace detail {
 
-#include "alib/lang/callerinfo_functions.hpp"
+#   include "ALib.Lang.CIFunctions.H"
 void FTreeNodeHandler::AllocateExtendedInfo( FTree::Cursor&      node,
                                              const PathString&   symLinkDest,
                                              const PathString&   symLinkRealPath )
@@ -33,7 +66,7 @@ void FTreeNodeHandler::AllocateExtendedInfo( FTree::Cursor&      node,
     ALIB_ASSERT_ERROR(    node->Type() == FInfo::Types::DIRECTORY
                        || node->Type() == FInfo::Types::SYMBOLIC_LINK
                        || node->Type() == FInfo::Types::SYMBOLIC_LINK_DIR,
-                       "FILES", "Given node is not a directory or symbolic link.")
+                       "FILES", "Given node is not a directory or symbolic link." )
 
     ALIB_ASSERT_ERROR(     (node->Type() == FInfo::Types::DIRECTORY)
                        ==  symLinkDest.IsEmpty(),
@@ -41,7 +74,7 @@ void FTreeNodeHandler::AllocateExtendedInfo( FTree::Cursor&      node,
 
 
     auto& v = *node;
-    ALIB_ASSERT_ERROR( v.GetExtendedInfo() == nullptr, "FILES", "Already set")
+    ALIB_ASSERT_ERROR( v.GetExtendedInfo() == nullptr, "FILES", "Already set" )
 
     auto pool= node.Tree<FTree>().Pool();
     ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
@@ -72,7 +105,7 @@ void FTreeNodeHandler::AllocateExtendedInfo( FTree::Cursor&      node,
     }
     ALIB_WARNINGS_RESTORE
 }
-#include "alib/lang/callerinfo_methods.hpp"
+#   include "ALib.Lang.CIMethods.H"
 
 } // namespace alib::files[::detail]
 
@@ -134,23 +167,23 @@ void FTree::registerListener( FTreeListener*             listener,
                               const PathString&          pathSubstring  )
 {
     // checks
-    ALIB_ASSERT_ERROR( file    ==nullptr || &file->AsCursor().Tree() == this, "FILES", "Given file does not belong to this FTree.")
-    ALIB_ASSERT_ERROR( subTree ==nullptr ||  subTree->IsValid()             , "FILES", "Invalid cursor given."       )
-    ALIB_ASSERT_ERROR( subTree ==nullptr || &subTree       ->Tree() == this , "FILES", "Given cursor does not belong to this FTree.")
+    ALIB_ASSERT_ERROR( file    ==nullptr || &file->AsCursor().Tree() == this,"FILES","Given file does not belong to this FTree." )
+    ALIB_ASSERT_ERROR( subTree ==nullptr ||  subTree->IsValid()             ,"FILES","Invalid cursor given." )
+    ALIB_ASSERT_ERROR( subTree ==nullptr || &subTree        ->Tree() == this,"FILES","Given cursor does not belong to this FTree." )
 
     // ---------------- registration ---------------------
     if( insertOrRemove == lang::ContainerOp::Insert)
     {
-        listeners.EmplaceBack( ListenerRecord{ listener,
+        listeners.emplace_back( ListenerRecord{ listener,
                                                event,
                                                (file     ? file->AsCursor().Export() : ConstCursorHandle()),
                                                (subTree  ? subTree->        Export() : ConstCursorHandle()),
                                                PathStringPA(Pool),
                                                PathStringPA(Pool),
                                                PathStringPA(Pool)   } );
-        listeners.Back().fileName     << fileName;
-        listeners.Back().pathPrefix   << pathPrefix;
-        listeners.Back().pathSubstring<< pathSubstring;
+        listeners.back().fileName     << fileName;
+        listeners.back().pathPrefix   << pathPrefix;
+        listeners.back().pathSubstring<< pathSubstring;
 
         return;
     }
@@ -165,11 +198,11 @@ void FTree::registerListener( FTreeListener*             listener,
             &&  it->pathPrefix   .Equals( pathPrefix )
             &&  it->pathSubstring.Equals( pathSubstring )    )
         {
-            (void) listeners.Erase( it );
+            (void) listeners.erase( it );
             return;
         }
 
-    ALIB_WARNING( "FILES", "Listener with matching set of parameters not found with deregistration." )
+    ALIB_WARNING("FILES", "Listener with matching set of parameters not found with deregistration.")
 
 }  // FTree::registerListener
 
@@ -177,7 +210,7 @@ void FTree::registerListener( FTreeListener*             listener,
 int FTree::MonitorStop( FTreeListener*  listener )
 {
     // checks
-    ALIB_ASSERT_ERROR( listener!=nullptr, "FILES", "Given listener is nullptr.")
+    ALIB_ASSERT_ERROR( listener!=nullptr, "FILES", "Given listener is nullptr." )
 
     // ---------------- de-registration ---------------------
     int cnt= 0;
@@ -185,13 +218,13 @@ int FTree::MonitorStop( FTreeListener*  listener )
         if( it->listener == listener )
         {
             Log_Verbose("Removing listener")
-            it= listeners.Erase( it );
+            it= listeners.erase( it );
             ++cnt;
         }
         else
              ++it;
 
-    Log_If(cnt==0, Verbosity::Warning, "No listener found to be removed.")
+    Log_If(cnt==0, Verbosity::Warning, "No listener found to be removed." )
     
     return cnt;
 }  // FTree::registerListener
@@ -235,11 +268,11 @@ IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
 } // FTree::notifyListeners
 
 
-#include "alib/lang/callerinfo_functions.hpp"
+#   include "ALib.Lang.CIFunctions.H"
 void FTree::FixSums( Cursor directory)
 {
     ALIB_ASSERT_ERROR( directory->Type() == FInfo::Types::DIRECTORY,
-                       "FILES", "Given node is not a directory.")
+                       "FILES", "Given node is not a directory." )
 
     FInfo::DirectorySums& sums= directory->Sums();
     sums= FInfo::DirectorySums();
@@ -247,7 +280,7 @@ void FTree::FixSums( Cursor directory)
     while( directory.IsValid())
     {
         FInfo& v= *directory;
-        sums.TypeCounters[int(v.Type())]++;
+        sums.TypeCounters[size_t(v.Type())]++;
         if( v.IsDirectory() )
             sums+= v.Sums();
 
@@ -295,7 +328,7 @@ AString&     DbgDump( AString&                  target,
 }
 
 #endif // ALIB_DEBUG && !DOXYGEN  (dump methods)
-#include "alib/lang/callerinfo_methods.hpp"
+#   include "ALib.Lang.CIMethods.H"
 
 } // namespace alib::files
 

@@ -1,12 +1,26 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#include "alib/bitbuffer/bitbuffer.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/bitbuffer/bitbuffer.prepro.hpp"
 
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.BitBuffer;
+#else
+#   include "ALib.BitBuffer.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {
 
 //==================================================================================================
@@ -40,10 +54,10 @@ BitBufferBase::Index BitBufferBase::Terminate( Index idx )
 
 BitBufferBase::Index BitBufferBase::Unterminate(Index terminationIndex )
 {
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    ALIB_ASSERT_ERROR(terminationIndex.pos > 0 && terminationIndex.bit == 0 && data[terminationIndex.pos - 1] != 0, "BITBUFFER",
-                      "Given index is no termination index" )
-    ALIB_WARNINGS_RESTORE
+    ALIB_ASSERT_ERROR(   terminationIndex.pos > 0
+                      && terminationIndex.bit == 0
+                      && data[terminationIndex.pos - 1] != 0,
+                      "BITBUFFER", "Given index is no termination index" )
 
     // go back to previous word...
     terminationIndex.pos--;
@@ -80,9 +94,7 @@ namespace
             if constexpr ( bitsof(BitBufferBase::TStorage) == 16 )
             {
                 testWord= 0x2211;
-                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 uint8_t* bytes= reinterpret_cast<uint8_t*>( &testWord );
-                ALIB_WARNINGS_RESTORE
                 if( *bytes == 0x11 && *(bytes+1) == 0x22)
                     isLittleEndianEncoding= 1;
             }
@@ -90,9 +102,7 @@ namespace
             else if constexpr ( bitsof(BitBufferBase::TStorage) == 32 )
             {
                 testWord= 0x44332211;
-                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 uint8_t* bytes= reinterpret_cast<uint8_t*>( &testWord );
-                ALIB_WARNINGS_RESTORE
                 if(    * bytes    == 0x11 && *(bytes+1) == 0x22
                     && *(bytes+2) == 0x33 && *(bytes+3) == 0x44 )
                     isLittleEndianEncoding= 1;
@@ -102,9 +112,7 @@ namespace
             {
                 ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
                 testWord= 0x8877665544332211u;
-                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 uint8_t* bytes= reinterpret_cast<uint8_t*>( &testWord );
-                ALIB_WARNINGS_RESTORE
                 if(    * bytes    == 0x11 && *(bytes+1) == 0x22
                     && *(bytes+2) == 0x33 && *(bytes+3) == 0x44
                     && *(bytes+4) == 0x55 && *(bytes+5) == 0x66
@@ -123,8 +131,8 @@ namespace
 void  BitBufferBase::ToLittleEndianEncoding( const Index& startIndex, const Index& endIndex )
 {
     ALIB_ASSERT_ERROR( startIndex.IsAligned(), "BITBUFFER",
-                      "Given start index is not algined. The easiest way to get an aligned "
-                      "index is to terminate the buffer." )
+        "Given start index is not algined. The easiest way to get an aligned "
+        "index is to terminate the buffer." )
 
     if( IsLittleEndianEncoding())
         return;
@@ -132,10 +140,8 @@ void  BitBufferBase::ToLittleEndianEncoding( const Index& startIndex, const Inde
     const size_t end=   endIndex.pos + (endIndex.bit != 0 );
     for (size_t  pos= startIndex.pos; pos < end; ++pos)
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         TStorage   word = data[pos];
         uint8_t*   bytes= reinterpret_cast<uint8_t*>( &data[pos] );
-        ALIB_WARNINGS_RESTORE
                    bytes[0]= word & 0xFF;
         word>>= 8; bytes[1]= word & 0xFF;
 
@@ -164,7 +170,6 @@ void  BitBufferBase::FromLittleEndianEncoding( const Index& startIndex, const In
     for (size_t pos= startIndex.pos; pos < end; ++pos)
     {
         TStorage word = 0;
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         uint8_t* bytes= reinterpret_cast<uint8_t*>( &data[pos] );
         word|=  TStorage(bytes[0]);
         word|=  TStorage(bytes[1]) << 8;
@@ -182,11 +187,10 @@ void  BitBufferBase::FromLittleEndianEncoding( const Index& startIndex, const In
             word|=  TStorage(bytes[5]) << 40;
             word|=  TStorage(bytes[6]) << 48;
             word|=  TStorage(bytes[7]) << 56;
-            ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
+            ALIB_WARNINGS_RESTORE
         }
 
         data[pos]= word;
-        ALIB_WARNINGS_RESTORE
     }
 }
 

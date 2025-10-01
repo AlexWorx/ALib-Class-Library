@@ -1,24 +1,44 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/alox/alox.hpp"
-#   define HPP_ALIB_LOX_PROPPERINCLUDE
-#       include "alib/alox/detail/scopestore.inl"
-#       include "alib/alox/detail/scopeinfo.inl"
-#       include "alib/alox/detail/scopedump.inl"
-#   undef HPP_ALIB_LOX_PROPPERINCLUDE
-#endif // !DOXYGEN
-
-
-using namespace alib;
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace lox { namespace detail {
 
 //! @cond NO_DOX
@@ -51,7 +71,7 @@ template<typename T> void write(       T*  val, NAString& target )
         integer actLen= buffer.Length();
         buffer._( *val );
         ESC::ReplaceToReadable( buffer, actLen );
-        buffer << Format::Escape( lang::Switch::On, actLen );
+        buffer << Escape( lang::Switch::On, actLen );
         buffer << '"';
         target << buffer;
     }
@@ -92,7 +112,7 @@ NAString& ScopeDump::storeKeyToScope( String key )
     return targetBuffer;
 }
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
 NAString& ScopeDump::storeThreadToScope( threads::ThreadID threadID )
 {
     auto it= threadDict.Find( threadID );
@@ -119,7 +139,7 @@ integer ScopeDump::writeStoreMapHelper(SSMap<T>& map, const NString& prefix )
         if ( maximumKeyLength < keyString.Length() + 1 )
             maximumKeyLength= keyString.Length() + 1;
 
-        targetBuffer._<NC>(NFormat::Field(keyString, maximumKeyLength, lang::Alignment::Left))._<NC>( '=' );
+        targetBuffer._<NC>(NField(keyString, maximumKeyLength, lang::Alignment::Left))._<NC>( '=' );
 
 
         write( it.second, targetBuffer);
@@ -138,20 +158,20 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
     bool firstEntry= true;
     if ( store->globalStore && store->globalStore->Size() > 0)
     {
-        cnt+=  static_cast<int>( store->globalStore->Size() );
+        cnt+=  int( store->globalStore->Size() );
         firstEntry= false;
         targetBuffer._<NC>( "  Scope::Global:" ).NewLine();
         maximumKeyLength= writeStoreMapHelper( *store->globalStore, "    " );
     }
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
     {
         if ( thread->first.first== false )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
         targetBuffer._<NC>("  Scope::ThreadOuter ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
-        cnt+= static_cast<int>( thread->second->Size() );
+        cnt+= int( thread->second->Size() );
         maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
 #endif
@@ -165,21 +185,21 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
     {
         if( *iterator.Node() == nullptr )
             continue;
-        cnt+= static_cast<int>( (*iterator.Node())->Size() );
+        cnt+= int( (*iterator.Node())->Size() );
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
         targetBuffer._<NC>( "  " );
         storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
         maximumKeyLength= writeStoreMapHelper( **iterator.Node(), "    " );
     }
 
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
     {
         if ( thread->first.first == true )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
         targetBuffer._<NC>("  Scope::ThreadInner ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
-        cnt+= static_cast<int>( thread->second->Size() );
+        cnt+= int( thread->second->Size() );
         maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
 #endif
@@ -197,11 +217,11 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
         ++cnt;
         targetBuffer.InsertChars( ' ', indentSpaces );
         write( store->globalStore, targetBuffer );
-        targetBuffer._<NC>(NFormat::Tab( 25, -1 ) )._<NC>( "Scope::Global " ).NewLine();
+        targetBuffer._<NC>(NTab( 25, -1 ) )._<NC>( "Scope::Global " ).NewLine();
     }
 
     // outer thread store
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
         if( thread->first.first == false )
             for ( auto& it : thread->second )
@@ -209,7 +229,7 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
-                targetBuffer._<NC>( NFormat::Tab( 25, -1 ) )
+                targetBuffer._<NC>( NTab( 25, -1 ) )
                       ._<NC>( "Scope::ThreadOuter " );
                 storeThreadToScope( thread->first.second ).NewLine();
             }
@@ -228,13 +248,13 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
             ++cnt;
             targetBuffer.InsertChars( ' ', indentSpaces );
             write( *iterator.Node(), targetBuffer );
-            targetBuffer._<NC>(NFormat::Tab( 25, -1 ) );
+            targetBuffer._<NC>(NTab( 25, -1 ) );
             storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
         }
     }
 
     // inner thread store
-#if ALIB_THREADS
+#if !ALIB_SINGLE_THREADED
     for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
         if( thread->first.first == true )
             for ( auto& it : thread->second )
@@ -242,7 +262,7 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
-                targetBuffer._<NC>( NFormat::Tab( 25, -1 ) )
+                targetBuffer._<NC>( NTab( 25, -1 ) )
                       ._<NC>( "Scope::ThreadInner " );
                 storeThreadToScope( thread->first.second ).NewLine();
             }

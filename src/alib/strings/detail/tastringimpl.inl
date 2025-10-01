@@ -1,27 +1,16 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#if !defined(HPP_ALIB_STRINGS_TASTRING_INLINING)
+#if !defined(ALIB_STRINGS_TASTRING_INSTANTIATION)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
 #if !DOXYGEN
-#   include "alib/strings/localstring.hpp"
-#   include "alib/strings/cstring.hpp"
-#   include "alib/strings/format.inl"
-#   include "alib/strings/detail/numberconversion.hpp"
-#   include "alib/lang/dbgtypedemangler.hpp"
-#   if ALIB_THREADS
-#       include "alib/threads/thread.hpp"
-#   elif ALIB_EXT_LIB_THREADS_AVAILABLE
-#       include <thread>
-#   endif
 #endif // !DOXYGEN
 
-#include <algorithm>
 
 
 namespace alib {  namespace strings {
@@ -31,21 +20,22 @@ namespace alib {  namespace strings {
 ///   \https{documentation parser,www.doxygen.nl}.
 ///
 /// In this <b>"documentation namespace"</b>, you will find specializations of functor
-/// \alib{strings,T_Append} which in reality are implemented in parent
+/// \alib{strings,AppendableTraits} which in reality are implemented in parent
 /// namespace \ref alib::strings (as required by C++ language syntax).<br>
 /// The rationale for tricking the documentation to this pseude-namespace, is to twofold:
 /// On the one hand to keep namespace \b %alib::strings clean and on the other to have
 /// an overview of all specializations in one place.
- namespace APPENDABLES {}
+namespace APPENDABLES {}
 
 
-// ####################################################################################################
+// #################################################################################################
 // AString::_dbgCheck()
-// ####################################################################################################
+// #################################################################################################
 //! @cond NO_DOX
 #if ALIB_DEBUG_STRINGS
 
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 void TAString<TChar,TAllocator>::dbgCheck() const
 {
     base::dbgCheck();
@@ -54,12 +44,13 @@ void TAString<TChar,TAllocator>::dbgCheck() const
 
     ALIB_ASSERT_ERROR( debugLastAllocRequest == 0
                        ||  base::length <= debugLastAllocRequest, "STRINGS",
-                       "Error: Previous allocation request was too short"         )
+       "Error: Previous allocation request was too short: {} < {} ",
+       debugLastAllocRequest, base::length )
 
     ALIB_ASSERT_ERROR( base::length <= cap, "STRINGS",
-                       "Error: Length greater than allocation size"               )
+                       "Error: Length greater than allocation size: {} > {}",
+                       base::length, cap )
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     if( base::buffer && HasInternalBuffer() )
     {
         for (integer i= -16 ; i < 0 ; ++i)
@@ -75,7 +66,6 @@ void TAString<TChar,TAllocator>::dbgCheck() const
                 break;
             }
     }
-    ALIB_WARNINGS_RESTORE
 }
 
 #endif
@@ -86,12 +76,13 @@ void TAString<TChar,TAllocator>::dbgCheck() const
 // Allocation
 // ####################################################################################################
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 void TAString<TChar, TAllocator>::GrowBufferAtLeastBy( integer minimumGrowth )
 {
     integer actCapacity= Capacity();
 
-    ALIB_ASSERT_WARNING (  base::length + minimumGrowth > actCapacity,
-                           "STRINGS", "Unnecessary invocation of Grow()" )
+    ALIB_ASSERT_WARNING (  base::length + minimumGrowth > actCapacity, "STRINGS",
+      "Unnecessary invocation of Grow(): {} <= {}", base::length + minimumGrowth, actCapacity )
 
     // first allocation? Go with given growth as size
     if (actCapacity == 0 )
@@ -119,19 +110,18 @@ void TAString<TChar, TAllocator>::GrowBufferAtLeastBy( integer minimumGrowth )
 }
 
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
 {
     #if ALIB_DEBUG_STRINGS
-       ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
        ALIB_STRING_DBG_CHK(this)
         if(capacity > 0)
             allocBase::GetAllocator().dbgCheckMemory( base::vbuffer - 16 ,
                                                       sizeof(TChar) * (size_t(capacity + 1) + 32));
-       ALIB_WARNINGS_RESTORE
     #endif
 
 
-    ALIB_ASSERT( newCapacity >= 0 )
+    ALIB_ASSERT( newCapacity >= 0, "STRINGS" )
 
     // do nothing if life-cycle is managed by us and same size,
     if ( capacity >= 0 && capacity == newCapacity )
@@ -148,7 +138,6 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
             "AString::SetBuffer(): removing an external buffer (setting string nulled). "
             "This may not be wanted."  )
 
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if ( capacity > 0 )
             allocBase::GetAllocator().free( base::vbuffer
                                                                     #if ALIB_DEBUG_STRINGS
@@ -164,14 +153,13 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
         base::length=     0;
         base::buffer=     nullptr;
         return;
-        ALIB_WARNINGS_RESTORE
     }
 
     #if ALIB_DEBUG
         if( dbgWarnWhenExternalBufferIsReplaced && capacity < 0)
             ALIB_WARNING( "STRINGS",
-            "AString::SetBuffer(): replacing an external buffer by an internally managed one. "
-            "This may not be wanted: ", reinterpret_cast<const char*>(Terminate())   )
+              "Replacing an external buffer by an internally managed one. This may not be wanted: ",
+              *this  )
     #endif
 
     // extend or shrink an existing buffer (and return)
@@ -187,7 +175,6 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
             newCapacity=   integer(allocSize / sizeof(TChar)) - 1;
             allocBase::GetAllocator().dbgAcknowledgeIncreasedAllocSize( base::vbuffer, allocSize );
         #else
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             // add 16 characters of padding at start/end
             allocSize+= 32 * sizeof(TChar);
             base::buffer= static_cast<TChar*>(
@@ -200,7 +187,6 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
             // write '\3' to end ('\0'= termination byte, '\1'= untermination byte )
             characters::Fill( base::vbuffer + newCapacity + 1 ,  16, TChar('\3') );
             allocBase::GetAllocator().dbgAcknowledgeIncreasedAllocSize( base::vbuffer - 16, allocSize );
-            ALIB_WARNINGS_RESTORE
         #endif
 
         capacity=   newCapacity;
@@ -217,7 +203,6 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
         newCapacity=   integer(allocSize / sizeof(TChar)) - 1;
         allocBase::GetAllocator().dbgAcknowledgeIncreasedAllocSize( newBuffer, allocSize );
     #else
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         // add 16 characters of padding at start/end
         allocSize+= 32 * sizeof(TChar);
         TChar* newBuffer= static_cast<TChar*>( allocBase::GetAllocator().allocate( allocSize, alignof(TChar)) ) + 16;
@@ -227,16 +212,14 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
         characters::Fill( newBuffer                    - 16, 16 , TChar('\2') );
         characters::Fill( newBuffer + newCapacity + 1      , 16 , TChar('\3') );
         allocBase::GetAllocator().dbgAcknowledgeIncreasedAllocSize( newBuffer - 16, allocSize );
-        ALIB_WARNINGS_RESTORE
     #endif
 
     // if we had a buffer before
     if ( capacity != 0 )
     {
         // copy data and delete old buffer
-        characters::Copy( base::buffer, (std::min)( base::length + 1, newCapacity + 1),
-                                            newBuffer );
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        characters::Copy( base::buffer, (std::min)( base::length + 1, newCapacity + 1), newBuffer );
+
         if ( capacity > 0 )
             allocBase::GetAllocator().free( base::vbuffer
                                                             #if ALIB_DEBUG_STRINGS
@@ -247,11 +230,10 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
                                                                     + 32* sizeof(TChar)
                                                             #endif
                                                                     );
-        ALIB_WARNINGS_RESTORE
     }
     else
     {
-        ALIB_ASSERT( base::length == 0 )
+        ALIB_ASSERT( base::length == 0, "STRINGS")
     }
 
     // set new Buffer and adjust length
@@ -263,16 +245,16 @@ void TAString<TChar, TAllocator>::SetBuffer( integer newCapacity )
 
 
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 void TAString<TChar, TAllocator>::SetBuffer( TChar* extBuffer, integer extBufferSize, integer extLength,
                                              lang::Responsibility responsibility  )
 {
     ALIB_ASSERT_ERROR(    !(extBufferSize == 0 && extBuffer != nullptr)
                        && !(extBufferSize != 0 && extBuffer == nullptr) , "STRINGS",
-        "AString::SetBuffer(): Given buffer is nullptr while given alloc size is not 0 (or vice versa)" )
+    "AString::SetBuffer(): Given buffer is nullptr while given alloc size is not 0 (or vice versa)")
 
     // delete any existing
     if ( capacity > 0 )
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         allocBase::GetAllocator().free( base::vbuffer
                                                             #if ALIB_DEBUG_STRINGS
                                                                     - 16
@@ -282,7 +264,6 @@ void TAString<TChar, TAllocator>::SetBuffer( TChar* extBuffer, integer extBuffer
                                                                     + 32* sizeof(TChar)
                                                             #endif
                                                                                     );
-        ALIB_WARNINGS_RESTORE
 
 
     // too small? treat as if a nullptr was given.
@@ -306,7 +287,7 @@ void TAString<TChar, TAllocator>::SetBuffer( TChar* extBuffer, integer extBuffer
 
     if ( extLength >= extBufferSize  )
     {
-        ALIB_ERROR( "STRINGS", "ext length >= ext allocation size" )
+        ALIB_ERROR( "STRINGS", "ext length {} >= ext allocation size {}", extLength, extBufferSize )
         extLength= extBufferSize -1;
     }
 
@@ -326,8 +307,8 @@ void TAString<TChar, TAllocator>::SetBuffer( TChar* extBuffer, integer extBuffer
 // #############################################################################################
 // Trim
 // #############################################################################################
-
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 integer TAString<TChar, TAllocator>::TrimAt( integer idx, const TCString<TChar>& trimChars )
 {
     if ( idx < 0 )
@@ -351,6 +332,7 @@ integer TAString<TChar, TAllocator>::TrimAt( integer idx, const TCString<TChar>&
 }
 
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 TAString<TChar, TAllocator>& TAString<TChar, TAllocator>::Trim( const TCString<TChar>& trimChars )
 {
     // check
@@ -370,17 +352,16 @@ TAString<TChar, TAllocator>& TAString<TChar, TAllocator>::Trim( const TCString<T
     return *this;
 }
 
-
 // #################################################################################################
 //  Replace()
 // #################################################################################################
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 integer TAString<TChar, TAllocator>::SearchAndReplace(  TChar      needle,
                                                         TChar      replacement,
                                                         integer    startIdx,
                                                         integer    endIdx        )
 {
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     ALIB_STRING_DBG_CHK(this)
          if ( startIdx < 0  )                       startIdx= 0;
     else if ( startIdx >= base::length )  return 0;
@@ -400,11 +381,10 @@ integer TAString<TChar, TAllocator>::SearchAndReplace(  TChar      needle,
     }
     while(  ++startIdx < endIdx) ;
     return cntReplacements;
-    ALIB_WARNINGS_RESTORE
 }
 
-
 template<typename TChar, typename TAllocator>
+requires alib::lang::IsAllocator<TAllocator>
 integer TAString<TChar, TAllocator>::SearchAndReplace( const TString<TChar>&  needle,
                                                        const TString<TChar>&  replacement,
                                                        integer                startIdx,
@@ -427,7 +407,6 @@ integer TAString<TChar, TAllocator>::SearchAndReplace( const TString<TChar>&  ne
     integer cntReplacements=    0;
     while ( cntReplacements < maxReplacements && startIdx < endIdx)
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         // search  next occurrence
         integer    idx= sensitivity == lang::Case::Sensitive
                         ? TString<TChar>(*this).template IndexOf<NC, lang::Case::Sensitive>( needle, startIdx, endIdx )
@@ -456,7 +435,6 @@ integer TAString<TChar, TAllocator>::SearchAndReplace( const TString<TChar>&  ne
 
         // next
         ++cntReplacements;
-        ALIB_WARNINGS_RESTORE
     }
 
     // that's it
@@ -464,11 +442,11 @@ integer TAString<TChar, TAllocator>::SearchAndReplace( const TString<TChar>&  ne
 }
 
 // #################################################################################################
-// T_Append<Integrals>
+// AppendableTraits<Integrals>
 // #################################################################################################
 
 template<typename TChar, typename TAllocator>
-void T_Append<int64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+void AppendableTraits<int64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
                                                      int64_t value )
 {
     target.EnsureRemainingCapacity(28);//   20 digits, grouping symbol, sign and what have you
@@ -478,7 +456,7 @@ void T_Append<int64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>&
 }
 
 template<typename TChar, typename TAllocator>
-void T_Append<uint64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+void AppendableTraits<uint64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
                                                       uint64_t value )
 {
     target.EnsureRemainingCapacity(28);//   20 digits, grouping symbol, sign and what have you
@@ -489,7 +467,7 @@ void T_Append<uint64_t,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>
 
 
 template<typename TChar, typename TAllocator>
-void T_Append<double,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+void AppendableTraits<double,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
                                                     double value )
 {
     target.EnsureRemainingCapacity(48);  // float: 2x15 + '.' + ',' + sign + fear
@@ -499,21 +477,21 @@ void T_Append<double,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& 
 }
 
 // #################################################################################################
-// T_Append<Format>
+// AppendableTraits<Format>
 // #################################################################################################
 
 // #################################################################################################
-// TFormat::Tab()
+// TTab()
 // #################################################################################################
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Tab, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                           const typename TFormat<TChar>::Tab& tab)
+void AppendableTraits<TTab<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                           const TTab<TChar>& tab)
 {
     integer reference= tab.reference;
     if (reference < 0 )
     {
         // search backwards
-        reference= target.template LastIndexOfAny<lang::Inclusion::Include>( TT_CStringConstants<TChar>::NewLine(),
+        reference= target.template LastIndexOfAny<lang::Inclusion::Include>( CStringConstantsTraits<TChar>::NewLine(),
                                                                              target.Length() -1 );
         if ( reference < 0 )
             reference= 0;
@@ -521,7 +499,7 @@ void T_Append<typename TFormat<TChar>::Tab, TChar,TAllocator>::operator()( TAStr
         {
             // if new line has more than one character (windows) we have to now search the first
             // character that is not in newline
-            reference= target.template IndexOfAny<lang::Inclusion::Exclude, NC>( TT_CStringConstants<TChar>::NewLine(), reference );
+            reference= target.template IndexOfAny<lang::Inclusion::Exclude, NC>( CStringConstantsTraits<TChar>::NewLine(), reference );
             if (reference < 0 )
                 reference= target.Length();
 
@@ -539,33 +517,14 @@ void T_Append<typename TFormat<TChar>::Tab, TChar,TAllocator>::operator()( TAStr
 
 
 // #################################################################################################
-// TFormat::Field()
+// TField()
 // #################################################################################################
+#if !ALIB_BOXING
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Field, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                             const typename TFormat<TChar>::Field& field)
+void AppendableTraits< TField<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                     const TField<TChar>& field)
 {
-
-#if ALIB_BOXING
-    TString<TChar> theContent;
-
-    // buffer used for conversion (if none string)
-    TLocalString<TChar, 256> noneStringArgBuf;
-    noneStringArgBuf.DbgDisableBufferReplacementWarning();
-
-    // string-type box given?
-    if( !field.theContent.template IsType<void>() && field.theContent.template IsType<TString<TChar>>() )
-        theContent= field.theContent.template Unbox<TString<TChar>>();
-    else
-    {
-        // write box into local buffer
-        noneStringArgBuf << field.theContent;
-        theContent= noneStringArgBuf;
-    }
-
-#else
     TString<TChar> theContent= field.theContent;
-#endif
 
     integer padSize=  field.fieldWidth
                     - theContent.WStringLength();
@@ -594,16 +553,17 @@ void T_Append<typename TFormat<TChar>::Field, TChar,TAllocator>::operator()( TAS
     target.template Append<NC> ( theContent );
     if( padSize > leftPadding ) target.template InsertChars<NC> ( field.padChar, padSize - leftPadding );
 }
+#endif
 
 // #################################################################################################
-// TFormat::Escape()
+// TEscape()
 // #################################################################################################
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Escape, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                              const typename TFormat<TChar>::Escape& escape)
+void AppendableTraits<TEscape<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>&    target,
+                                                                     const TEscape<TChar>& escape)
 {
-    if( target.AdjustRegion( const_cast<typename TFormat<TChar>::Escape&>(escape).startIdx,
-                             const_cast<typename TFormat<TChar>::Escape&>(escape).length   ) )
+    if( target.AdjustRegion( const_cast<TEscape<TChar>&>(escape).startIdx,
+                             const_cast<TEscape<TChar>&>(escape).length   ) )
         return;
 
     integer regionEnd= escape.startIdx + escape.length;
@@ -685,11 +645,11 @@ void T_Append<typename TFormat<TChar>::Escape, TChar,TAllocator>::operator()( TA
 }
 
 // #################################################################################################
-// TFormat Integers
+// TDec Integers
 // #################################################################################################
 template<typename TChar, typename TAllocator>
-void T_Append<TFormat<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                             const TFormat<TChar>& fmt )
+void AppendableTraits<TDec<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                             const TDec<TChar>& fmt )
 {
     const TNumberFormat<TChar>* nf= fmt.nf;
     if( nf == nullptr )
@@ -702,9 +662,9 @@ void T_Append<TFormat<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAll
     integer length=      target.Length();
 
     length=
-    fmt.valueType == 1 ?  detail::WriteDecSigned  (                       fmt.v.value  , target.VBuffer(), length, fmt.width   , *nf  ) :
-    fmt.valueType == 2 ?  detail::WriteDecUnsigned( static_cast<uint64_t>(fmt.v.value) , target.VBuffer(), length, fmt.width   , *nf  ) :
-                          detail::WriteFloat      (                       fmt.v.fpValue, target.VBuffer(), length, fmt.width   , *nf  );
+    fmt.valueType == 1 ?  detail::WriteDecSigned  (          fmt.v.value  , target.VBuffer(), length, fmt.width   , *nf  ) :
+    fmt.valueType == 2 ?  detail::WriteDecUnsigned( uint64_t(fmt.v.value) , target.VBuffer(), length, fmt.width   , *nf  ) :
+                          detail::WriteFloat      (          fmt.v.fpValue, target.VBuffer(), length, fmt.width   , *nf  );
 
     target.SetLength( length );
 }
@@ -712,8 +672,8 @@ void T_Append<TFormat<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAll
 
 
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Bin, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                           const typename TFormat<TChar>::Bin& fmt )
+void AppendableTraits<TBin<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                  const  TBin<TChar>& fmt )
 {
     TNumberFormat<TChar>* nf= fmt.nf;
     if( nf == nullptr )
@@ -729,8 +689,8 @@ void T_Append<typename TFormat<TChar>::Bin, TChar,TAllocator>::operator()( TAStr
 }
 
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Hex, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                           const typename TFormat<TChar>::Hex& fmt )
+void AppendableTraits<THex<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                  const THex<TChar>& fmt )
 {
     TNumberFormat<TChar>* nf= fmt.nf;
     if( nf == nullptr )
@@ -746,8 +706,8 @@ void T_Append<typename TFormat<TChar>::Hex, TChar,TAllocator>::operator()( TAStr
 }
 
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Oct, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                           const typename TFormat<TChar>::Oct& fmt )
+void AppendableTraits<TOct<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                  const TOct<TChar>& fmt )
 {
     TNumberFormat<TChar>* nf= fmt.nf;
     if( nf == nullptr )
@@ -763,8 +723,8 @@ void T_Append<typename TFormat<TChar>::Oct, TChar,TAllocator>::operator()( TAStr
 }
 
 template<typename TChar, typename TAllocator>
-void T_Append<typename TFormat<TChar>::Fill, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                                   const typename TFormat<TChar>::Fill& fmt )
+void AppendableTraits<TFill<TChar>, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>&  target,
+                                                                   const TFill<TChar>& fmt )
 {
     if (fmt.count <= 0)
         return;
@@ -778,18 +738,66 @@ void T_Append<typename TFormat<TChar>::Fill, TChar,TAllocator>::operator()( TASt
 // #################################################################################################
 #if ALIB_DEBUG
 template<typename TChar, typename TAllocator>
-void T_Append<std::type_info, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                             const std::type_info& type )
+void AppendableTraits<std::type_info, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                     const std::type_info& type )
 {
-    NString2K buf;
-    lang::DbgTypeDemangler( type ).GetShort(buf);
-    target << buf;
+    lang::DbgTypeDemangler dmg(type);
+    NString     typeName(dmg.Get());
+    NString2K   result;
+
+    integer     nameStart= 0;
+    bool        startedWithDoubleColon= false;
+    for (integer i = 0; i < typeName.Length(); ++i)
+    {
+        // MSVC adds struct/class/union
+        if(typeName.Substring(i, 7).Equals("struct ")) i+= 7;
+        if(typeName.Substring(i, 6).Equals("class " )) i+= 6;
+        if(typeName.Substring(i, 6).Equals("union " )) i+= 6;
+
+        char c = typeName.CharAt<NC>(i);
+        if (c==':')
+        {
+            ALIB_ASSERT(typeName.CharAt<NC>(i+1) == ':', "STRINGS")
+            nameStart= i+2;
+            ++i;
+            continue;
+        }
+        if (!(isalnum(c) || c=='_') || i == typeName.Length() - 1) // (c=='<' || c=='>' || c==',' || c=='(')
+        {
+            if (startedWithDoubleColon)
+                result << "::";
+            result << typeName.Substring(nameStart, i-nameStart+1);
+            nameStart= i+1;
+            startedWithDoubleColon= typeName.CharAt(nameStart) == ':';
+
+            // remove C++20 Module name
+            if (c == '@')
+            {
+                result.DeleteEnd<NC>(1);
+                while ( ++i < typeName.Length()) {
+                    c=  typeName.CharAt<NC>(i);
+                    if (!(isalnum(c) || c == '_' || c == '.'))
+                    {
+                        nameStart= i;
+                        --i;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // some ABIs add a disambiguation-space, others don't (for example some MacOS compiler)
+    // Thus we remove the space to have a unique behavior (and have the unit tests succeed).
+    result.SearchAndReplace("> >", ">>");
+    target << result;
 }
 #endif
 
+#if ALIB_EXT_LIB_THREADS_AVAILABLE
 template<typename TChar, typename TAllocator>
-void T_Append<std::thread::id, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                              const std::thread::id& threadID )
+void AppendableTraits<std::thread::id, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                      const std::thread::id& threadID )
 {
     #if ALIB_EXT_LIB_THREADS_AVAILABLE
         size_t nativeIDWidth;
@@ -798,27 +806,28 @@ void T_Append<std::thread::id, TChar,TAllocator>::operator()( TAString<TChar,TAl
         else if constexpr ( sizeof(std::thread::id) == sizeof(uint32_t) )  { nativeID= *reinterpret_cast<const uint32_t*>(&threadID); nativeIDWidth= 8; }
         else                                                               { nativeID= *reinterpret_cast<const uint64_t*>(&threadID); nativeIDWidth=16; }
         if (lang::IsNotNull(threadID) )
-        #if ALIB_THREADS
+        #if !ALIB_SINGLE_THREADED
         {
             integer length= target.Length();
             Thread* thread= Thread::Get(threadID);
             target << thread->GetName()
                    << '(' << thread->GetID()
-                   << ",0x" << typename TFormat<TChar>::Hex(nativeID, int(nativeIDWidth)) <<')';
+                   << ",0x" << THex<TChar>(nativeID, int(nativeIDWidth)) <<')';
             target.InsertChars( ' ', 30 + length - target.Length() );
         }
         #else
-            target << "TID=0x" << typename TFormat<TChar>::Hex(nativeID, int(nativeIDWidth) );
+            target << "TID=0x" << THex<TChar>(nativeID, int(nativeIDWidth) );
         #endif
         else
             target << "<NULL>";
 
     #endif
 }
+#endif
 
 template<typename TChar, typename TAllocator>
-void T_Append<lang::CallerInfo, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
-                                                               const lang::CallerInfo& ci )
+void AppendableTraits<lang::CallerInfo, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                       const lang::CallerInfo& ci )
 {
     NString2K nbuf;
     nbuf << "[@ ";
@@ -826,7 +835,7 @@ void T_Append<lang::CallerInfo, TChar,TAllocator>::operator()( TAString<TChar,TA
         else            nbuf << "<NULL>";
     #if ALIB_DEBUG
     nbuf  << " from '";
-    if (ci.TypeInfo)   lang::DbgTypeDemangler(*ci.TypeInfo).GetShort(nbuf) << "::";
+    if (ci.TypeInfo)   nbuf << *ci.TypeInfo << "::";
     if(ci.Func) nbuf << ci.Func << "()";
     else        nbuf << "<NULL>";
     nbuf << '\'';
@@ -838,6 +847,115 @@ void T_Append<lang::CallerInfo, TChar,TAllocator>::operator()( TAString<TChar,TA
 
     target << nbuf;
 }
+
+
+template<typename TChar, typename TAllocator>
+void AppendableTraits<time::DateTime::Duration, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                               time::DateTime::Duration    pSrc )
+{
+    using Duration= DateTime::Duration;
+    Duration src= pSrc;
+    auto nanos= src.InNanoseconds();
+    if( nanos == 0 )
+    {
+        target << DT_UNITS[size_t(DayTimeUnits::TS_ZERO)];
+        return;
+    }
+
+    if( nanos < 0 )
+    {
+        target << A_CHAR("- ");
+        src= Duration() - src;
+    }
+
+    TNumberFormat<TChar> nf( TNumberFormat<TChar>::Global );
+    nf.FractionalPartWidth= 2;
+    int64_t v= src.InAbsoluteDays();
+    if( v >= 10 )
+    {
+        target << TDec<TChar>( src.InDays(), &nf ) << DT_UNITS[size_t(DayTimeUnits::DayPlural)];
+        return;
+    }
+
+    if( v >  0 )
+    {
+        target << v << ( v != 1 ?  DT_UNITS[size_t(DayTimeUnits::DayPlural)]
+                                :  DT_UNITS[size_t(DayTimeUnits::DaySingular)] );
+
+        Duration cpy= src - ( Duration::FromAbsoluteDays(v) );
+
+        target << ' ' << TDec<TChar>( cpy.InHours(), &nf ) << DT_UNITS[size_t(DayTimeUnits::HourPlural)];
+        return;
+    }
+
+    v= src.InAbsoluteHours();
+    if( v >  0 )
+    {
+        target << v << ( v != 1 ?  DT_UNITS[size_t(DayTimeUnits::HourPlural)]
+                                :  DT_UNITS[size_t(DayTimeUnits::HourSingular)]  );
+
+        Duration cpy= src - ( Duration::FromAbsoluteHours(v) );
+
+        auto minutes= cpy.InAbsoluteMinutes();
+        target << ' ' << minutes <<  (minutes!= 1 ?  DT_UNITS[size_t(DayTimeUnits::MinPlural)]
+                                                  :  DT_UNITS[size_t(DayTimeUnits::MinSingular)] );
+        return;
+    }
+
+    v= src.InAbsoluteMinutes();
+    if( v > 0 )
+    {
+        target << v << ( v != 1 ?  DT_UNITS[size_t(DayTimeUnits::MinPlural)]
+                                :  DT_UNITS[size_t(DayTimeUnits::MinSingular)] );
+
+        Duration cpy= src - ( Duration::FromAbsoluteMinutes(v) );
+
+        auto seconds= cpy.InAbsoluteSeconds();
+        target << ' ' << seconds <<  (seconds!= 1 ?  DT_UNITS[size_t(DayTimeUnits::SecPlural)]
+                                                  :  DT_UNITS[size_t(DayTimeUnits::SecSingular)] );
+        return;
+    }
+
+    v= src.InAbsoluteSeconds();
+    if( v > 0 )
+    {
+        target << TDec<TChar>( src.InSeconds(), &nf ) << DT_UNITS[size_t(DayTimeUnits::SecPlural)];
+        return;
+    }
+
+    nf.DecMinimumFieldWidth= 3;
+
+    auto val= src.InAbsoluteMilliseconds();
+    if( val >= 1 )
+    {
+        target << TDec<TChar>(val,&nf) << ( val!= 1  ?  DT_UNITS[size_t(DayTimeUnits::MlSecPlural)]
+                                                        :  DT_UNITS[size_t(DayTimeUnits::MlSecSingular)] );
+        return;
+    }
+
+    val= src.InAbsoluteMicroseconds();
+    if( val >= 1 )
+    {
+        target << TDec<TChar>(val,&nf) << ( val!= 1  ?  DT_UNITS[size_t(DayTimeUnits::McSecPlural)]
+                                                        :  DT_UNITS[size_t(DayTimeUnits::McSecSingular)] );
+        return;
+    }
+
+    val= src.InNanoseconds();
+    target << TDec<TChar>(val,&nf) << ( val!= 1  ?  DT_UNITS[size_t(DayTimeUnits::NSecPlural)]
+                                                    :  DT_UNITS[size_t(DayTimeUnits::NSecSingular)] );
+    return;
+}
+
+template<typename TChar, typename TAllocator>
+void AppendableTraits<time::Ticks::Duration, TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target,
+                                                                            time::Ticks::Duration       src )
+{
+    // simply convert the ticks-duration to a DateTime duration and use its append function
+    AppendableTraits<time::DateTime::Duration, TChar,TAllocator>()(
+        target, time::DateTime::Duration::FromNanoseconds( src.InNanoseconds() ));
+}
+
 
 }} // namespace [alib::strings]
 

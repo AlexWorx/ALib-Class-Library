@@ -1,21 +1,40 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#if !DOXYGEN
-
-#include "alib/expressions/plugins/arithmetics.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
 #include <math.h>
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
+#if !DOXYGEN
 
 #define ARG0           (*args)
 #define ARG1           (*(args+1))
 #define BOL(box)       (box).Unbox<bool     >()
 #define INT(box)       (box).Unbox<integer>()
-#define ITF(box)       static_cast<double>((box).Unbox<integer>() )
-#define BTF(box)       static_cast<double>((box).Unbox<bool   >() )
+#define ITF(box)       double((box).Unbox<integer>() )
+#define BTF(box)       double((box).Unbox<bool   >() )
 #define FLT(box)       (box).Unbox<double   >()
 #define FUNC( name,...) Box name( Scope& scope,                                                 \
                                   ArgIterator  args,                                            \
@@ -25,7 +44,7 @@
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 #   define TOINT(arg)                      arg
 #else
-#   define TOINT(arg) static_cast<integer>(arg)
+#   define TOINT(arg) integer(arg)
 #endif
 
 
@@ -46,8 +65,8 @@ Box constFalse = false;
 Box identity   = nullptr;
 Box bool_false = false;
 Box bool_true  = true;
-Box int_0      = static_cast<integer>( 0 );
-Box int_1      = static_cast<integer>( 1 );
+Box int_0      = integer( 0 );
+Box int_1      = integer( 1 );
 Box float_0    = 0.0;
 Box float_1    = 1.0;
 
@@ -55,29 +74,29 @@ Box float_1    = 1.0;
 // #################################################################################################
 // ### Arithmetics - Functions
 // #################################################################################################
-FUNC( toInt_B  , return static_cast<integer>(BOL(ARG0));   )
-FUNC( toInt_I  , return ARG0;                              )
-FUNC( toInt_F  , return static_cast<integer>(FLT(ARG0));   )
-FUNC( toFloat_B, return static_cast<double >(BOL(ARG0));   )
-FUNC( toFloat_I, return static_cast<double >(INT(ARG0));   )
-FUNC( toFloat_F, return ARG0;                              )
+FUNC( toInt_B  , return integer(BOL(ARG0));   )
+FUNC( toInt_I  , return ARG0;                 )
+FUNC( toInt_F  , return integer(FLT(ARG0));   )
+FUNC( toFloat_B, return double (BOL(ARG0));   )
+FUNC( toFloat_I, return double (INT(ARG0));   )
+FUNC( toFloat_F, return ARG0;                 )
 
-FUNC( arrLen,    return  ARG0.UnboxLength();               )
+FUNC( arrLen,    return ARG0.UnboxLength();   )
 
 
 // #################################################################################################
 // ### Arithmetics - unary operations
 // #################################################################################################
 
-FUNC( pos      , return  ARG0;                                  )
-FUNC( pos_B    , return   static_cast<integer>(BOL(ARG0));      )
-FUNC( neg_B    , return  -static_cast<integer>(BOL(ARG0));      )
-FUNC( neg_I    , return  -INT(ARG0);                            )
-FUNC( neg_F    , return  -FLT(ARG0);                            )
-FUNC( bitNot   , return  ~INT(ARG0);                            )
-FUNC( boolNot_B, return  !BOL(ARG0);                            )
-FUNC( boolNot_I, return   INT(ARG0) == static_cast<integer>(0); )
-FUNC( boolNot_F, return   FLT(ARG0) == 0.0;                     )
+FUNC( pos      , return  ARG0;                     )
+FUNC( pos_B    , return    integer(BOL(ARG0));     )
+FUNC( neg_B    , return  - integer(BOL(ARG0));     )
+FUNC( neg_I    , return  -INT(ARG0);               )
+FUNC( neg_F    , return  -FLT(ARG0);               )
+FUNC( bitNot   , return  ~INT(ARG0);               )
+FUNC( boolNot_B, return  !BOL(ARG0);               )
+FUNC( boolNot_I, return   INT(ARG0) == integer(0); )
+FUNC( boolNot_F, return   FLT(ARG0) == 0.0;        )
 
 
 // #################################################################################################
@@ -140,40 +159,40 @@ FUNC(    shfR_II, return         INT(ARG0)  >>  INT(ARG1)  ; )
 
 FUNC(      sm_BB, return  BOL(ARG0)  <   BOL(ARG1) ; )
 FUNC(      sm_BI, return  BOL(ARG0)  <   INT(ARG1) ; )
-FUNC(      sm_BF, return  isless(static_cast<double>(BOL(ARG0)),                     FLT(ARG1) ); )
+FUNC(      sm_BF, return  isless(double(BOL(ARG0)),         FLT(ARG1) ); )
 FUNC(      sm_IB, return  INT(ARG0)  <   BOL(ARG1) ; )
 FUNC(      sm_II, return  INT(ARG0)  <   INT(ARG1) ; )
-FUNC(      sm_IF, return  isless(static_cast<double>(INT(ARG0)),                     FLT(ARG1) ); )
-FUNC(      sm_FB, return  isless(                    FLT(ARG0) , static_cast<double>(BOL(ARG1))); )
-FUNC(      sm_FI, return  isless(                    FLT(ARG0) , static_cast<double>(INT(ARG1))); )
-FUNC(      sm_FF, return  isless(                    FLT(ARG0) ,                     FLT(ARG1) ); )
+FUNC(      sm_IF, return  isless(double (INT(ARG0)),        FLT(ARG1) ); )
+FUNC(      sm_FB, return  isless(        FLT(ARG0) , double(BOL(ARG1))); )
+FUNC(      sm_FI, return  isless(        FLT(ARG0) , double(INT(ARG1))); )
+FUNC(      sm_FF, return  isless(        FLT(ARG0) ,        FLT(ARG1) ); )
 FUNC(    smeq_BB, return  BOL(ARG0)  <=  BOL(ARG1) ; )
 FUNC(    smeq_BI, return  BOL(ARG0)  <=  INT(ARG1) ; )
-FUNC(    smeq_BF, return  islessequal(static_cast<double>(BOL(ARG0)),                     FLT(ARG1) ); )
+FUNC(    smeq_BF, return  islessequal(double(BOL(ARG0)),        FLT(ARG1) ); )
 FUNC(    smeq_IB, return  INT(ARG0)  <=  BOL(ARG1) ; )
 FUNC(    smeq_II, return  INT(ARG0)  <=  INT(ARG1) ; )
-FUNC(    smeq_IF, return  islessequal(static_cast<double>(INT(ARG0)),                     FLT(ARG1) ); )
-FUNC(    smeq_FB, return  islessequal(                    FLT(ARG0) , static_cast<double>(BOL(ARG1))); )
-FUNC(    smeq_FI, return  islessequal(                    FLT(ARG0) , static_cast<double>(INT(ARG1))); )
-FUNC(    smeq_FF, return  islessequal(                    FLT(ARG0) ,                     FLT(ARG1) ); )
+FUNC(    smeq_IF, return  islessequal(double(INT(ARG0)),        FLT(ARG1) ); )
+FUNC(    smeq_FB, return  islessequal(                    FLT(ARG0) , double(BOL(ARG1))); )
+FUNC(    smeq_FI, return  islessequal(                    FLT(ARG0) , double(INT(ARG1))); )
+FUNC(    smeq_FF, return  islessequal(                    FLT(ARG0) ,        FLT(ARG1) ); )
 FUNC(      gt_BB, return  BOL(ARG0)  >   BOL(ARG1) ; )
 FUNC(      gt_BI, return  BOL(ARG0)  >   INT(ARG1) ; )
-FUNC(      gt_BF, return  isgreater(static_cast<double>(BOL(ARG0)),                     FLT(ARG1) ); )
+FUNC(      gt_BF, return  isgreater(double(BOL(ARG0)),          FLT(ARG1) ); )
 FUNC(      gt_IB, return  INT(ARG0)  >   BOL(ARG1) ; )
 FUNC(      gt_II, return  INT(ARG0)  >   INT(ARG1) ; )
-FUNC(      gt_IF, return  isgreater(static_cast<double>(INT(ARG0)),                     FLT(ARG1) ); )
-FUNC(      gt_FB, return  isgreater(                    FLT(ARG0) , static_cast<double>(BOL(ARG1))); )
-FUNC(      gt_FI, return  isgreater(                    FLT(ARG0) , static_cast<double>(INT(ARG1))); )
-FUNC(      gt_FF, return  isgreater(                    FLT(ARG0) ,                     FLT(ARG1) ); )
+FUNC(      gt_IF, return  isgreater(double(INT(ARG0)),        FLT(ARG1) ); )
+FUNC(      gt_FB, return  isgreater(       FLT(ARG0) , double(BOL(ARG1))); )
+FUNC(      gt_FI, return  isgreater(       FLT(ARG0) , double(INT(ARG1))); )
+FUNC(      gt_FF, return  isgreater(       FLT(ARG0) ,        FLT(ARG1) ); )
 FUNC(    gteq_BB, return  BOL(ARG0)  >=  BOL(ARG1) ; )
 FUNC(    gteq_BI, return  BOL(ARG0)  >=  INT(ARG1) ; )
-FUNC(    gteq_BF, return  isgreaterequal(static_cast<double>(BOL(ARG0)),                     FLT(ARG1) ); )
+FUNC(    gteq_BF, return  isgreaterequal(double(BOL(ARG0)),   FLT(ARG1) ); )
 FUNC(    gteq_IB, return  INT(ARG0)  >=  BOL(ARG1) ; )
 FUNC(    gteq_II, return  INT(ARG0)  >=  INT(ARG1) ; )
-FUNC(    gteq_IF, return  isgreaterequal(static_cast<double>(INT(ARG0)),                     FLT(ARG1) ); )
-FUNC(    gteq_FB, return  isgreaterequal(                    FLT(ARG0) , static_cast<double>(BOL(ARG1))); )
-FUNC(    gteq_FI, return  isgreaterequal(                    FLT(ARG0) , static_cast<double>(INT(ARG1))); )
-FUNC(    gteq_FF, return  isgreaterequal(                    FLT(ARG0) ,                     FLT(ARG1) ); )
+FUNC(    gteq_IF, return  isgreaterequal(double(INT(ARG0)),        FLT(ARG1) ); )
+FUNC(    gteq_FB, return  isgreaterequal(       FLT(ARG0) , double(BOL(ARG1))); )
+FUNC(    gteq_FI, return  isgreaterequal(       FLT(ARG0) , double(INT(ARG1))); )
+FUNC(    gteq_FF, return  isgreaterequal(       FLT(ARG0) ,        FLT(ARG1) ); )
 
 FUNC(      eq_BB, return             BOL(ARG0)  ==  BOL(ARG1) ; )
 FUNC(      eq_BI, return             BOL(ARG0)  ==  INT(ARG1) ; )
@@ -201,24 +220,24 @@ FUNC(     neq_FF, return  std::fabs( FLT(ARG0)  -   FLT(ARG1) ) >  std::numeric_
 FUNC(     bitAnd, return  INT(ARG0)  &  INT(ARG1) ; )
 FUNC(     bitXOr, return  INT(ARG0)  ^  INT(ARG1) ; )
 FUNC(     bitOr , return  INT(ARG0)  |  INT(ARG1) ; )
-FUNC( boolAnd_BB, return  BOL(ARG0)             &&  BOL(ARG1)        ; )
-FUNC( boolAnd_BI, return  BOL(ARG0)             &&  INT(ARG1) !=   0 ; )
-FUNC( boolAnd_BF, return  BOL(ARG0)             &&  FLT(ARG1) != 0.0 ; )
-FUNC( boolAnd_IB, return  INT(ARG0) !=   0      &&  BOL(ARG1)        ; )
-FUNC( boolAnd_II, return  INT(ARG0) !=   0      &&  INT(ARG1) !=   0 ; )
-FUNC( boolAnd_IF, return  INT(ARG0) !=   0      &&  FLT(ARG1) != 0.0 ; )
-FUNC( boolAnd_FB, return  FLT(ARG0) != 0.0      &&  BOL(ARG1)        ; )
-FUNC( boolAnd_FI, return  FLT(ARG0) != 0.0      &&  INT(ARG1) !=   0 ; )
-FUNC( boolAnd_FF, return  FLT(ARG0) != 0.0      &&  FLT(ARG1) != 0.0 ; )
-FUNC(  boolOr_BB, return  BOL(ARG0)             ||  BOL(ARG1)        ; )
-FUNC(  boolOr_BI, return  BOL(ARG0)             ||  INT(ARG1) !=   0 ; )
-FUNC(  boolOr_BF, return  BOL(ARG0)             ||  FLT(ARG1) != 0.0 ; )
-FUNC(  boolOr_IB, return  INT(ARG0) !=   0      ||  BOL(ARG1)        ; )
-FUNC(  boolOr_II, return  INT(ARG0) !=   0      ||  INT(ARG1) !=   0 ; )
-FUNC(  boolOr_IF, return  INT(ARG0) !=   0      ||  FLT(ARG1) != 0.0 ; )
-FUNC(  boolOr_FB, return  FLT(ARG0) != 0.0      ||  BOL(ARG1)        ; )
-FUNC(  boolOr_FI, return  FLT(ARG0) != 0.0      ||  INT(ARG1) !=   0 ; )
-FUNC(  boolOr_FF, return  FLT(ARG0) != 0.0      ||  FLT(ARG1) != 0.0 ; )
+FUNC( boolAnd_BB, return  BOL(ARG0)         &&  BOL(ARG1)        ; )
+FUNC( boolAnd_BI, return  BOL(ARG0)         &&  INT(ARG1) !=   0 ; )
+FUNC( boolAnd_BF, return  BOL(ARG0)         &&  FLT(ARG1) != 0.0 ; )
+FUNC( boolAnd_IB, return  INT(ARG0) !=   0  &&  BOL(ARG1)        ; )
+FUNC( boolAnd_II, return  INT(ARG0) !=   0  &&  INT(ARG1) !=   0 ; )
+FUNC( boolAnd_IF, return  INT(ARG0) !=   0  &&  FLT(ARG1) != 0.0 ; )
+FUNC( boolAnd_FB, return  FLT(ARG0) != 0.0  &&  BOL(ARG1)        ; )
+FUNC( boolAnd_FI, return  FLT(ARG0) != 0.0  &&  INT(ARG1) !=   0 ; )
+FUNC( boolAnd_FF, return  FLT(ARG0) != 0.0  &&  FLT(ARG1) != 0.0 ; )
+FUNC(  boolOr_BB, return  BOL(ARG0)         ||  BOL(ARG1)        ; )
+FUNC(  boolOr_BI, return  BOL(ARG0)         ||  INT(ARG1) !=   0 ; )
+FUNC(  boolOr_BF, return  BOL(ARG0)         ||  FLT(ARG1) != 0.0 ; )
+FUNC(  boolOr_IB, return  INT(ARG0) !=   0  ||  BOL(ARG1)        ; )
+FUNC(  boolOr_II, return  INT(ARG0) !=   0  ||  INT(ARG1) !=   0 ; )
+FUNC(  boolOr_IF, return  INT(ARG0) !=   0  ||  FLT(ARG1) != 0.0 ; )
+FUNC(  boolOr_FB, return  FLT(ARG0) != 0.0  ||  BOL(ARG1)        ; )
+FUNC(  boolOr_FI, return  FLT(ARG0) != 0.0  ||  INT(ARG1) !=   0 ; )
+FUNC(  boolOr_FF, return  FLT(ARG0) != 0.0  ||  FLT(ARG1) != 0.0 ; )
 
 #if defined(_MSC_VER)
     #pragma warning( pop )
@@ -432,9 +451,8 @@ Arithmetics::Arithmetics( Compiler& compiler )
 {
     constexpr int tableSize= 9;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPA", functionNames
-                                ALIB_DBG(,tableSize)                                        );
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    strings::util::LoadResourcedTokens( EXPRESSIONS, "CPA", functionNames
+                                        ALIB_DBG(,tableSize)                );
     Token* descriptor= functionNames;
     ConstantIdentifiers=
     {
@@ -470,7 +488,6 @@ Arithmetics::Arithmetics( Compiler& compiler )
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize)
-    ALIB_WARNINGS_RESTORE
 }
 
 bool Arithmetics::TryCompilation( CIFunction& ciFunction )
@@ -483,8 +500,8 @@ bool Arithmetics::TryCompilation( CIFunction& ciFunction )
         constexpr int tableSize= 1;
         Token functionNames[tableSize];
 
-        Token::LoadResourcedTokens( EXPRESSIONS, "CPALen", functionNames
-                                    ALIB_DBG(,tableSize)                                        );
+        strings::util::LoadResourcedTokens( EXPRESSIONS, "CPALen", functionNames
+                                            ALIB_DBG(,tableSize)                     );
 
         if( functionNames[0].Match( ciFunction.Name ) )
         {
@@ -520,4 +537,4 @@ ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
 #undef BIN_ALIAS_ENTRY
 
 
-#endif //ALIB_DOX
+#endif //DOXYGEN

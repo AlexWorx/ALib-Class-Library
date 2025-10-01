@@ -1,18 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/detail/ast.hpp"
-#   include "alib/expressions/compilerplugin.hpp"
-#   include "alib/expressions/detail/program.hpp"
-#endif // !DOXYGEN
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace expressions { namespace detail {
 
 
@@ -24,10 +35,8 @@ namespace alib {  namespace expressions { namespace detail {
 namespace {
 
 const String normSpace(A_CHAR(" "));
-ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 const String normBracketOpen [4] {A_CHAR("("), A_CHAR("( "), A_CHAR(" ("), A_CHAR(" ( ")};
 const String normBracketClose[4] {A_CHAR(")"), A_CHAR(" )"), A_CHAR(") "), A_CHAR(" ) ")};
-ALIB_WARNINGS_RESTORE
 
 #define      SPACE(flag)          ( HasBits(format, Normalization::flag ) ? normSpace : EMPTY_STRING )
 #define COND_SPACE(flag, force) if( HasBits(format, Normalization::flag ) || force ) normalized << ' '
@@ -125,7 +134,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
         normalized << '"';
         integer startExternalization= normalized.Length();
         normalized << Value;
-        normalized << Format::Escape( lang::Switch::On, startExternalization );
+        normalized << Escape( lang::Switch::On, startExternalization );
         normalized << '"';
     }
     else if( Value.IsType<double>() )
@@ -136,7 +145,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
             && HasBits(program.compiler.CfgNormalization, Normalization::KeepScientificFormat ) )
             nf->Flags+= NumberFormatFlags::ForceScientific;
 
-        normalized <<   alib::Format( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
+        normalized <<   alib::Dec( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
         nf->Flags=     oldFlags;
     }
     else if( Value.IsType<integer>() )
@@ -151,10 +160,10 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
 
         NumberFormat* nf   = &program.compiler.CfgFormatter->DefaultNumberFormat;
         integer     value= Value.Unbox<integer>();
-             if( format == NFHint::Hexadecimal )  normalized << nf->HexLiteralPrefix << alib::Format::Hex(static_cast<uint64_t>(value), 0, nf );
-        else if( format == NFHint::Octal       )  normalized << nf->OctLiteralPrefix << alib::Format::Oct(static_cast<uint64_t>(value), 0, nf );
-        else if( format == NFHint::Binary )       normalized << nf->BinLiteralPrefix << alib::Format::Bin(static_cast<uint64_t>(value), 0, nf );
-        else                                      normalized                         << alib::Format(value, 0, nf);
+             if( format == NFHint::Hexadecimal ) normalized << nf->HexLiteralPrefix << Hex(uint64_t(value), 0, nf );
+        else if( format == NFHint::Octal       ) normalized << nf->OctLiteralPrefix << Oct(uint64_t(value), 0, nf );
+        else if( format == NFHint::Binary )      normalized << nf->BinLiteralPrefix << Bin(uint64_t(value), 0, nf );
+        else                                     normalized                         << Dec(value, 0, nf);
     }
     else
         normalized << Value;
@@ -190,7 +199,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
     integer nameLen= normalized.Length() - namePos;
     normalized  << SPACE(FunctionSpaceBeforeOpeningBracket);
 
-    int qtyArgs= int(Arguments.Count());
+    int qtyArgs= int(Arguments.size());
 
     // the function used for nested expressions?
     bool replacedNestedExpressionIdentifierByLiteral= false;
@@ -311,8 +320,6 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
     }
 
     //--------- normal unary operators -------
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-
     auto opIdx= normalized.Length();
     normalized << op;
     auto opLen= normalized.Length() - opIdx;
@@ -347,8 +354,6 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
 
     if( brackets )
         normalized << normBracketClose[HasBits(format, Normalization::UnaryOpInnerBracketSpace )];
-   ALIB_WARNINGS_RESTORE
-
 
     // check plugins
     program.AssembleUnaryOp( op, Position, opIdx );

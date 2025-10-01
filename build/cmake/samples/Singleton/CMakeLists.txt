@@ -1,7 +1,7 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Samples
+#  CMakeLists.txt - ALib Samples
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -19,7 +19,7 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    cmake_minimum_required( VERSION 3.18.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
     project("ALib.Singleton.Sample")
 
 
@@ -28,13 +28,10 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_DISTRIBUTION         "SINGLETONS"     )
+    list( APPEND  ALIB_BUILD         "SINGLETONS"     )
 
     # set mapped mode
     set( ALIB_FEAT_SINGLETON_MAPPED         "On" )
-
-    # add options
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )
@@ -46,7 +43,7 @@
     ALibAddSharedLibrary()
 
 
-    add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Singleton/sample.cpp  )
+    add_executable            ( Sample   ${ALIB_BASE_DIR}/src.samples/Singleton/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
     target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 

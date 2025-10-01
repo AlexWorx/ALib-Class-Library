@@ -1,45 +1,32 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#include "alib/threadmodel/dedicatedworker.hpp"
-#include "alib/enums/serialization.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alib.inl"
+#if ALIB_DEBUG
+#   include <vector>
+#   include <any>
+#endif
+#include <algorithm>
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ThreadModel;
+#else
+#   include "ALib.ThreadModel.H"
+#endif
+// ======================================   Implementation   =======================================
 
 namespace alib::threadmodel {
-
-// #################################################################################################
-// threadmodel::Bootstrap()
-// #################################################################################################
-#if !ALIB_CAMP
-#if ALIB_DEBUG && !DOXYGEN
-    namespace{ unsigned int initFlag= 0; }
-#endif // !DOXYGEN
-
-
-#include "alib/lang/callerinfo_functions.hpp"
-    void Bootstrap()
-    {
-        ALIB_ASSERT_ERROR( initFlag == 0, "ENUMS", "This method must not be invoked twice." )
-        ALIB_DBG(initFlag= 0x92A3EF61;)
-
-        #if !ALIB_CAMP
-        alib::enums::EnumRecords<Priority>::Bootstrap(
-        {
-            { Priority::Lowest          , A_CHAR("Lowest"             ), 4 },
-            { Priority::DeferredDeletion, A_CHAR("DeferredDeletion"   ), 1 },
-            { Priority::Low             , A_CHAR("Low"                ), 1 },
-            { Priority::Standard        , A_CHAR("Standard"           ), 1 },
-            { Priority::Highest         , A_CHAR("Highest"            ), 5 },
-            { Priority::High            , A_CHAR("High"               ), 1 },
-        } );
-    #endif // !ALIB_CAMP
-    }
-#include "alib/lang/callerinfo_methods.hpp"
-#endif // !ALIB_CAMP
 
 // #################################################################################################
 // DWManager
@@ -62,11 +49,11 @@ DWManager::DWManager()
 void DWManager::Add(DedicatedWorker& thread )
 {ALIB_LOCK
     #if ALIB_DEBUG
-        for( auto it : workers )
+        for( DedicatedWorker* it : workers )
             ALIB_ASSERT_ERROR( it != &thread, "MGTHR", "Thread already added" )
     #endif
 
-    workers.PushBack( &thread );
+    workers.push_back( &thread );
     thread.Start();
 }
 
@@ -74,11 +61,10 @@ bool  DWManager::Remove( DedicatedWorker& thread, Priority stopPriority ) {
     {ALIB_LOCK
         auto it= std::find( workers.begin(), workers.end(), &thread );
         if( it == workers.end() ) {
-            ALIB_WARNING( "MGTHR", NString256("Thread \"") << thread.GetName()
-                                    << "\"to remove not found ")
+            ALIB_WARNING( "MGTHR", "Thread \"{}\" to remove not found", thread.GetName())
             return false;
         }
-        workers.Erase( it );
+        workers.erase( it );
     }
 
     if( !thread.StopIsScheduled() )
@@ -93,10 +79,9 @@ bool  DWManager::Remove( DedicatedWorker& thread, Priority stopPriority ) {
         #if ALIB_DEBUG
         if( waitCheck.Age().InAbsoluteSeconds() == nextWarnSecond )
         {
-            ALIB_WARNING( "MGTHR",  NString4K("DWManager::Remove: Waiting on thread \"" )
-                        << thread.GetName() << "\" to stop. "
-                           "State::"  <<  thread.GetState()
-                        << ", Load: " <<  thread.Load() )
+            ALIB_WARNING( "MGTHR",
+                "DWManager::Remove: Waiting on thread \"{}\" to stop. State::{}, Load: ",
+                thread.GetName(), thread.GetState(), thread.Load()  )
             nextWarnSecond++;
         }
         #endif
@@ -111,7 +96,7 @@ bool  DWManager::Remove( DedicatedWorker& thread, Priority stopPriority ) {
 bool DWManager::WaitForAllIdle( Ticks::Duration timeout
                          ALIB_DBG(, Ticks::Duration dbgWarnAfter) )
 {
-    ALIB_MESSAGE("MGTHR", "DWManager::StopAndJoinAll" )
+    ALIB_MESSAGE( "MGTHR", "DWManager::StopAndJoinAll" )
 
     Ticks waitStart= Ticks::Now();
     ALIB_DBG( Ticks nextWarning= waitStart + dbgWarnAfter; )
@@ -120,7 +105,7 @@ bool DWManager::WaitForAllIdle( Ticks::Duration timeout
         // check that all threads are stopped
         int cntRunning= 0;
         {ALIB_LOCK
-            for( auto it : workers )
+            for( DedicatedWorker* it : workers )
                 if( it->Load() > 0  )
                     cntRunning++;
         }
@@ -130,17 +115,21 @@ bool DWManager::WaitForAllIdle( Ticks::Duration timeout
         #if ALIB_DEBUG
             if( nextWarning.Age() > dbgWarnAfter)
             {
-                NString4K dbgThreadList;
-                dbgThreadList << "Waiting on " << cntRunning << " thread(s) to become idle:\n";
+                std::vector<std::any> args; args.reserve(32);
+                args.emplace_back( "Waiting on {} thread(s) to become idle.\n");
+                args.emplace_back( cntRunning );
                 int tNr= 0;
                 {ALIB_LOCK
-                    for( auto it : workers  )
-                        if ( it->Load() > 0  )
-                            dbgThreadList << ++tNr << ": " << it->GetName()
-                                                   << ",\tState::" <<  it->state
-                                                   << ",\t Load: " <<  it->Load()  << NEW_LINE;
+                    for( DedicatedWorker* it : workers  )
+                        if ( it->Load() > 0  ) {
+                            args.emplace_back( ++tNr );
+                            args.emplace_back( ": {},\tState::{},\t Load: \n" );
+                            args.emplace_back( it->GetName() );
+                            args.emplace_back( it->state );
+                            args.emplace_back( it->Load() );
+                       }
                 }
-                ALIB_WARNING( "MGTHR", dbgThreadList )
+                assert::raise( ALIB_CALLER_PRUNED, 1, "MGTHR", args );
                 nextWarning= Ticks::Now();
             }
         #endif
@@ -156,13 +145,13 @@ bool DWManager::WaitForAllIdle( Ticks::Duration timeout
 
 void DWManager::RemoveAll( Priority stopPriority )
 {
-    ALIB_MESSAGE("MGTHR", "DWManager::StopAndJoinAll" )
+    ALIB_MESSAGE( "MGTHR", "DWManager::StopAndJoinAll" )
 
     ALIB_DBG( Ticks waitCheck= Ticks::Now();
               int nextWarnSecond= 1; )
 
     // send stop to those unstopped
-    for( auto it : workers )
+    for( DedicatedWorker* it : workers )
         if( !it->StopIsScheduled() )
             it->ScheduleStop( stopPriority );
 
@@ -172,7 +161,7 @@ void DWManager::RemoveAll( Priority stopPriority )
     {
         // check that all threads are stopped
         cntRunning= 0;
-        for( auto it : workers )
+        for( DedicatedWorker* it : workers )
             if( it->GetState() < Thread::State::Done  )
                 cntRunning++;
         if( cntRunning == 0 )
@@ -182,23 +171,26 @@ void DWManager::RemoveAll( Priority stopPriority )
         #if ALIB_DEBUG
             if( waitCheck.Age().InAbsoluteSeconds() == nextWarnSecond )
             {
-                NString4K dbgThreadList("DWManager Termination: Waiting on " );
-                dbgThreadList << cntRunning << " Threads to stop. List of threads: " << NEW_LINE;
+                std::vector<std::any> args; args.reserve(32);
+                args.emplace_back( "DWManager Termination: Waiting on {} thread(s) to stop.\n");
+                args.emplace_back( cntRunning );
                 int tNr= 0;
-                for( auto it : workers  )
+                for( DedicatedWorker* it : workers  )
                 {
-                    dbgThreadList << ++tNr << ": " << it->GetName()
-                                           << ",\tState::" <<  it->state
-                                           << ",\t Load: " <<  it->Load()  << NEW_LINE;
+                    args.emplace_back( ++tNr );
+                    args.emplace_back( ": {},\tState::{},\t Load: \n" );
+                    args.emplace_back( it->GetName() );
+                    args.emplace_back( it->state );
+                    args.emplace_back( it->Load() );
                 }
-            ALIB_WARNING( "MGTHR", dbgThreadList.NewLine().Terminate() )
+                assert::raise( ALIB_CALLER_PRUNED, 1, "MGTHR", args );
                 nextWarnSecond++;
             }
         #endif
     }
 
     // terminate all registered MThreads and remove them from our the list.
-    for( auto it : workers )
+    for( DedicatedWorker* it : workers )
         it->Join();
     workers.Clear();
 }
@@ -222,11 +214,15 @@ void DedicatedWorker::pushAndRelease(QueueElement&& jobInfo)
     // insert before found
     queue.Insert(it, jobInfo );
 
-    ALIB_MESSAGE( "MGTHR/QUEUE", NString512() <<
-            "Queue("  << queue.Count() << ") "
-             "Job("   << jobInfo.job->ID << ") pushed. "
-             "P::"    << jobInfo.priority << ", "
-             "Keep: " << jobInfo.keepJob         )
+    #if ALIB_DEBUG
+        std::vector<std::any> args; args.reserve(32);
+        args.emplace_back( "Queue({}) Job({}) pushed. P::{} Keep: ");
+        args.emplace_back( queue.size() );
+        args.emplace_back(  &jobInfo.job->ID  );
+        args.emplace_back(  jobInfo.priority );
+        args.emplace_back(  jobInfo.keepJob  );
+        assert::raise( ALIB_CALLER_PRUNED, 2, "MGTHR/QUEUE", args );
+    #endif
 
     ++length;
     ALIB_DBG( DbgMaxQueuelength= (std::max)(DbgMaxQueuelength, length); )
@@ -240,25 +236,28 @@ std::pair<Job*, bool>  DedicatedWorker::pop()
     ALIB_ASSERT_ERROR(length != 0, "MGTHR", "Job pipe empty after wakeup" )
     ALIB_MESSAGE( "MGTHR/QUEUE", "Queue--, size: ", length )
 
-    std::pair<Job*, bool> result= { queue.Back().job, queue.Back().keepJob };
-    ALIB_DBG( auto dbgPriority= queue.Back().priority; )
+    std::pair<Job*, bool> result= { queue.back().job, queue.back().keepJob };
+    ALIB_DBG( auto dbgPriority= queue.back().priority; )
 
-    queue.PopBack();
+    queue.pop_back();
     --length;
 
-    ALIB_MESSAGE( "MGTHR/QUEUE", NString512() <<
-            "Queue("  << length << ") "
-             "Job("   << result.first->ID << ") popped. "
-             "P::"    << dbgPriority << ", "
-             "Keep: " << result.second         )
-
+    #if ALIB_DEBUG
+        std::vector<std::any> args; args.reserve(32);
+        args.emplace_back( "Queue({}) Job({}) pushed. P::{} Keep: ");
+        args.emplace_back( length            );
+        args.emplace_back( &result.first->ID );
+        args.emplace_back( dbgPriority       );
+        args.emplace_back( result.second     );
+        assert::raise( ALIB_CALLER_PRUNED, 2, "MGTHR/QUEUE", args );
+    #endif
 
     return result;
 }
 
 void DedicatedWorker::Run()
 {
-    ALIB_MESSAGE("MGTHR", NString256( "DedicatedWorker \"") << GetName() << "\" is running" )
+    ALIB_MESSAGE("MGTHR", "DedicatedWorker \"{}\" is running", GetName() )
 
     while(!stopJobExecuted)
     {
@@ -270,7 +269,7 @@ void DedicatedWorker::Run()
             auto& job= jobInfo.first->Cast<JobDeleter>();
             job.JobToDelete->PrepareDeferredDeletion();
 
-            ALIB_ASSERT(jobInfo.second == false)
+            ALIB_ASSERT(jobInfo.second == false, "MGTHR")
             ALIB_LOCK_WITH(manager)
                 auto size= job.JobToDelete->SizeOf();
                 job.JobToDelete->~Job();
@@ -290,7 +289,7 @@ void DedicatedWorker::Run()
         if (jobInfo.first->Is<JobStop>() )
         {
             stopJobExecuted= true;
-            ALIB_ASSERT(jobInfo.second == false)
+            ALIB_ASSERT(jobInfo.second == false, "MGTHR")
             ALIB_LOCK_WITH(manager)
                 manager.GetPoolAllocator().free( jobInfo.first,  sizeof(JobStop) );
             goto CONTINUE;
@@ -311,21 +310,18 @@ void DedicatedWorker::Run()
         }
 
         // Not processed!
-        ALIB_ERROR("MGTHR", NString512() <<
-            "Job of type <" << jobInfo.first->ID << ">"
-            "passed to DedicatedWorker, which was neither recognized by\n"
-            "the specialist nor has it a Job::Do() implementation!" )
+        ALIB_ERROR("MGTHR",
+            "Job of type <{}> passed to DedicatedWorker, which was neither recognized by\n"
+            "the specialist nor has it a Job::Do() implementation!", &jobInfo.first->ID )
 
         CONTINUE:
         statLastJobExecution.Reset();
     }
 
-    ALIB_ASSERT_WARNING( Load() == 0, "MGTHR", NString256() <<
-        "DedicatedWorker \"" << GetName() << "\" has " << Load() <<
-        " jobs still queued when stopped!\n" )
+    ALIB_ASSERT_WARNING( Load() == 0, "MGTHR", 
+        "DedicatedWorker \"{}\" has jobs still queued when stopped!", GetName(), Load() )
     
-    ALIB_MESSAGE( "MGTHR", NString256() <<
-        "DedicatedWorker \"" << GetName() << "\" is stopping (leaving method Run())." )
+    ALIB_MESSAGE( "MGTHR", "DedicatedWorker \"{}\" is stopping (leaving method Run()).", GetName() )
 }
 
 } // namespace [alib::threadmodel]

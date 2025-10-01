@@ -1,23 +1,23 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
-#   This project creates a source file for each header file used in the selected alib distribution,
+#   This project creates a source file for each header-file used in the selected ALib Build,
 #   that includes the corresponding header.
 #   Furthermore, ALib CMake feature ALIB_SOURCE_COPY_TARGET_DIR is used, to copy the library
 #   source files to a temporary directory.
 #   Finally, several batch files exists that invoke this script with various module combinations,
-#   debug and release compilations, 32-bit compilations and C++ 17 and 20 versions.
+#   debug and release compilations, 32-bit compilations and C++17 and 20 versions.
 #
 #   This altogether ensures that
 #   1. The CMake module dependencies are set right
 #   2. The CMake source selections is correct.
 #   3. The C++ module dependencies are set right
 #   4. Every HPP file can be included as the first header.
-#   5. All code compiles in various permutations of module selections (ALib Distributions)
+#   5. All code compiles in various permutations of module selections (ALib Builds)
 #   6. All code compiles with different C++ settings.
 #
 #  How to use:
@@ -28,7 +28,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.18.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 
     project("ALib_ModuleDepsAndHeaderTest")
 
@@ -41,17 +41,15 @@
 
     #------------------- Temp directory settings (delete and re-create) ------------------------
 
-    file(REMOVE_RECURSE                 "/tmp/headertest/")
-    file(MAKE_DIRECTORY                 "/tmp/headertest/")
-    file(MAKE_DIRECTORY                 "/tmp/headertest/src")
-    file(MAKE_DIRECTORY                 "/tmp/headertest/alib")
-
-    set( ALIB_TEST_HEADERS_DIR          "/tmp/headertest/src"  )
-    set( ALIB_SOURCE_COPY_TARGET_DIR    "/tmp/headertest/alib" )
+    set( ALIB_SOURCE_COPY_TARGET_DIR    "headertest" )
 
 
     #---------------------------------       Include ALib       ---------------------------------
     include( ../../../build/cmake/ALib.cmake )
+    file(REMOVE_RECURSE                 "/tmp/headertest/")
+    file(MAKE_DIRECTORY                 "/tmp/headertest/")
+    set( ALIB_TEST_HEADERS_DIR          "/tmp/headertest/"  )
+
 
 ## -------------------------------------------------------------------------------------------------
 ## find libraries
@@ -64,15 +62,11 @@
     endif()
 
     # multithreading
-    if ( NOT ${ALIB_FEAT_THREADS} )
-        if ( ${ALIB_GTEST} )
-
+    if ( ${ALIB_GTEST} )
         find_package(Threads)
 
         # we hack this into the existing alib variable...
         set( ALIB_EXTERNAL_LIBS ${ALIB_EXTERNAL_LIBS}         ${CMAKE_THREAD_LIBS_INIT} )
-
-        endif()
     endif()
 
 
@@ -86,7 +80,7 @@ if( NOT IS_DIRECTORY ${ALIB_TEST_HEADERS_DIR})
                         "is set but is not a valid directory. Stopping here!"  )
 endif()
 
-foreach( fileName IN LISTS   ALIB_INCLUDE_FILES )
+foreach( fileName IN LISTS   ALIB_H )
 
     string(FIND ${fileName} ".inl" position REVERSE)
     IF( ${position} EQUAL -1 )
@@ -98,7 +92,7 @@ foreach( fileName IN LISTS   ALIB_INCLUDE_FILES )
 
             SET( destPath  "${ALIB_TEST_HEADERS_DIR}/${name}.cpp" )
 
-            # message( " filename   : ${fileName}" )
+            message( " filename   : ${fileName}" )
             # message( "    name    : ${name}" )
             # message( "    destPath: ${destPath}" )
             # message( "    contents: #include \"${fileName}\"\n" )
@@ -112,7 +106,7 @@ endforeach()
 file( GLOB_RECURSE HCTL_SRCS            ${ALIB_TEST_HEADERS_DIR}/*.cpp         )
 
 
-add_library( HeaderCompileTestLib       ${ALIB_INCLUDE_FILES}
+add_library( HeaderCompileTestLib       ${ALIB_HPP}
                                         ${HCTL_SRCS}  )
 
 ALibSetCompilerAndLinker( HeaderCompileTestLib )

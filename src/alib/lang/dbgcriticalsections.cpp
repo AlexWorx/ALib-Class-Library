@@ -1,111 +1,73 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_threads of the \aliblong.
+/// This header-file is part of module \alib_threads of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#include "alib/alib_precompile.hpp"
-#include "alib/alib.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alib.inl"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Lang;
+#else
+#   include "ALib.Lang.H"
+#endif
+// ======================================   Implementation   =======================================
 
 #if ALIB_DEBUG_CRITICAL_SECTIONS
-#include "alib/lang/dbgcriticalsections.hpp"
-#include "alib/threads/thread.hpp"
-#include "alib/threads/lock.hpp"
-#include "alib/threads/timedlock.hpp"
-#include "alib/threads/recursivelock.hpp"
-#include "alib/threads/recursivetimedlock.hpp"
-#include "alib/threads/sharedlock.hpp"
-#include "alib/threads/sharedtimedlock.hpp"
-#include "alib/strings/localstring.hpp"
-
-#if ALIB_CAMP
-#   include "alib/lang/format/formatterpythonstyle.hpp"
-#endif
-
-#if ALIB_ALOX
-#   include "alib/alox.hpp"
-#   include "alib/alox/textlogger/textlogger.hpp"
-#endif
-
 namespace alib::lang {
 
+unsigned int DBG_CRITICAL_SECTION_YIELD_OR_SLEEP_TIME_IN_NS;
 
-#if ALIB_CAMP && !DOXYGEN // otherwise doxygen will write a bad version of the initial value
+
 const char* DbgCriticalSections::ASSERTION_FORMAT=
-"Assertion in Critical Section {!Q}"         "\n"
+"Assertion in Critical Section \"{}\""       "\n"
 "                       Message: {}"         "\n"
-"          In (Member-)Function: {2:ya}"     "\n"
-"                      Is Owned: {6}"        "\n"
-"               Is Shared Owned: {9}"        "\n"
+"          In (Member-)Function: {}"         "\n"
+"                      Is Owned: {} ({})"    "\n"
+"               Is Shared Owned: {} ({})"    "\n"
                                              "\n"
-"                     Called By: {3:ya}"     "\n"
-"                            At: {3:sf:sl}"  "\n"
-"                        Thread: {3:ta}"     "\n"
+"                     Called By: {}::{}"     "\n"
+"                            At: {}:{}"      "\n"
+"                        Thread: {}"         "\n"
                                              "\n"
-"         Latest Acquisition By: {4:ya}"     "\n"
-"                            At: {4:sf:sl}"  "\n"
-"                        Thread: {4:ta}"     "\n"
-"             Latest Release By: {5:ya}"     "\n"
-"                            At: {5:sf:sl}"  "\n"
-"                        Thread: {5:ta}"     "\n"
+"         Latest Acquisition By: {}::{}"     "\n"
+"                            At: {}:{}"      "\n"
+"                        Thread: {}"         "\n"
+"             Latest Release By: {}::{}"     "\n"
+"                            At: {}:{}"      "\n"
+"                        Thread: {}"         "\n"
                                              "\n"
-"  Latest Shared Acquisition By: {7:ya}"     "\n"
-"                            At: {7:sf:sl}"  "\n"
-"                        Thread: {7:ta}"     "\n"
-"       Latest SharedRelease By: {8:ya}"     "\n"
-"                            At: {8:sf:sl}"  "\n"
-"                        Thread: {8:ta}"     "\n"
+"  Latest Shared Acquisition By: {}::{}"     "\n"
+"                            At: {}:{}"      "\n"
+"                        Thread: {}"         "\n"
+"       Latest SharedRelease By: {}::{}"     "\n"
+"                            At: {}:{}"      "\n"
+"                        Thread: {}"         "\n"
 ;
-#endif // ALIB_CAMP && !DOXYGEN
 
 void DbgCriticalSections::doAssert( bool cond, const CallerInfo& ciAssert, const CallerInfo& ci,
                                     const char* headline )    const
 {
     if (cond) return;
 
-    String4K msg;
-    #if !ALIB_CAMP
-    msg  << "Assertion in Critical Section " << DCSName << "\n"
-            "                    Message: "  << headline  << "\n"
-            "                     Caller: "  << ci        << "\n"
-            "                   Is Owned: "  << (DCSWriterCnt.load()>0 ? "true " : "false") << " (" << DCSWriterCnt.load() << ")\n"
-            "            Is Shared-Owned: "  << (DCSReaderCnt.load()>0 ? "true " : "false") << " (" << DCSReaderCnt.load() << ")\n\n"
-            "         Latest Acquirement: "  << DCSAcq    << "\n"
-            "             Latest Release: "  << DCSRel    << "\n\n"
-            "  Latest Shared Acquirement: "  << DCSSAcq   << "\n"
-            "      Latest Shared Release: "  << DCSSRel   << "\n\n"
-     "Note: Include ALib module BaseCamp in the ALib-Distribution to get nicer assertion output.\n";
-    #else
-        String256 acquirementInfo;
-        acquirementInfo       << (DCSWriterCnt.load()>0 ? "true " : "false") << " (" <<DCSWriterCnt.load()<< ')';
-        String256 sharedAcquirementInfo;
-        sharedAcquirementInfo << (DCSReaderCnt.load()>0 ? "true " : "false") << " (" <<DCSReaderCnt.load()<< ')';
-
-        FormatterPythonStyle fmt;
-        fmt.Format( msg, ASSERTION_FORMAT,
-                    DCSName, headline,
-                    ciAssert, ci,
-                    DCSAcq  , DCSRel , acquirementInfo,
-                    DCSSAcq , DCSSRel, sharedAcquirementInfo);
-
-    #endif
-    #if ALIB_ALOX
-     int oldMode= 1;
-     if ( Log::DebugLogger )
-     {
-         oldMode= Log::DebugLogger->GetFormatMultiLine().Mode;
-         Log::DebugLogger->GetFormatMultiLine().Mode= 3;
-     }
-    #endif
-
-    ALIB_STRINGS_TO_NARROW(msg, nmsg, 16*1024) // needed due to MB_CUR_MAX in conversion
-    DbgSimpleALibMsg( ciAssert, 0, "THREADS", nmsg  );
-
-    #if ALIB_ALOX
-     if ( Log::DebugLogger )
-        Log::DebugLogger->GetFormatMultiLine().Mode= oldMode;
-    #endif
+    assert::Raise( ciAssert, 0, "THREADS", ASSERTION_FORMAT,
+                   DCSName, headline, ciAssert.Func,
+                   DCSWriterCnt.load() > 0, DCSWriterCnt.load(),
+                   DCSReaderCnt.load() > 0, DCSReaderCnt.load(),
+                       ci.TypeInfo,     ci.Func,     ci.File,     ci.Line,     ci.ThreadID,
+                   DCSAcq.TypeInfo, DCSAcq.Func, DCSAcq.File, DCSAcq.Line, DCSAcq.ThreadID,
+                   DCSRel.TypeInfo, DCSRel.Func, DCSRel.File, DCSRel.Line, DCSRel.ThreadID,
+                  DCSSAcq.TypeInfo,DCSSAcq.Func,DCSSAcq.File,DCSSAcq.Line,DCSSAcq.ThreadID,
+                  DCSSRel.TypeInfo,DCSSRel.Func,DCSSRel.File,DCSSRel.Line,DCSSRel.ThreadID   );
 }
 
 void DbgCriticalSections::Acquire( const CallerInfo& ci )                                   const
@@ -157,5 +119,5 @@ void DbgCriticalSections::ReleaseShared( const CallerInfo& ci )      const
     
 } // namespace [alib::lang]
 
-#endif // HPP_ALIB_LANG_DBGCRITICALSECTIONS
+#endif // ALIB_DEBUG_CRITICAL_SECTIONS
 

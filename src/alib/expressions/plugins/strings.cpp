@@ -1,20 +1,35 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/expressions/plugins/strings.hpp"
-#   include "alib/monomem/aliases/astringma.hpp"
-#   include "alib/strings/util/wildcardmatcher.hpp"
-#   include "alib/strings/util/regexmatcher.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#endif // !DOXYGEN
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Strings.Search;
+    import   ALib.Strings.Tokenizer;
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Search.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -35,7 +50,7 @@
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 #   define TOINT(arg)                      arg
 #else
-#   define TOINT(arg) static_cast<integer>(arg)
+#   define TOINT(arg) integer(arg)
 #endif
 
 
@@ -51,8 +66,8 @@ Box CBToString( Scope& scope, ArgIterator  args, ArgIterator end)
     while( args < end )
     {
         Box& arg= *args;
-             if( arg.IsType<integer>() ) tmp << Format( INT(arg), &scope.Formatter->DefaultNumberFormat);
-        else if( arg.IsType<double >() ) tmp << Format( FLT(arg), &scope.Formatter->DefaultNumberFormat);
+             if( arg.IsType<integer>() ) tmp << Dec( INT(arg), &scope.Formatter->DefaultNumberFormat);
+        else if( arg.IsType<double >() ) tmp << Dec( FLT(arg), &scope.Formatter->DefaultNumberFormat);
         else                             tmp << arg;
 
         ++args;
@@ -125,23 +140,23 @@ FUNC(parsei     ,   integer result; Substring(STR(ARG0)).ConsumeInt  (result, &s
 FUNC(parsef     ,   double  result; Substring(STR(ARG0)).ConsumeFloat(result, &scope.Formatter->DefaultNumberFormat); return result; )
 
 FUNC(token      ,   Tokenizer tknzr( STR(ARG0), STR(ARG1).CharAtStart() );
-                    for( auto i= INT(ARG2) ; i >= 0  ; --i )
+                    for( integer i= INT(ARG2) ; i >= 0  ; --i )
                         tknzr.Next( lang::Whitespaces::Keep );
                     return tknzr.Actual;  )
 
 FUNC(hex        ,   String128 buf;
-                    buf << Format::Hex( static_cast<uint64_t>(INT(ARG0)),
-                                        args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
+                    buf << Hex( uint64_t(INT(ARG0)),
+                                        args + 1 != end ? int(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
                     return ALLOCS(buf);                                                     )
 FUNC(oct        ,   String128 buf;
-                    buf << Format::Oct( static_cast<uint64_t>(INT(ARG0)),
-                                        args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
+                    buf << Oct( uint64_t(INT(ARG0)),
+                                        args + 1 != end ? int(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
                     return ALLOCS(buf);                                       )
 FUNC(bin        ,   String128 buf;
-                    buf << Format::Bin( static_cast<uint64_t>(INT(ARG0)),
-                                        args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
+                    buf << Bin( uint64_t(INT(ARG0)),
+                                        args + 1 != end ? int(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
                     return ALLOCS(buf);                                              )
 
@@ -173,7 +188,7 @@ Box repeat( Scope& scope, ArgIterator  args, ArgIterator )
     String src        = STR(ARG0);
     String256 buf;
     buf.DbgDisableBufferReplacementWarning();
-    for( auto i= INT(ARG1) ; i > 0  ; --i )
+    for( integer i= INT(ARG1) ; i > 0  ; --i )
         buf << src;
     return ALLOCS(buf);
 }
@@ -188,12 +203,12 @@ FUNC(boolNot,   return LEN(ARG0) == 0;         )
 // ### Strings - Binary operators
 // #################################################################################################
 
-FUNC(add_SI, return  ALLOCS(STR1K(ARG0) << Format( INT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
-FUNC(add_SF, return  ALLOCS(STR1K(ARG0) << Format( FLT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
+FUNC(add_SI, return  ALLOCS(STR1K(ARG0) << Dec( INT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
+FUNC(add_SF, return  ALLOCS(STR1K(ARG0) << Dec( FLT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
 
 
-FUNC(add_IS, return ALLOCS(String1K() << Format( INT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
-FUNC(add_FS, return ALLOCS(String1K() << Format( FLT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
+FUNC(add_IS, return ALLOCS(String1K() << Dec( INT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
+FUNC(add_FS, return ALLOCS(String1K() << Dec( FLT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
 FUNC(add_SS, return ALLOCS(String1K(STR(ARG0)) << STR(ARG1)); )
 FUNC(add_SX, return ALLOCS(String1K(STR(ARG0)) <<     ARG1); )
 FUNC(add_XS, return ALLOCS(String1K(    ARG0)  << STR(ARG1)); )
@@ -240,8 +255,8 @@ Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
         NString128 keyString("_wc");
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-        auto storedMatcher=  scope.vmMembers->CTScope->NamedResources->Find( keyString );
-        if( storedMatcher != scope.vmMembers->CTScope->NamedResources->end() )
+        auto storedMatcher=  scope.EvalScopeVMMembers->CTScope->NamedResources->Find( keyString );
+        if( storedMatcher != scope.EvalScopeVMMembers->CTScope->NamedResources->end() )
             return dynamic_cast<ScopeWildcardMatcher*>( storedMatcher.Mapped() )
                    ->matcher.Match( haystack, sensitivity );
     }
@@ -281,8 +296,8 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
         NString128 keyString( "_re" );
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-        auto storedMatcher=  scope.vmMembers->CTScope->NamedResources->Find( keyString );
-        if( storedMatcher != scope.vmMembers->CTScope->NamedResources->end() )
+        auto storedMatcher=  scope.EvalScopeVMMembers->CTScope->NamedResources->Find( keyString );
+        if( storedMatcher != scope.EvalScopeVMMembers->CTScope->NamedResources->end() )
         {
             ScopeRegexMatcher* matcher= dynamic_cast<ScopeRegexMatcher*>( storedMatcher->second );
             return matcher->matcher.Match( haystack );
@@ -348,9 +363,8 @@ Strings::Strings( Compiler& compiler )
     #endif
 
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPS", functionNames
-                                ALIB_DBG(,tableSize)                                 );
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    strings::util::LoadResourcedTokens( EXPRESSIONS, "CPS", functionNames
+                                        ALIB_DBG(,tableSize)                 );
     Token* descriptor= functionNames;
 
     // Constant identifiers
@@ -404,7 +418,6 @@ Strings::Strings( Compiler& compiler )
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize                                     )
-    ALIB_WARNINGS_RESTORE
 }
 
 namespace {

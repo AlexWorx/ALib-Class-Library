@@ -1,15 +1,25 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/util/tokenizer.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings.Tokenizer;
+#else
+#   include "ALib.Strings.Tokenizer.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace strings { namespace util  {
 
 template<typename TChar>

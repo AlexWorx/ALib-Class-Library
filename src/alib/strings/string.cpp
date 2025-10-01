@@ -1,19 +1,27 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/string.hpp"
-#   include "alib/strings/detail/numberconversion.hpp"
-#   if ALIB_DEBUG
-#      include "alib/strings/localstring.hpp"
-#   endif
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings;
+    import   ALib.Lang;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#endif
+// ======================================   Implementation   =======================================
 using namespace alib::characters;
 
 namespace alib {
@@ -40,26 +48,25 @@ namespace {
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 void TString<TChar>::dbgCheck() const
 {
     // write to the console once that we are debugging AString
     if ( !astringCheckReported )
     {
         astringCheckReported= true;
-        ALIB_MESSAGE( "STRINGS", "ALIB_DEBUG_STRINGS is enabled")
+        ALIB_MESSAGE( "STRINGS", "ALIB_DEBUG_STRINGS is enabled" )
     }
 
     ALIB_ASSERT_ERROR( length == 0 ||  buffer != nullptr, "STRINGS",
-                       "Nulled string has a length of ", int(length) )
+                       "Nulled string has a length of ", length )
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     for (integer i= length -1 ; i >= 0 ; --i)
         if ( buffer[i] == '\0' )
         {
-            ALIB_ERROR( "STRINGS", "Found termination character '\\0' in buffer. Index=", int(i) )
+            ALIB_ERROR( "STRINGS", "Found termination character '\\0' in buffer. Index=", i )
             break;
         }
-    ALIB_WARNINGS_RESTORE
 }
 
 #endif
@@ -69,6 +76,7 @@ void TString<TChar>::dbgCheck() const
 // indexOf...()
 // #################################################################################################
 template<typename   TChar>
+requires alib::characters::IsCharacter<TChar>
 template<lang::Case TSensitivity>
 integer  TString<TChar>::indexOfString( const TString<TChar>&  needle,
                                         integer startIdx, integer endIdx )  const
@@ -76,9 +84,10 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle,
     integer nLen=   needle.Length();
     if( nLen == 0 )
         return startIdx;
-    ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx <= length, "STRINGS", "Illegal start index given." )
-    ALIB_ASSERT_ERROR(   endIdx <= length -nLen + 1       , "STRINGS", "Illegal end index given." )
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx <= length, "STRINGS",
+                       "Illegal start index given: 0 <= {} < {}.", startIdx, length )
+    ALIB_ASSERT_ERROR(   endIdx <= length -nLen + 1       , "STRINGS",
+                       "Illegal end index given: {} > {}.", endIdx, length -nLen + 1 )
     const TChar*  buf=    buffer + startIdx;
     const TChar*  bufEnd= buffer + endIdx;
     const TChar* nBuf=    needle.Buffer();
@@ -94,22 +103,20 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle,
         ++buf;
     }
     return -1;
-    ALIB_WARNINGS_RESTORE
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer  idx ) const
 {
     int openCnt= 1;
     while( idx < length )
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( buffer[idx] == opener )   ++openCnt;
         if( buffer[idx] == closer &&  --openCnt == 0 )
             break;
 
         ++idx;
-        ALIB_WARNINGS_RESTORE
     }
 
     return openCnt == 0 ? idx : -openCnt;
@@ -119,6 +126,7 @@ integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer 
 // ParseXXX()
 // #################################################################################################
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 uint64_t    TString<TChar>::ParseDecDigits( integer  startIdx, integer* newIdx )
 const
 {
@@ -138,6 +146,7 @@ const
 
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 int64_t    TString<TChar>::ParseInt( integer  startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
@@ -157,6 +166,7 @@ const
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 uint64_t    TString<TChar>::ParseDec( integer  startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
@@ -176,6 +186,7 @@ const
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 uint64_t    TString<TChar>::ParseBin( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
@@ -195,6 +206,7 @@ const
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 uint64_t    TString<TChar>::ParseHex( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
@@ -214,6 +226,7 @@ const
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 uint64_t    TString<TChar>::ParseOct( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
@@ -233,6 +246,7 @@ const
 }
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 double    TString<TChar>::ParseFloat( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
@@ -266,7 +280,7 @@ integer  TString<nchar>::WStringLength()  const
     //--------- Windows Version ----------
     #if defined( _WIN32 )
 
-        int conversionSize= MultiByteToWideChar( CP_UTF8, 0, cs, static_cast<int>( length ), nullptr, 0 );
+        int conversionSize= MultiByteToWideChar( CP_UTF8, 0, cs, int( length ), nullptr, 0 );
 
         // check for errors
         #if ALIB_DEBUG
@@ -283,13 +297,14 @@ integer  TString<nchar>::WStringLength()  const
                 else                                                msg._( error );
                 msg._(')');
 
-                ALIB_WARNING( msg )
+                ALIB_WARNING( "STRINGS", msg )
                 return length;
             }
 
             if( conversionSize > length )
             {
-                ALIB_ERROR( "STRINGS", "MBCS to WCS conversion failed. Conversion length=", conversionSize );
+                ALIB_ERROR( "STRINGS", "MBCS to WCS conversion failed. Conversion length=",
+                                       conversionSize );
                 return length;
             }
         #endif
@@ -297,20 +312,20 @@ integer  TString<nchar>::WStringLength()  const
         return conversionSize;
 
     //--------- __GLIBCXX__ Version ---------
-    #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
+    #elif defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
         size_t conversionSize=  mbsnrtowcs( nullptr, &cs, size_t(length), 0, nullptr );
         if ( conversionSize ==  size_t(-1) )
         {
-            ALIB_WARNING( "STRINGS", "MBCS to WCS conversion failed. Illegal MBC sequence. Probably UTF-8 is not set in locale" )
+            ALIB_WARNING( "STRINGS", "MBCS to WCS conversion failed. Illegal MBC sequence. "
+                                     "Probably UTF-8 is not set in locale" )
             return length;
         }
 
         ALIB_ASSERT_ERROR( conversionSize <= size_t( length ), "STRINGS",
-                           NString128( "MBCS to WCS conversion failed. Conversion length=")
-                           << conversionSize )
+                           "MBCS to WCS conversion failed. Conversion length=", conversionSize )
 
-        return static_cast<integer>(conversionSize);
+        return integer(conversionSize);
 
     #else
 
@@ -355,7 +370,6 @@ integer  TString<xchar>::WStringLength()  const
     if ( length == 0 )
         return 0;
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const xchar* src=       buffer;
     const xchar* srcEnd=    buffer + length;
     integer result= 0;
@@ -369,15 +383,13 @@ integer  TString<xchar>::WStringLength()  const
             ++result;
         else
         {
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            ALIB_ASSERT_ERROR(    src < srcEnd                                                   // has one more?
-                               && ((uc                               & 0xfffffc00) == 0xd800)    // is low?
-                               && ((static_cast<char32_t>( *src++ )  & 0xfffffc00) == 0xdc00),   // is high?
+            ALIB_ASSERT_ERROR(    src < srcEnd                                    // has one more?
+                               && ((uc                & 0xfffffc00) == 0xd800)    // is low?
+                               && ((char32_t(*src++)  & 0xfffffc00) == 0xdc00),   // is high?
                                "STRINGS", "Error decoding UTF16" )
 
             ++result;
             ++src;
-            ALIB_WARNINGS_RESTORE
         }
     }
 
@@ -420,6 +432,7 @@ template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*
 // Hashcode
 // #################################################################################################
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 std::size_t TString<TChar>::Hashcode()                                                         const
 {
     return std::hash<std::basic_string_view<TChar>>()(
@@ -432,6 +445,7 @@ template std::size_t TString<wchar>::Hashcode          () const;
 template std::size_t TString<xchar>::Hashcode          () const;
 
 template<typename TChar>
+requires alib::characters::IsCharacter<TChar>
 std::size_t TString<TChar>::HashcodeIgnoreCase()                                               const
 {
     std::size_t result= 68460391ul * ( size_t(length) + 1 );

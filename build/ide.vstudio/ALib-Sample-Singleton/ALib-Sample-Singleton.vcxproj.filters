@@ -6,7 +6,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\samples\Singleton\sample.cpp">
+    <ClCompile Include="..\..\..\src.samples\Singleton\sample.cpp">
       <Filter>Singleton</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,24 +1,78 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software lbicense, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
 
-#include "alib/files/fscanner.hpp"
-#include "alib/monomem/localallocator.hpp"
-
-#include "alib/strings/util/tokenizer.hpp"
-#include "alib/alox.hpp"
-
-#include "alib/lang/callerinfo_functions.hpp"
-
+#include "alib/strings/strings.prepro.hpp"
+#include "alib/files/files.prepro.hpp"
+#include "alib/alox/alox.prepro.hpp"
+#include <vector>
+#if  ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
+#   include <unistd.h>
+#   if defined(__linux__)
+#       include <asm/unistd.h>
+#   endif
+#   include <dirent.h>
+#   if defined(__linux__)
+#       include <linux/stat.h>
+#   endif
+#   include <sys/stat.h>
+#   if !defined(__APPLE__)
+#       include <sys/sysmacros.h>
+#   else
+#       include <sys/types.h>
+#   endif
+#   include <pwd.h>
+#   include <fcntl.h>
+#   include <pwd.h>
+#   include <grp.h>
+#else
+#   include <filesystem>
+#endif
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Files;
+    import   ALib.Lang;
+    import   ALib.Characters.Functions;
+    import   ALib.Monomem;
+    import   ALib.Strings;
+    import   ALib.Strings.Tokenizer;
+    import   ALib.System;
+#  if ALIB_EXPRESSIONS
+    import   ALib.Expressions;
+#  endif
+#  if ALIB_ALOX
+    import   ALib.ALox;
+    import   ALib.ALox.Impl;
+#  endif
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Monomem.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.System.H"
+#   include "ALib.Expressions.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#   include "ALib.Files.H"
+#endif
+// ======================================   Implementation   =======================================
 #if !DOXYGEN
+#   include "ALib.Lang.CIFunctions.H"
 
 
-
-using namespace alib::lang::system;
+using namespace alib::system;
 
 namespace alib::files {  namespace {                    
 
@@ -41,38 +95,19 @@ String DBG_FILES_SCAN_VERBOSE_LOG_FORMAT=
 
 } // namespace [alib::files]
 
+
 //--------------------------------------------------------------------------------------------------
 //--- scanFilePosix
 //--------------------------------------------------------------------------------------------------
 #if  ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
-#   include <unistd.h>
-#   if defined(__linux__)
-#       include <asm/unistd.h>
-#   endif
-#   include <dirent.h>
-#   if defined(__linux__)
-#       include <linux/stat.h>
-#       include <sys/stat.h>
-#   else
-#       include <sys/stat.h>
-#   endif
-#   if !defined(__APPLE__)
-#       include <sys/sysmacros.h>
-#   else
-#       include <sys/types.h>
-#   endif
-#   include <pwd.h>
-#   include <fcntl.h>
-#   include <pwd.h>
-#   include <grp.h>
 
 #if ALIB_DEBUG
 #   define DBG_CHECKERRNO                                                                          \
-        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}.",                       \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({})\"{}\".",                          \
                             errno, SystemErrors(errno) )                                           \
         errno= 0;
 #   define DBG_CHECKERRNO_WITH_PATH                                                                \
-        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}. Current path: {}",      \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({})\"{}\". Current path: {}",         \
                             errno, SystemErrors(errno), actPath )                                  \
         errno= 0;
 #else
@@ -80,7 +115,7 @@ String DBG_FILES_SCAN_VERBOSE_LOG_FORMAT=
 #   define DBG_CHECKERRNO_WITH_PATH
 #endif
 
-// Since Kernel 4.11 Linux/glibc has "statx". We use this is available on the current platform.
+// Since Kernel 4.11 Linux/glibc has "statx". We use it if available on the current platform.
 #if defined(__NR_statx)
 #   define TMP_STATX_AVAILABLE 1
 #   define STATMEMBER(Name) stats.stx_ ## Name
@@ -105,12 +140,13 @@ void scanFilePosix( DIR*                        pxDir,
                     std::vector<ResultsPaths>&  resultPaths
   IF_ALIB_THREADS(, SharedLock*                 lock)                           )
 {
-    ALIB_ASSERT_ERROR(          actPath.CharAtStart()== DIRECTORY_SEPARATOR
-                        &&  (   actPath.Length()==1
-                             || actPath.CharAtEnd()  != DIRECTORY_SEPARATOR )
-                        &&      actPath.IndexOf(strings::TLocalString<lang::system::PathCharType,4>(
-                                                     DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR)) < 0 ,
-                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, actPath )
+    ALIB_ASSERT_ERROR(  actPath.CharAtStart()== DIRECTORY_SEPARATOR
+                &&  (   actPath.Length()==1
+                     || actPath.CharAtEnd()  != DIRECTORY_SEPARATOR )
+                &&      actPath.IndexOf(strings::TLocalString<system::PathCharType,4>(
+                                             DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR)) < 0 ,
+                    "FILES","Given path not absolute or ending with '{}': {}",
+                            DIRECTORY_SEPARATOR, actPath )
     ALIB_DBG(  Path       dbgActFile;
                if( actPath.Buffer() == nameOrFullPath.Buffer() )
                    dbgActFile << nameOrFullPath;
@@ -144,7 +180,7 @@ void scanFilePosix( DIR*                        pxDir,
             verboseLogables.Add(files::DBG_FILES_SCAN_VERBOSE_LOG_FORMAT,  File(node) );
         }
     )
-    ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q} with current file: {}",
+    ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({})\"{}\" with current file: {}",
                         errno, SystemErrors(errno), dbgActFile )
     ALIB_DBG( errno= 0;)
 
@@ -184,9 +220,9 @@ void scanFilePosix( DIR*                        pxDir,
         #endif
         if( statResult )
         {
-            ALIB_ASSERT_WARNING( errno != ENOENT, "FILES", "File does not exist (anymore) while stating {!Q}",
+            ALIB_ASSERT_WARNING( errno != ENOENT, "FILES", "File does not exist (anymore) while stating \"{}\"",
                                                                   dbgActFile )
-            ALIB_ASSERT_WARNING( errno == ENOENT, "FILES", "Unknown error ({}) {!Q} while stating file {!Q}",
+            ALIB_ASSERT_WARNING( errno == ENOENT, "FILES", "Unknown error ({}) \"{}\" while stating file \"{}\"",
                                  errno, SystemErrors(errno), dbgActFile )
             value.SetQuality(errno == ENOENT ?  FInfo::Qualities::NOT_EXISTENT
                                              :  FInfo::Qualities::UNKNOWN_ERROR);
@@ -220,19 +256,19 @@ void scanFilePosix( DIR*                        pxDir,
 
             if (cntChars == -1) switch(errno)
             {
-                case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);      ALIB_DBG(errno= 0;)
+                case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);   ALIB_DBG(errno= 0;)
                     goto ABORT_SYMLINK;
 
                 case ENOENT: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);
                     ALIB_ASSERT_ERROR(STAT_DEV_MAJOR == 0, "FILES",
-                                      "Posix raised ({}) {!Q} on reading a symbolic link which is not located on an "
-                                      "artificial filesystem (like /proc). File:{!Q}",
-                                      errno, SystemErrors(errno), dbgActFile )               ALIB_DBG(errno= 0;)
+                      "Posix raised ({}) \"{}\" on reading a symbolic link which is not located on "
+                      "an artificial filesystem (like /proc). File:\"{}\"",
+                      errno, SystemErrors(errno), dbgActFile )                   ALIB_DBG(errno= 0;)
                     goto ABORT_SYMLINK;
 
                 default:     value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                    ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on reading symbolic link {!Q}",
-                               errno, SystemErrors(errno), dbgActFile )      ALIB_DBG(errno= 0;)
+                    ALIB_ERROR("FILES", "Posix raised ({}) \"{}\" on reading symbolic link \"{}\"",
+                               errno, SystemErrors(errno), dbgActFile )          ALIB_DBG(errno= 0;)
                     goto ABORT_SYMLINK;
             }
             nSymLinkDest.SetLength(cntChars);
@@ -259,7 +295,7 @@ void scanFilePosix( DIR*                        pxDir,
                     // this might happen with strange system files
                     case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL_TARGET); ALIB_DBG(errno= 0;)
                                  goto ABORT_SYMLINK;
-                    default:     ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on resolving symbolic link {!Q}",
+                    default:     ALIB_ERROR("FILES", "Posix raised ({}) \"{}\" on resolving symbolic link \"{}\"",
                                             errno, SystemErrors(errno), dbgActFile )     ALIB_DBG(errno= 0;)
                                  goto ABORT_SYMLINK;
                 }
@@ -294,9 +330,10 @@ void scanFilePosix( DIR*                        pxDir,
                                                 ALIB_DBG(errno= 0;)
                                                 goto APPLY_POST_RECURSION_FILTER;
                     default: ALIB_WARNING("FILES",
-                                 "Unhandled error code invoking 'stat()' on resolved symbolic link: {} ({!Q})\n"
-                                 "    Symbolic link target: {!Q}", errno, SystemErrors(errno), dbgActFile )
-                                 ALIB_DBG(errno= 0;)
+                                "Unhandled error code invoking 'stat()' on resolved symbolic "
+                                "link: {} (\"{}\")\n    Symbolic link target: \"{}\"",
+                                errno, SystemErrors(errno), dbgActFile )
+                             ALIB_DBG(errno= 0;)
                              value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
                              goto APPLY_POST_RECURSION_FILTER;
                 }
@@ -335,8 +372,9 @@ void scanFilePosix( DIR*                        pxDir,
                 case S_IFIFO :  type= FInfo::Types::FIFO         ; break;
                 case S_IFREG :  type= FInfo::Types::REGULAR      ; break;
                 case S_IFSOCK:  type= FInfo::Types::SOCKET       ; break;
-                default:  ALIB_ERROR("FILES", "Internal error. 'unknown' file type can't happen. File: {!Q}",
-                                     dbgActFile )    break;
+                default: ALIB_ERROR("FILES",
+                                "Internal error. 'unknown' file type can't happen. File: \"{}\"",
+                                 dbgActFile )                      break;
             }
             value.SetType( type );
         }
@@ -521,7 +559,7 @@ void scanFilePosix( DIR*                        pxDir,
     {ALIB_STRING_RESETTER( actPath );
         if( pxDir == nullptr )
         {
-            ALIB_ASSERT_ERROR( actPath.Buffer() == nameOrFullPath.Buffer(), "FILES", "Internal error" )
+            ALIB_ASSERT_ERROR(actPath.Buffer() == nameOrFullPath.Buffer(),"FILES","Internal error")
             actPath.SetLength(nameOrFullPath.Length());
         }
         else
@@ -562,13 +600,13 @@ void scanFilePosix( DIR*                        pxDir,
                                      break;
                         case EINVAL: value.SetQuality( FInfo::Qualities::NO_ACCESS_DIR);
                             ALIB_ASSERT_ERROR(major(currentDevice) == 0, "FILES",
-                                              "Posix raised ({}) {!Q} on reading a directory which is not located on an "
-                                              "artificial filesystem (like /proc). File:{!Q}",
+                               "Posix raised ({}) \"{}\" on reading a directory which is not "
+                               "located on an artificial filesystem (like /proc). File:\"{}\"",
                                               errno, SystemErrors(errno), dbgActFile )
                                     break;
                         default:    value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                                    ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on reading directory {!Q}",
-                                       errno, SystemErrors(errno), dbgActFile )
+                                    ALIB_ERROR("FILES", "Posix raised ({}) \"{}\" on reading "
+                                        "directory \"{}\"", errno, SystemErrors(errno), dbgActFile )
                                     break;
                     }
                     errno= 0;
@@ -629,7 +667,7 @@ void scanFilePosix( DIR*                        pxDir,
                 break;
 
             default:
-            ALIB_ERROR("FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
+            ALIB_ERROR("FILES", "Unknown error {}(\"{}\") while opening directory \"{}\"",
                        errno, SystemErrors(errno), actPath)
                 value.SetQuality( FInfo::Qualities::UNKNOWN_ERROR );
                 break;
@@ -690,9 +728,9 @@ void scanFilePosix( DIR*                        pxDir,
             if (      params.FileFilter
                   && !params.FileFilter->Includes(node, actPath )   )
             {
+                IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
                 Log_Prune( if( verboseLogables.Size() ) { verboseLogables.Add(" FILTERED(Post)");
                                                           Log_Verbose( verboseLogables )  } )
-                IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
                   node.Delete();
                 IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
                 return;
@@ -700,7 +738,11 @@ void scanFilePosix( DIR*                        pxDir,
         }
     }
 
-    Log_Prune( if( verboseLogables.Size() ) { Log_Verbose( verboseLogables ) } )
+    Log_Prune( if( verboseLogables.Size() ) {
+        IF_ALIB_THREADS( if (lock) lock->AcquireShared(ALIB_CALLER_PRUNED); )
+        Log_Verbose( verboseLogables )
+        IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
+    })
 
     // cnt file type
     parentSums.Add(value);
@@ -721,19 +763,16 @@ void scanFilePosix( DIR*                        pxDir,
 //--- UNKNOWN platform, using C++17 filesystem (not all functionality given)
 //--------------------------------------------------------------------------------------------------
 #else
-
 #if ALIB_FILES_FORCE_STD_SCANNER
 #   pragma message ("ALIB_FILES_FORCE_STD_SCANNER given. Using std::filesystem for scanning. In file: " __FILE__ )
 #else
 #   pragma message ("Unknown Platform. Using std::filesystem for scanning. In file: " __FILE__ )
 #endif
 
-#include "alib/compatibility/std_strings.hpp"
-#include <filesystem>
 namespace fs = std::filesystem;
 
-// Note: MacOS is currently (as of 231210) missing C++ 20 library features in the area of std::clock
-#if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+// Note: MacOS is currently (as of 231210) missing C++20 library features in the area of std::clock
+#if  defined(__APPLE__)  || defined(_LIBCPP_VERSION) || defined(__ANDROID_NDK__)
     namespace
     {
         template <typename TP>
@@ -747,11 +786,11 @@ namespace fs = std::filesystem;
 #endif
 #if ALIB_DEBUG
 #   define DBG_CHECKERRNO                                                                          \
-        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}.",                     \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({})\"{}\".",                          \
                             errno, SystemErrors(errno) )                                           \
         errno= 0;
 #   define DBG_CHECKERRNO_WITH_PATH                                                                \
-        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}. Current path: {}",    \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({})\"{}\". Current path: {}",         \
                             errno, SystemErrors(errno), path.string() )                            \
         errno= 0;
 #else
@@ -782,7 +821,7 @@ void scanFileStdFS( const fs::path&               path,
                         &&  (   pathAsCString.Length()==1
                              || pathAsCString.CharAtEnd()  != DIRECTORY_SEPARATOR)
                         &&      pathAsCString.IndexOf(NString8(DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR))<0,
-                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
+     "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
     #else
     ALIB_ASSERT_ERROR(      (    (    pathAsCString.CharAt(1)== ':'
                                    && pathAsCString.CharAt(2)== DIRECTORY_SEPARATOR
@@ -797,7 +836,7 @@ void scanFileStdFS( const fs::path&               path,
                         &&  pathAsCString.IndexOf( strings::TLocalString<PathCharType, 8>(
                                                     DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR),
                                                   2 ) < 0,
-                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
+     "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
     #endif
 
 
@@ -826,8 +865,8 @@ void scanFileStdFS( const fs::path&               path,
         if(errorCode) 
         {
             ALIB_ERROR("FILES",
-                       "Unhandled error code invoking 'fs::symlink_status()': {} ({!Q})\n"
-                       "    With file: {!Q}",
+                       "Unhandled error code invoking 'fs::symlink_status()': {} (\"{}\")\n"
+                       "    With file: \"{}\"",
                        errorCode.value(), errorCode.message(), pathAsCString )
             ALIB_DBG( errno= 0;)
             value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
@@ -853,8 +892,10 @@ void scanFileStdFS( const fs::path&               path,
                     case SystemErrors::eacces: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);
                                                ALIB_DBG(errno= 0;)
                                                goto ABORT_SYMLINK;
-                    default:  ALIB_ERROR("FILES", "Unhandled error code invoking 'fs::read_symlink()': {} ({!Q})\n"
-                                         "   with file: ", errorCode.value(), errorCode.message(), pathAsCString )
+                    default:  ALIB_ERROR("FILES",
+                                 "Unhandled error code invoking 'fs::read_symlink()': {} (\"{}\")\n"
+                                 "   with file: ", errorCode.value(),
+                                                   errorCode.message(), pathAsCString )
                               ALIB_DBG( errno= 0;)
                               value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
                               goto APPLY_POST_RECURSION_FILTER;
@@ -888,7 +929,7 @@ void scanFileStdFS( const fs::path&               path,
                 case SystemErrors::eacces: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL_TARGET); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::enoent: value.SetQuality(FInfo::Qualities::BROKEN_LINK);         ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::eloop:  value.SetQuality(FInfo::Qualities::CIRCULAR_LINK);       ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
-                default:  ALIB_ERROR("FILES", "Unhandled error code invoking 'fs::canonical()': {} ({!Q})\n"
+                default:  ALIB_ERROR("FILES", "Unhandled error code invoking 'fs::canonical()': {} (\"{}\")\n"
                                      "   with file: ", errorCode.value(), errorCode.message(), pathAsCString )
                     goto ABORT_SYMLINK;
             }
@@ -910,8 +951,9 @@ void scanFileStdFS( const fs::path&               path,
                 case SystemErrors::enoent:  value.SetQuality( FInfo::Qualities::BROKEN_LINK  ); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::eloop:   value.SetQuality( FInfo::Qualities::CIRCULAR_LINK); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 default: ALIB_WARNING("FILES",
-                             "Unhandled error code invoking 'directory_entry::status()': {} ({!Q})\n"
-                             "    With file: {!Q}", errorCode.value(), errorCode.message(), pathAsCString )
+                          "Unhandled error code invoking 'directory_entry::status()': {} (\"{}\")\n"
+                          "  With file: \"{}\"",
+                           errorCode.value(), errorCode.message(), pathAsCString )
                          goto ABORT_SYMLINK;
             }
             ALIB_WARNINGS_RESTORE
@@ -984,8 +1026,10 @@ void scanFileStdFS( const fs::path&               path,
                                            value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
                                            break;
 
-                default:     ALIB_ERROR( "FILES", "Unhandled error code invoking 'fs::last_write_time()': {} ({!Q})\n"
-                                         "    With file {!Q}.", errorCode.value(), errorCode.message(), pathAsCString )
+                default:     ALIB_ERROR( "FILES",
+                              "Unhandled error code invoking 'fs::last_write_time()': {} (\"{}\")\n"
+                              "    With file \"{}\".", errorCode.value(), errorCode.message(),
+                                                       pathAsCString )
                              fsTime= (decltype(fsTime)::min)();                      ALIB_DBG( errno= 0;)
                              break;
             }
@@ -993,7 +1037,7 @@ void scanFileStdFS( const fs::path&               path,
         }
 
 
-        #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        #if  defined(__APPLE__) || defined(_LIBCPP_VERSION) || defined(__ANDROID_NDK__)
             value.SetMDate( DateTime::FromEpochSeconds( to_time_t( fsTime ) ) );
         #else
             value.SetMDate( DateTime::FromEpochSeconds( std::chrono::system_clock::to_time_t(
@@ -1021,14 +1065,15 @@ void scanFileStdFS( const fs::path&               path,
                 case SystemErrors::enoent: // this happens if we have a broken symbolic link
                     ALIB_ASSERT_ERROR(    value.Type() == FInfo::Types::SYMBOLIC_LINK
                                        || value.Type() == FInfo::Types::SYMBOLIC_LINK_DIR , "FILES",
-                        "Internal error. This should never happen. Undefined system error handling" )
+                       "Internal error. This should never happen. Undefined system error handling" )
                     break;
 
                 // size not supported. Happens with sockets, files in /proc, etc
                 case SystemErrors::eopnotsupp: break;
-                   default: ALIB_ERROR("FILES", "Unhandled error code invoking 'directory_entry::file_size()':{} ({!Q})\n"
-                                       "    With file {!Q}.", errorCode.value(), errorCode.message(), pathAsCString )
-                            ALIB_DBG( errno= 0;)
+                   default: ALIB_ERROR("FILES",
+                       "Unhandled error code invoking 'directory_entry::file_size()':{} (\"{}\")\n"
+                        "    With file \"{}\".",
+                        errorCode.value(), errorCode.message(), pathAsCString ) ALIB_DBG( errno= 0;)
                     break;
             }
             ALIB_WARNINGS_RESTORE
@@ -1044,8 +1089,8 @@ void scanFileStdFS( const fs::path&               path,
         if(errorCode)
         {
             ALIB_MESSAGE("FILES",
-                       "Unhandled error code invoking 'fs::hard_link_count()': {} ({!Q})\n"
-                       "    With file: {!Q}",
+                       "Unhandled error code invoking 'fs::hard_link_count()': {} (\"{}\")\n"
+                       "    With file: \"{}\"",
                        errorCode.value(), errorCode.message(), pathAsCString )
             ALIB_DBG( errno= 0;)
         }
@@ -1167,8 +1212,8 @@ void scanFileStdFS( const fs::path&               path,
     }
 
     // error with recursion
-    ALIB_ASSERT_ERROR(errorCode.value() != ENOTDIR, "FILES",
-                      "Internal error opening directory. This must never happen")
+    ALIB_ASSERT_ERROR( errorCode.value() != ENOTDIR, "FILES",
+                       "Internal error opening directory. This must never happen" )
 
     ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
     if(errorCode) switch (SystemErrors(errorCode.value()))
@@ -1180,7 +1225,7 @@ void scanFileStdFS( const fs::path&               path,
                                    goto APPLY_POST_RECURSION_FILTER;
 
         default: value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                 ALIB_ERROR("FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
+                 ALIB_ERROR("FILES", "Unknown error {}(\"{}\") while opening directory \"{}\"",
                              errorCode.value(), SystemErrors(errorCode.value()), pathAsCString)
                  ALIB_DBG( errno= 0;)
                  goto APPLY_POST_RECURSION_FILTER;
@@ -1273,8 +1318,7 @@ bool    startScan( FTree&                      tree,
                    std::vector<ResultsPaths>&  resultPaths
  IF_ALIB_THREADS(, SharedLock*                 lock)        )
 {
-    ALIB_ASSERT_ERROR( Path::IsAbsolute(realPath),  "FILES",
-                        "Real path is not absolute: ", realPath )
+    ALIB_ASSERT_ERROR( Path::IsAbsolute(realPath), "FILES","Real path is not absolute: ", realPath )
 
     FTree::Cursor   node= tree.Root().AsCursor();
 #if !defined(_WIN32)
@@ -1322,10 +1366,7 @@ bool    startScan( FTree&                      tree,
         if( node->IsDirectory())
         {
 
-            #if   (    (defined(__GLIBCXX__) && !defined(__MINGW32__))                  \
-                     || defined(__APPLE__)                                              \
-                     || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
-
+            #if ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
                 path.Terminate();
                 CPathString    fullPathChildName(path);
                 path.SetLength(path.LastIndexOf(DIRECTORY_SEPARATOR) );
@@ -1367,9 +1408,7 @@ IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
           auto detectNodeDeletion= node.Depth();
         IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
 
-        #if   (    (defined(__GLIBCXX__) && !defined(__MINGW32__))                      \
-                 || defined(__APPLE__)                                                  \
-                 || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
+        #if ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
 
             if( path.IsEmpty() ) path << DIRECTORY_SEPARATOR;
             CPathString    fullPathChildName;
@@ -1442,9 +1481,7 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
     Path  realPath;
     realPath.Terminate();
 
-    #if   (     (defined(__GLIBCXX__) && !defined(__MINGW32__))             \
-              || defined(__APPLE__)                                         \
-              || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
+    #if ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
         ALIB_STRINGS_TO_NARROW(path    , nPath    , 512)
         ALIB_STRINGS_TO_NARROW(realPath, nRealPath, 512)
         if(!realpath(nPath.Terminate(), nRealPath.VBuffer() ) ) switch (errno)
@@ -1452,7 +1489,7 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
             case EACCES: ALIB_DBG(errno= 0;) return FInfo::Qualities::NO_ACCESS;
             case ENOENT: ALIB_DBG(errno= 0;) return FInfo::Qualities::NOT_EXISTENT;
             case ELOOP:  ALIB_DBG(errno= 0;) return FInfo::Qualities::CIRCULAR_LINK;
-            default: ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on resolving start path {!Q}",
+            default: ALIB_ERROR("FILES", "Posix raised ({}) \"{}\" on resolving start path \"{}\"",
                                 errno, SystemErrors(errno), path )   ALIB_DBG(errno= 0;)
                      return FInfo::Qualities::UNKNOWN_ERROR;
         }
@@ -1460,7 +1497,7 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
         #if ALIB_CHARACTERS_WIDE
             realPath.Reset(nRealPath);
         #endif
-#else
+    #else
         {
             std::error_code errorCode;
             fs::path fsRealPath= fs::canonical(fs::path(std::basic_string_view<PathCharType>(path.Buffer(),
@@ -1475,14 +1512,13 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
                 case SystemErrors::eacces: return FInfo::Qualities::NO_ACCESS;
                 case SystemErrors::enoent: return FInfo::Qualities::NOT_EXISTENT;
                 case SystemErrors::eloop:  return FInfo::Qualities::CIRCULAR_LINK;
-                default: ALIB_ERROR("FILES", "std::filesystem raised ({}) {!Q} on resolving start path {!Q}",
+                default: ALIB_ERROR("FILES", "std::filesystem raised ({}) \"{}\" on resolving start path \"{}\"",
                                     errorCode.value(), errorCode.message(), path )   ALIB_DBG(errno= 0;)
                          return FInfo::Qualities::UNKNOWN_ERROR;
             }
             ALIB_WARNINGS_RESTORE
             realPath << fsRealPath.c_str();
         }
-
     #endif
 
     Log_Info( "Scanning: P=  {}\n"
@@ -1525,4 +1561,4 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
 
 } // namespace [alib::files]
 
-#include "alib/lang/callerinfo_methods.hpp"
+#   include "ALib.Lang.CIMethods.H"

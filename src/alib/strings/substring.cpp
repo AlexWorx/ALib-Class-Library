@@ -1,16 +1,30 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/substring.hpp"
-#   include "alib/strings/detail/numberconversion.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include <locale.h>
+#include <cstdint>
+#include <typeinfo>
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings;
+    import   ALib.Lang;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#endif
+// ======================================   Implementation   =======================================
 // Windows.h might bring in max/min macros
 #if defined( max )
     #undef max

@@ -1,29 +1,47 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/alox/textlogger/textlogger.hpp"
-#   define HPP_ALIB_LOX_PROPPERINCLUDE
-#       include "alib/alox/detail/domain.inl"
-#       include "alib/alox/detail/scopeinfo.inl"
-#   undef HPP_ALIB_LOX_PROPPERINCLUDE
-
-#   include "alib/lang/system/processinfo.hpp"
-#   include "alib/alox/aloxcamp.hpp"
-#   include "alib/config/plugins.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#   include "alib/lang/message/report.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#   if ALIB_THREADS
-#     include "alib/threads/lock.hpp"
-#   endif
-#endif // !DOXYGEN
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.EnumOps;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Format.FormatterPythonStyle;
+    import   ALib.Format.FormatterJavaStyle;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Format.FormatterPythonStyle.H"
+#   include "ALib.Format.FormatterJavaStyle.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib::lox::textlogger {
 
 // #################################################################################################
@@ -75,7 +93,7 @@ void StandardConverter::ConvertObjects( AString& target, BoxesMA& logables  )
         catch(Exception& e )
         {
             target << ALOX.GetResource("TLFmtExc");
-            ALIB_LOCK_RECURSIVE_WITH( lang::format::Formatter::DefaultLock )
+            ALIB_LOCK_RECURSIVE_WITH( format::Formatter::DefaultLock )
             e.Format( target );
         }
 
@@ -204,7 +222,7 @@ void TextLogger::processVariable( const NString&     domainPath,
                 default:
                 {
                     ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
-                                         "Unknown format variable '%S{}' (only one warning)", c2  )
+                               "Unknown format variable '%S{}' (only one warning)", c2  )
                     ALIB_DBG( FormatWarningOnce= true; )
                     val= "%ERROR";
                 } break;
@@ -228,9 +246,9 @@ void TextLogger::processVariable( const NString&     domainPath,
                 // if standard format, just write it out
                 if ( GetFormatDate().Date.Equals<NC>( A_CHAR("yyyy-MM-dd") ) )
                 {
-                    dest._<NC>( alib::Format( callerDateTime.Year,     4 ) )._<NC>( '-' )
-                        ._<NC>( alib::Format( callerDateTime.Month,    2 ) )._<NC>( '-' )
-                        ._<NC>( alib::Format( callerDateTime.Day,      2 ) );
+                    dest._<NC>( alib::Dec( callerDateTime.Year,     4 ) )._<NC>( '-' )
+                        ._<NC>( alib::Dec( callerDateTime.Month,    2 ) )._<NC>( '-' )
+                        ._<NC>( alib::Dec( callerDateTime.Day,      2 ) );
                 }
                 // user-defined format
                 else
@@ -251,9 +269,9 @@ void TextLogger::processVariable( const NString&     domainPath,
                 // and b) a DateTime object, if the format is the unchanged standard. And it is faster anyhow.
                 if ( GetFormatDate().TimeOfDay.Equals<NC>( A_CHAR("HH:mm:ss") ) )
                 {
-                    dest._<NC>( alib::Format(callerDateTime.Hour,    2) )._<NC>( ':' )
-                        ._<NC>( alib::Format(callerDateTime.Minute,  2) )._<NC>( ':' )
-                        ._<NC>( alib::Format(callerDateTime.Second,  2) );
+                    dest._<NC>( alib::Dec(callerDateTime.Hour,    2) )._<NC>( ':' )
+                        ._<NC>( alib::Dec(callerDateTime.Minute,  2) )._<NC>( ':' )
+                        ._<NC>( alib::Dec(callerDateTime.Second,  2) );
                 }
 
                 // user-defined format
@@ -280,10 +298,10 @@ void TextLogger::processVariable( const NString&     domainPath,
 
 
                 if ( timeSize >= 4 )  dest._<NC>( elapsed.Days  )._<NC>( GetFormatDate().ElapsedDays );
-                if ( timeSize >= 3 )  dest._<NC>( alib::Format(elapsed.Hours  ,  timeSize >= 5 ?  2 : 1 ) )._<NC>( ':' );
-                if ( timeSize >= 2 )  dest._<NC>( alib::Format(elapsed.Minutes,  timeSize >= 3 ?  2 : 1 ) )._<NC>( ':' );
-                dest._<NC>( alib::Format(elapsed.Seconds,  timeSize >= 1 ? 2 : 1)                         )._<NC>( '.' );
-                dest._<NC>( alib::Format(elapsed.Milliseconds,  3) );
+                if ( timeSize >= 3 )  dest._<NC>( alib::Dec(elapsed.Hours  ,  timeSize >= 5 ?  2 : 1 ) )._<NC>( ':' );
+                if ( timeSize >= 2 )  dest._<NC>( alib::Dec(elapsed.Minutes,  timeSize >= 3 ?  2 : 1 ) )._<NC>( ':' );
+                dest._<NC>( alib::Dec(elapsed.Seconds,  timeSize >= 1 ? 2 : 1)                         )._<NC>( '.' );
+                dest._<NC>( alib::Dec(elapsed.Milliseconds,  3) );
             }
 
             // %TL: Time elapsed since last log call
@@ -307,26 +325,26 @@ void TextLogger::processVariable( const NString&     domainPath,
 
             if ( c2 == 'N' )        // %tN: thread name
             {
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     const String& threadName= scope.GetThreadNameAndID(nullptr);
                 #else
                     String msg( A_CHAR("SINGLE_THREADED") );
                     const String& threadName= msg;
                 #endif
-                dest._<NC>( Format::Field( threadName,
-                                              autoSizes.Main.Next(
-                                                  AutoSizes::Types::Field, threadName.Length(), 0),
-                                              lang::Alignment::Center ) );
+                dest._<NC>( Field( threadName,
+                                   autoSizes.Main.Next(
+                                       AutoSizes::Types::Field, threadName.Length(), 0),
+                                   lang::Alignment::Center ) );
             }
             else if ( c2 == 'I' )   // %tI: thread ID
             {
                 String32 threadID;
-                #if ALIB_THREADS
+                #if !ALIB_SINGLE_THREADED
                     threadID._( scope.GetThreadID() );
                 #else
                     threadID << "-1";
                 #endif
-                dest._<NC>( Format::Field( threadID,
+                dest._<NC>( Field( threadID,
                                               autoSizes.Main.Next(
                                                   AutoSizes::Types::Field, threadID  .Length(), 0),
                                               lang::Alignment::Center ) );
@@ -369,7 +387,7 @@ void TextLogger::processVariable( const NString&     domainPath,
 
         case 'D':
         {
-            dest._( Format::Field( domainPath,
+            dest._( Field( domainPath,
                                    autoSizes.Main.Next(
                                              AutoSizes::Types::Field, domainPath.Length(), 0 ),
                                    lang::Alignment::Left ) );
@@ -377,7 +395,7 @@ void TextLogger::processVariable( const NString&     domainPath,
         }
 
         case '#':
-            dest._<NC>( alib::Format( CntLogs, GetFormatOther().LogNumberMinDigits ) );
+            dest._<NC>( alib::Dec( CntLogs, GetFormatOther().LogNumberMinDigits ) );
             return;
 
         // A: Auto tab
@@ -400,12 +418,9 @@ void TextLogger::processVariable( const NString&     domainPath,
             return;
 
         default:
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
-                        "Unknown format character {!Q'} (only one warning)",
-                        *( variable.Buffer() -1 ) )
+                   "Unknown format character '{}' (only one warning)", *( variable.Buffer() -1 ) )
             ALIB_DBG( FormatWarningOnce= true; )
-            ALIB_WARNINGS_RESTORE
             return;
    }// switch
 }
@@ -423,7 +438,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
 
     if ( diffNanos < 1000 )
     {
-        buf._<NC>( alib::Format( diffNanos, 3 ) )._<NC>( td.Nanos );
+        buf._<NC>( alib::Dec( diffNanos, 3 ) )._<NC>( td.Nanos );
         return;
     }
 
@@ -433,7 +448,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     // below 1000 microseconds?
     if ( diffMicros < 1000 )
     {
-        buf._<NC>( alib::Format( diffMicros, 3 ) );
+        buf._<NC>( alib::Dec( diffMicros, 3 ) );
         buf._<NC>( td.Micros );
         return;
     }
@@ -441,7 +456,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     // below 1000 ms?
     if ( diffMicros < 1000000 )
     {
-        buf._<NC>( alib::Format( (diffMicros / 1000), 3 ) )._<NC>( td.Millis );
+        buf._<NC>( alib::Dec( (diffMicros / 1000), 3 ) )._<NC>( td.Millis );
         return;
     }
 
@@ -453,9 +468,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthSecs=  ((diffMicros / 1000) + 5) / 10;
 
         // print two digits after dot x.xx
-        buf._<NC>( alib::Format( (hundredthSecs / 100), 1 ) )
+        buf._<NC>( alib::Dec( (hundredthSecs / 100), 1 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (hundredthSecs % 100), 2 ) )
+           ._<NC>( alib::Dec( (hundredthSecs % 100), 2 ) )
            ._<NC>( td.Secs );
         return;
     }
@@ -467,9 +482,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthSecs < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._<NC>( alib::Format( ( tenthSecs / 10 ), 2 ) )
+        buf._<NC>( alib::Dec( ( tenthSecs / 10 ), 2 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( ( tenthSecs % 10 ), 1 ) )
+           ._<NC>( alib::Dec( ( tenthSecs % 10 ), 1 ) )
            ._<NC>( td.Secs );
         return;
     }
@@ -481,9 +496,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthMins=  tenthSecs / 6;
 
         // print two digits after dot x.xx
-        buf._<NC>( alib::Format( (hundredthMins / 100), 1 ) )
+        buf._<NC>( alib::Dec( (hundredthMins / 100), 1 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (hundredthMins % 100), 2 ) )
+           ._<NC>( alib::Dec( (hundredthMins % 100), 2 ) )
            ._<NC>( td.Mins );
         return;
     }
@@ -495,9 +510,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthMins < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._<NC>( alib::Format( (tenthMins / 10), 2 ) )
+        buf._<NC>( alib::Dec( (tenthMins / 10), 2 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (tenthMins % 10), 1 ) )
+           ._<NC>( alib::Dec( (tenthMins % 10), 1 ) )
            ._<NC>( td.Mins );
         return;
     }
@@ -509,9 +524,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthHours=  tenthMins / 6;
 
         // print two digits after dot x.xx
-        buf._<NC>( alib::Format( (hundredthHours / 100), 1 ) )
+        buf._<NC>( alib::Dec( (hundredthHours / 100), 1 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (hundredthHours % 100), 2 ))
+           ._<NC>( alib::Dec( (hundredthHours % 100), 2 ))
            ._<NC>( td.Hours );
         return;
     }
@@ -523,9 +538,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthHours < 1000 )
     {
         // print two digits after dot x.xx
-        buf._<NC>( alib::Format( (tenthHours / 10), 2 ) )
+        buf._<NC>( alib::Dec( (tenthHours / 10), 2 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (tenthHours % 10), 1 ) )
+           ._<NC>( alib::Dec( (tenthHours % 10), 1 ) )
            ._<NC>( td.Hours );
         return;
     }
@@ -534,9 +549,9 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthHours < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._<NC>( alib::Format( (tenthHours / 10), 2 ) )
+        buf._<NC>( alib::Dec( (tenthHours / 10), 2 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( ((tenthHours / 10) % 10), 1 ) )
+           ._<NC>( alib::Dec( ((tenthHours / 10) % 10), 1 ) )
            ._<NC>( td.Hours );
         return;
     }
@@ -548,18 +563,18 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( hundredthDays < 1000 )
     {
         // print two digits after dot x.xx
-        buf._<NC>( alib::Format( (hundredthDays / 100), 1 ) )
+        buf._<NC>( alib::Dec( (hundredthDays / 100), 1 ) )
            ._<NC>( '.' )
-           ._<NC>( alib::Format( (hundredthDays % 100), 2 ) )
+           ._<NC>( alib::Dec( (hundredthDays % 100), 2 ) )
            ._<NC>( td.Days );
         return;
     }
 
     // 10 days or more (print days plus one digit after the comma)
     // print one digits after dot xx.x (round value by adding 5 hundredth)
-    buf ._<NC>( alib::Format( (hundredthDays / 100), 2 ) )
+    buf ._<NC>( alib::Dec( (hundredthDays / 100), 2 ) )
         ._<NC>( '.' )
-        ._<NC>( alib::Format( ((hundredthDays / 10) % 10), 1 ) )
+        ._<NC>( alib::Dec( ((hundredthDays / 10) % 10), 1 ) )
         ._<NC>( td.Days );
 }
 
@@ -570,13 +585,13 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
 TextLogger::TextLogger( const NString& pName, const NString& typeName, bool  pUsesStdStreams  )
 : Logger( pName, typeName )
 , usesStdStreams( pUsesStdStreams )
-, varFormatMetaInfo (alib::ALOX)
-, varFormatDateTime (alib::ALOX)
-, varFormatTimeDiff (alib::ALOX)
-, varFormatMultiLine(alib::ALOX)
-, varFormatOther    (alib::ALOX)
-, varFormatAutoSizes(alib::ALOX)
-, varReplacements   (alib::ALOX)
+, varFormatMetaInfo (variables::CampVariable(alib::ALOX))
+, varFormatDateTime (variables::CampVariable(alib::ALOX))
+, varFormatTimeDiff (variables::CampVariable(alib::ALOX))
+, varFormatMultiLine(variables::CampVariable(alib::ALOX))
+, varFormatOther    (variables::CampVariable(alib::ALOX))
+, varFormatAutoSizes(variables::CampVariable(alib::ALOX))
+, varReplacements   (variables::CampVariable(alib::ALOX))
 {
     logBuf.SetBuffer( 256 );
     msgBuf.SetBuffer( 256 );
@@ -586,7 +601,7 @@ TextLogger::~TextLogger()
 {
     if (Converter)
         delete Converter;
-    ALIB_ASSERT( msgBuf.IsEmpty() )
+    ALIB_ASSERT( msgBuf.IsEmpty(), "ALOX" )
 }
 
 void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
@@ -598,90 +613,90 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
             Converter= new textlogger::StandardConverter();
 
         // Variable AUTO_SIZES: use last session's values
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             varFormatAutoSizes.Declare(Variables::AUTO_SIZES, Name );
             (void) varFormatAutoSizes.Define();
             Converter->SetAutoSizes( &varFormatAutoSizes.Get<FormatAutoSizes>().LogMessage );
         }
 
         // Variable  <name>_FORMAT / <typeName>_FORMAT:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             const Declaration* variableDecl= Declaration::Get( Variables::FORMAT );
-            const Declaration* privateDecl= ALOX.GetConfig().StoreDeclaration(variableDecl, GetName()     );
+            const Declaration* privateDecl= ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName()     );
 
             if(    !varFormatMetaInfo.Try( privateDecl )
-                && !varFormatMetaInfo.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName() )    ) )
+                && !varFormatMetaInfo.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName() )    ) )
             {
                 varFormatMetaInfo.Declare( privateDecl );
                 ALIB_ASSERT_ERROR(varFormatMetaInfo.IsDefined(), "ALOX",
-                                  "Mandatory (usually resourced) default value is missing for variable {!Q}.",
-                                  varFormatMetaInfo)
+                    "Mandatory (usually resourced) default value is missing for variable \"{}\".",
+                    &varFormatMetaInfo)
             }
         }
 
         // Variable  <name>_FORMAT_DATE_TIME / <typeName>_FORMAT_DATE_TIME:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             auto* variableDecl= Declaration::Get( Variables::FORMAT_DATE_TIME );
-            auto* privateDecl= ALOX.GetConfig().StoreDeclaration(variableDecl, GetName()     );
+            auto* privateDecl= ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName()     );
             if(    !varFormatDateTime.Try( privateDecl )
-                && !varFormatDateTime.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName() )    )  )
+                && !varFormatDateTime.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName() )    )  )
             {
                 varFormatDateTime.Declare( privateDecl );
 
                 ALIB_ASSERT_ERROR(varFormatDateTime.IsDefined(), "ALOX",
-                                  "Mandatory (usually resourced) default value is missing for variable {!Q}.",
-                                  varFormatDateTime)
+                   "Mandatory (usually resourced) default value is missing for variable \"{}\".",
+                   varFormatDateTime)
             }
         }
 
         // Variable  <name>FORMAT_TIME_DIFF / <typeName>FORMAT_TIME_DIFF:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             auto* variableDecl= Declaration::Get( Variables::FORMAT_TIME_DIFF );
-            auto* privateDecl= ALOX.GetConfig().StoreDeclaration(variableDecl, GetName()     );
+            auto* privateDecl= ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName()     );
             if(    !varFormatTimeDiff.Try( privateDecl )
-                && !varFormatTimeDiff.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName() )    ) )
+                && !varFormatTimeDiff.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName() )    ) )
             {
                 varFormatTimeDiff.Declare( privateDecl );
                 ALIB_ASSERT_ERROR(varFormatTimeDiff.IsDefined(), "ALOX",
-                  "Mandatory (usually resourced) default value is missing for variable {!Q}.",
+                  "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                   varFormatTimeDiff)
             }
         }
 
         // Variable  <name>FORMAT_MULTILINE / <typeName>FORMAT_MULTILINE:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             auto* variableDecl= Declaration::Get( Variables::FORMAT_MULTILINE );
-            auto* privateDecl= ALOX.GetConfig().StoreDeclaration(variableDecl, GetName()     );
+            auto* privateDecl= ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName()     );
             if(    !varFormatMultiLine.Try( privateDecl )
-                && !varFormatMultiLine.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName() )    ) )
+                && !varFormatMultiLine.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName() )    ) )
             {
                 varFormatMultiLine.Declare( privateDecl );
                 ALIB_ASSERT_ERROR(varFormatMultiLine.IsDefined(), "ALOX",
-                  "Mandatory (usually resourced) default value is missing for variable {!Q}.",
+                  "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                   varFormatMultiLine)
             }
         }
 
         // Variable  <name>FORMAT_OTHER / <typeName>FORMAT_OTHER:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             auto* variableDecl= Declaration::Get( Variables::FORMAT_OTHER );
-            auto* privateDecl= ALOX.GetConfig().StoreDeclaration(variableDecl, GetName() );
+            auto* privateDecl= ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName() );
             if(    !varFormatOther.Try( privateDecl )
-                && !varFormatOther.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName() ) ) )
+                && !varFormatOther.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName() ) ) )
             {
                 varFormatOther.Declare( privateDecl );
                 ALIB_ASSERT_ERROR(varFormatOther.IsDefined(), "ALOX",
-                                  "Mandatory (usually resourced) default value is missing for variable {!Q}.",
-                                  varFormatOther)
+                   "Mandatory (usually resourced) default value is missing for variable \"{}\".",
+                   varFormatOther )
             }
         }
 
         // Variable  <name>FORMAT_REPLACEMENTS / <typeName>FORMAT_REPLACEMENTS:
-        {ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        {ALIB_LOCK_WITH(ALOX.GetConfig())
             auto* variableDecl= Declaration::Get( Variables::REPLACEMENTS );
-            auto* privateDecl = ALOX.GetConfig().StoreDeclaration(variableDecl, GetName() );
+            auto* privateDecl = ALOX.GetConfig()->StoreDeclaration(variableDecl, GetName() );
             if(    !varReplacements.Try( privateDecl)
-                && !varReplacements.Try( ALOX.GetConfig().StoreDeclaration(variableDecl, GetTypeName())) )
+                && !varReplacements.Try( ALOX.GetConfig()->StoreDeclaration(variableDecl, GetTypeName())) )
             {
                 varReplacements.Declare(privateDecl);
             }

@@ -1,18 +1,11 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_boxing of the \aliblong.
+/// This header-file is part of module \alib_boxing of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#ifndef HPP_ALIB_BOXING_DETAIL_VTABLE
-#define HPP_ALIB_BOXING_DETAIL_VTABLE 1
-#pragma once
-#if !defined(HPP_ALIB_BOXING_BOXING)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
-
-namespace alib {  namespace boxing {
+ALIB_EXPORT namespace alib::boxing {
 
 /// This namespace implements internals of namespace #alib::boxing.
 namespace detail {
@@ -37,7 +30,8 @@ struct FunctionTable
     FClone            ::Signature    fClone    = nullptr;  ///< Entry for built-in function \alib{boxing;FClone}.
 #endif
 #if ALIB_STRINGS
-    FAppend<character,lang::HeapAllocator>::Signature    fAppend   = nullptr;  ///< Entry for built-in function \alib{boxing;FAppend;FAppend<character>}.
+    FAppend<character,lang::HeapAllocator>
+                      ::Signature    fAppend   = nullptr;  ///< Entry for built-in function \alib{boxing;FAppend}.
 #endif
 #if ALIB_DEBUG
     mutable uinteger DbgCntInvocationsFHashcode =0;   ///< Debug-compilation counter for the number of invocations.
@@ -48,9 +42,9 @@ struct FunctionTable
  #if ALIB_MONOMEM
     mutable uinteger DbgCntInvocationsFClone    =0;   ///< Debug-compilation counter for the number of invocations.
   #endif
-  #if ALIB_STRINGS
+#if ALIB_STRINGS
     mutable uinteger DbgCntInvocationsFAppend   =0;   ///< Debug-compilation counter for the number of invocations.
-  #endif
+#endif
 #endif
 
     // #############################################################################################
@@ -67,26 +61,31 @@ struct FunctionTable
     typename TFDecl::Signature
     Get( bool isInvocation ) const;
 #else
-    template<typename TFDecl>  ATMP_T_IF(FHashcode         ::Signature, ATMP_EQ(TFDecl, FHashcode         ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFHashcode ; ) return fHashcode ; }
-    template<typename TFDecl>  ATMP_T_IF(FIsNotNull        ::Signature, ATMP_EQ(TFDecl, FIsNotNull        ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsNotNull; ) return fIsNotNull; }
-    template<typename TFDecl>  ATMP_T_IF(FEquals           ::Signature, ATMP_EQ(TFDecl, FEquals           ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFEquals   ; ) return fEquals   ; }
-    template<typename TFDecl>  ATMP_T_IF(FIsLess           ::Signature, ATMP_EQ(TFDecl, FIsLess           ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsLess   ; ) return fIsLess   ; }
-    template<typename TFDecl>  ATMP_T_IF(FIsTrue           ::Signature, ATMP_EQ(TFDecl, FIsTrue           ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsTrue   ; ) return fIsTrue   ; }
-  IF_ALIB_MONOMEM(
-    template<typename TFDecl>  ATMP_T_IF(FClone            ::Signature, ATMP_EQ(TFDecl, FClone            ))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFClone    ; ) return fClone    ; } )
-  IF_ALIB_STRINGS(
-    template<typename TFDecl>  ATMP_T_IF(FAppend<character ALIB_COMMA lang::HeapAllocator>::Signature, ATMP_EQ(TFDecl, FAppend<character ALIB_COMMA lang::HeapAllocator>))  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFAppend   ; ) return fAppend   ; } )
+    template<typename TFDecl>  requires std::same_as<TFDecl, FHashcode >  FHashcode ::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFHashcode ; ) return fHashcode ; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsNotNull>  FIsNotNull::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsNotNull; ) return fIsNotNull; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FEquals   >  FEquals   ::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFEquals   ; ) return fEquals   ; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsLess   >  FIsLess   ::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsLess   ; ) return fIsLess   ; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsTrue   >  FIsTrue   ::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFIsTrue   ; ) return fIsTrue   ; }
+  #if ALIB_MONOMEM
+    template<typename TFDecl>  requires std::same_as<TFDecl, FClone    >  FClone    ::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFClone    ; ) return fClone    ; }
+  #endif
+  #if ALIB_STRINGS
+    template<typename TFDecl>  requires std::same_as<TFDecl, FAppend<character,lang::HeapAllocator>>
+                                              FAppend<character,lang::HeapAllocator>::Signature  Get(ALIB_DBG( bool isInvocation )) const { ALIB_DBG( if(isInvocation) ++DbgCntInvocationsFAppend   ; ) return fAppend   ; }
+  #endif
 
-    template<typename TFDecl>  ATMP_T_IF(typename TFDecl::Signature,    !ATMP_EQ(TFDecl, FHashcode )
-                                                                     && !ATMP_EQ(TFDecl, FIsNotNull)
-                                                                     && !ATMP_EQ(TFDecl, FEquals   )
-                                                                     && !ATMP_EQ(TFDecl, FIsLess   )
-                                                                     && !ATMP_EQ(TFDecl, FIsTrue   )
-                                             IF_ALIB_MONOMEM(  && !ATMP_EQ(TFDecl, FClone    )          )
-                                             IF_ALIB_STRINGS( && !ATMP_EQ(TFDecl, FAppend<character ALIB_COMMA lang::HeapAllocator>)  )
-                                        )
-    Get(ALIB_DBG( bool isInvocation )) const
-    {
+    template<typename TFDecl>  requires (    !std::same_as<TFDecl, FHashcode >
+                                          && !std::same_as<TFDecl, FIsNotNull>
+                                          && !std::same_as<TFDecl, FEquals   >
+                                          && !std::same_as<TFDecl, FIsLess   >
+                                          && !std::same_as<TFDecl, FIsTrue   >
+  #if ALIB_MONOMEM
+                                          && !std::same_as<TFDecl, FClone    >
+  #endif
+  #if ALIB_STRINGS
+                                          && !std::same_as<TFDecl, FAppend<character,lang::HeapAllocator>>
+  #endif
+                                        ) typename TFDecl::Signature                            Get(ALIB_DBG( bool isInvocation )) const  {
         return reinterpret_cast<typename TFDecl::Signature>( getCustom( typeid(TFDecl) ALIB_DBG(, isInvocation ) ) );
     }
 #endif
@@ -104,37 +103,41 @@ struct FunctionTable
     template<typename TFDecl>
     void  Set( typename TFDecl::Signature implementation );
 #else
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FHashcode         ))  Set( FHashcode         ::Signature impl) { fHashcode = impl; }
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FIsNotNull        ))  Set( FIsNotNull        ::Signature impl) { fIsNotNull= impl; }
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FEquals           ))  Set( FEquals           ::Signature impl) { fEquals   = impl; }
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FIsLess           ))  Set( FIsLess           ::Signature impl) { fIsLess   = impl; }
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FIsTrue           ))  Set( FIsTrue           ::Signature impl) { fIsTrue   = impl; }
-  IF_ALIB_MONOMEM(
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FClone            ))  Set( FClone            ::Signature impl) { fClone    = impl; } )
-  IF_ALIB_STRINGS(
-    template<typename TFDecl>  ATMP_VOID_IF(ATMP_EQ(TFDecl, FAppend<character ALIB_COMMA lang::HeapAllocator>))  Set( FAppend<character ALIB_COMMA lang::HeapAllocator>::Signature impl) { fAppend   = impl; } )
+    template<typename TFDecl>  requires std::same_as<TFDecl, FHashcode > void Set( FHashcode ::Signature impl) { fHashcode = impl; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsNotNull> void Set( FIsNotNull::Signature impl) { fIsNotNull= impl; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FEquals   > void Set( FEquals   ::Signature impl) { fEquals   = impl; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsLess   > void Set( FIsLess   ::Signature impl) { fIsLess   = impl; }
+    template<typename TFDecl>  requires std::same_as<TFDecl, FIsTrue   > void Set( FIsTrue   ::Signature impl) { fIsTrue   = impl; }
+  #if ALIB_MONOMEM
+    template<typename TFDecl>  requires std::same_as<TFDecl, FClone    > void Set( FClone    ::Signature impl) { fClone    = impl; }
+  #endif
+  #if ALIB_STRINGS
+    template<typename TFDecl>  requires std::same_as<TFDecl,
+                                 FAppend<character,lang::HeapAllocator>> void Set( FAppend<character,lang::HeapAllocator>
+                                                                                             ::Signature impl) { fAppend   = impl; }
+  #endif
 
-
-    template<typename TFDecl>  ATMP_VOID_IF(   !ATMP_EQ(TFDecl, FHashcode )
-                                            && !ATMP_EQ(TFDecl, FIsNotNull)
-                                            && !ATMP_EQ(TFDecl, FEquals   )
-                                            && !ATMP_EQ(TFDecl, FIsLess   )
-                                            && !ATMP_EQ(TFDecl, FIsTrue   )
-                          IF_ALIB_MONOMEM(  && !ATMP_EQ(TFDecl, FClone    )          )
-                          IF_ALIB_STRINGS(  && !ATMP_EQ(TFDecl, FAppend<character ALIB_COMMA lang::HeapAllocator>)  )
-                                           )
-    Set( typename TFDecl::Signature impl )
-    {
-        return setCustom( typeid(TFDecl), reinterpret_cast<void*>( impl ) );
-    }
+    template<typename TFDecl>  requires   (    !std::same_as<TFDecl, FHashcode >
+                                            && !std::same_as<TFDecl, FIsNotNull>
+                                            && !std::same_as<TFDecl, FEquals   >
+                                            && !std::same_as<TFDecl, FIsLess   >
+                                            && !std::same_as<TFDecl, FIsTrue   >
+  #if ALIB_MONOMEM
+                                            && !std::same_as<TFDecl, FClone    >
+  #endif
+  #if ALIB_STRINGS
+                                            && !std::same_as<TFDecl, FAppend<character,lang::HeapAllocator>   >
+  #endif
+                                                                       )
+    void Set( typename TFDecl::Signature impl )   { return setCustom( typeid(TFDecl), reinterpret_cast<void*>( impl ) ); }
 #endif
 
     // #############################################################################################
     // Cleanup (needed for debug-builds in shutdown)
     // #############################################################################################
-#if (ALIB_MONOMEM && ALIB_DEBUG)  || DOXYGEN
+#if (ALIB_MONOMEM && ALIB_CONTAINERS && ALIB_DEBUG)  || DOXYGEN
     /// Needs to be called only in debug versions to shut down internal hashtables cleanly.
-    ALIB_API static void Shutdown();
+    ALIB_DLL static void Shutdown();
 #else
     inline   static void Shutdown() {}
 #endif
@@ -150,25 +153,70 @@ struct FunctionTable
        /// @param  isInvocation If \c true, the invocation counter is increased.
        ///                      This parameter is defined only in debug-compilations.
        /// @return The pointer to the box-function.
-       ALIB_API void*    getCustom( const std::type_info& rtti, bool isInvocation )  const;
+       ALIB_DLL void*    getCustom( const std::type_info& rtti, bool isInvocation )  const;
        #else
 
-       ALIB_API void*    getCustom( const std::type_info& rtti
+       ALIB_DLL void*    getCustom( const std::type_info& rtti
                                              ALIB_DBG(        , bool isInvocation )) const;
        #endif
 
        /// Non-inline implementation of #Set #Get used in the case of non-built-in functions.
        /// @param  rtti           The \c typeid of the function to register.
        /// @param  implementation The implementation of the function.
-       ALIB_API void     setCustom( const std::type_info& rtti, void* implementation );
+       ALIB_DLL void     setCustom( const std::type_info& rtti, void* implementation );
 
 }; // FunctionTable
 
 //==================================================================================================
 /// The default box-functions set.
 //==================================================================================================
-extern ALIB_API  FunctionTable DEFAULT_FUNCTIONS;
+extern ALIB_DLL  FunctionTable DEFAULT_FUNCTIONS;
 
+//==================================================================================================
+/// The custom function hash
+//==================================================================================================
+#if !DOXYGEN
+struct CustomFunctionKey {
+    const FunctionTable*    Parent;
+    const std::type_info&   Type;
+    CustomFunctionKey( const FunctionTable* parent, const std::type_info& type )
+    : Parent(parent), Type  (type )                                                           {}
+};
+
+struct CustomFunctionMapped {
+    void*                   Implementation;
+    ALIB_DBG(uinteger       DbgCntInvocations; )
+
+         CustomFunctionMapped( void* implementation ): Implementation    (implementation)
+    ALIB_DBG(,DbgCntInvocations  (0             )  )                                                 {}
+};
+
+struct CustomFunctionHash {
+    std::size_t operator()(const CustomFunctionKey& key) const {
+        size_t result=    reinterpret_cast<size_t>(key.Parent)
+                        ^ key.Type.hash_code();
+        result^= (result << 21 );
+        result^= (result >> 11);
+        return result;
+    }};
+
+struct CustomFunctionEqualTo {
+    bool operator()(const CustomFunctionKey& lhs, const CustomFunctionKey& rhs) const {
+        return     lhs.Parent == rhs.Parent
+                && lhs.Type   == rhs.Type;
+    }};
+
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+extern HashMap           < MonoAllocator,
+                           CustomFunctionKey, CustomFunctionMapped,
+                           CustomFunctionHash,
+                           CustomFunctionEqualTo >     customFunctionMap;
+#else
+extern std::unordered_map< CustomFunctionKey, CustomFunctionMapped,
+                           CustomFunctionHash,
+                           CustomFunctionEqualTo >     customFunctionMap;
+#endif
+#endif //!DOXYGEN
 
 //==================================================================================================
 /// This struct is used internally with \alib_boxing_nl  to provide run-time type information
@@ -177,7 +225,7 @@ extern ALIB_API  FunctionTable DEFAULT_FUNCTIONS;
 //==================================================================================================
 struct VTable
 {
-    /// Denotes if the mapped type is value type, a pointer type, an enum or an array.
+    /// Denotes if the mapped type is a value type, a pointer type, an enum or an array.
     /// The latter is not specified by an enum element, but rather is \c true for all enum
     /// elements that have a value greater than \c 0. The value in this case provides the size
     /// of the array's element type.
@@ -188,7 +236,7 @@ struct VTable
         Enum        = -2, ///< Enum type boxing
     };
 
-    /// Information about the encapsulated type. In case of arrays, this field is
+    /// Information about the encapsulated type. In the case of arrays, this field is
     /// equal to \c typeid(void).
     const std::type_info&   Type;
 
@@ -202,9 +250,8 @@ struct VTable
     const MappingType       Mapping;
 
     /// The number of relevant bytes used in the placeholder.
-    ///
     /// \see
-    ///   The documentation of TMP struct \alib{boxing;T_SizeInPlaceholder} provides details on
+    ///   The documentation of \alib{boxing;SizeTraits} provides details on
     ///   and rationals for the existence of this property.
     const unsigned int      PlaceholderUsage;
 
@@ -213,13 +260,14 @@ struct VTable
 
     #if ALIB_DEBUG
         /// These flags are available in debug-compilations only. Denotes whether this vtable
-        /// is statically or dynamically created. In case of \b Unregistered, a customized
+        /// is statically or dynamically created. In the case of \b Unregistered, a customized
         /// vtable was not properly registered on bootstrap.
         enum class DbgFactoryType
         {
             Unregistered, ///< Not registered, yet.
             Static      , ///< A static VTable is in place.
-            Dynamic     , ///< The VTable is created dynamically from templated type \b VTableTT.
+            Dynamic     , ///< The VTable is created dynamically from the templated type
+                          ///< \b VTableUnoptimized.
         };
 
         /// Debug information.
@@ -238,14 +286,12 @@ struct VTable
         uinteger DbgCntUsage = 0;
     #endif
 
-    //==============================================================================================
     /// Constructor.
     ///
     /// @param type             Type information of the derived \b VTable type.
     /// @param elementType      Type information of the elements of the boxed array.
     /// @param mapping          The type of boxing: value, pointer, enum or arrays.
     /// @param placeholderUsage The size of elements of the boxed array.
-    //==============================================================================================
     VTable( const std::type_info&   type,
             const std::type_info&   elementType,
             MappingType             mapping,
@@ -257,17 +303,14 @@ struct VTable
      {}
 
 
-    //==============================================================================================
     /// Virtual destructor.<br>
     /// Note: This is not really needed and empty.  Because derived class \b %VTable derives from
     /// virtual type \alib{singletons;Singleton}, having this destructor allows cleaning memory
     /// on termination "more precisely" and reduce warnings raised by analytics tools like
     /// \b valgrind.
-    //==============================================================================================
     virtual ~VTable()
     {}
 
-    //==============================================================================================
     /// Returns \c true if this vtable represents boxed array types. In this case, method
     /// \ref alib::boxing::Box::UnboxLength "Box::UnboxLength"
     /// will return the length of the array and
@@ -275,60 +318,52 @@ struct VTable
     /// access elements of the array.
     ///
     /// @return \c true if this vtable is representing an array type, \c false otherwise.
-    //==============================================================================================
     bool        IsArray()                                                                  const
     {
         return Mapping > 0;
     }
 
-    //==============================================================================================
     /// Returns \c true if this vtable represents mapped pointer type.
     ///
     /// @return \c true if this vtable is representing a pointer type, \c false otherwise.
-    //==============================================================================================
     bool        IsPointer()                                                                const
     {
         return Mapping == MappingType::Pointer;
     }
 
-    //==============================================================================================
     /// Returns \c true if this vtable represents a scoped or non-scoped enum type.
     ///
     /// @return \c true if this vtable is representing an enum type, \c false otherwise.
-    //==============================================================================================
     bool        IsEnum()                                                                   const
     {
         return Mapping == MappingType::Enum;
     }
 }; // struct VTable
 
+#if ALIB_DEBUG
+} namespace debug {
 
-// #################################################################################################
-// VTable
-// #################################################################################################
-#if ALIB_DEBUG_BOXING
+/// Registers a virtual table for debug purposes.
+/// This function is invoked internally, when a dynamic \e vtable is created and
+/// when a static \e vtable is registered.
+///
+/// Statically created \e vtables have to be registered during bootstrap in debug-compilations.
+/// For this, macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER is available, which is empty
+/// in release compilations.
+///
+/// \see
+///   Macros ALIB_BOXING_VTABLE_DECLARE and \ref alib_mod_boxing "Programmer's Manual" chapter
+///   \ref alib_boxing_more_opt_staticvt.
+///
+/// @param vtable         The vtable to register.
+/// @param productionType Denotes whether the \p{vtable} is a static constexpr object or
+///                       dynamically created from template type \b VTableUnoptimized.
+ALIB_DLL
+void DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType productionType );
+#endif
 
-    //==============================================================================================
-    /// Registers a virtual table for debug purposes.
-    /// This function is invoked internally, when a dynamic \e vtable is created and
-    /// when a static \e vtable is registered.
-    ///
-    /// Statically created \e vtables have to be registered during bootstrap in debug-compilations.
-    /// For this, macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER is available, which is empty
-    /// in release compilations.
-    ///
-    /// \see
-    ///   Macros ALIB_BOXING_VTABLE_DECLARE and \ref alib_mod_boxing "Programmer's Manual" chapter
-    ///   \ref alib_boxing_more_opt_staticvt.
-    ///
-    /// @param vtable         The vtable to register.
-    /// @param productionType Denotes whether the \p{vtable} is a static constexpr object or
-    ///                       dynamically created from template type \b VTableTT.
-    //==============================================================================================
-    ALIB_API
-    void DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType productionType );
+} namespace detail {
 
-#endif // ALIB_DEBUG_BOXING
 
 //==================================================================================================
 /// This is a templated derivate of class \b VTable. It is necessary to create singletons for
@@ -339,17 +374,17 @@ struct VTable
 ///   of the \alib_boxing "Programmer's Manual" of module \alib_boxing_nl.
 ///
 /// ## Friends ##
-/// class \alib{singletons;Singleton;Singleton< VTableTT<TPlainOrArray; TMapped> >}
+/// class \alib{singletons;Singleton;Singleton< VTableUnoptimized<TMapped, TIsArray> >}
 ///
-/// @tparam TPlainOrArray   Either type \alib{boxing;detail::TPlain} or \alib{boxing;detail::TArrayOf}.
-/// @tparam TMapped         The mapped type.
+/// @tparam TMapped    The mapped type.
+/// @tparam TIsArray   Denotes whether array-boxing is performed or not.
 //==================================================================================================
-template<typename TPlainOrArray, typename TMapped>
-class VTableTT  : public VTable
-                , public Singleton< VTableTT<TPlainOrArray, TMapped> >
+template<typename TMapped, bool TIsArray>
+class VTableUnoptimized  : public VTable
+                         , public Singleton< VTableUnoptimized<TMapped, TIsArray> >
 {
     #if !DOXYGEN
-        friend singletons::Singleton< VTableTT<TPlainOrArray, TMapped> >;
+        friend singletons::Singleton< VTableUnoptimized<TMapped, TIsArray> >;
     #endif
 
     private:
@@ -358,32 +393,29 @@ class VTableTT  : public VTable
         /// This constructor is private, and class \b %Singleton is a friend, which makes each
         /// template instance of this class being a 'strict' singleton (only that singleton instance
         /// exists).
-        constexpr VTableTT()
-        : VTable( ATMP_EQ(TPlainOrArray, TPlain )  ? typeid(TMapped)
-                                                   : typeid(TMapped[1]),
+        constexpr VTableUnoptimized()
+        : VTable( !TIsArray  ? typeid(TMapped)
+                             : typeid(TMapped[1]),
 
-                  ATMP_EQ(TPlainOrArray, TPlain )  ? typeid(void)
-                                                   : typeid(TMapped),
+                  !TIsArray  ? typeid(void)
+                             : typeid(TMapped),
 
-                  ATMP_EQ(TPlainOrArray, TArrayOf) ? VTable::MappingType(sizeof(TMapped))
-                                                   : ATMP_IS_PTR(TMapped)
-                                                   ? VTable::MappingType::Pointer
-                                                   : ATMP_IS_ENUM(TMapped)
-                                                   ? VTable::MappingType::Enum
-                                                   : VTable::MappingType::Value    ,
+                  TIsArray   ? VTable::MappingType(sizeof(TMapped))
+                             : std::is_pointer_v<TMapped>
+                             ? VTable::MappingType::Pointer
+                             : std::is_enum_v<TMapped>
+                             ? VTable::MappingType::Enum
+                             : VTable::MappingType::Value    ,
 
-
-                  ATMP_EQ(TPlainOrArray, TPlain )  ? T_SizeInPlaceholder<TMapped>::value
-                                                   : sizeof(Placeholder)
-                )
-        {
+                  !TIsArray  ? SizeTraits<TMapped>
+                             : sizeof(Placeholder)             )    {
             #if ALIB_DEBUG_BOXING
-                DbgRegisterVTable( this, DbgFactoryType::Dynamic );
+                debug::DbgRegisterVTable( this, DbgFactoryType::Dynamic );
             #endif
         }
 };
 
-
+} namespace debug {
 #if ALIB_DEBUG_BOXING || DOXYGEN
 
 /// Checks if \alib_boxing_nl was correctly initialized.
@@ -395,7 +427,7 @@ class VTableTT  : public VTable
 ///
 /// \see
 ///   Manual chapter \ref alib_boxing_more_static_instances.
-ALIB_API void DbgCheckIsInitialized();
+ALIB_DLL void DbgCheckIsInitialized();
 
 /// Checks for doubly-defined \e vtables, as well as for unregistered
 /// \ref alib_boxing_more_opt_staticvt "static vtables".
@@ -403,95 +435,82 @@ ALIB_API void DbgCheckIsInitialized();
 /// Available and used only in debug-compilations.
 /// @param vtable                The \e vtable to check.
 /// @param increaseUsageCounter  Denotes if this is a use of the vtable or just a check.
-ALIB_API void DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCounter );
+ALIB_DLL void DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCounter );
 #else
 inline void DbgCheckIsInitialized()                         {}
 inline void DbgCheckRegistration (detail::VTable*, bool )   {}
 #endif
 
-
-
+} // namespace alib::boxing[::debug]
 
 //==================================================================================================
 /// Method #Get of the default version of this struct creates a \alib{boxing::detail;VTable}
 /// dynamically.
-/// For this, a corresponding templated \alib{singletons;Singleton} type
-/// \alib{boxing::detail;VTableTT}, according to given template parameter \p{TMapping} is returned.
+/// For this, a corresponding templated \alib{singletons;Singleton} of type
+/// \alib{boxing::detail;VTableUnoptimized<TMapped, TIsArray>} is returned.
 ///
 /// For optimization purposes (code size as well as execution performance), this struct might
-/// be specialized for selected a mapped types, to return static singleton object.
+/// be specialized for selected mapped types to return a static singleton object.
+///
+/// Specializations can be performed with preprocessor macros
+///  - \ref ALIB_BOXING_VTABLE_DECLARE,
+///  - \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE, and
+///  - \ref ALIB_BOXING_VTABLE_DEFINE.
+///
+/// Furthermore, with debug-compilations, such spezializations should be "registered" during
+/// bootstrap using macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
 ///
 /// Specializations for all C++ fundamental types are given. Furthermore, various different
 /// \alibmods provide such specializations for types they introduced and that are boxed.
 ///
 /// \see
-///   Chapter \ref alib_boxing_more_opt_staticvt_howto of the Programmer's Manual
-///   of \alib_boxing_nl.
+///  - Chapter \ref alib_boxing_more_opt_staticvt_howto of the Programmer's Manual
+///    of \alib_boxing_nl.
 ///
-/// @tparam TMapping  The mapped type to receive a \e vtable for. Has to be of either type
-///                   \alib{boxing;TMappedTo<T>} or \alib{boxing;TMappedToArrayOf<T>}.
+/// @tparam TMapped  The mapped type to receive a \e vtable for.
+/// @tparam TIsArray Denotes if this is array-boxing or not.
 //==================================================================================================
-template<typename TMapping>
-struct  T_VTableFactory
+template<typename TMapped, bool TIsArray>
+struct VTableOptimizationTraits
 {
-    /// Returns a strict singleton \e vtable responsible for boxing mapped type \p{TMapping}.
+    /// Functor to return the \b vtable singleton.
     /// @return The requested \e vtable singleton.
-    static constexpr VTable* Get()
-    {
-        DbgCheckIsInitialized();
-
-        VTable* result=  &VTableTT<typename TMapping::PlainOrArray, typename TMapping::Type>::GetSingleton();
-
-        DbgCheckRegistration( result, false );
-
+    static constexpr detail::VTable* Get() {
+        debug::DbgCheckIsInitialized();
+        detail::VTable* result=  &detail::VTableUnoptimized<TMapped, TIsArray>::GetSingleton();
+        debug::DbgCheckRegistration( result, false );
         return result;
     }
-
 };
 
 
-}}} // namespace [alib::boxing::detail]
 
-
-//##################################################################################################
-//#######################################     Macros     ###########################################
-//##################################################################################################
-
-#define ALIB_BOXING_VTABLE_DECLARE( TMapped, Identifier )                                          \
-namespace alib::boxing::detail {                                                                   \
-extern ALIB_API VTable SNGLTN_ ## Identifier;                                                      \
-template<> struct  T_VTableFactory< TMappedTo<TMapped> >                                           \
-{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }                        \
-
-#define ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( TMapped, Identifier )                                \
-namespace alib::boxing::detail {                                                                   \
-extern ALIB_API VTable SNGLTN_ ## Identifier;                                                      \
-template<> struct  T_VTableFactory< TMappedToArrayOf<TMapped> >                                    \
-{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }                        \
-
-
-#define ALIB_BOXING_VTABLE_DEFINE( TMapped, Identifier )                                           \
-alib::boxing::detail::VTable alib::boxing::detail::SNGLTN_ ## Identifier                           \
-( typeid(TMapped), typeid(void)  ,                                                                 \
-   std::is_pointer<TMapped>::value                                                                 \
- ? VTable::MappingType::Pointer                                                                    \
- : std::is_enum<TMapped>::value                                                                    \
- ? VTable::MappingType::Enum                                                                       \
- : VTable::MappingType::Value   ,                                                                  \
- alib::boxing::T_SizeInPlaceholder<TMapped>::value);                                               \
-
-#define ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( TMapped, Identifier )                                 \
-alib::boxing::detail::VTable alib::boxing::detail::SNGLTN_ ## Identifier                           \
-(typeid(TMapped[1]) , typeid(TMapped), VTable::MappingType(sizeof(TMapped)), sizeof(Placeholder)); \
-
-
-#if ALIB_DEBUG_BOXING
-#   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )                                 \
-DbgRegisterVTable( &alib::boxing::detail::SNGLTN_ ## Identifier,                                   \
-                   alib::boxing::detail::VTable::DbgFactoryType::Static );
-#else
-#   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )
+#if ALIB_DEBUG && !DOXYGEN
+namespace debug {
+#   if ALIB_MONOMEM && ALIB_CONTAINERS
+    extern HashSet<MonoAllocator, lang::TypeFunctors::Key,                  lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern HashMap<MonoAllocator, lang::TypeFunctors::Key, detail::VTable*, lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern HashMap<MonoAllocator, lang::TypeFunctors::Key, detail::VTable*, lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+# else
+    extern std::unordered_set<    lang::TypeFunctors::Key,                  lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern std::unordered_map<    lang::TypeFunctors::Key, detail::VTable*, lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern std::unordered_map<    lang::TypeFunctors::Key, detail::VTable*, lang::TypeFunctors::Hash, lang::TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+# endif
+   extern ALIB_DLL void DbgLockMaps( bool doLock );
+} // namespace alib::boxing[::debug]
 #endif
 
-#endif // HPP_ALIB_BOXING_DETAIL_VTABLE
+} // namespace [alib::boxing]
+
+// VTables for character arrays. We need them before the constructors of class Box are defined.
+// Therefore, declaring them in "boxingcustoms.inl.inl." would be too late.
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_2])
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char, vt_arr_char )
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_2])
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( wchar_t   , vt_arr_wchar_t )
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char8_t   , vt_arr_char8_t )
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char16_t  , vt_arr_char16_t)
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char32_t  , vt_arr_char32_t)
+
+
 

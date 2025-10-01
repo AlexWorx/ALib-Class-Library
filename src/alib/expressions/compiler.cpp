@@ -1,28 +1,34 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/expressions/compiler.hpp"
-#   include "alib/expressions/detail/parser.hpp"
-#   include "alib/expressions/detail/ast.hpp"
-#   include "alib/expressions/detail/program.hpp"
-#   include "alib/expressions/plugins/elvisoperator.hpp"
-#   include "alib/expressions/plugins/autocast.hpp"
-#   include "alib/expressions/plugins/arithmetics.hpp"
-#   include "alib/expressions/plugins/math.hpp"
-#   include "alib/expressions/plugins/strings.hpp"
-#   if ALIB_CAMP
-#       include "alib/expressions/plugins/dateandtime.hpp"
-#   endif
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include "alib/expressions/expressions.prepro.hpp"
+#include "ALib.Monomem.StdContainers.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions;
+    import   ALib.Expressions.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace expressions {
 
 using namespace detail;
@@ -31,28 +37,28 @@ using namespace detail;
 // Scope constructor, Clear()
 // #################################################################################################
 Scope::Scope( SPFormatter& formatter)  // evaluation scope constructor using an own allocator
-: evalScopeAllocator(MonoAllocator::Create(ALIB_DBG("ExpressionScope",) 1, 200))
-, Allocator         (*evalScopeAllocator)
+: EvalScopeAllocator(MonoAllocator::Create(ALIB_DBG("ExpressionScope",) 1, 200))
+, Allocator         (*EvalScopeAllocator)
 , Stack             (Allocator().New<StdVectorMono<Box>>(Allocator))
 , Formatter         (formatter)
-, vmMembers         (Allocator().New<VMMembers>(Allocator))
 , NamedResources    (nullptr)
+, EvalScopeVMMembers(Allocator().New<VMMembers>(Allocator))
 #if ALIB_DEBUG_CRITICAL_SECTIONS
-, dcs               ("ExpressionEvalScope")
+, DCS               ("ExpressionEvalScope")
 #endif
 {}
 
 Scope::Scope( MonoAllocator& allocator, SPFormatter& formatter )
-: evalScopeAllocator(nullptr) // compile-time scope constructor using the allocator of the expression
+: EvalScopeAllocator(nullptr) // compile-time scope constructor using the allocator of the expression
 , Allocator         (allocator)
 , Stack             (Allocator().New<StdVectorMono<Box>>(Allocator))
 , Formatter         (formatter)
-, vmMembers         (nullptr)
 , NamedResources    (Allocator().New< HashMap< MonoAllocator,
                                                NString,
                                                ScopeResource* >  >(Allocator) )
+, EvalScopeVMMembers(nullptr)
 #if ALIB_DEBUG_CRITICAL_SECTIONS
-, dcs               ("ExpressionCTScope")
+, DCS               ("ExpressionCTScope")
 #endif
 {}
 
@@ -61,10 +67,10 @@ Scope::~Scope()
     // Destruct members in vectors and tables.
     freeResources();
     lang::Destruct(*Stack);
-    if ( evalScopeAllocator )
+    if ( EvalScopeAllocator )
     {
-        lang::Destruct(*vmMembers);
-        lang::Destruct(*evalScopeAllocator);
+        lang::Destruct(*EvalScopeVMMembers);
+        lang::Destruct(*EvalScopeAllocator);
     }
 }
 
@@ -74,31 +80,31 @@ void    Scope::freeResources()
     Stack->clear();
 
     if ( NamedResources )
-        for( auto resource : *NamedResources )
+        for( auto& resource : *NamedResources )
             lang::Destruct(*resource.second);
 }
 
-void    Scope::reset()
+void    Scope::Reset()
 {
-    ALIB_ASSERT( !IsCompileTime() )
+    ALIB_ASSERT( !IsCompileTime(), "EXPR" )
     
     // save sizes
     auto             stackSize=                       Stack->size();
-    auto nestedExpressionsSize= vmMembers->NestedExpressions.size();
+    auto nestedExpressionsSize= EvalScopeVMMembers->NestedExpressions.size();
 
     // free and destruct
     freeResources();
-    lang::Destruct(*vmMembers);
+    lang::Destruct(*EvalScopeVMMembers);
     lang::Destruct(*Stack);
     Allocator.Reset(sizeof(MonoAllocator), alignof(MonoAllocator));
 
     // create new
-    Stack    = Allocator().New<StdVectorMono<Box>>(Allocator);
-    vmMembers= Allocator().New<VMMembers>(Allocator);
+    Stack             = Allocator().New<StdVectorMono<Box>>(Allocator);
+    EvalScopeVMMembers= Allocator().New<VMMembers>(Allocator);
 
     // reserve storage of the previous sizes for the next run.
-                          Stack->reserve(            stackSize );
-    vmMembers->NestedExpressions.reserve(nestedExpressionsSize );
+                                   Stack->reserve(            stackSize );
+    EvalScopeVMMembers->NestedExpressions.reserve(nestedExpressionsSize );
 }
 
 
@@ -119,7 +125,6 @@ Compiler::Compiler()
     CfgFormatter= Formatter::Default->Clone();
 
     // register compiler types
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     constexpr std::pair<Box&,NString> typeKeys[]=
     {
        { Types::Void     , "T_VOID"  },
@@ -131,7 +136,6 @@ Compiler::Compiler()
        { Types::DateTime , "T_DATE"  },
        { Types::Duration , "T_DUR"   }, )
     };
-    ALIB_WARNINGS_RESTORE
 
     size_t idx= sizeof( typeKeys ) / sizeof( std::pair<Box&, NString> );
     do
@@ -144,7 +148,7 @@ Compiler::Compiler()
     while( idx != 0 );
 
     // load nested expression function descriptor
-    Token::LoadResourcedTokens( EXPRESSIONS, "EF", &CfgNestedExpressionFunction ALIB_DBG(,1));
+    strings::util::LoadResourcedTokens( EXPRESSIONS, "EF", &CfgNestedExpressionFunction ALIB_DBG(,1));
     CfgNestedExpressionThrowIdentifier= EXPRESSIONS.GetResource( "EFT" );
 }
 
@@ -175,7 +179,7 @@ void Compiler::SetupDefaults()
         if( HasBits( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
         {
             // Not -> !
-            auto& record= enums::GetRecord( DefaultAlphabeticUnaryOperatorAliases::Not );
+            auto& record= enumrecords::GetRecord( DefaultAlphabeticUnaryOperatorAliases::Not );
             if( record.Symbol.IsNotEmpty() )
                 AlphabeticUnaryOperatorAliases.EmplaceOrAssign( record.Symbol,
                                                                 record.Replacement );
@@ -198,7 +202,7 @@ void Compiler::SetupDefaults()
             auto precedence = (    enumRecordIt.Enum() == DefaultBinaryOperators::Assign
                                 && HasBits(CfgCompilation,
                                           Compilation::AliasEqualsOperatorWithAssignOperator))
-                                  ? enums::GetRecord(DefaultBinaryOperators::Equal).Precedence
+                                  ? enumrecords::GetRecord(DefaultBinaryOperators::Equal).Precedence
                                   : enumRecordIt->Precedence;
 
             AddBinaryOperator(enumRecordIt->Symbol, precedence);
@@ -268,17 +272,15 @@ Expression   Compiler::Compile( const String& expressionString )
 
     try
     {
-        #if ALIB_TIME && ALIB_DEBUG
-            Ticks startTime;
-        #endif
+        ALIB_DBG( Ticks startTime; )
 
         // parse
-        ast= parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat );
+        ast= static_cast<AST*>(parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat ));
 
-        #if ALIB_TIME && ALIB_DEBUG
+        ALIB_DBG(
             expression->DbgParseTime= startTime.Age();
             startTime= Ticks::Now();
-        #endif
+        )
 
         // optimize on AST level
         ast= ast->Optimize( CfgNormalization );
@@ -287,23 +289,23 @@ Expression   Compiler::Compile( const String& expressionString )
         expression->program= new detail::Program( *this, *expression, &allocator );
 
         // assemble
-        ast->Assemble( *expression->program, allocator, expression->normalizedString );
+        ast->Assemble( *static_cast<detail::Program*>(expression->program), allocator, expression->normalizedString );
         expression->normalizedString.TrimEnd();
 
-        expression->program->AssembleFinalize();
-        #if ALIB_TIME && ALIB_DEBUG
-            expression->DbgAssemblyTime= startTime.Age();
-        #endif
+        static_cast<detail::Program*>(expression->program)->AssembleFinalize();
+        ALIB_DBG( expression->DbgAssemblyTime= startTime.Age(); )
 
         if(--recursionCounter == 0)
             allocator.Reset( startOfCompilation );
 
         // checks
-        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(), "EXPR",
-                           "No exception when parsing expression, but result type is void!" )
+        ALIB_ASSERT_ERROR(
+            !static_cast<detail::Program*>(expression->program)->ResultType().IsType<void>(),
+            "EXPR", "No exception when parsing expression, but result type is void!" )
 
-        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(), "EXPR",
-                           "No exception when parsing expression, but result type is void." )
+        ALIB_ASSERT_ERROR(
+            !static_cast<detail::Program*>(expression->program)->ResultType().IsType<void>(),
+            "EXPR", "No exception when parsing expression, but result type is void." )
     }
     catch( Exception& )
     {
@@ -334,7 +336,7 @@ void      Compiler::getOptimizedExpressionString( ExpressionVal& expression )
     try
     {
 	    expression.allocator.DbgLock(false);
-        ast                     = detail::VirtualMachine::Decompile( *dynamic_cast<Program*>(expression.program),
+        ast                     = detail::VirtualMachine::Decompile( *static_cast<detail::Program*>(expression.program),
                                                                      allocator );
         detail::Program* program= allocator().New<detail::Program>( *this, expression, nullptr );
         ast->Assemble( *program, allocator, expression.optimizedString );
@@ -371,7 +373,7 @@ bool           Compiler::AddNamed( const String& name, const String& expressionS
     {
         if ( existed )
         {
-            namedExpressions.Erase( it );
+            namedExpressions.erase( it );
             return true;
         }
         return false;
@@ -381,7 +383,7 @@ bool           Compiler::AddNamed( const String& name, const String& expressionS
     compiledExpression->allocator.DbgLock(false);
     compiledExpression->name.Allocate( compiledExpression->allocator, name);
     compiledExpression->allocator.DbgLock(true);
-    ALIB_ASSERT( compiledExpression )
+    ALIB_ASSERT( compiledExpression, "EXPR" )
     if( existed )
         it.Mapped()= compiledExpression;
     else
@@ -427,8 +429,8 @@ void    Compiler::AddType( Type sample, const NString& name )
 {
     ALIB_DBG( auto it= )
     typeMap.EmplaceIfNotExistent( &sample.TypeID(), name );
-    ALIB_ASSERT_ERROR( it.second  == true, "EXPR", // is insert
-                       "Type already registered with compiler."  )
+    ALIB_ASSERT_ERROR( it.second == true, // is insert
+                       "EXPR",  "Type already registered with compiler."  )
 }
 
 NString Compiler::TypeName(Type box)
@@ -438,15 +440,13 @@ NString Compiler::TypeName(Type box)
 
     auto entry= typeMap.Find( &box.TypeID() );
     ALIB_ASSERT_WARNING( entry != typeMap.end(), "EXPR",
-                         "Custom type {!Q} not registered. Please use Compiler::AddType to do so.",
-                         box.TypeID() )
+       "Custom type \"{}\" not registered. Please use Compiler::AddType to do so.", &box.TypeID() )
     if( entry == typeMap.end() )
         return "Unknown Type";
 
     return entry.Mapped();
 }
 
-ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target )
 {
     bool variadic= qty && (*(boxArray + qty -1)) == nullptr;
@@ -471,7 +471,6 @@ void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& ta
 
     target<< ')';
 }
-ALIB_WARNINGS_RESTORE
 
 void Compiler::WriteFunctionSignature( ArgIterator  begin,
                                        ArgIterator  end,

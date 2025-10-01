@@ -1,16 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+#include "ALib.Strings.Vector.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings.Escaper;
+    import   ALib.Strings.Tokenizer;
+#else
+#   include "ALib.Strings.Escaper.H"
+#   include "ALib.Strings.Tokenizer.H"
+#endif
 
-#if !DOXYGEN
-#   include "alib/strings/util/escaper.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#endif // !DOXYGEN
-
+// ======================================   Implementation   =======================================
 namespace alib::strings::util {
 
 // =================================================================================================
@@ -86,7 +99,7 @@ AString& StringEscaperStandard::Escape( const String& src, AString& dest, const 
                       || parser.CharAtEnd()   == ' '
                       || parser.CharAtEnd()   == '\t';
     if (!needsQuotes)
-        for( auto c : delimiters )
+        for( character c : delimiters )
             if( parser.IndexOf(c) >= 0 )
             {
                 needsQuotes= true;

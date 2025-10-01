@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Library - Resource Export Tool
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 //  Notes:
@@ -14,18 +14,27 @@
 // #################################################################################################
 
 // DOX_MARKER([DOX_RESOURCES_EXPORT])
-#include "alib/lang/basecamp/bootstrap.hpp"
-#include "alib/config/configresourcepool.hpp"
-#include "alib/compatibility/std_strings_iostream.hpp"
+#include "ALib.Bootstrap.H"
+#include "ALib.Strings.StdIOStream.H"
+
+#include "ALib.Variables.H"
+#include "ALib.Variables.ResourcePool.H"
 
 using namespace alib;
 using namespace std;
 int main( int argc, const char *argv[] )
 {
+    // before bootstrapping, we initialize the global allocator "manually" to be able to use
+    // it with the SharedPtr below.
+    new (&alib::monomem::GLOBAL_ALLOCATOR) MonoAllocator(ALIB_DBG("GlobalAllocator", ) 100, 150);
+
     // create and set resource pool that uses a configuration file
-    ConfigResourcePool pool;
+    camp::Camp::SPResourcePool spPool;
+    spPool.InsertDerived<ConfigResourcePool>(monomem::GLOBAL_ALLOCATOR);
+    auto& pool= static_cast<ConfigResourcePool&>( *spPool );
+
     alib::BootstrapAddDefaultCamps();
-    alib::CAMPS.Back()->BootstrapSetResourcePool( &pool );
+    alib::CAMPS.back()->BootstrapSetResourcePool( spPool );
 
     // bootstrap alib
     alib::ARG_C = argc;

@@ -1,7 +1,7 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Samples
+#  CMakeLists.txt - ALib Samples
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -15,13 +15,11 @@
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
 
-    # C++ 17 needed for sampled std::string_view
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
 
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.18.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
     project("ALib.Boxing.Sample")
 
 
@@ -30,7 +28,7 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_DISTRIBUTION             "BOXING"     )
+    list( APPEND  ALIB_BUILD             "BOXING;STRINGS"     )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )
@@ -42,7 +40,7 @@
     ALibAddSharedLibrary()
 
 
-    add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Boxing/sample.cpp  )
+    add_executable            ( Sample   ${ALIB_BASE_DIR}/src.samples/Boxing/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
     target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 
@@ -51,5 +49,6 @@
 # End
 # -------------------------------------------------------------------------------------------------
 
-# uncomment for debug
+# Uncomment for debugging CMake
 #ALibDumpCMakeVariables()
+

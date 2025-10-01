@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALox Logging Library
 //
-//  Copyright 2015-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -46,13 +46,13 @@ Debug <em>Log Statements</em> should ultimately be \e pruned (see next answer) f
 <em>Release logging</em> is about generating a log file, a log database, an online-report to a server or whatever
 you choose during execution of your \b deployed software. Often, <em>release logging</em> is used for dealing with
 problems that arise when your software is used by the target audience. It is also useful to
-collect statistical data on the use of a software, identify problems that end-users might face, and so forth.
+collect statistical data on the use of software, identify problems that end-users might face, and so forth.
 Sometimes, <em>release logging</em> is a subset of the debug log, sometimes it is something completely different.
 
 Technically however, both logging use cases require very similar software. Therefore, \alox aims to
 solve both in one library. Basic support for release logging is here today already. The introduction of new features and concepts
 in the area of release logging might also support debug logging aspects of \alox and vice versa.
-Therefore the natural path of evolution for the \alox library is "debug logging features first, release logging features next".
+Therefore , the natural path of evolution for the \alox library is "debug logging features first, release logging features next".
 
 # What is Pruning? #  {#alib_alox_faq_pruning}
 
@@ -62,7 +62,7 @@ for automatic pruning are:
 
 - Maximize execution speed of the deployed code
 - Minimize the footprint of the deployed code.
-- Keep the console (or other standard output) clean in the release version of a software.
+- Keep the console (or other standard output) clean in the release version of software.
 - Hide technical details and secrets, by not only stopping the output but by also removing all
   textual strings from your executable or library that include debug messages.
 
@@ -81,7 +81,7 @@ And we think that a maximum of compatibility (e.g., with other tools or within i
 is guaranteed this way.<br>
 If you absolutely want localized meta-information, like logging the name of months in Finnish,
 you can extend \alox for that.
-Here is \ref alib_mod_loggers_textlogger "how you do that"!
+Here is \ref alib_mod_alox_loggers_textlogger "how you do that"!
 
 <br>
 # Why is ALox introducing a huge set of own "utility classes"? # {#alib_alox_faq_aworx_util}
@@ -92,7 +92,7 @@ So, it is rather the other way round: \alox is just one \alibmod of many others 
 interested in logging, other \alibmods_nl can be removed in a library compilation. Of course, still,
 these \alibmods_nl that \alox depends on, need to be included.
 
-All about what is offered and how an customized \alibdist is built is found in the
+All about what is offered and how an customized \alibbuild is built is found in the
 \ref alib_manual "ALib Programmer's Manual".
 
 <br><br><br><br><br><br> */

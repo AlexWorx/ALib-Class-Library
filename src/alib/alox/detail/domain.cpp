@@ -1,20 +1,48 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+// #################################################################################################
+//  alib::lox - ALox Logging Library
+//
+//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/alox/alox.hpp"
-#   define HPP_ALIB_LOX_PROPPERINCLUDE
-#       include "alib/alox/detail/domain.inl"
-#   undef HPP_ALIB_LOX_PROPPERINCLUDE
-#   include "alib/alox/aloxcamp.hpp"
-#endif // !DOXYGEN
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.ALox.H"
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace lox { namespace detail {
 
 // #################################################################################################
@@ -35,12 +63,10 @@ Domain::Domain( MonoAllocator& allocator, PoolAllocator& pool, const NString& na
     Data      .reserve( size_t( 2 ) );
 
     // The full of the root domain equals the name
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     nchar* fullPath= allocator().AllocArray<nchar>( name.Length() + 1 );
     name.CopyTo( fullPath );
     fullPath[name.Length()]= '/';
     FullPath= NString( fullPath, name.Length() + 1 );
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 }
 
 
@@ -129,7 +155,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     // search in subdomain
     else
     {
-        decltype(SubDomains)::Iterator subDomainIt;
+        decltype(SubDomains)::iterator subDomainIt;
         bool fixedOnce= false;
         for(;;)
         {
@@ -181,7 +207,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
                 return nullptr;
 
             *wasCreated= true;
-            subDomainIt= SubDomains.Emplace( subDomainIt, this,  domainPath );
+            subDomainIt= SubDomains.emplace( subDomainIt, this,  domainPath );
             --maxCreate;
             if ( maxCreate == 0 )
                 return &(*subDomainIt);
@@ -226,7 +252,7 @@ void  Domain::removeLoggerRecursive( int loggerNo )
 void Domain::ToString( NAString& tAString )
 {
     tAString << FullPath;
-    tAString._('[')._( NFormat( CntLogCalls,3 ) )._("] ");
+    tAString._('[')._( NDec( CntLogCalls,3 ) )._("] ");
 
     // get verbosities
     tAString._(" { ");
@@ -235,8 +261,8 @@ void Domain::ToString( NAString& tAString )
             LoggerData& ld= Data[i];
             tAString._(i!=0 ? ", " : "" )
                     ._('(')
-                        ._('[')._( NFormat(ld.LogCallsPerDomain, 3) )._( "], " )
-                        ._( std::make_pair( ld.LoggerVerbosity, ld.Priority) )
+                        ._('[')._( NDec(ld.LogCallsPerDomain, 3) )._( "], " )
+                        ._( boxing::MakePair( ld.LoggerVerbosity, ld.Priority) )
                     ._( ')' );
         }
     tAString._(" }");

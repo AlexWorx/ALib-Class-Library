@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -14,7 +14,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.20.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 
 # -------------------------------------------------------------------------------------------------
 # General
@@ -33,7 +33,7 @@
 ## include ALib base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    #set(CMAKE_CXX_STANDARD 17)
+    #set( ALIB_C20_MODULES         "On" )
     #set(CMAKE_CXX_STANDARD 20)
     #set(CMAKE_CXX_STANDARD 23)
 
@@ -48,14 +48,11 @@
     set( ALIB_GTEST                     "On"                                            CACHE STRING
          "If true, unit tests are compiled for gtest library."   )
 
-    # set(ALIB_GDB_PP_SUPPRESS_CHILDREN  "Off" CACHE BOOL
-    #     "<<< Overwritten by CLion CMAKE File of UnitTests" FORCE)
-
 # -------------------------------------------------------------------------------------------------
 # source code definitions
 # -------------------------------------------------------------------------------------------------
     # ALib unit tests
-    set (              ALIB_UTESTS_SRC_DIR  ${ALIB_BASE_DIR}/src/unittests       )
+    set (              ALIB_UTESTS_SRC_DIR  ${ALIB_BASE_DIR}/src.samples/unittests       )
     file( GLOB_RECURSE ALIB_UTESTS_INCS     ${ALIB_UTESTS_SRC_DIR}/*.h*              )
     file( GLOB_RECURSE ALIB_UTESTS_SRCS     ${ALIB_UTESTS_SRC_DIR}/*.cpp             )
 
@@ -69,8 +66,9 @@
         #cmake_policy( SET CMP0135 NEW )
         FetchContent_Declare( googletest
                               GIT_REPOSITORY https://github.com/google/googletest.git GIT_TAG  main
-                              #URL            "${ALIB_BASE_DIR}/tools/googletest-1.15.2.tar.gz"
-                              DOWNLOAD_EXTRACT_TIMESTAMP true
+                              #URL            "file://${ALIB_BASE_DIR}/tools/googletest-1.15.2.tar.gz"
+                              #URL_HASH SHA256=7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
+                              #DOWNLOAD_EXTRACT_TIMESTAMP true
                                                     )
         FetchContent_MakeAvailable(googletest)
         FetchContent_GetProperties(googletest)
@@ -79,21 +77,22 @@
         # when building with Visual Studio
         set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-        # prevent warnings
-        if( NOT MSVC)
-            #target_compile_options ( gtest    PRIVATE "-Wno-implicit-int-float-conversion" )
-            #target_compile_options ( gtest    PRIVATE "-Wno-psabi" )
-            #target_compile_options ( gtest    PRIVATE "-Wno-restrict" )
-        endif()
-
         # 32-bit compilations
         if("-m32" IN_LIST ALIB_COMPILER_OPTIONS  )
             target_compile_options ( gtest    PRIVATE "-m32" )
         endif()
+
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            if (ALIB_CLANG_USE_LIBCPP)
+                target_compile_options(gtest PRIVATE -stdlib=libc++)
+                target_link_libraries( gtest PRIVATE c++)
+            endif()
+        endif()
+
     endif()
 
     # QT (only in 64bit compilations)
-    if (ALIB_UT_NO_QT)
+    if (ALIB_UT_QT)
         if (NOT WIN32)
             if( NOT  "-m32" IN_LIST ALIB_COMPILER_OPTIONS  )
                 find_package(Qt5Core)
@@ -103,30 +102,18 @@
     endif()
 
     # multithreading
-    if ( NOT ${ALIB_FEAT_THREADS} )
-        if ( ${ALIB_GTEST} )
-
+    if ( ${ALIB_GTEST} )
         find_package(Threads)
 
         # we hack this into the existing alib variable...
         set( ALIB_EXTERNAL_LIBS ${ALIB_EXTERNAL_LIBS}         ${CMAKE_THREAD_LIBS_INIT} )
-
-        endif()
     endif()
 
 
 # -------------------------------------------------------------------------------------------------
-# Create doxygen.ini file from .cmake.ini file
-# -------------------------------------------------------------------------------------------------
-if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-    message( "Copying doxygen template (${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini)")
-    configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini"
-                    "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.ini" @ONLY)
-endif()
-
-# -------------------------------------------------------------------------------------------------
 # Target
 # -------------------------------------------------------------------------------------------------
+
     if( NOT DEFINED  ALIB_UT_USE_STATIC_LIB )
         set( ALIB_UT_USE_STATIC_LIB              "Off"                                  CACHE   BOOL
              "If 'On' compiles and links to static library, otherwise uses a shared (dynamic) one." )
@@ -142,8 +129,19 @@ endif()
         ALibAddSharedLibrary()
     endif()
 
+    # check for <format>
+    check_cxx_source_compiles([=[
+      #include <format>
+      int main() { auto s = std::format("{}", 42); }
+    ]=] HAVE_STD_FORMAT)
 
-    add_executable             ( ALib_UT    ${ALIB_INCLUDE_FILES}
+    if (NOT HAVE_STD_FORMAT)
+      find_package(fmt REQUIRED)              # needs libfmt-dev installed
+    endif()
+
+
+
+    add_executable             ( ALib_UT    ${ALIB_HPP}
                                             ${ALIB_UTESTS_INCS}
                                             ${ALIB_UTESTS_SRCS}  )
 
@@ -170,17 +168,6 @@ endif()
     endif()
 
 
-    target_precompile_headers(ALib_SharedLib  PRIVATE   "${ALIB_BASE_DIR}/src/alib/alib_precompile.hpp" )
-    target_precompile_headers(ALib_UT         PRIVATE   "${ALIB_BASE_DIR}/src/alib/alib_precompile.hpp" )
-
-
-    # for GTEST, option available only up to gcc 7.2
-    if     ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"    )
-      if   (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "7.2")
-        target_compile_options ( ALib_UT    PRIVATE "-Wno-gnu-statement-expression" )
-      endif()
-    endif()
-
     if( NOT APPLE )
         target_link_libraries      ( ALib_UT   PRIVATE ${ALIB_EXTERNAL_LIBS}                    )
         if( NOT MSVC)
@@ -196,10 +183,13 @@ endif()
 
     if ( ${ALIB_GTEST} )
         target_compile_definitions( ALib_UT PRIVATE  "ALIB_GTEST"                       )
-        target_include_directories( ALib_UT PRIVATE   ${gtest_source_dir}/include       )
+#        target_include_directories( ALib_UT PRIVATE   ${gtest_source_dir}/include       )
         target_link_libraries     ( ALib_UT PRIVATE  gtest                              )
     endif()
 
+    if (NOT HAVE_STD_FORMAT)
+      target_link_libraries(        ALib_UT PRIVATE fmt::fmt)
+    endif()
 
     if ( Qt5Core_FOUND )
         target_include_directories( ALib_UT PRIVATE      ${Qt5Core_INCLUDE_DIRS}       )
@@ -212,6 +202,29 @@ endif()
         target_compile_definitions( ALib_UT PRIVATE      ${Qt5Widgets_DEFINITIONS}     )
         target_link_libraries     ( ALib_UT PRIVATE      ${Qt5Widgets_LIBRARIES}       )
     endif()
+
+# -------------------------------------------------------------------------------------------------
+# Create doxygen.ini file from .cmake.ini file
+# -------------------------------------------------------------------------------------------------
+if(CMAKE_HOST_WIN32)
+    set(TEMP_DIR $ENV{TEMP})
+else()
+    set(TEMP_DIR "/tmp")
+endif()
+if(EXISTS "${TEMP_DIR}")
+    # if locks fail, obviously parallel runs of this CMake script are in place (which is normal
+    # with IDEs that perform different configurations in parallel). Thus we ignore it, as the
+    # doxygen config has to be configured only once.
+    file(LOCK "${TEMP_DIR}/alib_doxyfile.lock" TIMEOUT 0 RESULT_VARIABLE LOCK_RESULT)
+    if("${LOCK_RESULT}" STREQUAL "0")
+        message( "Configuring doxygen template (${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini)")
+        configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini"
+                        "${TEMP_DIR}/alib_doxyfile.ini" @ONLY)
+        file(LOCK "${TEMP_DIR}/alib_doxyfile_config.lock" RELEASE)
+    endif()
+ else()
+    message(WARNING "The system's temporary directory (${SYSTEM_TEMP_DIR}) was not found. Doxygen cannot be configured and documentation not be built on this machine.")
+endif()
 
 # -------------------------------------------------------------------------------------------------
 # End

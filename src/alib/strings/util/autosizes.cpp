@@ -1,19 +1,27 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#include "tokenizer.hpp"
-
-#if !DOXYGEN
-#   include "alib/strings/util/autosizes.hpp"
-#   include "alib/strings/localstring.hpp"
-#   include "alib/strings/cstring.hpp"
-#   include "alib/strings/substring.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/strings/strings.prepro.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Strings.AutoSizes;
+    import ALib.Strings.Tokenizer;
+#else
+#   include "ALib.Strings.AutoSizes.H"
+#   include "ALib.Strings.Tokenizer.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace strings { namespace util  {
 
 integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPadding )
@@ -91,9 +99,9 @@ void    AutoSizes::Import( const String& src, lang::CurrentData session  )
     dirty= false;
 
     #if ALIB_DEBUG
-    #   define PARSERROR    ALIB_WARNING(                                                          \
-            NString512("Error reading tab stops string \"") << NString512(src)            \
-                    << "\":\n   at position " << (src.Length() - parser.Length())    )
+    #   define PARSERROR    ALIB_WARNING( "STRINGS",                                               \
+            "Error reading tab stops string \"{}\":\n   at position ",                             \
+            src, src.Length() - parser.Length()       )
     #else
     #   define PARSERROR
     #endif
@@ -138,7 +146,7 @@ void    AutoSizes::Consolidate()
             actDiff= 0;
         if( entry.type == Types::Tabstop )
         {
-            // reset tab difference if (for some strange application specific reason) this
+            // reset tab difference if (for some strange application-specific reason) this
             // tab stop is smaller than the previous one. Obviously some multi-line tab stop
             // is used (does not happen for example with ALox)
             if( entry.actual > lastTabStop )

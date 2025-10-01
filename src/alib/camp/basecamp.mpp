@@ -1,0 +1,214 @@
+//==================================================================================================
+/// \file
+/// This header-file is part of the \aliblong.
+/// With supporting legacy or module builds, .mpp-files are either recognized by the build-system
+/// as C++20 Module interface files, or are included by the
+/// \ref alib_manual_modules_impludes "import/include headers".
+///
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/enumrecords/enumrecords.prepro.hpp"
+#include "alib/variables/variables.prepro.hpp"
+#include "alib/resources/resources.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+
+#include <stack>
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
+    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
+    /// or use.<br>
+    /// In general, the names equal the names of the header files listed in the chapter
+    /// \ref alib_manual_modules_impludes of the \alib User Manual.
+    /// This chapter, among others, provides further explanations.
+    export module ALib.Camp.Base;
+    import        ALib.Lang;
+#  if ALIB_MONOMEM
+    import        ALib.Monomem;
+#  endif
+    import        ALib.Singletons;
+#  if ALIB_STRINGS
+    import        ALib.Strings;
+#  endif
+#  if ALIB_BOXING
+    import        ALib.Boxing;
+#  endif
+    import        ALib.EnumRecords;
+    import        ALib.Resources;
+    import        ALib.Format;
+    import        ALib.Format.StdImplementation;
+    import        ALib.System;
+    import        ALib.Exceptions;
+    import        ALib.Variables;
+    import        ALib.Variables.IniFile;
+    import        ALib.Camp;
+#else
+#   include      "ALib.System.H"
+#   include      "ALib.Exceptions.H"
+#   include      "ALib.Format.H"
+#   include      "ALib.Variables.H"
+#   include      "ALib.Variables.IniFile.H"
+#   include      "ALib.Camp.H"
+#endif
+
+// ==========================================   Exports   ==========================================
+ALIB_EXPORT namespace alib {
+
+
+//==================================================================================================
+/// This is the reference documentation of module \alib_camp_nl of the \aliblong.<br>
+/// Besides the few entities found and documented here (namely in namespace
+/// <em>%alib::camp</em>), this module <em>"injects"</em> several overloaded versions of
+/// the function \alib{variables;CampVariable} into namespace <em>%alib::variables</em>.
+/// @see
+///   Please also consult the \ref alib_mod_camp "Programmer's Manual" of this module.
+//==================================================================================================
+namespace camp {
+
+
+// #################################################################################################
+// Variables
+// #################################################################################################
+
+/// Configuration variables of \alib.
+/// \note
+///  As required by module \alib_variables, this enumerations is equipped with
+///  \ref alib_enums_records "ALib Enum Records" of type \alib{variables;Declaration}
+///  and resourced with this module.<br>
+///  Hence, all variable categories, names, default values and such can be modified
+///  by modifying the resource data of the singleton of class \alib{camp;Basecamp}.
+enum class Variables
+{
+    LOCALE               = 1   , ///< See \ref alibcvALIB_LOCALE.
+    WAIT_FOR_KEY_PRESS   = 2   , ///< See \ref alibcvALIB_WAIT_FOR_KEY_PRESS.
+    HAS_CONSOLE_WINDOW   = 3   , ///< See \ref alibcvALIB_HAS_CONSOLE_WINDOW.
+};
+
+
+//==================================================================================================
+/// This is a strict singleton class representing module \alib_camp.
+/// The only instance is found with the namespace variable \ref alib::BASECAMP.
+///
+/// @see
+///  For detailed descriptions, please consult the chapter \ref alib_camp_basecamp of the
+///  Programmer's Manual of the module \alib_camp_nl.
+//==================================================================================================
+class Basecamp : public Camp
+{
+    public:
+        /// If \c true, within #Shutdown, it is waited for a key press in the console
+        /// window.<br>
+        /// By default, this flag is enabled when debugging a console application under Visual
+        /// Studio.<br>
+        /// This default behavior can be overruled by setting configuration variable
+        /// \ref alibcvALIB_WAIT_FOR_KEY_PRESS.<br>
+        /// In addition, this public flag may be modified at run-time (after method #Bootstrap was
+        /// invoked).
+        bool                    WaitForKeyPressOnTermination                                 =false;
+
+        /// This flag indicates if the current process has console output window attached.
+        /// While this is not detectable in Unix like systems (or just with huge efforts), in
+        /// windows it is. The determination is performed in #Bootstrap and done as follows
+        ///  - If configuration variable \b ALIB_HAS_CONSOLE_WINDOW
+        ///    is set, its value is returned.
+        ///  - Otherwise, on Unix like OS\c true is returned.
+        ///  - On Windows OS it is determined if a console window is attached to the process
+        ///    using system call \e GetConsoleWindow() and compare its result to \e NULL.
+        ///
+        /// In addition, this public flag may be modified at run-time (after method #Bootstrap was
+        /// invoked).
+        ///
+        /// \note
+        ///   The evaluation of configuration variable \b ALIB_HAS_CONSOLE_WINDOW is done
+        ///   only if module \alib_variables is included in the \alibbuild.
+        bool                    HasConsoleWindow;
+
+        /// This string is set during bootstrapping in the case that a locale information was
+        /// found (via standard environment variables or \alib variable \alib{camp::Variables;LOCALE})
+        /// and successfully set.<br>
+        /// Otherwise this string is \e nulled.
+        String                  LocaleFound;
+
+         //=========================================================================================
+        /// Constructor.<br>
+        /// While this is public, it must not be invoked as this is a strict singleton type.
+        /// (See notes in \ref alib_camp_camp).
+         //=========================================================================================
+        ALIB_DLL
+        Basecamp();
+
+        //==========================================================================================
+        /// Implementation of \alib{camp;Camp::Bootstrap}.
+        ///
+        /// In phase \alib{BootstrapPhases::Final} performs:
+        /// - In glibc versions of \alib (GNU/unix) probably invoke glibc method
+        ///   <em>setlocale()</em>, depending on the setting of the environment variables
+        ///   <em>LANG</em> and <em>LANGUAGE</em> and depending on \alib configuration variable
+        ///   \ref alibcvALIB_LOCALE.
+        ///
+        ///   In addition, invokes
+        ///   \alib{strings;TNumberFormat::SetFromLocale;NumberFormat::SetFromLocale} on static singleton
+        ///   \alib{strings;TNumberFormat::Global;NumberFormat::Global}.
+        ///
+        /// - Config variable \ref WAIT_FOR_KEY_PRESS is read and field
+        ///   #WaitForKeyPressOnTermination set accordingly.
+        //==========================================================================================
+        ALIB_DLL
+        virtual void    Bootstrap()                                                        override;
+
+        //==========================================================================================
+        /// Terminates this camp.
+        /// @param phase  The shutdown phase to perform.
+        //==========================================================================================
+        ALIB_DLL
+        virtual void    Shutdown( ShutdownPhases phase)                                    override;
+
+    // #############################################################################################
+    // Environment definition/detection
+    // #############################################################################################
+        //==========================================================================================
+        /// If \c true, the current process is under the hood of a debugger.
+        ///
+        /// @return \c true if the application is run in a debugger.
+        //==========================================================================================
+        ALIB_DLL
+        bool        IsDebuggerPresent();
+
+}; // class Basecamp
+
+} // namespace alib[::camp]
+
+/// The singleton instance of \alibcamp class \alib{camp;Basecamp}.
+extern ALIB_DLL camp::Basecamp BASECAMP;
+
+} // namespace [alib]
+
+
+
+ALIB_RESOURCED_IN_MODULE( alib::system::SystemErrors  , alib::BASECAMP, "SE" )
+ALIB_RESOURCED_IN_MODULE( alib::format::ByteSizeUnits , alib::BASECAMP, "BS" )
+ALIB_RESOURCED_IN_MODULE( alib::format::FMTExceptions , alib::BASECAMP, "FE" )
+
+ALIB_RESOURCED_IN_MODULE( alib::variables::Exceptions , alib::BASECAMP, "VARE" )
+
+DOX_MARKER([DOX_VARIABLES_DECLARATION5])
+ALIB_ENUMS_ASSIGN_RECORD( alib::camp::Variables, alib::variables::Declaration )
+ALIB_RESOURCED_IN_MODULE( alib::camp::Variables, alib::BASECAMP, "Var" )
+DOX_MARKER([DOX_VARIABLES_DECLARATION5])
+ALIB_RESOURCED_IN_MODULE( alib::variables::Priority   , alib::BASECAMP, "VarPrio" )
+
+
+
+
+
+

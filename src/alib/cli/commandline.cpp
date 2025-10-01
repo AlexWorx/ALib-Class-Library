@@ -1,33 +1,44 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/cli/commandline.hpp"
-#   include "alib/cli/cliutil.hpp"
-#   include "alib/lang/basecamp/basecamp.hpp"
-#endif // !DOXYGEN
-
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alib.inl"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.CLI;
+    import   ALib.Characters.Functions;
+#  if ALIB_STRINGS
+    import   ALib.Strings;
+#  endif
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.CLI.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib::cli {
 
 // #################################################################################################
 // CommandLine Constructor
 // #################################################################################################
 
-void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
+void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCategory )
 {
     Resources       =  resourcePool;
     ResourceCategory=  resCategory;
 
     ArgStrings.reserve( size_t(ARG_C) );
     ArgsLeft  .reserve( size_t(ARG_C) );
-
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
     #if !ALIB_CHARACTERS_WIDE
         if( ARG_VN )
@@ -76,7 +87,6 @@ void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
             }
         }
     #endif
-    ALIB_WARNINGS_RESTORE
 }
 
 // #################################################################################################
@@ -87,7 +97,7 @@ void CommandLine::ReadOptions()
 {
     // loop over all arg indices in ArgsLeft
     integer argIdx= 0;
-    while( argIdx < static_cast<integer>(ArgsLeft.size()) )
+    while( argIdx < integer(ArgsLeft.size()) )
     {
         // get arg number and string once
         auto   argNo=  ArgsLeft[size_t(argIdx)];
@@ -139,7 +149,7 @@ void CommandLine::ReadOptions()
                                 ArgsLeft.begin() + argIdx +  option->ConsumedArguments );
 
                 // move local option into the monotonic memory add to the list for this option type.
-                Options.PushBack( option );
+                Options.push_back( option );
                 continue;
             }
 
@@ -147,7 +157,7 @@ void CommandLine::ReadOptions()
             // erase args that start with '-' and put them into field OptionsIgnored.
             if( ArgsLeft.size() > 0 )
             {
-                OptionArgsIgnored.PushBack( GetArg(argNo) );
+                OptionArgsIgnored.push_back( GetArg(argNo) );
                 ArgsLeft.erase( ArgsLeft.begin() + argIdx );
             }
         }
@@ -171,7 +181,7 @@ void CommandLine::ReadNextCommands()
     {
         // create a command object and search decl with actual argument
         Command* command= allocator().New<Command>(this);
-        ALIB_ASSERT_ERROR( CommandDecls.Count() > 0,  "CLI", "No commands declared." )
+        ALIB_ASSERT_ERROR( CommandDecls.size() > 0,  "CLI", "No commands declared." )
         for( auto* commandDecl : CommandDecls )
         {
             try
@@ -188,7 +198,7 @@ void CommandLine::ReadNextCommands()
 
             if( command->ConsumedArguments > 0 )
             {
-                CommandsParsed.PushBack( command );
+                CommandsParsed.push_back( command );
                 if( NextCommandIt == CommandsParsed.end() )
                     --NextCommandIt;
                 break;
@@ -209,7 +219,7 @@ Command* CommandLine::NextCommand()
                              ArgsLeft[0], PeekArg()   );
 
         // check for no command
-        if ( CommandsParsed.IsEmpty() )
+        if ( CommandsParsed.empty() )
             throw Exception(ALIB_CALLER_NULLED,  cli::Exceptions::NoCommandGiven );
 
         return nullptr;

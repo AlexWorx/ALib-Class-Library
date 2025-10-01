@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -41,17 +41,15 @@ Therefore, we give a red signal for this rule:
 
 \attention
   As an exception to the rule, module \alib_threads_nl has to be chosen to be included
-  in an \alibdist, if a project uses multithreading. 
+  in an \alibbuild, if a project uses multithreading. 
   Thus, the choice is independent of a user's wish to use the types found in this module!
   In other words: A user might use any other library to create and manage threads. 
   Nevertheless, as soon as parallel calls into \alib are made, this module has to be included.
 
-In the case this module is used within a very limited \alibdist, please note the explanations found
-in the \ref alib_manual, chapter \ref alib_manual_bootstrapping_nocamps.
-In short, it has to be ensured that namespace functions #alib::threads::Bootstrap and
-#alib::threads::Bootstrap are duly called with the start, respectively at the end of an application,
-which is ensured if the guidelines given in the chapter linked above are followed.   
-
+It has to be ensured that namespace functions #alib::threads::bootstrap and
+#alib::threads::shutdown are duly called with the start, respectively the termination of an 
+application.
+This is done with \ref alib_mod_bs "bootstrapping the library".   
    
 # 1.2 Threading-Agnostic Software  # {#alib_threads_intro_agnostic}
 The term used in the headline of this section needs to be explained: As a general-purpose library,
@@ -61,9 +59,9 @@ To achieve this, three guidelines are followed:
 2. Only those sections that the using code cannot protect by himself have built-in protection.      
    \note As an example, container class \alib{containers;HashTable} is not protected because 
          a using code can protect interfacing with an instance by itself. 
-         On the other hand, accessing the \alib{lang::format;Formatter::Default;default formatter instance} 
+         On the other hand, accessing the \alib{format;Formatter::Default;default formatter instance} 
          is protected because it may be used internally with some higher level functionality, 
-         for example with \alib{lang;Exception::Format}.   
+         for example with \alib{exceptions;Exception::Format}.   
 3. With the exclusion of this module, all protection is pruned to maximize execution performance.
                                     
 To achieve this, some sort of "cooperation" between the core of \alib and this module is necessary.
@@ -77,13 +75,13 @@ remains there as an empty type. Usages of it are optimized out.
 "Cooperation" here is a positive wording. 
 Negatively expressed, it could be said that "the isolation rules were broken". 
 The benefit of this design decision is that all other code can use the macros and types independent 
-from the \alibdist_nl. This avoids code clutter in \alib as well as in custom code that
+from the \alibbuild_nl. This avoids code clutter in \alib as well as in custom code that
 opts in to using these features for themselves. 
  
 # 1.3 Pruning  # {#alib_threads_intro_pruning}
 This section lists entities placed in #alib::lang instead of #alib::threads
 and macros that are likewise always available regardless if this module is included in an 
-\alibdist or not. 
+\alibbuild or not. 
 If it is not included, the macros are defined <em>"empty"</em>, so that their use is pruned.
 
 Please consult the reference documentation of the listed entities for more information.
@@ -182,7 +180,7 @@ But it can! For that turn, two things are necessary:
    This condition is met, because in the case of assertions, if at least some cases are fetched,
    it is better than none.
 2. Operations have to be separated into \e writing and <em>read-only</em>-operations:<br>
-   While this sounds a little like turning the use case to one that fits C++ 17 type  
+   While this sounds a little like turning the use case to one that fits C++17 type  
    \https{std::shared_mutex,https://en.cppreference.com/w/cpp/thread/shared_mutex}, namely
    a two-level access strategy, it is not: 
    Only "raising assertions" is turned into such a use case - but not the use case of locking!    
@@ -196,7 +194,7 @@ With this theory discussed, type \alib{lang;DbgCriticalSections} can now be quic
   sections and multithreaded access. 
   For example, within \alib among such types are \ref #alib::monomem "allocators" and  
   \ref #alib::containers "container types".<br> 
-  If compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, these types conditionally derive 
+  If the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, these types conditionally derive 
   from \b DbgCriticalSections or add a corresponding member.
 - Acquirement, normal or shared, is always recursive with this debug-type. 
   Otherwise, its use would become too complicated, because, for example, the container types
@@ -227,9 +225,9 @@ With this theory discussed, type \alib{lang;DbgCriticalSections} can now be quic
   - \ref ALIB_DCS_ACQUIRE_SHARED_WITH(CS)
   - \ref ALIB_DCS_RELEASE_SHARED
   - \ref ALIB_DCS_RELEASE_SHARED_WITH(CS)
-- Finally, if module \alib_threads_nl is not included in an \alibdist_nl, then with 
-  debug-compilations, the macros above   
-  \ref #alib::DbgAssertSingleThreaded "assert single threaded use" of \alib.   
+- Finally, if module \alib_threads_nl is not included in an \alibbuild_nl, then with 
+  debug-compilations, the macros above \alib{assert;SingleThreaded;assert single threaded use} 
+  of \alib.   
                                   
 The output written with assertions should be 'clickable' inside a users' IDE.
 The default output string is optimized for \https{JetBrains CLion,www.jetbrains.com/clion} and can 
@@ -248,7 +246,7 @@ mutex has to be locked when entering a critical section.
 Class \alib{lang;DbgCriticalSections} allows receiving this knowledge. 
 This is done using \alib{lang::DbgCriticalSections;AssociatedLock}, which is a virtual struct  
 that allows answering the question about whether or not "something" is acquired. 
-With compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, the six lock types of \alib 
+With the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, the six lock types of \alib 
 inherit this interface and thus can be optionally set to member 
 \alib{lang::DbgCriticalSections;DCSLock}.
 If done, with the acquisition and release of the section, the state of the lock provided is 
@@ -258,21 +256,21 @@ Three samples introduced by other \alibmods_nl quickly demonstrate this:
 \par Sample 1:
   Unique namespace instance \alib{monomem;GLOBAL_ALLOCATOR} is accompanied by mutex
   \alib{monomem;GLOBAL_ALLOCATOR_LOCK}. 
-  During \ref alib_manual_bootstrapping "bootstrap", 
+  During \ref alib_mod_bs "bootstrap", 
   this lock is attached to the allocator instance like this:
-   \snippet "alib.cpp"                      DOX_CRITICAL_SECTIONS_ADD_LOCK
+   \snippet "bootstrap/bootstrap.cpp"           DOX_CRITICAL_SECTIONS_ADD_LOCK
 \par    
   Consequently, assertions are raised, if:
   - It is a debug-compilation,
-  - Module \alib_threads_nl is included in the distribution,      
+  - Module \alib_threads_nl is included in the \alibbuild,      
   - Compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, and
   - the \b GLOBAL_ALLOCATOR is used without prior acquisition of \b GLOBAL_ALLOCATOR_LOCK.
           
 \par Sample 2:
-  Static member \alib{lang::format;Formatter::Default} is accompanied by mutex
-  \alib{lang::format;Formatter::DefaultLock}. 
+  Static member \alib{format;Formatter::Default} is accompanied by mutex
+  \alib{format;Formatter::DefaultLock}. 
   During bootstrap, this lock is attached to the formatter instance like this:
-   \snippet "lang/basecamp/basecamp.cpp"    DOX_CRITICAL_SECTIONS_ADD_LOCK2 
+   \snippet "bootstrap/bootstrap.cpp"    DOX_CRITICAL_SECTIONS_ADD_LOCK2 
 \par    
   The consequences are the same as described above: if all preconditions are met, the use
   of the default-formatter asserts that the corresponding mutex is acquired. 
@@ -471,7 +469,7 @@ Owner Type                  | Original Macro           | Aliased Macros
 \alib{lang;OwnerShared}     | \ref ALIB_OWN_SHARED     | \ref ALIB_LOCK_SHARED <br> \ref ALIB_LOCK_SHARED_WITH
 
 The alias macros do not only increase readability, but they also prune their contents in case
-that module \alib_threads_nl is not included in the \alibdist. 
+that module \alib_threads_nl is not included in the \alibbuild. 
 Hence they support the creation of \ref alib_threads_intro_agnostic "threading-agnostic software".    
 
 \note As a background information:<br> 
@@ -499,7 +497,7 @@ their reference documentation.
  
 - #alib::threads::STD_IOSTREAMS_LOCK               
 - #alib::monomem::GLOBAL_ALLOCATOR_LOCK               
-- #alib::lang::format::Formatter::DefaultLock 
+- #alib::format::Formatter::DefaultLock 
 
 \I{################################################################################################}
 # 4. Other Types Introduced # {#alib_threads_other}

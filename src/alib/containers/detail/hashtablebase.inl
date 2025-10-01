@@ -1,35 +1,11 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_containers of the \aliblong.
+/// This header-file is part of module \alib_containers of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#ifndef HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE
-#define HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE 1
-#pragma once
-#if !defined(HPP_ALIB_MONOMEM_CONTAINERS_HASHTABLE)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
-#include "alib/lang/tmp.hpp"
-#include "alib/containers/recycler.hpp"
-#include <iterator>
-
-namespace alib::containers {
-
-
-// forward declaration of HashTable
-template< typename      TAllocator,
-          typename      TValueDescriptor,
-          typename      THash,
-          typename      TEqual,
-          lang::Caching THashCaching,
-          Recycling     TRecycling       >                  class HashTable;
-
-
-namespace detail {
-
-
+// Not exported
 #if   ALIB_SIZEOF_INTEGER == 4
     static constexpr int PRIME_TABLE_SIZE = 26;
 #elif ALIB_SIZEOF_INTEGER == 8
@@ -39,20 +15,32 @@ namespace detail {
     #error "Unknown size of integer"
 #endif
 
+// forward declaration of HashTable
+ALIB_EXPORT namespace alib::containers {
+    template< typename      TAllocator,
+              typename      TValueDescriptor,
+              typename      THash,
+              typename      TEqual,
+              lang::Caching THashCaching,
+              Recycling     TRecycling       >
+    class HashTable;
+}
+
+namespace alib::containers::detail {
 
 /// Table of prime numbers. The effective bucket size is chosen to be the first value found in
 /// this table that is equal or higher than the requested size.
-ALIB_API    extern const uinteger PRIME_NUMBERS[PRIME_TABLE_SIZE];
+ALIB_DLL    extern const uinteger PRIME_NUMBERS[PRIME_TABLE_SIZE];
 
 /// A dummy bucket used for nulled hash tables to avoid otherwise necessary checks.
-ALIB_API    extern void*    DUMMY_BUCKET;
+ALIB_DLL    extern void*          DUMMY_BUCKET;
 
 /// HashTable element type if hash codes are cached.
 /// @tparam TStored The custom data stored.
 template<typename TStored>
 struct HTElementCached   : public lang::SidiNodeBase<HTElementCached<TStored>>
 {
-    /// TMP constant that denotes that hash codes are cached.
+    /// Denotes that hash codes are cached.
     static constexpr bool   CachedHashCodes = 1;
 
     /// The custom data stored in nodes of this table.
@@ -75,7 +63,7 @@ struct HTElementCached   : public lang::SidiNodeBase<HTElementCached<TStored>>
 template<typename TStored>
 struct HTElementUncached  : public lang::SidiNodeBase<HTElementUncached<TStored>>
 {
-    /// TMP constant that denotes that hash codes are not cached.
+    /// Denotes that hash codes are not cached.
     static constexpr bool   CachedHashCodes = 0;
 
     /// The custom data stored in nodes of this table.
@@ -107,8 +95,9 @@ struct HTElementSelector
     }
 
     /// The type stored in a hash table's bucket list.
-    using Type= ATMP_IF_T_F(  IsCachingHashes(), HTElementCached  <typename TValueDescriptor::StoredType>,
-                                                 HTElementUncached<typename TValueDescriptor::StoredType> );
+    using Type= std::conditional_t< IsCachingHashes(),
+                                    HTElementCached  <typename TValueDescriptor::StoredType>,
+                                    HTElementUncached<typename TValueDescriptor::StoredType>  >;
 };
 
 //==================================================================================================
@@ -237,8 +226,9 @@ struct HashTableBase
         #endif
 
         /// Const or mutable version of HashTableBase.
-        using THashtable = ATMP_IF_T_F( !ATMP_IS_CONST(TConstOrMutable),       HashTableBase,
-                                                                         const HashTableBase  );
+        using THashtable = std::conditional_t< !std::is_const_v< TConstOrMutable>,
+                                                                 HashTableBase,
+                                                                 const HashTableBase >;
         using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
         using value_type        = TMapped                  ;  ///< Implementation of <c>std::iterator_traits</c>.
         using difference_type   = integer                  ;  ///< Implementation of <c>std::iterator_traits</c>.
@@ -265,7 +255,6 @@ struct HashTableBase
             {
                 while( pBbucketIx < pTable->bucketCount )
                 {
-                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     if( !pTable->buckets[pBbucketIx].isEmpty() )
                     {
                         bucketIdx= pBbucketIx;
@@ -273,7 +262,6 @@ struct HashTableBase
                         return;
                     }
                     ++pBbucketIx;
-                    ALIB_WARNINGS_RESTORE
                 }
                 bucketIdx= pBbucketIx;
                 element  = nullptr;
@@ -292,14 +280,12 @@ struct HashTableBase
             /// Moves an iterator with a nulled element pointer to the next element.
             void    repair()
             {
-                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 while( ++bucketIdx < table->bucketCount )
                     if( !table->buckets[bucketIdx].isEmpty() )
                     {
                         element= table->buckets[bucketIdx].first();
                         return;
                     }
-                ALIB_WARNINGS_RESTORE
             }
 
 
@@ -318,20 +304,16 @@ struct HashTableBase
             TIterator& operator=( const TIterator& other )                                = default;
 
 
-            #if DOXYGEN
-                /// Copy constructor accepting a mutable iterator.
-                /// Available only for the constant version of this iterator.
-                /// @tparam TMutable The type of this constructor's argument.
-                /// @param mutableIt Mutable iterator to copy from.
-                TMutable TIterator( const TMutable& mutableIt );
-            #else
-                ATMP_SELECT_IF_1TP( typename TMutable, ATMP_EQ( TMutable, TIterator<T> ) )
-                TIterator( const TMutable& mutableIt )
-                : table    ( mutableIt.table     )
-                , bucketIdx( mutableIt.bucketIdx )
-                , element  ( mutableIt.element   )
-                {}
-            #endif
+            /// Copy constructor accepting a mutable iterator.
+            /// Available only for the constant version of this iterator.
+            /// @tparam TMutable The type of this constructor's argument.
+            /// @param mutableIt Mutable iterator to copy from.
+            template<typename TMutable>
+            requires std::same_as<TMutable, TIterator<T>>
+            TIterator( const TMutable& mutableIt )
+            : table    ( mutableIt.table     )
+            , bucketIdx( mutableIt.bucketIdx )
+            , element  ( mutableIt.element   )                                                    {}
 
             //####################   To satisfy concept of  InputIterator   ####################
 
@@ -347,13 +329,11 @@ struct HashTableBase
 
                 while( ++bucketIdx < table->bucketCount )
                 {
-                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     if( !table->buckets[bucketIdx].isEmpty() )
                     {
                         element= table->buckets[bucketIdx].first();
                         return *this;
                     }
-                    ALIB_WARNINGS_RESTORE
                 }
 
                 element= nullptr;
@@ -474,19 +454,15 @@ struct HashTableBase
             /// @param other The iterator to assign from.
             TLocalIterator( const TLocalIterator& other )                             = default;
 
-            #if DOXYGEN
-                /// Copy constructor accepting a mutable iterator.
-                /// Available only for the constant version of this iterator.
-                /// @tparam TMutable The type of this constructor's argument.
-                /// @param mutableIt Mutable iterator to copy from.
-                TMutable TLocalIterator( const TMutable& mutableIt );
-            #else
-                ATMP_SELECT_IF_1TP( typename TMutable, ATMP_EQ( TMutable, TLocalIterator<T> ) )
-                TLocalIterator( const TMutable& mutableIt )
-                : element  ( mutableIt.element   )
-                , bucketIdx( mutableIt.bucketIdx )
-                {}
-            #endif
+            /// Copy constructor accepting a mutable iterator.
+            /// Available only for the constant version of this iterator.
+            /// @tparam TMutable The type of this constructor's argument.
+            /// @param mutableIt Mutable iterator to copy from.
+            template<typename TMutable>
+            requires std::same_as<TMutable, TLocalIterator<T>>
+            TLocalIterator( const TMutable& mutableIt )
+            : element  ( mutableIt.element   )
+            , bucketIdx( mutableIt.bucketIdx )                                                    {}
 
             /// Constructor.
             /// @param pBucketIdx   Index of the bucket this iterator works on.
@@ -641,7 +617,6 @@ struct HashTableBase
     /// @return A pointer to the element searched, respectively \c nullptr if not found.
     Element*    findElement( uinteger bucketIdx,  const TKey& key,  size_t keyHashCode )       const
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Node* result= buckets[bucketIdx].first();
         while( result)
         {
@@ -651,7 +626,6 @@ struct HashTableBase
             result= result->next();
         }
         return nullptr;
-        ALIB_WARNINGS_RESTORE
     }
 
     /// Searches the predecessor of the first element equal to \p{key} in bucket \p{bucketIdx}.
@@ -663,9 +637,7 @@ struct HashTableBase
     ///         found.
     Node*    findElementBefore( uinteger bucketIdx, size_t keyHashCode, const TKey& key )      const
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Node* result= &buckets[bucketIdx];
-        ALIB_WARNINGS_RESTORE
 
         while( result->hasNext() && !areEqual( result->next(), key, keyHashCode  ) )
             result= result->next();
@@ -683,10 +655,8 @@ struct HashTableBase
     {
         auto bucketIdx= hashCode % bucketCount;
         Node* previous= findElementBefore( bucketIdx, hashCode, TValueDescriptor().Key( element->value ) );
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( previous == nullptr )
             previous= &buckets[bucketIdx];
-        ALIB_WARNINGS_RESTORE
 
         previous->addBehind( element );
         return bucketIdx;
@@ -749,9 +719,10 @@ struct HashTableBase
     /// @param pSharedRecycler  The shared recycler hook.
     /// @param pBaseLoadFactor  The base load factor.
     /// @param pMaxLoadFactor   The maximum load factor.
+    /// @tparam TSharedRecycler  Used to select this constructor. Deduced by the compiler.
     //==============================================================================================
-    template<typename TSharedRecycler= SharedRecyclerType,
-             ATMP_T_IF(int, !ATMP_EQ(TSharedRecycler , void)) = 0 >
+    template<typename TSharedRecycler= SharedRecyclerType>
+    requires (!std::same_as<TSharedRecycler , void>)
     HashTableBase( TSharedRecycler&     pSharedRecycler,
                    float                pBaseLoadFactor = 1.0,
                    float                pMaxLoadFactor  = 2.0  )
@@ -778,11 +749,9 @@ struct HashTableBase
         // destruct entry data and delete entry objects
         for( uinteger bucketIdx= 0 ; bucketIdx < bucketCount ; ++bucketIdx )
         {
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             Element* first= buckets[bucketIdx].first();
             if ( first != nullptr )
                 recyclerType::DisposeList(first);
-            ALIB_WARNINGS_RESTORE
         }
 
         // free bucket array
@@ -844,21 +813,18 @@ struct HashTableBase
         const auto oldBucketCount= bucketCount;
 
         // adjust requested bucket count to the maximum load factor
-        newMinBucketCount= (std::max)( newMinBucketCount,
-                                       static_cast<uinteger>( static_cast<float>(size) / maxLoadFactor ) );
+        newMinBucketCount= (std::max)( newMinBucketCount, uinteger(float(size) / maxLoadFactor) );
 
         // adjust requested bucket count to next higher prime value
         {
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             int idx= 0;
             while( detail::PRIME_NUMBERS[idx] < newMinBucketCount )
                 ++idx;
             bucketCount= detail::PRIME_NUMBERS[idx];
-            ALIB_WARNINGS_RESTORE
         }
 
         ALIB_ASSERT_ERROR( bucketCount > oldBucketCount, "MONOMEM/HASHTABLE",
-                                    "Internal error: Rehashing to equal or smaller bucket count." )
+                "Internal error: Rehashing to equal or smaller bucket count." )
 
         // store new rehash trigger
         sizeLimitToRehash= integer( float(bucketCount) * maxLoadFactor );
@@ -867,11 +833,9 @@ struct HashTableBase
         FwdList elements;
         for( uinteger bucketIdx= 0 ; bucketIdx < oldBucketCount ; ++bucketIdx )
         {
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             Element* first= buckets[bucketIdx].first();
             if( first != nullptr )
                 elements.pushFront( first, buckets[bucketIdx].findLast() );
-            ALIB_WARNINGS_RESTORE
         }
 
 
@@ -890,7 +854,7 @@ struct HashTableBase
         }
 
         // recycle old array and data (make future nodes elements out of it)
-        // But this must only be done with MonoAllocator and if ALIB_DEBUG_MONOMEM is not set.
+        // But this must only be done with MonoAllocator and if ALIB_DEBUG_MEMORY is not set.
         // (This is ensured by 'TAllocator::allowsMemSplit()')
         if ( oldData != reinterpret_cast<FwdList*>( &detail::DUMMY_BUCKET ) )
             recyclerType::template RecycleChunk<FwdList>( oldData, oldBucketCount );
@@ -951,13 +915,11 @@ struct HashTableBase
         if (element != nullptr )
             return std::make_pair(TIterator<T>( this, bucketIdx, element ), false);
 
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         bucketIdx= increaseSize( 1, hashCode );
 
         Element* newElement= allocElement( hashCode );
         buckets[bucketIdx].pushFront( newElement );
         return std::make_pair(TIterator<T>( this, bucketIdx, newElement ) , true);
-        ALIB_WARNINGS_RESTORE
     }
 
     //==============================================================================================
@@ -981,16 +943,10 @@ struct HashTableBase
         // create new element
         bucketIdx= increaseSize( 1, hashCode );
         Element* newElem= allocElement( hashCode );
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         buckets[bucketIdx].pushFront( newElem );
-        ALIB_WARNINGS_RESTORE
         return std::make_pair(TIterator<T>( this, bucketIdx, newElem ), true);
     }
 
 }; // HashTableBase
 
-}} // namespace [alib::containers::detail]
-
-
-#endif // HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE
-
+} // namespace [alib::containers::detail]

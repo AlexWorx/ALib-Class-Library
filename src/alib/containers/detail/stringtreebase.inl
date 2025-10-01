@@ -1,26 +1,11 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_containers of the \aliblong.
+/// This header-file is part of module \alib_containers of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#ifndef HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE
-#define HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE 1
-#pragma once
-#if !defined(HPP_ALIB_MONOMEM_CONTAINERS_STRINGTREE)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
-
-#include "alib/containers/hashtable.hpp"
-#include "alib/lang/bidilist.hpp"
-#include "alib/strings/astring.hpp"
-#if ALIB_CAMP
-#    include "alib/lang/message/report.hpp"
-#endif
-namespace alib {  namespace containers {
-
-namespace detail {
+ALIB_EXPORT namespace alib::containers::detail {
 
 /// Base struct of \alib{containers;StringTree} providing internals.
 /// \note
@@ -34,7 +19,7 @@ namespace detail {
 /// @see For a description of the template parameters and a general introduction to the topic,
 ///      se the reference documentation of the derived derived main class
 ///      \alib{containers;StringTree}.
-template<typename TAllocator, typename  T, typename TNodeHandler, Recycling     TRecycling>
+template<typename TAllocator, typename  T, typename TNodeHandler, Recycling TRecycling>
 struct StringTreeBase
 {
     // #############################################################################################
@@ -295,16 +280,16 @@ struct StringTreeBase
         /// @return The total number of nodes deleted.
         uinteger  deleteChild( StringTreeBase* tree, NodeBase* child )
         {
-            ALIB_ASSERT_ERROR(NodeBase::qtyChildren   >  0   , "MONOMEM/STRINGTREE",
-                              "This node has no children to remove")
-            ALIB_ASSERT_ERROR(child->parent == this, "MONOMEM/STRINGTREE",
-                              "The given node is not a child of this node.")
+            ALIB_ASSERT_ERROR( NodeBase::qtyChildren   >  0,
+                "STRINGTREE",  "This node has no children to remove")
+            ALIB_ASSERT_ERROR( child->parent == this,
+                "STRINGTREE", "The given node is not a child of this node.")
 
             --qtyChildren;
             child->remove(); // remove from linked list
             auto count= child->deleteChildren( tree );
             auto handle= tree->nodeTable.Extract( *child );
-            ALIB_ASSERT( !handle.IsEmpty() )
+            ALIB_ASSERT( !handle.IsEmpty(), "STRINGTREE" )
             TNodeHandler::FreeNode( *tree, handle.Value() );
 
             return count + 1;
@@ -324,13 +309,13 @@ struct StringTreeBase
             while( child != &children.hook )
             {
                 count+=  child->deleteChildren( tree ); // recursion
-                auto handle= tree->nodeTable.Extract( *child );    ALIB_ASSERT( !handle.IsEmpty() )
+                auto handle= tree->nodeTable.Extract( *child );    ALIB_ASSERT( !handle.IsEmpty(), "STRINGTREE")
                 TNodeHandler::FreeNode( *tree, handle.Value() );
                 child= child->next();
                 --qtyChildren;
             }
             
-            ALIB_ASSERT(qtyChildren == 0)
+            ALIB_ASSERT(qtyChildren == 0, "STRINGTREE")
             children.reset();
             return count;
         }
@@ -496,13 +481,13 @@ struct StringTreeBase
     struct TCursorBase
     {
         /// Constant or mutable version of the base tree type, depending on template parameter \p{TConst}
-        using cmTree     = ATMP_IF_T_F(!TConst, StringTreeBase, const StringTreeBase );
+        using cmTree     = std::conditional_t<!TConst, StringTreeBase, const StringTreeBase>;
 
         /// Constant or mutable version of type \b NodeBase, depending on template parameter \p{TConst}
-        using cmNodeBase = ATMP_IF_T_F(!TConst,       NodeBase, const       NodeBase );
+        using cmNodeBase = std::conditional_t<!TConst,       NodeBase, const       NodeBase>;
 
         /// Constant or mutable version of type \b Node, depending on template parameter \p{TConst}
-        using cmNode     = ATMP_IF_T_F(!TConst,           Node, const           Node );
+        using cmNode     = std::conditional_t<!TConst,           Node, const           Node>;
 
 
         /// The \b %StringTree this object refers to.
@@ -606,7 +591,6 @@ struct StringTreeBase
             }
         }
 
-        #if DOXYGEN
         /// Follows the given path and creates non-existing children along the way.
         ///
         /// Child names <c>"."</c> and <c>".."</c> are allowed and respected same
@@ -615,19 +599,18 @@ struct StringTreeBase
         /// New child nodes are constructed by forwarding the given \p{args}. Existing children
         /// remain untouched.
         ///
-        /// \note This method is only available if template parameter \p{TConst} is false.
-        ///
-        /// @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
-        /// @param  path   The path to move along.
-        /// @param  args   Variadic parameters to be forwarded to the constructor of each node
-        ///                that is created.
+        /// \note This method is only available if the template parameter \p{TConst} of this
+        ///       type is \c false.
+        /// @tparam TRequires Defaulted template parameter. Must not be specified.
+        /// @tparam TArgs      Types of variadic parameters given with parameter \p{args}.
+        /// @param  path       The path to move along.
+        /// @param  args       Variadic parameters to be forwarded to the constructor of each node
+        ///                    that is created.
         /// @return A <c>std::pair</c> containing a resulting \b Node* and the number of nodes
         ///         created.
-        template<typename... TArgs, bool TEnableIf= !TConst >
-        std::pair<cmNode*, integer> followPathCreate( const NameType& path, TArgs&&... args );
-        #else
-        template<typename... TArgs, bool TEnableIf= !TConst >
-        ATMP_T_IF(std::pair<cmNodeBase* ALIB_COMMA integer>, TEnableIf)
+        template<typename... TArgs, bool TRequires= !TConst >
+        requires TRequires
+        std::pair<cmNodeBase*, integer>
         followPathCreate( const NameType& path, TArgs&&... args  )
         {
             std::pair<cmNodeBase*, integer> result= std::make_pair( node, 0 );
@@ -680,7 +663,6 @@ struct StringTreeBase
                 rest.ConsumeChars( childName.Length() + 1);
             }
         }
-        #endif // ALIB_DOX
     };  // inner class TCursorBase
 
     /// The mutable version of type \alib{containers::detail;StringTreeBase::TCursorBase<TConst>}.
@@ -708,8 +690,8 @@ struct StringTreeBase
     /// @param  pRecycler     The shared recycler.
     /// @param  pathSeparator The separation character used with path strings.
     //==============================================================================================
-    template<typename TSharedRecycler= SharedRecyclerType,
-             ATMP_T_IF(int, !ATMP_EQ(TSharedRecycler , void)) = 0 >
+    template<typename TSharedRecycler= SharedRecyclerType>
+    requires ( !std::same_as<TSharedRecycler , void> )
     StringTreeBase( TAllocator& allocator, TSharedRecycler& pRecycler, CharacterType  pathSeparator )
     : separator( pathSeparator )
     , nodeTable( allocator, pRecycler )
@@ -719,9 +701,10 @@ struct StringTreeBase
     /// Constructor taking a shared recycler.
     /// @param  pRecycler     The shared recycler.
     /// @param  pathSeparator The separation character used with path strings.
+    /// @tparam TSharedRecycler  Used to select this constructor. Deduced by the compiler.
     //==============================================================================================
-    template<typename TSharedRecycler= SharedRecyclerType,
-             ATMP_T_IF(int, !ATMP_EQ(TSharedRecycler , void)) = 0 >
+    template<typename TSharedRecycler= SharedRecyclerType>
+    requires (!std::same_as<TSharedRecycler, void>)
     StringTreeBase( TSharedRecycler& pRecycler, CharacterType  pathSeparator )
     : separator( pathSeparator )
     , nodeTable( pRecycler )
@@ -732,7 +715,7 @@ struct StringTreeBase
 
     /// Simple helper method which checks a node name for not being <c>"."</c> or <c>".."</c>
     /// and for not containing a separator character.
-    /// In debug-compilations, if it does, an \alib warning is raised.
+    /// In debug-compilations, if it does, a \ref alib_mod_assert "warning is raised".
     ///
     /// @param name  The child name to check.
     /// @return \c true if the name is legal, false otherwise.
@@ -744,7 +727,7 @@ struct StringTreeBase
                                                && name.Length() == 2 ) )   )
             || name.IndexOf( separator) >=0 )
         {
-            ALIB_WARNING( "MONOMEM/STRINGTREE", "Illegal child name {!Q}", name )
+            ALIB_WARNING( "STRINGTREE", "Illegal child name \"{}\".", name )
             return false;
         }
         return true;
@@ -753,8 +736,4 @@ struct StringTreeBase
 }; // StringTreeBase
 
 
-}}} // namespace [alib::containers::detail]
-
-
-#endif // HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE
-
+} // namespace [alib::containers::detail]

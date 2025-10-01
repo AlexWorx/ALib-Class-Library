@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -15,26 +15,36 @@
 # 1. Introduction # {#alib_characters_intro}
 
 Module \alib_characters_nl is very foundational. The main goal of the module is not to provide
-algorithms and functionality, but rather to provide clarity and consistency. Both are needed in
+algorithms and functionality but rather to provide clarity and consistency. Both are needed in
 two related areas, where the C++ language itself turns out to be a little unclear and fighting with
 legacy compatibility issues.<br>
 The two areas are <b>"characters"</b> and <b>"character arrays"</b>.
-The latter may also be called "character strings", however in the context of this module, the
+The latter may also be called "character strings", however, in the context of this module, the
 more general term "array" is preferred.
 
 As it is discussed in the next chapters, both areas, partly for historical reasons, partly due to
-the abstract nature of C++, contain some of pitfalls and difficulties in respect to creating
+the abstract nature of C++, contain some pitfalls and difficulties in respect to creating
 compatible, platform-independent and secure software.
 
-This module introduces own type definitions and "type traits" aiming to overcome the difficulties
-while still using the same strictness and clarity that a programmer is used from the C++ language.
+This module introduces its own type-traits, concepts and type aliases aiming to overcome such
+difficulties while still using the same strictness and clarity that a programmer is used from the 
+C++ language.
 
-And here, the scope of the module already ends! Further functionality is only found with
-separated modules like \alib_strings, \alib_boxing or \alib_basecamp.
-We think that the combination of the modules together form an unrivalled team and no other
-C++ library that we know of, makes character and string handling as convenient, seamless, compatible,
-readable and flexible as these.
-
+And right there, the scope of the module already ends! 
+Further functionality is only found with separated modules like \alib_strings, \alib_boxing or 
+\alib_format.
+We think that the combination of the modules together forms an unrivalled team and no other
+C++ library that we know of, makes character and string handling as convenient, seamless, 
+compatible, readable, flexible and safe as these.
+                                                                   
+For beginners in modern C++, a read of the short appendix chapter 
+\ref alib_manual_appendix_tca may be helpful for understanding the motivation of this \alibmod_nl.
+                
+As an exclamation to the rule, this \alibmod_nl has no main inclusion header. 
+Instead, most of its functionality is already imported with the header \implude{Lang}.
+Only the functions and entities discussed in chapters \ref alib_characters_nsfuncs and
+\ref alib_characters_alignedchararray have to explicitly included with the header
+\implude{Characters.Functions} 
 
 \I{################################################################################################}
 # 2. Character Types # {#alib_characters_chars}
@@ -108,7 +118,7 @@ the two types themselves are aliased once more by two further type definitions:
 - \ref alib::character and
 - \ref alib::complementChar.
 
-Depending on the compiler, the platform defaults and the compiler symbol
+Depending on the compiler, the platform defaults and the compiler-symbol
 \ref ALIB_CHARACTERS_WIDE, one of these types aliases equals \b nchar and the other \b wchar.
 
 This logical naming means that a \alib{character} is the default type for characters used with
@@ -233,12 +243,12 @@ As it was explained in the previous section, the default for GNU/Linux and GCC i
 narrow \c char type, while the library's default choice with Microsoft compiler under Windows OS
 is the using the built-in 2-byte \c wchar_t.
 
-Now, if for example, a software mixes \alib with the \https{QT Class Library,www.qt.io}
+Now, if for example, software mixes \alib with the \https{QT Class Library,www.qt.io}
 to avoid a lot of (transparent) string conversions, it would be preferable to use the same 2-byte
 wide character type that \b QT uses for its strings, independent of the platform that the software
 is compiled at.
 
-To achieve this, two compiler symbols may be passed:
+To achieve this, two compiler-symbols may be passed:
 1. \ref ALIB_CHARACTERS_WIDE<br>
    As its name indicates, this symbol controls the use of either narrow type \c char
    or any of the wide character types \c wchar_t, \c char16_t or \c char32_t as the default
@@ -251,7 +261,7 @@ To achieve this, two compiler symbols may be passed:
   With the current \alib platform implementations, by default, type \alib{characters;wchar}
   always corresponds to C++ type \c wchar_t. Type \alib{characters;xchar} consequently defaults
   to either \c char16_t or \c char32_t, just the one with the different width than \c wchar_t.<br>
-  When the use of a compiler symbol changes the width of type \alib{characters;wchar} to
+  When the use of a compiler-symbol changes the width of type \alib{characters;wchar} to
   be different to the width of \c wchar_t, then the assignment just changes: \b wchar becomes either
   \c char16_t or \c char32_t while \b xchar becomes \c wchar_t.
 
@@ -287,9 +297,9 @@ settings. For this, a few corresponding symbols are provided:
 
 
 \I{################################################################################################}
-## 3.3 Character And String Literals ## {#alib_characters_prepro_literals}
+## 3.3 Characters And String Literals ## {#alib_characters_prepro_literals}
 
-In C++, character and character string literals are enclosed in single, respectively double
+In C++, characters and character string literals are enclosed in single, respectively double
 quote characters. For character types of widths other than the single-byte type \c char,
 in addition a correspondent prefix character <c>'L'</c>, <c>'u'</c> or <c>'U'</c> is needed.
 
@@ -300,7 +310,7 @@ Let us look at some samples:
 While this code compiles, the sample is incorrect in so far, that an implicit character conversion
 is performed with the assignment of variable \b wc. This is possible, as the compiler detects
 that \b wchar_t is a wider integral than \b char.<br>
-Therefore, we switch to string literals, which create zero-terminated character arrays:
+Let us switch to string literals, which create zero-terminated character arrays:
 
 \snippet "DOX_STRINGS.cpp"     DOX_CHARACTERS_LITERALS_2
 
@@ -397,13 +407,17 @@ proposed zero-terminated strings.
   strings during the previous millennium, was one of the
   \https{most expensive one-byte mistakes,queue.acm.org/detail.cfm?id=2010365} of IT-history!
 
-A next irritating observation is about assigning string literals to const and non-const character pointers:
+While one might expect string literals to behave like normal character arrays, they are actually 
+of type <c>const char[]</c>, stored in a read-only section of memory. 
+This leads to surprising behavior:
 
         const char*  pointer2= "AB";   // OK
         char*        pointer1= "AB";   // Warning: "ISO C++11 does not allow conversion from string literal to 'char *'"
-        char         array[3]= "AB";   // OK(!)
+        char         array[3]= "AB";   // OK (!!!)
         char*        pointer3= array;  // OK, this avoided the warning from above, without using an explicit cast!
-
+               
+So why does <c>pointer3 = array;</c> work? Unlike "AB", array is a writable buffer that actually 
+holds the characters, so assigning its address to a char* is completely fine.
 
 Before we conclude, a last question: How do you detect the length of a C++ string literal provided
 in an external macro, like this:
@@ -429,97 +443,97 @@ Let us summarize what types of "character arrays" are available in the C++ core 
 Besides that, there are tons of libraries available that define their own string types.
 
 \I{################################################################################################}
-## 4.2 Character Array Type Traits ## {#alib_characters_arrays_traits}
+## 4.2 Character Array Type-Traits ## {#alib_characters_arrays_traits}
 
-The concept of "type traits" in C++ is used to annotate types with attributes that can be
-evaluated at compile type. To implement this, templated structs are used which are specialized
-for the types in question, and these specializations provide compile-time information for a type.
+The concept of "type-traits" in C++ is used to annotate types with attributes that can be
+evaluated at compile-time. To implement this, templated structs are used which are specialized
+for the types in question, containing different values and content than the original.
 
-With this \alibmod, type traits for character arrays are introduced. As described in the previous
+With this \alibmod, type-traits for <b>character arrays</b> are introduced. As described in the previous
 section, the C++ language is very unclear about how a character array "looks like" and many class
-libraries for this reason use their own lightweight or heavy string classes. The goal is to
-be able to use different sorts of character arrays in a type-safe and transparent manner.
+libraries for this reason use their own lightweight or allocating string classes. 
+The next goal of this module is to be able to use different sorts of character arrays in a type-safe 
+and transparent manner.
 
-This module introduces struct \alib{characters;T_CharArray<TString,TChar>} which offers type
+This module introduces struct \alib{characters;ArrayTraits<T,TChar>} which offers type
 traits for types that "implement" character arrays.
 
-As seen, the name of the template parameter that denotes the C++ type to provide type traits for is
-<b>"TString"</b>. This name indicates that usually character array type traits are provided for
-"string classes" (e.g., \c std::string or \c QString). Along these lines,  this documentation often
-uses the verb "to implement" in respect to the relationship of type \p{TString} and character arrays.
-This terminology may be misleading. Instead, it could also be that objects of type \p{TString}
-"represent" a character array (e.g., in respect to C++ 17 class \c std::string_view) or that types
+The types \p{T} that this traits-struct is specialized for, usually are some sort of "string-types",
+for example, class \c std::string or \c QString from the well known QT Class Library. 
+This documentation often uses the verb "to implement" in respect to the relationship of type 
+\p{T} and character arrays.
+This terminology may be misleading. Instead, it could also be that objects of type \p{T}
+"represent" a character array (e.g., in respect to C++17 class \c std::string_view) or that types
 "contain" a character array, or even create and provide one only on request.
 
-Besides template parameter \p{TString} that denotes the type to provide traits for, a second
-template parameter \p{TChar} needs to be given to denote the character type (width) of the character
-arrays that are "implemented" by
-type \p{TString}.
+Besides template parameter \p{T} that denotes the type to provide traits for, a second
+template parameter \p{TChar} needs to be given to denote the character type of character that the
+arrays that are "implemented" by type \p{T} hold.
 
 
 \I{################################################################################################}
 ## 4.3  Array Data Access ## {#alib_characters_arrays_traits_access}
 
-Specializations of \b T_CharArray need to define <c>static constexpr</c> field
-\alib{characters::T_CharArray;Access} of enumeration \alib{characters;AccessType}.
+Specializations of \b ArrayTraits need to define <c>static constexpr</c> field
+\alib{characters::ArrayTraits;Access} of enumeration \alib{characters;Policy}.
 In the non-specialized version, value \b NONE is given, which usually indicates that a type is not
 an array-like type.
-Precisely it means, that character array data cannot be accessed from instances of the type.
+Precisely it means that character array data in instances of the type cannot be accessed.
 
 Specializations usually specify one of the three other values:
 
-- \alib{characters::AccessType;Implicit}<br>
+- \alib{characters::Policy;Implicit}<br>
   This flag defines that a pointer to a character array and the array length are allowed to be
-  received from mutable or constant instances of \p{TString}, in an implicit or explicit fashion.
+  received from mutable or constant instances of \p{T}, in an implicit or explicit fashion.
   For example, if a class needed a character array for construction, an (overloaded) constructor might
-  accept an argument of type \p{TString} and implicitly access its internal array.
+  accept an argument of type \p{T} and implicitly access its internal array.
 
-- \alib{characters::AccessType;ExplicitOnly}<br>
+- \alib{characters::Policy;ExplicitOnly}<br>
   This flag indicates that the array buffer and length are allowed to be received from mutable or
-  constant instances of \p{TString}, but only in an explicit fashion.
+  constant instances of \p{T}, but only in an explicit fashion.
   For example, if a class needed a character array for construction, an (overloaded) constructor
-  might accept an argument of type \p{TString} and access its internal array.
+  might accept an argument of type \p{T} and access its internal array.
   However, such constructor had to be declared with keyword \c explicit.
 
-- \alib{characters::AccessType;MutableOnly}<br>
+- \alib{characters::Policy;MutableOnly}<br>
   This flag indicates that the array buffer and length are allowed to be received only from
-  mutable instances of \p{TString}. For example, this flag may be used for types that need to
+  mutable instances of \p{T}. For example, this flag may be used for types that need to
   perform non-constant preparations before allowing access to the character array of an instance.
 
 
 If one of the three values is given with a specialization, two static methods need to be defined
 which implement the type-specific access to the character array:
-- \alib{characters;T_CharArray::Buffer} and
-- \alib{characters;T_CharArray::Length}
+- \alib{characters;ArrayTraits::Buffer} and
+- \alib{characters;ArrayTraits::Length}
 
 While in the documentation of the two methods, the parameter \p{src} of the static access methods is of type
-<c>const TString</c>, in the case of using access flag \alib{characters::AccessType;MutableOnly},
-the method has to be defined using a mutable reference to \p{TString}.
+<c>const T</c>, in the case of using access flag \alib{characters::Policy;MutableOnly},
+the method has to be defined using a mutable reference to \p{T}.
 
 \I{################################################################################################}
 ## 4.4 Custom Object Creation From Array Data ## {#alib_characters_arrays_traits_construct}
 
-A second <c>static constexpr</c> member that a specialization of struct \b %T_CharArray
-needs to define, is field \alib{characters::T_CharArray;Construction}.
-It determines whether and how an instance of type \p{TString} may be created from existing
+A second <c>static constexpr</c> member that a specialization of struct \b %ArrayTraits
+needs to define, is field \alib{characters::ArrayTraits;Construction}.
+It determines whether and how an instance of type \p{T} may be created from existing
 character array data.
 
-The default value (the one given in the non-specialized struct) is \alib{characters::ConstructionType;NONE},
-which determines that objects of type \p{TString} cannot be created from arrays.
+The default value (the one given in the non-specialized struct) is \alib{characters::Policy;NONE},
+which determines that objects of type \p{T} cannot be created from arrays.
 Specialization here may provide:
 
-- \alib{characters::ConstructionType;Implicit}<br>
-  Allows implicit or explicit creation of values of \p{TString} from array-like objects.
-- \alib{characters::ConstructionType;ExplicitOnly}<br>
-  Allows creation of values of \p{TString} from array-like objects, but only in an explicit
+- \alib{characters::Policy;Implicit}<br>
+  Allows implicit or explicit creation of values of \p{T} from array-like objects.
+- \alib{characters::Policy;ExplicitOnly}<br>
+  Allows creation of values of \p{T} from array-like objects, but only in an explicit
   fashion.
 
-If any of the two values is set, static method \alib{characters;T_CharArray::Construct} has to be
+If any of the two values is set, static method \alib{characters;ArrayTraits::Construct} has to be
 provided with the specialization of the struct. The implementation of this method needs
-to create a value of type \p{TString} from the character array provided with the method's arguments.
+to create a value of type \p{T} from the character array provided with the method's arguments.
 
 \note
-  A reader might wonder how type traits might be used to influence whether construction of
+  A reader might wonder how type-traits might be used to influence whether construction of
   objects might be performed implicitly or explicitly, especially in the case of third party
   classes residing a library.<br>
   This irritation will be resolved with module \alib_strings.
@@ -532,36 +546,36 @@ to create a value of type \p{TString} from the character array provided with the
 
 
 \I{################################################################################################}
-## 4.4 Type Traits For Zero-Terminated Character Array ## {#alib_characters_arrays_traits_zt}
+## 4.4 Type-Traits For Zero-Terminated Character Array ## {#alib_characters_arrays_traits_zt}
 
-The type traits template struct \alib{characters;T_CharArray<TString,TChar>} introduced in the
+The type-traits template struct \alib{characters;ArrayTraits<T,TChar>} introduced in the
 previous section is used to answer questions like:
-- Is type \p{TString} implementing (or representing or containing, etc.) an array of character
+- Is type \p{T} implementing (or representing or containing, etc.) an array of character
   type \p{TChar}?
 - How can the array data be accessed?
-- May objects of type \p{TString} be constructed from character arrays? If yes, how?
+- May objects of type \p{T} be constructed from character arrays? If yes, how?
 
 And if positive answers to such questions are given, static methods
-- \alib{characters;T_CharArray::Buffer},
-- \alib{characters;T_CharArray::Length} and
-- \alib{characters;T_CharArray::Construct}
+- \alib{characters;ArrayTraits::Buffer},
+- \alib{characters;ArrayTraits::Length} and
+- \alib{characters;ArrayTraits::Construct}
 
 are to be provided along with the specialization to implement the array access, respectively
 object construction.
 
-With sibling struct \alib{characters;T_ZTCharArray<TString,TChar>}, the same compile-time information
+With sibling struct \alib{characters;ZTArrayTraits<T,TChar>}, the same compile-time information
 and method implementations are provided for <b>zero-terminated</b> character arrays.
-Apart from the prefix <b>"ZT"</b> in the TMP struct's name, which stands for "zero-terminated",
+Apart from the prefix <b>"ZT"</b> in the type trait's name, which stands for "zero-terminated",
 all rules for specializations are the very same.
 
-Of course, a type \p{TString} that represents a zero-terminated array type may (and should)
-specialize both templated traits structs. Hereby it might use different flags and implementations
+Of course, a type \p{T} that represents a zero-terminated array type may (and should)
+specialize both templated type traits. Hereby it might use different flags and implementations
 of the static methods for simple character arrays and for zero-terminated ones.
 
 \I{################################################################################################}
-## 4.5 Helper Macros To Specialize The Traits Structs ## {#alib_characters_arrays_traits_macros}
-The following C++ preprocessor macros are defined by this module to support the correct specialization
-of template traits struct \b T_CharArray:
+## 4.5 Helper Macros To Specialize the Type Traits ## {#alib_characters_arrays_traits_macros}
+The following C++ preprocessor macros are defined by this module to support the correct 
+specialization of type trait \b ArrayTraits:
 
 - \ref ALIB_CHARACTER_ARRAY
 - \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER
@@ -571,7 +585,7 @@ of template traits struct \b T_CharArray:
 - \ref ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT
 
 Again, an equal set of macros is defined to support the correct specialization of template traits
-struct \b T_ZTCharArray:
+struct \b ZTArrayTraits:
 
 - \ref ALIB_CHARACTER_ZT_ARRAY
 - \ref ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER
@@ -581,11 +595,12 @@ struct \b T_ZTCharArray:
 - \ref ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT
 
 \I{################################################################################################}
-## 4.6 Tool Struct TT_CharArrayType  ## {#alib_characters_arrays_traits_tool_arraytype}
+## 4.6 Type Aliases Type and ZTType ## {#alib_characters_arrays_traits_tool_arraytype}
 
-The fact that the C++ does not provide a distinct "character" type, implies that traits structs
-\alib{characters;T_CharArray} and \alib{characters;T_ZTCharArray} have the character type
-\p{TChar} as a second template parameter that has to be named along with the main parameter \p{TString}.<br>
+The fact that the C++ does not provide a distinct "character" type, implies that the traits-structs
+\alib{characters;ArrayTraits} and \alib{characters;ZTArrayTraits} have the character type
+\p{TChar} as a second template parameter, which has to be named along with the type to denote. 
+
 As an example, for type
 
         std::string
@@ -594,65 +609,63 @@ which is an alias to
 
         std::basic_string<char>
 
-the specialization of \b T_CharArray will be:
+the specialization of \b ArrayTraits will be:
 
-        T_CharArray<std::string, char>
+        characters::ArrayTraits<std::string, char>
 
 This sometimes imposes a little complication, at the moment that code wants to selectively compile
 based on the information that a type implements just any sort of character array, instead of a
 distinct type.
 
-For this, helper-struct \alib{characters;TT_CharArrayType} is provided. Its inner
-type definition \alib{characters::TT_CharArrayType;TChar} provides the character type that a
-given type \p{TString} implements an array for. With that, for example to test the array access
-type of \p{TString} without knowing (or caring) about the character type of the array that is
+For this, templated type-alias \alib{characters;Type} determines the character type that a
+given type \p{T} implements an array of. With that, for example, to test the array
+type of \p{T} without knowing (or caring) about the character type of the array that is
 accessed, expression
 
-        T_CharArray<TString, typename TT_CharArrayType<TString>::TChar>::Access
+        characters::ArrayTraits<T, characters::Type<T> >::Access
 
 can be used.
 
-With sibling helper-struct \alib{characters;TT_ZTCharArrayType}, the same is provided for traits
-struct \b T_CharArray.
+With sibling helper-struct \alib{characters;ZTType}, the same is provided for type-traits
+struct \b ZTArrayTraits.
 
 \I{################################################################################################}
 \I{################################################################################################}
 # 5. Built-In Character Array Traits # {#alib_characters_builtintraits}
 
 As stated before, this module \alib_characters_nl, has a very foundational nature and
-does not provide algorithms and functionality, but rather type definitions and type traits.
+does not provide algorithms and functionality, but rather type definitions and type-traits.
 The rationale for this is that several modules of \alib, especially \alib_strings and
 \alib_boxing, independently of each other benefit from the foundation provided here.
 Consequently, this module had to be independent of each.
 
-However, in the context of a custom set of string classes, the meaning of the array type traits is
-much more easy to understand. As this chapter provides information about which built-in specializations
-of the traits structs are provided (and why), we quickly want to anticipate what is found
+However, in the context of a custom set of string classes, the meaning of the array type-traits is
+much easier to understand. As this chapter provides information about which built-in specializations
+of the type traits are provided (and why), we quickly want to see what is found
 with separated module \alib_strings:
 
-- A type \alib{strings;TString<TChar>;String} representing a (not zero-terminated) character string.<br>
-  For custom types \p{TString}, this string class tests flags in specializations of
-  \alib{characters;T_CharArray;T_CharArray<TString>}:
-    - This string type is implicitly constructible by objects of \p{TString}, in case that flag \alib{characters;AccessType::Implicit} is set.
-- This string type is explicitly constructible by objects of \p{TString}, in case that flag \alib{characters;AccessType::ExplicitOnly} is set.
-- This string type is explicitly constructible by mutable objects of \p{TString}, in case that flag \alib{characters;AccessType::MutableOnly} is set.
-- Objects of type \b %String are implicitly casted to objects of type \p{TString}, in case that flag \alib{characters;ConstructionType::Implicit} is set.
-- Objects of type \b %String may be explicitly casted to objects of type \p{TString}, in case that flag \alib{characters;ConstructionType::ExplicitOnly} is set.
+- A type \alib{strings;TString<TChar>} representing a (not zero-terminated) character string.
+- For custom types \p{T}, this string class tests flags in specializations of
+  \alib{characters;ArrayTraits;ArrayTraits<T, TChar>}. With that,
+- this string type is constructible by objects of \p{T}, in the way 
+  \alib{characters;ArrayTraits::Access} specifies it.
+- Furthermore, objects of type \b %TString may be implicitly or explicitly cast to objects of  
+  type \p{T}, depending on flag \alib{characters;ArrayTraits::Construct}.
 
 In addition to that, type \alib{strings;TCString<TChar>;CString} represents a
 <b>zero-terminated</b> character string.
-The exact same rules apply to this class, but it is using the flags in specialization of \alib{characters::T_ZTCharArray} instead.
+The exact same rules apply to this class, but it is using the flags in specialization of \alib{characters::ZTArrayTraits} instead.
 Both string types, \b %String and \b %CString, are very lightweight. Both do not manage a character
 string array, they neither allocate or deallocate memory. All they do is the provision of two
 data elements, the pointer to the array and the length of the string. As such, they are similar
-to classes <c>std::string_view</c> introduced with C++ 17.<br>
+to classes <c>std::string_view</c> introduced with C++17.<br>
 A third type, class \alib{strings;TAString<TChar>;AString} implements a "heavy weight" string,
 namely one that manages its own allocated character buffer. While the character arrays of this
 class are not zero-terminated by default, the class always reserves space for a zero-termination
 character. This allows interface method \alib{strings;TAString<TChar>::Terminate;AString::Terminate}
 to be defined as a constant operation. Likewise types \b String and \b CString, the class provides
 cast operators (which may terminate the internal buffer) and allow the concatenation of
-string-like objects, again using the type traits.
+string-like objects, again using the type-traits.
 
 The combination of all of this, provides the huge gain that comes with using character array traits:
 Objects of any string type, may it be C++ string literals, <c>std::string</c> objects, \alib strings
@@ -688,62 +701,56 @@ The following table lists the access and construction traits for the three types
 |Type                |     Character Arrays                               | Zero-Terminated C. Arrays                          |Notes
 |--------------------|----------------------------------------------------|----------------------------------------------------|-----
 |<c>TChar[N]    </c> | Implicit&nbsp;Access<br>No&nbsp;Construction       | Implicit&nbsp;Access<br>No&nbsp;Construction       | The decision to allow implicit access even in the case of zero-terminated arrays (which probably are \b not zero-terminated), lies in the fact that C++ string literals are fixed length arrays which are zero-terminated. Of course, this implies that some care has to be taken when using "real" C++ character arrays with \alib strings. This conflict is unavoidable due to the C++ language definition.
-|<c>const TChar*</c> | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Implicit&nbsp;Access<br>Implicit&nbsp;Construction | Constant character pointers in C++ are "presumably" zero-terminated. This is this at least this librarie's interpretation of the C++ language standard. And this how most operating system's API calls expect a string value. Therefore, the type traits allow implicit access. Note that for the determination of the array length, <c>const TChar*</c> arrays have to be zero-terminated!<br>For the same reason, construction (here: conversion to) from non-zero-terminated arrays has to be performed explicitly, while construction from zero-terminated arrays is implicitly possible.
-|<c>TChar*      </c> | Explicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction | Mutable character pointers in C++ are "presumably" \b not zero-terminated. Therefore, the type traits demand explicit access and code that explicitly uses a mutable character pointer with method that use character traits (like the corresponding explicit constructor of class \alib{strings;TString<TChar>;String} does), needs to ensure that the array is zero-terminated.<br>Mutable character pointers should not be used in the context of character array processing. Therefore, conversions to this type is possible only in an explicit fashion.
+|<c>const TChar*</c> | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Implicit&nbsp;Access<br>Implicit&nbsp;Construction | Constant character pointers in C++ are "presumably" zero-terminated. This is this at least this librarie's interpretation of the C++ language standard. And this how most operating system's API calls expect a string value. Therefore, the type-traits allow implicit access. Note that for the determination of the array length, <c>const TChar*</c> arrays have to be zero-terminated!<br>For the same reason, construction (here: conversion to) from non-zero-terminated arrays has to be performed explicitly, while construction from zero-terminated arrays is implicitly possible.
+|<c>TChar*      </c> | Explicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction | Mutable character pointers in C++ are "presumably" \b not zero-terminated. Therefore, the type-traits demand explicit access and code that explicitly uses a mutable character pointer with method that use character traits (like the corresponding explicit constructor of class \alib{strings;TString<TChar>} does), needs to ensure that the array is zero-terminated.<br>Mutable character pointers should not be used in the context of character array processing. Therefore, conversions to this type is possible only in an explicit fashion.
 
 \note
   Confusion might occur in respect to zero-termination: It is only possible to access character array data
   represented by a plain character pointer (mutable or constant), if the array is zero-terminated.
   This is independent of whether a zero-terminated array is requested or not!<br>
   For example, pointers to character arrays are allowed to be passed to the constructor of class
-  \alib{strings;TString<TChar>;String} only if the array provided is zero-terminated, even while
+  \alib{strings;TString<TChar>} only if the array provided is zero-terminated, even while
   class \b %String does not use zero-termination itself. This is because the determination of the
-  array length, which is performed by specialized methods \alib{characters::T_CharArray;Length}
-  of TMP structs \alib{characters;T_CharArray} and \alib{characters;T_ZTCharArray}, is searching
+  array length, which is performed by specialized methods \alib{characters::ArrayTraits;Length}
+  of type traits \alib{characters;ArrayTraits} and \alib{characters;ZTArrayTraits}, is searching
   for the termination character.<br>
   In other words: passing a pointer to a non-zero-terminated character array to the constructor
   of class \b %String is <b>undefined behavior!</b><br>
   All that the character array traits in respect to plain pointer types can do is to provide a
   hint about whether it could be expected that a pointer points to a zero-terminated array or not.
   The recommendation of avoiding the use of plain pointer types remains the same.
-  The character array type traits introduced by this \alibmod_nl cannot fix the general problem.
+  The character array type-traits introduced by this \alibmod_nl cannot fix the general problem.
   It just eases the use of pointers in unavoidable cases, for example with the operating system API
   calls or processing the zero-terminated string arguments of function <c>main()</c>.
 
 Unlike the default definitions for types of the standard C++ library and other 3rd-party types
 (as documented in the next chapters), the built-in definitions for these three types are not
-selected by the inclusion of an optional header file. Instead, these definitions are fixed
+selected by the inclusion of an optional header-file. Instead, these definitions are fixed
 and not customizable.
 
 \I{################################################################################################}
 ## 5.2 Standard C++ Library Types ## {#alib_characters_builtintraits_std}
 \note
-  The built-in (default) specializations of the character array traits structs for the string types
-  of the C++ standard library are optional and available with the inclusion of header file
+  The built-in (default) specializations of the character array type traits for the string types
+  of the C++ standard library are optional and available with the inclusion of the header-file
   \c alib/compatibility/chararray_std.hpp.
 
 
 The C++ standard library provides templated class <c>std::basic_string<TChar></c> which implements
-a heavy weight string (aka a string type that allocates heap memory for the string data).
-The corresponding lightweight class, <c>std::basic_string_view<TChar></c> is only available with C++
-version 17. In addition, character arrays are implemented with class \c std::vector<TChar>.
+a heavyweight string (aka a string type that allocates heap memory for the string data).
+The corresponding lightweight class, <c>std::basic_string_view<TChar></c> became only available 
+with C++ version 17. In addition, character arrays are implemented with class \c std::vector<TChar>.
 
 The usual approach of this module is to allow implicit creation of lightweight string classes
-from character arrays, while heavy-weight string types need to be created explicitly.
-However, this approach is not possible here: At the moment that C++ 17 is active and this way class
-\c std::string_view becomes available, the standard library performs some TMP code that allows
-implicit creations of type \c std::string with internal conversions using the lightweight type!
+from character arrays, while heavyweight string types need to be created explicitly.
+However, this approach is not possible here: The standard library performs some TMP code allowing
+the implicit creations of type \c std::string with internal conversions using the lightweight type!
 Hence, the implicit creation cannot be avoided if in parallel we want to allow type
 \c std::string_view to be implicitly created. Because of this, the definition is made as follows:
-- With C++ version 17 or higher in place, the conversion of character arrays to type \c std::string
-  is defined explicit, because otherwise an ambiguity would occur. However, effectively implicit
-  creation is allowed due to the TMP programming of the standard library.
-- With C++ version 11 or 14 (when \c std::string_view is not in place), the creation of
-  class \c std::string from character arrays is defined to be implicit.
-  This is done in favor to have compilations of the library behave compatible independent
-  from the availability of the type \c std::string_view.
-- Creation of type \c std::vector<TChar> is defined to be explicit.
-
+The conversion of character arrays to type \c std::string is defined explicit, because otherwise 
+an ambiguity would occur. However, effectively implicit creation is allowed due to the template 
+programming of the standard library. 
+The creation of type \c std::vector<TChar> is defined to be explicit.
 
 In respect to character access of non zero-terminated arrays, all three classes allow implicit access.
 Access to a zero-terminated character array is still implicitly done with type <c>std::string</c>
@@ -751,17 +758,17 @@ as this class terminates their buffer anyhow when it is accessed with method \c 
 For classes \c std::string_view and \c std::vector, such access is to be made explicitly, as usually
 these types do not represent zero-terminated strings.
 
-The definitions for the three types is summarized in the following table:
+The definitions for the three types are summarized in the following table:
 
 |Type             |  Character Arrays                               | Zero-Terminated C. Arrays
 |-----------------|-------------------------------------------------|-------------------------------------------------
 |\c std::string_view | Implicit&nbsp;Access<br>Implicit&nbsp;Construction | Explicit&nbsp;Access<br>Implicit&nbsp;Construction
-|\c std::string      | Implicit&nbsp;Access<br>Explicit&nbsp;Construction (Effectively becomes implicit due to the TMP implementation of the type itself)   | Implicit&nbsp;Access<br>Explicit&nbsp;Construction (Effectively becomes implicit due to the TMP implementation of the type itself)
+|\c std::string      | Implicit&nbsp;Access<br>Explicit&nbsp;Construction (Effectively becomes implicit due to the implementation of the type itself)   | Implicit&nbsp;Access<br>Explicit&nbsp;Construction (Effectively becomes implicit due to implementation of the type itself)
 |\c std::vector      | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 
 
 \note
-  Of course, corresponding specializations of TMP structs \b T_CharArray and \b T_ZTCharArray
+  Of course, corresponding specializations of type traits \b ArrayTraits and \b ZTArrayTraits
   are made for the three classes and for all three character widths, \alib{nchar}, \alib{wchar} and \alib{xchar}.
   Therefore, altogether 18 specializations are made.
 
@@ -775,12 +782,12 @@ The definitions for the three types is summarized in the following table:
 
 \note
   Character array traits for types of the \https{QT Class Library,www.qt.io} is optional
-  and available with the inclusion of header file \c alib/compatibility/chararray_qt.hpp.<br>
+  and available with the inclusion of header-file \c alib/compatibility/chararray_qt.hpp.<br>
   The rationale for choosing these traits definitions are similar to those discussed in the
   previous chapters and therefore not repeated here.
 
 
-The following character array type traits are made for string and character array
+The following character array type-traits are made for string and character array
 types of the \https{QT Class Library,www.qt.io}:
 
 |Type             |  Character Arrays                               | Zero-Terminated C. Arrays
@@ -791,25 +798,33 @@ types of the \https{QT Class Library,www.qt.io}:
 |\c QByteArray    | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 |\c QVector<uint> | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 
-If module \alib_strings is included in the \alibdist, in addition to these type traits, the
-inclusion of header file alib/compatibility/chararray_qt.hpp provides a specialization of
-\alib{strings;T_Append} for \b QT type \b QChar.
+If module \alib_strings is included in the \alibbuild, in addition to these type-traits, the
+inclusion of header-file alib/compatibility/chararray_qt.hpp provides a specialization of
+\alib{strings;AppendableTraits} for \b QT type \b QChar.
 
 
 \I{################################################################################################}
 \I{################################################################################################}
-# 6. Helper-Types # {#alib_characters_helpers}
+# 6. Further Helpers # {#alib_characters_helpers}
 
-In addition to the type definitions, type traits structs and helper-struct
-\alib{characters;TT_CharArrayType} discussed in detail in the previous manual chapters, the
-types listed below are available with this module.
+Besides the type traits, concepts and type aliases, namely
+- #alib::characters::ArrayTraits,
+- #alib::characters::ZTArrayTraits,
+- #alib::characters::IsArray,
+- #alib::characters::IsZTArray,
+- #alib::characters::Type, and
+- #alib::characters::ZTType,
+ 
+which were discussed in detail in the previous chapters, the following entities are available 
+with this module:
 
-Please consult the reference documentation of these types for more information:
+- #alib::characters::IsCharacter,
+- #alib::characters::TypeBySize,
+- #alib::characters::ComplementType, and
+- #alib::characters::ArrayLength.
 
-- \alib{characters;TT_CharOfSize}
-- \alib{characters;TT_IsChar}
-- \alib{characters;TT_ComplementChar}
-- \alib{characters;AlignedCharArray}
+Please consult their reference documentation for more information.
+
 
 \I{################################################################################################}
 # 7. Namespace Functions # {#alib_characters_nsfuncs}
@@ -819,13 +834,13 @@ common algorithms working on arrays of arbitrary character types.
 All functions have templated type \p{TChar}, which in most cases is deduced by the compiler
 and thus does not need to be given.     
 
-The functions are similar to what is found with traits struct 
+The functions are similar to what is found with type traits 
 \https{std::char_traits,en.cppreference.com/w/cpp/string/char_traits}. 
-While some functions are just inline wrappers to specializations of this this struct, 
-versions that do no exist in the standard were added. 
+While some functions are just inline wrappers to specializations of this struct, 
+versions that do not exist in the standard were added. 
 
 \I{################################################################################################}
-# 8. Class AlignedCharArray # {#alib_characters_alginedchararray}
+# 8. Class AlignedCharArray # {#alib_characters_alignedchararray}
 
 Finally this small but very important \alibmod_nl introduces class 
 \alib{characters;AlignedCharArray}. 

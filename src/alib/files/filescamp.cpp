@@ -1,20 +1,44 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/boxing/boxing.prepro.hpp"
+#include "alib/camp/camp.prepro.hpp"
+#include "alib/files/files.prepro.hpp"
 
-#if !DOXYGEN
-#   include "alib/lang/resources/resources.hpp"
-#   include "alib/files/ftree.hpp"
-#   include "alib/files/filescamp.hpp"
-#   include "alib/enums/serialization.hpp"
-#   include "alib/enums/recordbootstrap.hpp"
-#   include "alib/lang/format/fwds.hpp"
-#endif // !DOXYGEN
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Files;
+    import   ALib.Lang;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.Format;
+#  if ALIB_EXPRESSIONS
+    import   ALib.Expressions;
+#  endif
+    import   ALib.Camp;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.Format.H"
+#   include "ALib.Expressions.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Files.H"
+#endif
+// ======================================   Implementation   =======================================
 ALIB_BOXING_VTABLE_DEFINE( alib::files::File               , vt_files_cursor    )
 
 
@@ -27,21 +51,19 @@ namespace files {
 FilesCamp::FilesCamp()
 : Camp( "FILES" )
 {
-    ALIB_ASSERT_ERROR( this == &FILES, "FILES",
-        "Instances of class FILES must not be created. Use singleton alib::FILES" )
+    #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
+      ALIB_ASSERT_ERROR( this == &FILES, "FILES",
+          "Instances of class FILES must not be created. Use singleton alib::FILES" )
+    #endif
 }
 
 
-void FilesCamp::bootstrap( BootstrapPhases phase )
+void FilesCamp::Bootstrap()
 {
-    if( phase == BootstrapPhases::PrepareResources )
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
     {
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_cursor       )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::files::File )
-        alib::boxing::BootstrapRegister<alib::lang::format::FFormat,
-                                        alib::boxing::TMappedTo<files::File> >( FFormat_File );
         #define EOS ,
-#if !ALIB_RESOURCES_OMIT_DEFAULTS
+#if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
         "FT",            A_CHAR("0,Directory"          ",1,"
@@ -170,39 +192,19 @@ void FilesCamp::bootstrap( BootstrapPhases phase )
 
         // end of BootstrapBulk()
         nullptr );
-#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
-
-
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Types             )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames1Letter  )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames2Letters )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames3Letters )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Qualities )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Qualities3Letters )
-
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_perms  )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_type   )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_type1  )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_type2  )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_type3  )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_qual   )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_qual3  )
-                                                                             
+#endif // !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
 
         // parse enum records
-        EnumRecords<files::FInfo::Types            >::Bootstrap( *this, "FT"  );
-        EnumRecords<files::FInfo::TypeNames1Letter >::Bootstrap( *this, "FT1" );
-        EnumRecords<files::FInfo::TypeNames2Letters>::Bootstrap( *this, "FT2" );
-        EnumRecords<files::FInfo::TypeNames3Letters>::Bootstrap( *this, "FT3" );
-        EnumRecords<files::FInfo::Qualities        >::Bootstrap( *this, "FQ"  );
-        EnumRecords<files::FInfo::Qualities3Letters>::Bootstrap( *this, "FQ3" );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::Types            >( *this, "FT"  );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::TypeNames1Letter >( *this, "FT1" );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::TypeNames2Letters>( *this, "FT2" );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::TypeNames3Letters>( *this, "FT3" );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::Qualities        >( *this, "FQ"  );
+        enumrecords::bootstrap::Bootstrap<files::FInfo::Qualities3Letters>( *this, "FQ3" );
     }
 
-    else if( phase == BootstrapPhases::PrepareConfig )
-    {}
-
-    else if( phase == BootstrapPhases::Final )
-    {}
+    else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )    {}
+    else if( GetBootstrapState() == BootstrapPhases::Final )            {}
 }
 
 

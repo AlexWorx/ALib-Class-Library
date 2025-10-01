@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Tools: DoxygenGraphTemplateInstanceRemover
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #   More information is found in ALib documentation.
@@ -15,7 +15,7 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    cmake_minimum_required( VERSION 3.20.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
     project( "DoxygenGraphTemplateInstanceRemover" )
 
     # this defaults to a release version!
@@ -35,9 +35,11 @@
 ## include ALib/ALox base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    list( APPEND  ALIB_DISTRIBUTION  "ALOX"         )
-    list( APPEND  ALIB_DISTRIBUTION  "FILES"        )
-    list( APPEND  ALIB_DISTRIBUTION  "EXPRESSIONS"  )
+    list( APPEND  ALIB_BUILD  "ALOX"         )
+    list( APPEND  ALIB_BUILD  "FILES"        )
+    list( APPEND  ALIB_BUILD  "EXPRESSIONS"  )
+    set( ALIB_SINGLE_THREADED           "On" )
+
     include( ${CMAKE_CURRENT_LIST_DIR}/../../build/cmake/ALib.cmake )
 
 

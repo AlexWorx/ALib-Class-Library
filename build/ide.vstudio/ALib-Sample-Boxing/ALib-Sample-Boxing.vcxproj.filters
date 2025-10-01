@@ -9,7 +9,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\samples\Boxing\sample.cpp">
+    <ClCompile Include="..\..\..\src.samples\Boxing\sample.cpp">
       <Filter>Boxing</Filter>
     </ClCompile>
   </ItemGroup>

@@ -53,64 +53,64 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -213,11 +213,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -229,11 +230,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -245,11 +247,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_DEBUG=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=($ProjDir)\..\..\..;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -261,12 +264,13 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -279,12 +283,13 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -297,12 +302,13 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_DEBUG=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -317,11 +323,12 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -337,11 +344,12 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -357,12 +365,13 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -378,12 +387,13 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;2317</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -393,12 +403,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\samples\CLI\sample.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ALib-DLL\ALib-DLL.vcxproj">
       <Project>{2c2c70da-bc59-49f0-9c1b-2db5bb2cd50e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src.samples\CLI\sample.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

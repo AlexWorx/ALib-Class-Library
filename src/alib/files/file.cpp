@@ -1,29 +1,50 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-#include "alib/files/ftree.hpp"
-#include "alib/alox.hpp"
-#include "alib/lang/basecamp/camp_inlines.hpp"
-#include "alib/enums/serialization.hpp"
-#include "alib/lang/system/calendar.hpp"
-#include "alib/lang/format/bytesize.hpp"
-#include "alib/strings/astring.hpp"
-
-
-#if ALIB_DEBUG
-#      include "alib/lang/format/formatter.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
 #endif
-
-#if !defined ( _WIN32 )                          
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/files/files.prepro.hpp"
+#if !defined ( _WIN32 )
 #   include <pwd.h>
 #   include <grp.h>
 #endif
+#include "ALib.Compatibility.StdStrings.H"
 
-using namespace alib::lang::system;
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Files;
+    import   ALib.Lang;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Strings.Calendar;
+#  if ALIB_EXPRESSIONS
+    import   ALib.Expressions;
+#  endif
+#  if ALIB_DEBUG
+#       include "ALib.Format.H"
+#  endif
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Calendar.H"
+#   include "ALib.Expressions.H"
+#   if ALIB_DEBUG
+#     include "ALib.Format.H"
+#   endif
+#   include "ALib.Files.H"
+#endif
+// ======================================   Implementation   =======================================
+using namespace alib::system;
 namespace alib::files {
 
 AString&  File::FormatAccessRights(AString& target)                                            const
@@ -43,17 +64,17 @@ AString&  File::FormatAccessRights(AString& target)                             
                     "This method is not compatible due to changes in the permission enumeration." );
 
     target._<CHK>(""); // ensure valid target
-    char result[9];
-    char chars[3] = {'r', 'w', 'x'};
-    int bit       = 0400;
-    int charIdx   = 0;
+    std::array<char, 9> result;
+    std::array<char, 3> chars = {'r', 'w', 'x'};
+    int bit          = 0400;
+    size_t charIdx   = 0;
     while( bit )
     {
         result[charIdx]= perms & bit ? chars[charIdx % 3] : '-';
         charIdx++;
         bit >>= 1;
     }
-    target << NString(const_cast<const char*>(result), 9);
+    target << result;
 
     // This is the naive version that would not need the assertion above
     // target << (  (perms & FInfo::Permissions::OWNER_READ  ) == FInfo::Permissions::OWNER_READ    ? 'r'   : '-' )
@@ -83,10 +104,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
     while ( format.IsNotEmpty() )
     {
         Box                toBeAdded;     // A box that most probably is set during the switch below. It will
-                                          // be added potentially embedded in a Format::Field.
+                                          // be added potentially embedded in a TField.
         bool               isUpper=false; // if set during run, the result string will be converted to upper case
         AString            strBuffer;     // A string that might be filled and assigned to the result box (toBeAdded).
-        lang::system::Path pathBuffer;   // A path that might be filled and assigned to the result box (toBeAdded).
+        system::Path pathBuffer;   // A path that might be filled and assigned to the result box (toBeAdded).
 
         // read n equal characters
         int   n=  1;
@@ -127,9 +148,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
 
                     default:
                     {
-                        ALIB_WARNING( "ALIB",
-                                  "Format Error: Token 'n' followed by unknown specifier {!Q'} in File::Format.", c )
-                        target << "Format Error: Token 'n' followed by unknown specifier '" << c << "' in File::Format.";
+                        ALIB_WARNING( "ALIB",  "Format Error: Token 'n' followed by unknown "
+                                               "specifier '{}' in File::Format.", c )
+                        target << "Format Error: Token 'n' followed by unknown specifier '" << c
+                               << "' in File::Format.";
                         return target;
                     }
                 }
@@ -172,9 +194,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                     case 'a' : toBeAdded= (value.IsArtificialFS() ? 'm' : '-') ; break;
                     default:
                     {
-                        ALIB_WARNING( "ALIB",
-                                  "Format Error: Unknown character {} after token 'f' in File::Format.", c )
-                        target << "Format Error: Unknown character '" << c << "' after token 'f' in File::Format.";
+                        ALIB_WARNING( "ALIB", "Format Error: Unknown character {} after "
+                                              "token 'f' in File::Format.", c )
+                        target << "Format Error: Unknown character '" << c
+                               << "' after token 'f' in File::Format.";
                         return target;
                     }
                 }
@@ -201,8 +224,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                     default:
                     {
                         ALIB_WARNING( "ALIB",
-                                  "Format Error: Unknown character {} after token 'd' in File::Format.", c )
-                        target << "Format Error: Unknown character '" << c << "' after token 'd' in File::Format.";
+                                  "Format Error: Unknown character {} after token 'd' "
+                                  "in File::Format.", c )
+                        target << "Format Error: Unknown character '" << c
+                               << "' after token 'd' in File::Format.";
                         return target;
                     }
                 }
@@ -235,7 +260,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                     }
                     else
                     {
-                        enums::Parse( format, unit );
+                        enumrecords::Parse( format, unit );
                         automaticMode= false;
                     }
 
@@ -255,14 +280,14 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                     ByteSizeIEC bs( value.Size() );
                     auto dval= bs.ConvertTo(unit);
                     if( unit==ByteSizeUnits::B || unit ==ByteSizeUnits::B_SI )
-                        strBuffer << alib::Format( uinteger(dval), 0, ftreeNF);
+                        strBuffer << alib::Dec( uinteger(dval), 0, ftreeNF);
                     else
-                        strBuffer << alib::Format(          dval , 0, ftreeNF);
+                        strBuffer << alib::Dec(          dval , 0, ftreeNF);
                 }
                 else
                 {
                     // automatic output (automatically determine magnitude)
-                    lang::format::FormatByteSize( strBuffer, value.Size(), 900, 0, unit, *ftreeNF );
+                    format::FormatByteSize( strBuffer, value.Size(), 900, 0, unit, *ftreeNF );
                 }
                 toBeAdded= strBuffer;
                 break;
@@ -277,8 +302,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 if( c != 'i' && c != 'n' )
                 {
                     ALIB_WARNING( "ALIB",
-                              "Format Error: Expected 'i' or 'n' specifier after token 'o' and 'g'. Given: {}" )
-                    target << "Format Error: Expected 'i' or 'n' specifier after token 'o' and 'g'. Given: '" << c << "'";
+                              "Format Error: Expected 'i' or 'n' specifier after token 'o' and 'g'."
+                              " Given: '{}'", n )
+                    target << "Format Error: Expected 'i' or 'n' specifier after token 'o' and 'g'."
+                              " Given: '" << c << "'";
                     return target;
                 }
                 bool isName= (c == 'n');
@@ -319,8 +346,10 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                     default:
                     {
                         ALIB_WARNING( "ALIB",
-                                  "Format Error: Token 'r' followed by unknown specifier {!Q'} in File::Format", c )
-                        target << "Format Error: Token 'r' followed by unknown specifier '" << c << "'in File::Format";
+                                  "Format Error: Token 'r' followed by unknown specifier '{}' "
+                                  "in File::Format", c )
+                        target << "Format Error: Token 'r' followed by unknown specifier '" << c
+                               << "'in File::Format";
                         return target;
                     }
                 }
@@ -371,7 +400,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
             format.ConsumeChar();
             format.ConsumeInt( width, &GetFTree().GetNumberFormat() );
             format.ConsumeChar(',');
-            enums::Parse( format, alignment );
+            enumrecords::Parse( format, alignment );
             if( format.ConsumeChar() != '}' )
             {
                 ALIB_WARNING( "ALIB",
@@ -379,7 +408,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 target << "Format Error: Expected closing brace '}' with field specifier {width/alignment}.";
                 return target;
             }
-                target <<  Format::Field( toBeAdded, width, alignment );
+                target <<  Field( toBeAdded, width, alignment );
         }
         else
             target << toBeAdded;
@@ -404,20 +433,20 @@ void FFormat_File( const alib::Box& box, const alib::String& formatSpec, alib::N
 } // namespace alib::files
 
 //==================================================================================================
-// struct T_Append<File>
+// struct AppendableTraits<File>
 //==================================================================================================
 #if !DOXYGEN
 
 namespace alib::strings {
 
-void T_Append<files::File,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const files::File& file )
+void AppendableTraits<files::File,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const files::File& file )
 {
     Path path;
     file.AssemblePath( path );
     target << path << file.GetFTree().Separator() << file.Name();
 }
 
-void T_Append<files::File,wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>& target, const files::File& file )
+void AppendableTraits<files::File,wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>& target, const files::File& file )
 {
     Path path;
     file.AssemblePath( path );
@@ -425,4 +454,4 @@ void T_Append<files::File,wchar, lang::HeapAllocator>::operator()( TAString<wcha
 }
 
 } // namespace [alib::strings]
-#endif // ALIB_DOX
+#endif // DOXYGEN

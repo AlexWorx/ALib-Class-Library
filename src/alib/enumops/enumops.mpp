@@ -1,0 +1,44 @@
+//==================================================================================================
+/// \file
+/// This header-file is part of the \aliblong.
+/// With supporting legacy or module builds, .mpp-files are either recognized by the build-system
+/// as C++20 Module interface files, or are included by the
+/// \ref alib_manual_modules_impludes "import/include headers".
+///
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/enumops/enumops.prepro.hpp"
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
+    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
+    /// or use.<br>
+    /// In general, the names equal the names of the header files listed in the chapter
+    /// \ref alib_manual_modules_impludes of the \alib User Manual.
+    /// This chapter, among others, provides further explanations.
+    export module ALib.EnumOps;
+    import        ALib.Lang;
+#else
+#   include      "ALib.Lang.H"
+#endif
+
+// ==========================================   Exports   ==========================================
+#include "alib/enumops/underlyingintegral.inl"
+#include "alib/enumops/arithmetical.inl"
+#include "alib/enumops/bitwise.inl"
+#include "alib/enumops/iterable.inl"
+#include "alib/enumops/iterablebitset.inl"
+#include "alib/enumops/bitwise_iterable_conversion.inl"
+
+ALIB_ENUMS_MAKE_BITWISE( alib::lang::Phase )
+
+

@@ -1,16 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/expressions/detail/program.hpp"
-#   include "alib/expressions/compilerplugin.hpp"
-#endif // !DOXYGEN
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
+#include "ALib.Monomem.StdContainers.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#else
+#   include "ALib.Expressions.Impl.H"
+#   include "ALib.Strings.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace expressions { namespace detail {
 
 //! @cond NO_DOX
@@ -34,7 +47,7 @@ using Command= VirtualMachine::Command;
 Program::Program( Compiler& pCompiler, ExpressionVal&  pExpression, MonoAllocator* ctAlloc )
 : compiler           ( pCompiler   )
 , expression         ( pExpression )
-, ctNestedExpressions( pExpression.allocator )
+, ctNestedExpressions( getExpressionAllocator(pExpression) )
 , qtyOptimizations   ( HasBits( compiler.CfgCompilation, Compilation::NoOptimization )
                        ? -1 : 0 )
 , compileStorage     ( ctAlloc ? (*ctAlloc)().New<CompileStorage>(*ctAlloc) : nullptr )
@@ -59,7 +72,6 @@ struct Assembly
     StdVectorMono<VirtualMachine::Command*>& assembly;
     StdVectorMono<VM::PC                  >& resultStack;
 
-    ALIB_FORCE_INLINE
     Assembly( StdVectorMono<VirtualMachine::Command*>& pAssembly,
               StdVectorMono<VM::PC                  >& pResultStack )
     : assembly   ( pAssembly )
@@ -67,16 +79,14 @@ struct Assembly
 
     /// Returns the current last command.
     /// @return A reference to the last command.
-    ALIB_FORCE_INLINE
     integer length()
     {
-        return static_cast<integer>(assembly.size());
+        return integer(assembly.size());
     }
 
     /// Returns the command at the given program counter \p{pc}.
     /// @param  pc  The program counter of the command to get.
     /// @return A reference to the requested command.
-    ALIB_FORCE_INLINE
     VM::Command& at( VM::PC pc )
     {
         return *assembly[size_t(pc)];
@@ -84,7 +94,6 @@ struct Assembly
 
     /// Returns the current last command.
     /// @return A reference to the last command.
-    ALIB_FORCE_INLINE
     VM::Command& act()
     {
         return *assembly.back();
@@ -92,7 +101,6 @@ struct Assembly
 
     /// Returns the current last command.
     /// @return A reference to the last command.
-    ALIB_FORCE_INLINE
     VM::Command& prev()
     {
         return **( assembly.end() - 2 );
@@ -100,14 +108,12 @@ struct Assembly
 
     /// Returns the number of the last command.
     /// @return The current size of the program minus \c 1.
-    ALIB_FORCE_INLINE
     VM::PC actPC()
     {
         return static_cast<VM::PC>( assembly.size() - 1);
     }
 
     /// Removes the last command.
-    ALIB_FORCE_INLINE
     void eraseLast()
     {
         assembly.pop_back();
@@ -115,7 +121,6 @@ struct Assembly
 
     /// Removes a command.
     /// @param pc The command to remove.
-    ALIB_FORCE_INLINE
     void erase( VM::PC pc )
     {
         assembly.erase( assembly.begin() + pc );
@@ -125,7 +130,6 @@ struct Assembly
     /// Removes range of commands.
     /// @param begin The first command to remove.
     /// @param end   The first command that is not removed.
-    ALIB_FORCE_INLINE
     void erase( VM::PC begin, VM::PC end )
     {
         assembly.erase( assembly.begin() + begin,
@@ -139,7 +143,6 @@ struct Assembly
     /// @param  args    Variadic arguments forwarded to the command's constructor.
     /// @return The command inserted.
     template<typename... TArgs>
-    ALIB_FORCE_INLINE
     VM::Command&  insertAt( VM::PC pc, TArgs && ... args )
     {
         auto* cmd= assembly.get_allocator().AI().New<VM::Command>(std::forward<TArgs>( args )... );
@@ -152,7 +155,6 @@ struct Assembly
     /// @param  args    Variadic arguments forwarded to the command's constructor.
     /// @return The command inserted.
     template<typename... TArgs>
-    ALIB_FORCE_INLINE
     VM::Command& add( TArgs && ... args )
     {
         assembly.emplace_back( assembly.get_allocator().AI().New<VM::Command>( std::forward<TArgs>( args )... ) );
@@ -161,28 +163,24 @@ struct Assembly
 
 
     /// Pushes the current PC to the result stack.
-    ALIB_FORCE_INLINE
     void pushResultPC()
     {
         resultStack.push_back( actPC() );
     }
 
     /// Pops one from the result stack.
-    ALIB_FORCE_INLINE
     void popResultPC()
     {
         resultStack.pop_back();
     }
 
     /// Returns a mutable reference to the top of the stack of result positions.
-    ALIB_FORCE_INLINE
     VM::PC & resultPC()
     {
         return resultStack.back();
     }
 
     /// Returns a mutable reference to the 2nd.-top of the stack of result positions.
-    ALIB_FORCE_INLINE
     VM::PC & lhsResultPC()
     {
         return resultStack[resultStack.size() - 2];
@@ -190,7 +188,6 @@ struct Assembly
 
     /// Returns the program counter that identifies the start of the range that results in the
     /// current LHS value.
-    ALIB_FORCE_INLINE
     VM::PC lhsResultStartPC()
     {
         auto qtyResults = resultStack.size();
@@ -199,7 +196,7 @@ struct Assembly
     }
 };
 } // anonymous namespace
-#endif // ALIB_DOX
+#endif // DOXYGEN
 
 // #################################################################################################
 // Assemble commands
@@ -213,7 +210,7 @@ struct Assembly
 
 bool Program::collectArgs( integer qty )
 {
-    auto& stack= expression.ctScope->Stack;
+    auto& stack= getExpressionCTScope(expression)->Stack;
     ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() >= size_t( qty < 0 ? 0 : qty ),
             "EXPR",    "Internal error. This should never happen." ) // not enaugh arguments on the stack
 
@@ -241,7 +238,8 @@ void Program::AssembleConstant( Box& value, integer idxInOriginal, integer idxIn
     Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
-    prg.add( VM::Command( value.IsType<String>() ?  String( expression.allocator, value.Unbox<String>() )
+    prg.add( VM::Command( value.IsType<String>() ?  String( getExpressionAllocator(expression),
+                                                            value.Unbox<String>() )
                                                  :  value,
                           false, idxInOriginal, idxInNormalized  )  );
     prg.pushResultPC();
@@ -291,21 +289,21 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
             }
             catch( Exception& e )
             {
-                if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
+                if( e.Type().Integral() == integer( Exceptions::NamedExpressionNotFound ) )
                 {
                     e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT ,
                            nestedExpressionName );
                 }
                 else
                 {
-                    ALIB_ERROR( "EXPR", "Unknown exception {!Q}.", e.Type() )
+                    ALIB_ERROR( "EXPR", "Unknown exception \"{}\".", e.Type() )
                 }
                 throw;
             }
 
             ctNestedExpressions.emplace_back(nested);
 
-            prg.act()= VM::Command( nested->GetProgram(),
+            prg.act()= VM::Command( static_cast<detail::Program*>(nested->GetProgram()),
                                     nested->ResultType(),
                                     compiler.CfgNestedExpressionFunction.GetDefinitionName(),
                                     idxInOriginal, idxInNormalized                       );
@@ -339,7 +337,7 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
     bool allAreConstant= collectArgs(qtyArgs);
 
     compileStorage->FunctionsWithNonMatchingArguments.Clear();
-    CompilerPlugin::CIFunction cInfo( *expression.ctScope,
+    CompilerPlugin::CIFunction cInfo( *getExpressionCTScope(expression),
                                       compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                       functionName, isIdentifier,
                                       allAreConstant,
@@ -347,7 +345,7 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
 
     try
     {
-        for( auto& ppp : compiler.plugins )
+        for( auto& ppp : getCompilerPlugins(compiler) )
         {
             if( !ppp.plugin->TryCompilation( cInfo ) )
                 continue;
@@ -359,14 +357,14 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
                     ++qtyOptimizations;
 
                 // remove constant vm commands, add new and update result stack
-                if( expression.ctScope->Stack->size() == 0 )
+                if( getExpressionCTScope(expression)->Stack->size() == 0 )
                 {
                     prg.add( VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized ) );
                     prg.pushResultPC();
                 }
                 else
                 {
-                    for( auto i= expression.ctScope->Stack->size() - 1; i > 0 ; --i )
+                    for( size_t i= getExpressionCTScope(expression)->Stack->size() - 1; i > 0 ; --i )
                     {
                         prg.eraseLast();
                         prg.popResultPC();
@@ -382,15 +380,15 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
 
             // function
             prg.add( cInfo.Callback, isIdentifier, qtyArgs, cInfo.TypeOrValue,
-                     String(expression.allocator, functionName), false,
+                     String(getExpressionAllocator(expression), functionName), false,
                      idxInOriginal, idxInNormalized                                  );
 
             // update result type stack
-            if( expression.ctScope->Stack->size()== 0 )
+            if( getExpressionCTScope(expression)->Stack->size()== 0 )
                 prg.pushResultPC();
             else
             {
-                for( auto i= expression.ctScope->Stack->size() - 1; i > 0 ; --i )
+                for( size_t i= getExpressionCTScope(expression)->Stack->size() - 1; i > 0 ; --i )
                     prg.popResultPC();
                 prg.resultPC()= prg.actPC();
             }
@@ -429,8 +427,8 @@ void Program::AssembleFunction( AString& functionName , bool isIdentifier, int q
     // create function exception
     String128 arguments;
     arguments.DbgDisableBufferReplacementWarning();
-    compiler.WriteFunctionSignature( expression.ctScope->Stack->begin(),
-                                     expression.ctScope->Stack->end(), arguments );
+    compiler.WriteFunctionSignature( getExpressionCTScope(expression)->Stack->begin(),
+                                     getExpressionCTScope(expression)->Stack->end(), arguments );
 
     Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownFunction, functionName, arguments );
 
@@ -463,7 +461,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
     // Nested expressions
     if(    HasBits( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
         && opReference == compiler.CfgNestedExpressionOperator
-        && expression.ctScope->Stack->back().IsType<String>() )
+        && getExpressionCTScope(expression)->Stack->back().IsType<String>() )
     {
         if( !prg.at(compileStorage->ResultStack.back()).IsConstant() ) // must not use bool allAreConstant here!
         {
@@ -473,7 +471,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
             throw e;
         }
 
-        String expressionName= expression.ctScope->Stack->back().Unbox<String>();
+        String expressionName= getExpressionCTScope(expression)->Stack->back().Unbox<String>();
         Expression nested;
         try
         {
@@ -481,12 +479,12 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         }
         catch( Exception& e )
         {
-            if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
+            if( e.Type().Integral() == integer( Exceptions::NamedExpressionNotFound ) )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT,
                        expressionName );
             else
             {
-                ALIB_ERROR( "EXPR", "Unknown exception {!Q}.", e.Type() )
+                ALIB_ERROR( "EXPR", "Unknown exception \"{}\".", e.Type() )
             }
             throw;
         }
@@ -498,10 +496,10 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                 op= globalAliasIt->first;
 
         ctNestedExpressions.emplace_back(nested);
-        prg.act()= VM::Command( nested->GetProgram(),
-                               nested->ResultType(),
-                               op,
-                               idxInOriginal, idxInNormalized  );
+        prg.act()= VM::Command( static_cast<detail::Program*>(nested->GetProgram()),
+                                nested->ResultType(),
+                                op,
+                                idxInOriginal, idxInNormalized  );
         return;
     }
 
@@ -511,12 +509,12 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         for( int pass= 0; pass < 2 ; ++pass )
         {
             isConstant= collectArgs(1);
-            CompilerPlugin::CIUnaryOp cInfo( *expression.ctScope,
+            CompilerPlugin::CIUnaryOp cInfo( *getExpressionCTScope(expression),
                                              compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                              opReference, isConstant );
 
             // search plug-ins
-            for( auto& ppp : compiler.plugins )
+            for( auto& ppp : getCompilerPlugins(compiler) )
             {
                 if( !ppp.plugin->TryCompilation( cInfo ) )
                     continue;
@@ -553,11 +551,11 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                 break;
 
             // try auto cast
-            CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+            CompilerPlugin::CIAutoCast ciAutoCast( *getExpressionCTScope(expression),
                                                    compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                                    op,
                                                    prg.at( prg.resultPC() ).IsConstant(), false );
-            for( auto& pppAutoCast : compiler.plugins )
+            for( auto& pppAutoCast : getCompilerPlugins(compiler) )
             {
                 if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
                     continue;
@@ -618,7 +616,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
 
 
     // not found
-    Exception e( ALIB_CALLER_NULLED, Exceptions::UnaryOperatorNotDefined, op, compiler.TypeName( expression.ctScope->Stack[0] )  );
+    Exception e( ALIB_CALLER_NULLED, Exceptions::UnaryOperatorNotDefined, op, compiler.TypeName( getExpressionCTScope(expression)->Stack[0] )  );
     e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal );
     throw e;
 }
@@ -655,13 +653,13 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
         bool lhsIsConstant= prg.at(prg.lhsResultPC()).IsConstant() && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization );
         bool rhsIsConstant= prg.at(prg.   resultPC()).IsConstant() && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization );
 
-        CompilerPlugin::CIBinaryOp cInfo(  *expression.ctScope,
+        CompilerPlugin::CIBinaryOp cInfo(  *getExpressionCTScope(expression),
                                            compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                            opReference, lhsIsConstant, rhsIsConstant );
 
         try
         {
-            for( auto& ppp : compiler.plugins )
+            for( auto& ppp : getCompilerPlugins(compiler) )
             {
                 if( !ppp.plugin->TryCompilation( cInfo ) )
                     continue;
@@ -737,13 +735,13 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
 
             // try auto cast (we do this even if types are equal )
             triedToAutoCast= true;
-            CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+            CompilerPlugin::CIAutoCast ciAutoCast( *getExpressionCTScope(expression),
                                                    compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                                    op,
                                                    prg.at( prg.lhsResultPC() ).IsConstant(),
                                                    prg.at( prg.   resultPC() ).IsConstant()   );
 
-            for( auto& pppAutoCast : compiler.plugins )
+            for( auto& pppAutoCast : getCompilerPlugins(compiler) )
             {
                 if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
                     continue;
@@ -906,7 +904,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
     {
         collectArgs(2);
         String condOp= A_CHAR("Q?T:F");
-        CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+        CompilerPlugin::CIAutoCast ciAutoCast( *getExpressionCTScope(expression),
                                                compileStorage->ConditionalStack.get_allocator().GetAllocator(),
                                                condOp,
                                                prg.at( prg.lhsResultPC() ).IsConstant(),
@@ -914,7 +912,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
         bool found= false;
         try
         {
-            for( auto& ppp : compiler.plugins )
+            for( auto& ppp : getCompilerPlugins(compiler) )
                 if( ppp.plugin->TryCompilation( ciAutoCast ) )
                 {
                     if( !ciAutoCast.TypeOrValue.IsType<void>() )
@@ -1061,15 +1059,13 @@ void Program::AssembleFinalize()
 
     // copy the program from the temporary vector to a simple array, allocated with the
     // compile-time scope's allocator.
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    commandsCount= static_cast<integer>( compileStorage->Assembly.size() );
-    commands= expression.allocator().AllocArray<VM::Command>(compileStorage->Assembly.size() );
+    commandsCount= integer( compileStorage->Assembly.size() );
+    commands= getExpressionAllocator(expression)().AllocArray<VM::Command>(compileStorage->Assembly.size() );
     auto* cmd= commands;
     for( auto* it : compileStorage->Assembly )
         new ( cmd++ ) VM::Command(*it);
 
     compileStorage= nullptr;
-    ALIB_WARNINGS_RESTORE
 }
 
 #undef ASSERT_ASSEMBLE

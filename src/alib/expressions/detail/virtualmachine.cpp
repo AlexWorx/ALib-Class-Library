@@ -1,33 +1,48 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
+#include <vector>
+#include <stack>
+#include "ALib.Boxing.H"
 
-#if !DOXYGEN
-#   include "alib/expressions/detail/virtualmachine.hpp"
-#   include "alib/lang/format/paragraphs.hpp"
-#   include "alib/expressions/compilerplugin.hpp"
-#   include "alib/expressions/detail/program.hpp"
-#   include "alib/expressions/detail/ast.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#endif // !DOXYGEN
-
-#include "alib/containers/hashtable.hpp"
-#include "alib/lang/callerinfo_functions.hpp"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#if ALIB_DEBUG
+#    include "ALib.Format.Paragraphs.H"
+#endif
+#else
+#   include "ALib.Expressions.Impl.H"
+#   if ALIB_DEBUG
+#     include "ALib.Format.Paragraphs.H"
+#   endif
+#   include "ALib.Expressions.H"
+#endif
+// ======================================   Implementation   =======================================
+ALIB_BOXING_VTABLE_DEFINE( alib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
 
 namespace alib {  namespace expressions { namespace detail {
-
 
 VirtualMachine::Command::Command( Program* program, const Box& resultType, const String& functionOrOp,
                                   integer idxOriginal, integer idxNormalized          )
 : bits            ( int16_t(OpCodes::Subroutine) | int16_t(ListingTypes::NestedExpression) )
 , Parameter       ( program )
 , ResultType      ( resultType )
-, ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
-                      + static_cast<uinteger>(idxOriginal  )  )
+, ExpressionPositions( (uinteger(idxNormalized) << (bitsof(integer)/2)) + uinteger(idxOriginal)  )
 , DecompileSymbol ( functionOrOp )
 {}
 
@@ -36,24 +51,24 @@ VirtualMachine::Command::Command( Program* program, const Box& resultType, const
 #if ALIB_DEBUG
 #   define NORMPOS_IN_EXPR_STR  (cmd.ExpressionPositions >> (bitsof(integer)/2 )    )
 #endif
-
+#   include "ALib.Lang.CIFunctions.H"
 // #################################################################################################
 // Run()
 // #################################################################################################
 Box  VirtualMachine::Run( Program& program, Scope& scope )
-{ALIB_DCS_WITH(scope.dcs)
+{ALIB_DCS_WITH(scope.DCS)
     // If the scope.Stack is empty, this indicates, that this is an 'external' call and not a
     // subroutine.
-    scope.reset();
+    scope.Reset();
 
     // attach the compile-time scope to the evaluation scope.
-    scope.vmMembers->CTScope= program.expression.ctScope;
+    scope.EvalScopeVMMembers->CTScope= getExpressionCTScope(program.expression);
 
     // run
     run( program, scope );
 
     // detach ct-scope
-    scope.vmMembers->CTScope=  nullptr;
+    scope.EvalScopeVMMembers->CTScope=  nullptr;
 
     // Remove top element from the stack and return its result.
     Box result= scope.Stack->back();
@@ -62,7 +77,7 @@ Box  VirtualMachine::Run( Program& program, Scope& scope )
 }
 
 void  VirtualMachine::run( Program& program, Scope& scope )
-{ALIB_DCS_WITH(scope.dcs)
+{ALIB_DCS_WITH(scope.DCS)
 
     ALIB_DBG( using DCT= Command::ListingTypes; )
     ALIB_DBG( auto initialStackSize= scope.Stack->size(); )
@@ -70,7 +85,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
     auto& stack= *scope.Stack;
 
     // check circular calls
-    auto& nestedExpressions= scope.vmMembers->NestedExpressions;
+    auto& nestedExpressions= scope.EvalScopeVMMembers->NestedExpressions;
     for( auto* nestedExpression : nestedExpressions )
         if( nestedExpression == &program.expression )
         {
@@ -111,20 +126,20 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                                                     stack.end()  ) );
 
                         ALIB_ASSERT_ERROR( cmd.ResultType.IsSameType(stack.back()), "EXPRVM",
-                               "Result type mismatch during command execution:\n"
-                               "       In expression: {!Q} {{{}}}\n"
-                               "              Plugin: {}\n"
-                               "          Identifier: {} ({})\n"
-                               "       Expected type: {!Q<>} (aka {})\n"
-                               "         Result type: {!Q<>} (aka {})\n"
-                               "        Result value: {}\n",
-                               program.expression.Name(),
-                               program.expression.GetNormalizedString(),
-                               cmd.DbgInfo.Plugin->Name,
-                               cmd.DecompileSymbol, cmd.DbgInfo.Callback,
-                               program.compiler.TypeName( cmd.ResultType ), cmd.ResultType.TypeID(),
-                               program.compiler.TypeName( stack.back()   ), stack.back()  .TypeID(),
-                               stack.back()                                 )
+                           "Result type mismatch during command execution:\n"
+                           "       In expression: \"{}\" {{{}}}\n"
+                           "              Plugin: {}\n"
+                           "          Identifier: {} ({})\n"
+                           "       Expected type: <{}> (aka {})\n"
+                           "         Result type: <{}> (aka {})\n"
+                           "        Result value: {}\n",
+                           program.expression.Name(),
+                           program.expression.GetNormalizedString(),
+                           cmd.DbgInfo.Plugin->Name,
+                           cmd.DecompileSymbol, cmd.DbgInfo.Callback,
+                           program.compiler.TypeName( cmd.ResultType ), &cmd.ResultType.TypeID(),
+                           program.compiler.TypeName( stack.back()   ), &stack.back()  .TypeID(),
+                           stack.back()                                 )
                     }
 
                     // otherwise, we assign the position to the value of the first arg in the stack and
@@ -166,7 +181,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                     case DCT::OptimizationConstant:
                                         ALIB_ERROR("EXPRVM", "Must not be set with function calls")
                                         break;
-                                    default: ALIB_ERROR("Illegal switch state.") break;
+                                    default: ALIB_ERROR("EXPR", "Illegal switch state." ) break;
                                 }
 
                                 String512 msg;
@@ -265,7 +280,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                         {
                             // not found? -> remove name parameter from stack and use result of
                             // second parameter.
-                            if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
+                            if( e.Type().Integral() == integer( Exceptions::NamedExpressionNotFound ) )
                             {
                                 stack.erase( stack.end() - 2 );
                                 break;
@@ -280,7 +295,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                         }
 
                         // 3rd parameter "throw" was given
-                        if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
+                        if( e.Type().Integral() == integer( Exceptions::NamedExpressionNotFound ) )
                             e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundET,
                                    nestedExpressionName         );
                         else
@@ -289,7 +304,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                         throw;
                     }
 
-                    run( * dynamic_cast<Program*>(nested.Get()->GetProgram()), scope);
+                    run( * static_cast<Program*>(nested.Get()->GetProgram()), scope);
 
                     if( !(stack.end()-2)->IsSameType(stack.back()) )
                     {
@@ -311,7 +326,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
 
                 break;
 
-            default: ALIB_ERROR("Illegal switch state.") break;
+            default: ALIB_ERROR("EXPR", "Illegal switch state." ) break;
         }
         ALIB_WARNINGS_RESTORE
         ALIB_WARNINGS_RESTORE
@@ -323,22 +338,22 @@ void  VirtualMachine::run( Program& program, Scope& scope )
     // This assertion should never happen. It indicates rather a library error than an
     // erroneous plug-in.
     ALIB_ASSERT_ERROR( stack.size() == initialStackSize + 1, "EXPRVM",
-                       "Internal error: Stack increased by {} (instead of 1) after run of expression program.",
-                        stack.size() - initialStackSize      )
+           "Internal error: Stack increased by {} (instead of 1) after run of expression program.",
+           stack.size() - initialStackSize      )
 
     // Usually a function did not return what it is defined to return.
     ALIB_ASSERT_ERROR( program.ResultType().IsSameType(stack.back()), "EXPRVM",
-                       "Wrong result type of program execution:\n"
-                       "   Expected Type: {!Q<>} (aka {})\n"
-                       "     Result Type: {!Q<>} (aka {})\n"
-                       "    Result value: {}\n"
-                       "   In expression: {!Q}"
-                       ,
-                       program.compiler.TypeName( program.ResultType() ), program.ResultType().TypeID(),
-                       program.compiler.TypeName( stack.back()         ), stack.back()        .TypeID(),
-                       stack.back(),
-                       program.expression.Name()
-                     )
+           "Wrong result type of program execution:\n"
+           "   Expected Type: <{}> (aka {})\n"
+           "     Result Type: <{}> (aka {})\n"
+           "    Result value: {}\n"
+           "   In expression: \"{}\""
+           ,
+           program.compiler.TypeName( program.ResultType() ), &program.ResultType().TypeID(),
+           program.compiler.TypeName( stack.back()         ), &stack.back()        .TypeID(),
+           stack.back(),
+           program.expression.Name()
+         )
 }
 
 // #################################################################################################
@@ -378,13 +393,13 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
                     ASTFunction* node= allocator().New<ASTFunction>(cmd.DecompileSymbol, positionInExpression, allocator );
                     for( integer i= 0 ; i< 2 ; ++i )
                     {
-                        node->Arguments.Emplace( node->Arguments.begin(), Arg );
+                        node->Arguments.emplace( node->Arguments.begin(), Arg );
                         PopNode;
                     }
 
                     // if nullptr, third parameter "throw"
                     if( cmd.Parameter.NestedProgram != nullptr )
-                        node->Arguments.EmplaceBack(
+                        node->Arguments.emplace_back(
                             allocator().New<ASTIdentifier>( String(allocator, program.compiler.CfgNestedExpressionThrowIdentifier),
                                                             positionInExpression ) );
 
@@ -404,7 +419,7 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
 
             case Command::OpCodes::Constant:
             {
-                ASTLiteral* node= allocator().New<ASTLiteral>( static_cast<integer>(0), positionInExpression );
+                ASTLiteral* node= allocator().New<ASTLiteral>( integer(0), positionInExpression );
                 node->Value= cmd.ResultType;
                 PushNode(node);
             }
@@ -439,7 +454,7 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
                 ASTFunction* node= allocator().New<ASTFunction>(cmd.DecompileSymbol, positionInExpression, allocator );
                 for( integer i= 0 ; i< cmd.QtyArgs() ; ++i )
                 {
-                    node->Arguments.Emplace( node->Arguments.begin(), Arg );
+                    node->Arguments.emplace( node->Arguments.begin(), Arg );
                     PopNode;
                 }
 
@@ -458,7 +473,7 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
             }
             break;
 
-            default: ALIB_ERROR("Illegal switch state.") break;
+            default: ALIB_ERROR("EXPR", "Illegal switch state.") break;
         }
         ALIB_WARNINGS_RESTORE
         ALIB_WARNINGS_RESTORE
@@ -481,9 +496,11 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
     #undef Arg
 
     ALIB_ASSERT_ERROR( nodeStack.size() == 1, "EXPRVM",
-        "VM AST generation error: NodeImpl stack must contain one element. Elements: {}", nodeStack.size())
+        "VM AST generation error: NodeImpl stack must contain one element. Elements: {}",
+        nodeStack.size())
     ALIB_ASSERT_ERROR( conditionalStack.size() == 0, "EXPRVM",
-        "VM Program List error: Conditional stack after listing not 0 but {}", conditionalStack.size())
+        "VM Program List error: Conditional stack after listing not 0 but {}",
+        conditionalStack.size())
 
     return nodeStack.back();
 }
@@ -503,8 +520,8 @@ void writeArgPositions(AString& target, std::vector<VirtualMachine::PC>& resultS
     {
         target << (argNo == qtyArgs ? "" : ", ")
                << (qtyArgs-argNo) << "{"
-               << ( static_cast<integer>(resultStack.size()) == argNo ? 0
-                                                                      : *(resultStack.end() - argNo - 1) + 1 )
+               << ( integer(resultStack.size()) == argNo ? 0
+                                                         : *(resultStack.end() - argNo - 1) + 1 )
                << ".."  << *(resultStack.end() - argNo )
                << "}";
     }
@@ -522,7 +539,7 @@ AString VirtualMachine::DbgList( Program& program )
 
     Paragraphs text;
     text.LineWidth=0;
-    text.Formatter= program.expression.ctScope->Formatter;
+    text.Formatter= getExpressionCTScope(program.expression)->Formatter;
     text.Formatter->Reset(); // reset autosizes
 
     // repeat the whole output until its size is stable and all auto-tabs are set
@@ -542,7 +559,6 @@ AString VirtualMachine::DbgList( Program& program )
         text.LineWidth= 0;
         NString hdlKey= "ProgListHdl";
 
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Box hdlArgs[10];
         hdlArgs[0]= fmtLine;
         NString64 hdlKeyNumbered(hdlKey);
@@ -558,8 +574,6 @@ AString VirtualMachine::DbgList( Program& program )
         text.LineWidth= text.DetectedMaxLineWidth;
             text.AddMarked("@HL-");
         text.LineWidth= 0;
-        ALIB_WARNINGS_RESTORE
-
 
         #define FMT(qtyArgs)                                                                       \
         { if( cmd.DbgInfo.Plugin )                                                                 \
@@ -675,7 +689,7 @@ AString VirtualMachine::DbgList( Program& program )
                         case DCT::OptimizationConstant:
                             ALIB_ERROR("EXPRVM", "Must not be set with function calls")
                             break;
-                        default: ALIB_ERROR("Illegal switch state.") break;
+                        default: ALIB_ERROR("EXPR", "Illegal switch state.") break;
                     }
                     if( descr.IsNotNull() )
                         description << descr << ' ' << decSym << cmd.DecompileSymbol << decSym;
@@ -707,7 +721,7 @@ AString VirtualMachine::DbgList( Program& program )
                 }
                 break;
 
-                default: ALIB_ERROR("Illegal switch state.") break;
+                default: ALIB_ERROR("EXPR", "Illegal switch state.") break;
             }
             ALIB_WARNINGS_RESTORE
             ALIB_WARNINGS_RESTORE
@@ -738,8 +752,8 @@ AString VirtualMachine::DbgList( Program& program )
              resultStack.size(), text.Buffer )
 
         ALIB_ASSERT_ERROR( lastLineWidth!= 0 || conditionalStack.size() == 0, "EXPRVM",
-            "VM Program List error: Conditional stack after listing not 0 but {}.Listing follows.\n",
-             conditionalStack, text.Buffer )
+            "VM Program List error: Conditional stack after listing not 0 but {}. Listing follows.\n",
+             conditionalStack.size(), text.Buffer )
     } // main loop
 
     return std::move(text.Buffer);
@@ -759,4 +773,4 @@ AString VirtualMachine::DbgList( Program& program )
 #undef Arg
 
 }}} // namespace [alib::expressions::detail]
-#include "alib/lang/callerinfo_methods.hpp"
+#   include "ALib.Lang.CIMethods.H"

@@ -1,19 +1,30 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#include "alib/threadmodel/trigger.hpp"
-#include "alib/enums/serialization.hpp"
-#include "alib/monomem/globalallocator.hpp"
-
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alib.inl"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ThreadModel;
+#  if ALIB_MONOMEM
+    import   ALib.Monomem;
+#  endif
+#else
+#   include "ALib.Monomem.H"
+#   include "ALib.ThreadModel.H"
+#endif
+// ======================================   Implementation   =======================================
 using namespace std::literals::chrono_literals;
-
-
 namespace alib::threadmodel {
 
 
@@ -52,14 +63,16 @@ void Trigger::Add(Triggered& triggered, bool initialWakeup)
         Ticks now;
         if(!isExisting )
         { ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
-            triggerList.EmplaceBack( &triggered,
+            triggerList.emplace_back( &triggered,
                                      now + ( initialWakeup ? Ticks::Duration()
                                                            : triggered.triggerPeriod() )  );
         }
         else
-            ALIB_WARNING( "MGTHR", NString256() <<
-               "Duplicate registration of triggered object \"" << triggered.Name << "\"." )
-
+#if ALIB_STRINGS
+            ALIB_WARNING( "MGTHR", "Duplicate registration of triggered object \"{}\".",
+                                    triggered.Name )
+#endif
+            ALIB_WARNING( "MGTHR", "Duplicate registration of triggered object." )
 
     // Wake us (thread manager) up and perform a first trigger
     wakeUpCondition= true;
@@ -76,7 +89,7 @@ void Trigger::Remove(Triggered &triggered)
             if(it->Target == &triggered)
             {
                 found= true;
-                triggerList.Erase(it);
+                triggerList.erase(it);
                 break;
             }
         }
@@ -85,15 +98,18 @@ void Trigger::Remove(Triggered &triggered)
     // check
     if(!found)
     {
-        ALIB_MESSAGE("MGTHR", NString256( "Managed thread \"" )
-                             << triggered.Name
-                             << "\" not found for de-registering with trigger list" )
+        #if ALIB_STRINGS
+            ALIB_MESSAGE("MGTHR",
+             "Managed thread \"{}\" not found for de-registering with trigger list", triggered.Name)
+        #else
+            ALIB_MESSAGE("MGTHR", "Managed thread not found for de-registering with trigger list")
+        #endif
     }
 }
 
 void Trigger::Run()
 {
-    ALIB_MESSAGE("MGTHR",  "Internal trigger-thread started")
+    ALIB_MESSAGE( "MGTHR",  "Internal trigger-thread started" )
     internalThreadMode= true;
 
     while(internalThreadMode)
@@ -101,7 +117,7 @@ void Trigger::Run()
 
     internalThreadMode= false;
 
-    ALIB_MESSAGE("MGTHR", "Internal trigger-thread exiting" )
+    ALIB_MESSAGE( "MGTHR", "Internal trigger-thread exiting" )
 }
 
 void Trigger::Stop()

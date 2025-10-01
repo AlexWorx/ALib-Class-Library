@@ -1,17 +1,31 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#include "alib/threadmodel/threadpool.hpp"
-#include "alib/threads/thread.hpp"
-#include "alib/strings/localstring.hpp"
-#include "alib/alox.hpp"
-
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alib.inl"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ThreadModel;
+#  if ALIB_STRINGS
+    import   ALib.Strings;
+#  endif
+    import   ALib.Boxing;
+#else
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.ThreadModel.H"
+#endif
+// ======================================   Implementation   =======================================
 using namespace std::literals::chrono_literals;
 
 
@@ -21,11 +35,23 @@ struct PWorker : protected Thread
 {
     friend class ThreadPool;
     ThreadPool&  tp;
-    PWorker(ThreadPool& ptp, const String& threadName) : Thread(threadName ), tp(ptp) {}
+#if ALIB_STRINGS
+    String16     nameBuffer;
+    PWorker(ThreadPool& ptp, const character* threadName )
+    : Thread(threadName)
+    , tp(ptp)
+    , nameBuffer(threadName)
+    { SetName(nameBuffer); } // fix the name to local pointer
+#else
+    PWorker(ThreadPool& ptp )
+    : Thread("Poolworker")
+    , tp(ptp)
+    {}
+#endif
 
-    void Run()                                                                             override
+    void Run()                                                                              override
     {
-        ALIB_MESSAGE("MGTHR", NString256( "PWorker \"") << GetName() << "\" is running" )
+        ALIB_MESSAGE("MGTHR", "PWorker \"{}\" is running", GetName() )
         for (;;)
         {
             // await next job. Break if null.
@@ -39,9 +65,9 @@ struct PWorker : protected Thread
                 goto CONTINUE;
 
             // not processed!
-            ALIB_ERROR( "MGTHR", NString512()
-                << "Job of type <" << queueEntry.job->ID
-                << "> passed to thread pool has no Job::Do() implementation!" )
+            ALIB_ERROR( "MGTHR",
+                "Job of type <{}> passed to thread pool has no Job::Do() implementation!",
+                &queueEntry.job->ID )
 
             CONTINUE:
             // delete job?
@@ -54,8 +80,8 @@ struct PWorker : protected Thread
         }
 
         #if ALIB_DEBUG
-            NString4K msg( "PWorker \""); msg << GetName() << "\" is stopping (leaving method Run()).";
-            ALIB_MESSAGE( "MGTHR", msg )
+            ALIB_MESSAGE( "MGTHR", "PWorker \"{}\" is stopping (leaving method Run())",
+                                   GetName() )
         #endif
     }
 }; // class PWorker
@@ -81,15 +107,14 @@ ThreadPool::ThreadPool()
 
 ThreadPool::~ThreadPool()
 {
-    ALIB_ASSERT_ERROR( IsIdle(), "MGTHR", NString256() <<
+    ALIB_ASSERT_ERROR( IsIdle(), "MGTHR",
         "ThreadPool destruction while not idle. Please call WaitForAllIdle().\n"
-        "There are still " << (ctdWorkers-ctdIdle)<< " workers running. "
-        "Open jobs: " << ctdOpenJobs )
+        "There are still {} workers running. Open jobs: ", ctdWorkers-ctdIdle,  ctdOpenJobs )
 
-    ALIB_ASSERT_WARNING( ctdWorkers == 0, "MGTHR", NString256() <<
-        "ThreadPool destructor: There are still " << ctdWorkers<< " threads running.\n"
-        "While ThreadPool::Shudown is called now, it is recommended to explicitly "
-        "shutdown the pool before destruction." )
+    ALIB_ASSERT_WARNING( ctdWorkers == 0, "MGTHR",
+        "ThreadPool destructor: There are still {} threads running.\n"
+        "While ThreadPool::Shutdown is called now, it is recommended to explicitly "
+        "shutdown the pool before destruction.", ctdWorkers )
 
     if (ctdWorkers > 0)
         Shutdown();
@@ -109,8 +134,8 @@ ThreadPool::~ThreadPool()
     {
         warning <<
             "  Hint:\n"
-            "  This indicates that Job-objects have not been deleted during run.\n"
-            "  Alternatively, certain jobs used the pool allocator without freeing the their data\n"
+            "  This indicates that Job-objects have not been deleted during the run.\n"
+            "  Alternatively, certain jobs used the pool allocator without freeing their data\n"
             "  This is a potential memory leak.\n"
             "  Known Job-types and their sizes are:\n";
         DbgDumpKnownJobs(warning, "    ");
@@ -126,42 +151,46 @@ bool ThreadPool::DCSIsAcquired()          const { return Dbg.IsOwnedByCurrentThr
 bool ThreadPool::DCSIsSharedAcquired()    const { return Dbg.IsOwnedByCurrentThread();   }
 #endif
 
+#if ALIB_STRINGS
 int ThreadPool::DbgDumpKnownJobs(NAString& target, const NString& linePrefix )
 {
     int i= 0;
     for ( auto job : DbgKnownJobs )
     {
-        target << linePrefix << NFormat::Field( ++i, 2) << ": "
-               << *job.TID << NFormat::Tab(30,-1)
-               << NFormat::Field( job.JobSize, 3) << " (PA "
-               << NFormat::Field( PoolAllocator::GetAllocationSize(
+        target << linePrefix << NField( ++i, 2) << ": "
+               << *job.TID << NTab(30,-1)
+               << NField( job.JobSize, 3) << " (PA "
+               << NField( PoolAllocator::GetAllocationSize(
                                       PoolAllocator::GetAllocInformation(job.JobSize)), 3) << ")  "
-                  "Usage: " << NFormat::Field(job.Usage, 5) << "\n";
+                  "Usage: " << NField(job.Usage, 5) << "\n";
     }
     return i;
 }
+#endif
 #endif // ALIB_DEBUG
 
 void ThreadPool::addThread()
 {
-    ALIB_MESSAGE( "MGTHR/STRGY", NString2K() <<
-        "Pool(" << ctdOpenJobs << "/" << ctdStatJobsScheduled <<
-        " -> " << ctdIdle << "/" << ctdWorkers << ") "
-        " adding one thread"  )
+    ALIB_MESSAGE( "MGTHR/STRGY", "Pool({}/{} -> {}/{}) adding one thread",
+                                  ctdOpenJobs, ctdStatJobsScheduled, ctdIdle, ctdWorkers )
 
     // first check if the pool was already used once and is now restarted
     if ( lastThreadToJoin )
     {
-        ALIB_ASSERT_ERROR( ctdWorkers == 0, "MGTHR", NString2K() <<
-            "ThreadPool::AddThread: Found a last thread to join but there the number of workers is "
-            << ctdWorkers << "\ninstead of 0. This should never happen" )
+        ALIB_ASSERT_ERROR( ctdWorkers == 0, "MGTHR",
+        "ThreadPool::AddThread: Found a last thread to join but there the number of workers is {}\n"
+        "instead of 0. This should never happen!", ctdWorkers )
 
         lastThreadToJoin->Join();
         delete lastThreadToJoin;
         lastThreadToJoin= nullptr;
     }
 
-    auto* newWorker= new PWorker( *this, String128("PWorker") << Format(nextWorkerID++, 3, nullptr) );
+#if ALIB_STRINGS
+    auto* newWorker= new PWorker( *this, String128("PWorker") << Dec(nextWorkerID++, 3, nullptr) );
+#else
+    auto* newWorker= new PWorker( *this );
+#endif
     workers.InsertUnique( newWorker );
     ++ctdWorkers;
     newWorker->Start();
@@ -171,7 +200,7 @@ void ThreadPool::addThread()
 namespace {
     // An internal job used to task the next worker to join a thread that stopped.
     // Note: The last thread will add itself to #lastThreadToJoin, which will be joined
-    //       with the method #Shudown or when a new thread is added.
+    //       with the method #Shutdown or when a new thread is added.
     struct JobJoin          : Job
     {
         PWorker*   workerToJoin;
@@ -181,7 +210,7 @@ namespace {
     // we only need one instance
     JobJoin JOB_JOIN;
 
-    // An internal job used by #Shudown. It is only emplaced if the queue is empty and
+    // An internal job used by #Shutdown. It is only emplaced if the queue is empty and
     // all types are idle
     struct JobStop  : Job { JobStop() :Job(typeid(JobStop)) {} };
 
@@ -198,20 +227,20 @@ ThreadPool::QueueEntry  ThreadPool::pop(PWorker* caller)
         ALIB_ASSERT_ERROR(ctdOpenJobs != 0, "MGTHR", "Job pipe empty after wakeup" )
 
         // check for JobJoin singleton
-        if ( queue.Back().job == &JOB_JOIN )
+        if ( queue.back().job == &JOB_JOIN )
         {
-            queue.Back().job->Cast<JobJoin>().workerToJoin->Join();
-            queue.PopBack();
+            queue.back().job->Cast<JobJoin>().workerToJoin->Join();
+            queue.pop_back();
             --ctdOpenJobs;
 //            ALIB_ASSERT(queue.IsNotEmpty())
         }
     
         // check for JobStop singleton
-        else if ( queue.Back().job == &JOB_STOP )
+        else if ( queue.back().job == &JOB_STOP )
         {
-            queue.PopBack();
+            queue.pop_back();
             --ctdOpenJobs;
-            ALIB_ASSERT(queue.IsEmpty())
+            ALIB_ASSERT(queue.empty(), "MGTHR")
         }
 
         // check if we need to change the pool size
@@ -224,11 +253,9 @@ ThreadPool::QueueEntry  ThreadPool::pop(PWorker* caller)
         // leaving pool?
         if ( targetSize < ctdWorkers )
         {
-            ALIB_MESSAGE( "MGTHR/STRGY", NString2K() <<
-                "Pool(" << ctdOpenJobs << "/" << ctdStatJobsScheduled <<
-                " -> "  << ctdIdle      << "/" << ctdWorkers << ") "
-                " leaving pool  (" << ctdWorkers << "->" << targetSize << ")" )
-
+            ALIB_MESSAGE( "MGTHR/STRGY", "Pool({}/{} -> {}/{}) leaving pool ({}->{})" ,
+                ctdOpenJobs, ctdStatJobsScheduled, ctdIdle, ctdWorkers,
+                ctdWorkers, targetSize )
 
             // make sure the calling thread is joined. This is either done by the next
             // worker, or by the (main-) thread that calls Shutdown, or if a new thread
@@ -237,14 +264,14 @@ ThreadPool::QueueEntry  ThreadPool::pop(PWorker* caller)
             {
                 // put 'myself' in the JobJoin singleton and add me to the front of the pipe.
                 JOB_JOIN.workerToJoin= caller;
-                queue.PushBack({&JOB_JOIN, false});
+                queue.push_back({&JOB_JOIN, false});
                 ctdOpenJobs++;
             }
             else
                 lastThreadToJoin= caller;
 
             // remove myself from the worker list
-            workers.Erase(workers.Find(caller));
+            workers.erase(workers.Find(caller));
             --ctdWorkers;
 
             // in any case, mark the caller as done already to avoid a warning if joining comes
@@ -265,12 +292,10 @@ ThreadPool::QueueEntry  ThreadPool::pop(PWorker* caller)
 
 
         // start working
-        auto entry= queue.Back();
-        queue.PopBack();
-        ALIB_MESSAGE( "MGTHR/QUEUE", NString2K() <<
-            "Pool(" << ctdOpenJobs << "/" << ctdStatJobsScheduled <<
-            " -> " << ctdIdle << "/" << ctdWorkers << ") "
-            "Job(" << entry.job->ID << ") popped" )
+        auto entry= queue.back();
+        queue.pop_back();
+        ALIB_MESSAGE( "MGTHR/QUEUE", "Pool({}/{} -> {}/{}) Job({}) popped",
+            ctdOpenJobs, ctdStatJobsScheduled, ctdIdle, ctdWorkers, &entry.job->ID )
 
         --ctdOpenJobs;
 
@@ -307,21 +332,18 @@ bool ThreadPool::WaitForAllIdle( Ticks::Duration timeout
     {
         if ( CountedOpenJobs() == 0 && CountedIdleWorkers() == CountedWorkers() )
         {
-            ALIB_MESSAGE("MGTHR", NString256() <<
-                "ThreadPool: All are idle.  Pool("
-                     << CountedOpenJobs() << "/" << StatsCountedScheduledJobs() << "->"
-                     << CountedIdleWorkers()  << "/"
-                     << CountedWorkers()      << ")"  )
+            ALIB_MESSAGE("MGTHR", "ThreadPool: All are idle.  Pool({}/{} -> {}/{})",
+                     CountedOpenJobs()   , StatsCountedScheduledJobs(),
+                     CountedIdleWorkers(), CountedWorkers()             )
             return true;
         }
         #if ALIB_DEBUG
             if( nextWarning.Age() > dbgWarnAfter)
             {
-                ALIB_WARNING( "MGTHR", NString256() <<
-                     "Waiting for all workers to be come idle. Pool("
-                     << CountedOpenJobs() << "/" << StatsCountedScheduledJobs() << "->"
-                     << CountedIdleWorkers()  << "/"
-                     << CountedWorkers()      << ")"  )
+                ALIB_WARNING( "MGTHR", 
+                     "ThreadPool: Waiting for all workers to be come idle. Pool({}/{} -> {}/{})",
+                     CountedOpenJobs()   , StatsCountedScheduledJobs(),
+                     CountedIdleWorkers(), CountedWorkers()             )
                 nextWarning= Ticks::Now();
             }
         #endif
@@ -340,22 +362,21 @@ bool ThreadPool::WaitForAllIdle( Ticks::Duration timeout
 
 void ThreadPool::Shutdown()
 {
-    ALIB_MESSAGE("MGTHR", NString256() <<
-        "ThreadPool::Shutdown:  Pool("
-             << CountedOpenJobs() << "/" << StatsCountedScheduledJobs() << "->"
-             << CountedIdleWorkers()  << "/"
-             << CountedWorkers()      << ")"  )
+    ALIB_MESSAGE("MGTHR", "ThreadPool::Shutdown: Pool({}/{} -> {}/{}) ",
+            CountedOpenJobs()   , StatsCountedScheduledJobs(),
+            CountedIdleWorkers(), CountedWorkers()             )
 
-    ALIB_ASSERT_ERROR( ctdOpenJobs == 0, "MGTHR", NString256() <<
-        "ThreadPool::Shutdown called while " << ctdOpenJobs << " jobs are open. "
-        " Call WaitForAllIdle() before shutdown." )
+
+    ALIB_ASSERT_ERROR( ctdOpenJobs == 0, "MGTHR",
+        "ThreadPool::Shutdown called while {} jobs are open. "
+        "Call WaitForAllIdle() before shutdown.", ctdOpenJobs )
 
     // Schedule a stop-job.
     // We do this here to meet the wakeup condition without adding
     // another term to that condition.
     Acquire(ALIB_CALLER_PRUNED);
         Strategy.WorkersMax= 0;
-        queue.PushBack( {&JOB_STOP, false} );
+        queue.push_back( {&JOB_STOP, false} );
         ++ctdOpenJobs;
     ReleaseAndNotify(ALIB_CALLER_PRUNED);
 
@@ -366,29 +387,27 @@ void ThreadPool::Shutdown()
     {
         Thread::SleepMicros( 50 );
         ALIB_DBG( if (waitTime.Age().InAbsoluteSeconds() == 1) { waitTime.Reset();  )
-            ALIB_MESSAGE("MGTHR", NString256() <<
-                "ThreadPool::Shutdown. Waiting for workers to exit.  Pool("
-                     << CountedOpenJobs() << "/" << StatsCountedScheduledJobs() << "->"
-                     << CountedIdleWorkers()  << "/"
-                     << CountedWorkers()      << ")"  )
+            ALIB_MESSAGE("MGTHR",
+                "ThreadPool::Shutdown. Waiting for workers to exit. Pool({}/{} -> {}/{})",
+                CountedOpenJobs()   , StatsCountedScheduledJobs(),
+                CountedIdleWorkers(), CountedWorkers()             )
+
         ALIB_DBG( } )
 
     }
 
     // join the last thread
     ALIB_ASSERT_ERROR(lastThreadToJoin != nullptr, "MGTHR",
-        "ThreadPool::Shutdown: lastThreadToJoin is null. This must not happen (internal error)." )
+        "lastThreadToJoin is null. This must not happen (internal error)." )
 
     lastThreadToJoin->Join();
     delete lastThreadToJoin;
     lastThreadToJoin= nullptr;
 
     // Success
-    ALIB_MESSAGE("MGTHR", NString256() <<
-        "ThreadPool::Shutdown completed.  Pool("
-             << CountedOpenJobs() << "/" << StatsCountedScheduledJobs() << "->"
-             << CountedIdleWorkers()  << "/"
-             << CountedWorkers()      << ")"  )
+    ALIB_MESSAGE("MGTHR",  "ThreadPool::Shutdown completed. Pool({}/{} -> {}/{})",
+                           CountedOpenJobs()   , StatsCountedScheduledJobs(),
+                           CountedIdleWorkers(), CountedWorkers()             )
 }
 
 

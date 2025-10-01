@@ -3,15 +3,20 @@
     <!-- Navigation index tabs for HTML output -->
     <navindex>
         <tab type="mainpage"             visible="yes" title="Overview"                           intro="" />
+        <tab type="modules" visible="no" title="" intro="">
+          <tab type="modulelist" visible="yes" title="" intro=""/>
+          <tab type="modulemembers" visible="yes" title="" intro=""/>
+        </tab>
         <tab type="user"                 visible="yes" title="Manual"                             url="@ref alib_manual">
             <tab type="user"             visible="yes" title="ALib Main Manual"                   url="@ref alib_manual"/>
-            <tab type="user"             visible="yes" title="ALib Module Manuals"                url="@ref alib_manual_modules_overview"/>
+            <tab type="user"             visible="yes" title="ALib Module Manuals"                url="@ref alib_manual_modules_table"/>
             <tab type="user"             visible="yes" title="Changelog/Version History"          url="@ref alib_changelog"/>
             <tab type="user"             visible="yes" title="Tools"                              url="@ref alib_tools"/>
             <tab type="user"             visible="yes" title="How To Use"                         url="@ref alib_manual_appendix_howto"/>
         </tab>
         <tab type="classindex"           visible="yes" title="Reference Documentation" >
-            <tab type="classindex"       visible="yes" title="Type Index"/>
+            <tab type="classindex"       visible="yes" title="Index of Types"/>
+            <tab type="concepts"         visible="yes" title="Index of Concepts "/>
             <tab type="namespacelist"    visible="yes" title="Namespaces" intro="Each inner namespace of 'alib' comprises an ALib Module, except namespace 'alib::lang' which contains ALib types that are not related to a specific module. "/>
             <tab type="user"             visible="yes" title="Preprocessor Symbols And Macros"     url="@ref alib_ref_prepro" />
             <tab type="user"             visible="yes" title="External Configuration Variables"    url="@ref alib_cfgvars" />
@@ -22,8 +27,6 @@
 
         <tab type="user"                 visible="yes" title="Download"   url="@ref alib_download" />
         <tab type="user"                 visible="yes" title="Legal"      url="@ref alib_legal_notice"/>
-
-
     </navindex>
 
     <!-- Layout definition for a class page -->
@@ -233,7 +236,7 @@
         <authorsection visible="yes"/>
       </group>
 
-      <!-- Layout definition for a C++20 module page -->
+      <!-- Layout definition for a C++20 Module page -->
       <module>
         <briefdescription visible="yes"/>
         <detaileddescription title="Description:"/>

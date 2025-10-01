@@ -53,49 +53,49 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -103,7 +103,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -111,7 +111,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -119,7 +119,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -160,61 +160,61 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug20|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release20|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src/alib.unittests;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)/../../../src;$(ProjectDir)/../../../src.samples/unittests;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -224,12 +224,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -243,12 +244,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -262,12 +264,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ALIB_DEBUG=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -281,12 +284,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -301,12 +305,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -321,12 +326,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ALIB_DEBUG=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -343,12 +349,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -366,12 +373,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -389,12 +397,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -412,12 +421,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_C20_MODULES=0;WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_BASE_DIR="$(ProjDir)";ALIB_BASE_DIR=R"($(ProjectDir)\..\..\..)"</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;6262;4866;4566;4702</DisableSpecificWarnings>
-      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -428,65 +438,66 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\unittests\alib_test_selection.hpp" />
-    <ClInclude Include="..\..\..\src\unittests\alox\ut_alox_log_scopes.hpp" />
-    <ClInclude Include="..\..\..\src\unittests\aworx_callerinfo_ut.hpp" />
-    <ClInclude Include="..\..\..\src\unittests\aworx_unittests.hpp" />
-    <ClInclude Include="..\..\..\src\unittests\aworx_unittests_end.hpp" />
-    <ClInclude Include="..\..\..\src\unittests\expressions\ut_expr_testfunc.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\alib_test_selection.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\alox\ut_alox_log_scopes.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\aworx_callerinfo_ut.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\aworx_unittests.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\aworx_unittests_end.hpp" />
+    <ClInclude Include="..\..\..\src.samples\unittests\expressions\ut_expr_testfunc.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_dox.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_logger.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_log_domains.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_log_rel.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_log_scopes.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_log_scopes_helper.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_log_scopes_helper_sub2.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\alox\ut_alox_lox.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\aworx_unittests.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_hashtable.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_list.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_lrucache.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_monomem.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_stdcontainers.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\containers_monomem\ut_stringtree.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ASTRING_APPEND.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_BOXING.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_CLI_TUTORIAL.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_CONFIG.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ENUMS.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_EXPR_CALCULATOR.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_EXPR_TUTORIAL.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_FILES.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_FORMAT.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_SINGLETON.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_STRINGS.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_TOKENIZER.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_expr.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_expr_builtin.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_expr_testfunc.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_astring.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_custom.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_format.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_substring.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_util.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_strings_util_token_consistency.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_bitbuffer_arraycompressor.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_bitbuffer_bitbuffer.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_boxing.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_compatiblity_qt.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_compatiblity_std.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_config.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_files.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_lang.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_resources.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_system.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_threadmodel.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_threads.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\ut_time.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_dox.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_logger.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_log_domains.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_log_rel.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_log_scopes.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_log_scopes_helper.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_log_scopes_helper_sub2.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\alox\ut_alox_lox.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\aworx_unittests.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_hashtable.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_list.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_lrucache.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_monomem.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_monomem_instantiation.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_stdcontainers.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\containers_monomem\ut_stringtree.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_ASTRING_APPEND.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_BOXING.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_CLI_TUTORIAL.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_ENUMS.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_EXPR_CALCULATOR.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_EXPR_TUTORIAL.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_FILES.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_FORMAT.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_SINGLETON.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_STRINGS.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_TOKENIZER.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_VARIABLES.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\expressions\ut_expr.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\expressions\ut_expr_builtin.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\expressions\ut_expr_testfunc.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_astring.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_custom.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_format.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_substring.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_util.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\strings\ut_strings_util_token_consistency.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_bitbuffer_arraycompressor.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_bitbuffer_bitbuffer.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_boxing.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_compatiblity_qt.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_compatiblity_std.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_files.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_lang.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_resources.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_system.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_threadmodel.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_threads.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_time.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\ut_variables.cpp" />
     <ClCompile Include="stdafx_alib_unittests.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'">Create</PrecompiledHeader>
@@ -508,16 +519,16 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'">Level4</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release20|x64'">Level4</WarningLevel>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|Win32'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug20|x64'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|x64'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">alib/alox.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release20|x64'">alib/alox.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug20|Win32'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|Win32'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release20|Win32'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug20|x64'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='RelWithDbgInfo20|x64'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">alib_precompile.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release20|x64'">alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

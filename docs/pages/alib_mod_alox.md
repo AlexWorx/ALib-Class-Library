@@ -1,12 +1,12 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
-\page alib_mod_alox   ALib Module ALox - Programmer's Manual
+\page alib_mod_alox  ALib Module ALox - Programmer's Manual
 
 \tableofcontents
 
@@ -23,7 +23,7 @@
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 1 About ALox #  {#alib_mod_intro}
+# 1 About ALox #  {#alib_mod_alox_intro}
 
 \alox is a module of the general purpose C++ library \aliblong. Nowadays it is fully integrated
 in \alib, and has the status of what we call an \alibcamp. Historically, since 2013, \alox was developed
@@ -42,7 +42,7 @@ that are furthermore automatically <em>pruned</em> out of release versions of th
 On the other end of the list, we want to enable __release logging__ for applications in production
 systems (release versions) to collect mission critical metrics and data from *the field*.
 Basic support for release logging is here today already. The introduction of new features and concepts
-in the area of release logging will also support debug logging aspects of \alox. Therefore the natural path
+in the area of release logging will also support debug logging aspects of \alox. Therefore , the natural path
 of evolution of \alox is <em>"debug features first, release features next"</em>.
 
 The rather simple class structure and architecture of the library allows users to easily extend \alox.
@@ -50,7 +50,7 @@ If you extended \alox by new \e Loggers or features, you are welcome to contribu
 to this open source project.
 
 \attention
-  While the \ref #alib::lox "ALox class hierarchie" looks quite simple and while you might expect
+  While the \ref #alib::lox "ALox class hierarchy" looks quite simple and while you might expect
   a very simple manual, because all you wanted is <em>"just logging"</em>, be a little warned:<br>
   The concepts of \alox, when investigated deeper, are maybe more complex than what you would
   expect from a typical logging library. Due to the "orthogonality" of the features, which means you
@@ -62,7 +62,7 @@ to this open source project.
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 2 Features and Limitations #  {#alib_mod_features_and_limitations}
+# 2 Features and Limitations #  {#alib_mod_alox_features_and_limitations}
 
 - <b>Free software</b>, published under Boost Software License.
 - \ref alib_alox_tut "Jump-start Tutorial" available.
@@ -106,7 +106,7 @@ to this open source project.
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 3 Terminology and Key Concepts #  {#alib_mod_terminology}
+# 3 Terminology and Key Concepts #  {#alib_mod_alox_terminology}
 
 \I{################################################################################################}
 ## 3.1. Terminology ## {#alib_mod_alox_tak_terminology}
@@ -133,8 +133,6 @@ following:
 - Registration of the \e %Logger with \alox.
 
 ### 3.1.2. Logables ## {#alib_mod_alox_tak_terminology_logables}
-
-
 What can be described as "the data that is logged", is called a \b 'Logable' or, as it may be more
 than one, <em>the Logables</em> in \alox. While most logging APIs are restricted to logging
 text messages, \alox is not. Still, the usual case is logging text messages, but the architecture
@@ -146,7 +144,7 @@ These prerequisites are created in other \alibmods, that \alox builds upon. The 
 of them are:
 - \alib_boxing,
 - \alib_strings, and
-- the \ref alib_basecamp_format_intro "formatting tools" found with \alib_basecamp.
+- the \ref alib_format_intro "formatting tools" found with module \alib_format.
 
 In short, \alib_boxing_nl is <c>"std::any on steroids"</c>, allowing to pass any sort of object
 and "box" it together with runtime type information. Interested users might consult the
@@ -159,14 +157,14 @@ invoke some sort of "virtual methods" on boxed values (this is why this concept 
 what <c>std::any</c> provides.
 
 In the case of textual logging (the standard case, including 'simple' debug logging), all \e Logables
-are processed by instances of derived types of class \alib{lang::format;Formatter}.
+are processed by instances of derived types of class \alib{format;Formatter}.
 This is why \alox logging optionally allows passing format strings which include placeholders
 and formatting options, like field width, alignment, tabulators, quotes, and much more.
 If no format string is detected, string representations of the  \e Logables will be just
 concatenated and logged. This way, formatting the output is just an option.
 
 And the flexibility goes even beyond that: By default, \b two built-in incarnations of this class
-are used \alib{lang::format;FormatterPythonStyle} and \alib{lang::format;FormatterJavaStyle}.
+are used \alib{format;FormatterPythonStyle} and \alib{format;FormatterJavaStyle}.
 The two types are used in parallel. This means, that the already optional and auto-detected format
 strings may follow either the
 [Python String Fromat Syntax](https://docs.python.org/3.5/library/string.html#format-string-syntax),
@@ -219,7 +217,7 @@ without the need for the user to be explicit about it, is one of the features th
 More about this will be explained in later chapters of this manual.
 
 
-### 3.1.5. Verbosity# {#alib_mod_terminology_verbosity}
+### 3.1.5. Verbosity# {#alib_mod_alox_terminology_verbosity}
 
 It is very common for logging eco-systems, to implement the concept of 'verbosity levels',
 and \alox is no exception to this. First of all, the term <b>%Verbosity</b> denotes an attribute
@@ -244,7 +242,7 @@ other <em>Log Domains</em> are switched off or are reduced to real error message
 As described later in this manual, the possibilities of \alox to filter the log output
 are even more granular and flexible.
 
-### 3.1.6. Scopes ## {#alib_mod_terminology_scopes}
+### 3.1.6. Scopes ## {#alib_mod_alox_terminology_scopes}
 The \b '%Scope' is a next attribute any <em>Log Statement</em> possesses. The different types of scopes are nested into
 each other and are a little similar to what C++ names a "scope". For example \e %Scope::Method is similar
 to a local variable's scope from a C++ perspective: it is visible only in method it is declared.
@@ -270,9 +268,9 @@ an 'outer' \e Scope of the language-related set of \e Scopes, the other is an 'i
 of those.
 
 All information about this topic is found in chapter
-\ref alib_mod_scopes. The corresponding enum type in the reference documentation is \alib{lox;Scope}.
+\ref alib_mod_alox_scopes. The corresponding enum type in the reference documentation is \alib{lox;Scope}.
 
-### 3.1.7. Scope Domains ## {#alib_mod_terminology_scopedomains}
+### 3.1.7. Scope Domains ## {#alib_mod_alox_terminology_scopedomains}
 Attention: now it becomes tricky! Each <em>Log Statement</em> belongs to
 a \e Scope, precisely, even to a set of nested \e Scopes. The grouping of the statements
 into \e Scopes is done automatically by \alox. The \e Scope is detected from the position
@@ -294,7 +292,7 @@ As you see, there are two ways to assign a <em>Domain</em> to a <em>Log Statemen
 by providing optional parameter \p{domain} with a <em>Log Statement</em>, or by setting a <em>Scope Domain</em>
 and omitting the parameter.
 
-### 3.1.8. Tree of Log Domains and Domain Path ## {#alib_mod_terminology_logdomaintree}
+### 3.1.8. Tree of Log Domains and Domain Path ## {#alib_mod_alox_terminology_logdomaintree}
 By having <em>Scope Domains</em> which associate a "default domain" with a <em>Log Statement</em> that resides in a certain \e Scope
 and knowing that the \e Scopes are nested into each other, the question is what happens if multiple
 <em>Scope Domains</em> apply to the same <em>Log Statement</em>? Or, a similar question: what happens if a <em>Scope Domain</em> is set for a \e Scope that a
@@ -310,7 +308,7 @@ Besides 'mixing' <em>Scope Domains</em> and parameter \p{domain}, \alox also all
 <em>Scope Domains</em> with parameter \p{domain}.
 
 Using the techniques in the right manner, is one of the keys to efficiently use \alox.
-The details of how this is done is explained in a dedicated chapter: \ref alib_mod_logdomains.
+The details of how this is done is explained in a dedicated chapter: \ref alib_mod_alox_logdomains.
 
 
 \I{################################################################################################}
@@ -350,15 +348,15 @@ This class keeps it all together! This is what class  \b %Lox does:
   This is done on a per-\e Logger basis.
 - It automatically determines the \e Scope of a <em>Log Statement</em> and manages the associated
   nested <em>Scope Domains</em>.
-- It provides other nice features related to \e Scopes, like \ref alib_mod_log_once "Lox::Once",
-  \ref alib_mod_prefix_logables "Prefix Logables" or \ref alib_mod_log_data "associated Log Data".
+- It provides other nice features related to \e Scopes, like \ref alib_mod_alox_log_once "Lox::Once",
+  \ref alib_mod_alox_prefix_logables "Prefix Logables" or \ref alib_mod_alox_log_data "associated Log Data".
 - It collects some meta-information like timestamps or counters.
 - It provides a dictionary to translate thread IDs in human-readable (logable) thread names.
 
 It becomes clear that this class is an \alox users' main interface into logging. After \alox was
-set-up once (probably in the bootstrap section of a software), and <em>Loggers</em> are created,
+set-up once (probably in the bootstrap section of software), and <em>Loggers</em> are created,
 configured and attached to a \b %Lox, this class is almost all that is needed across all other parts of
-a software. All main \alox functionality, especially the interface for the logging statements themselves
+software. All main \alox functionality, especially the interface for the logging statements themselves
 is comprised in this class.
 
 One important detail of the internal management of class \b Lox is the fact that it
@@ -382,7 +380,7 @@ such <em>Prefix Logables</em> which were defined to any of the nested \e Scopes 
 them to the \e %Logger. We could have named them <em>Scope Logables</em> or <em>Context Logables</em>,
 however, the word 'prefix' makes perfect sense with the most important type of \e Logables, namely strings!
 With logging text messages, <em>Prefix Logables</em> act like a prefix to a log message.
-All about this topic is found in chapter \ref alib_mod_prefix_logables.
+All about this topic is found in chapter \ref alib_mod_alox_prefix_logables.
 
 ## 2.2 Log Once ## {#alib_mod_alox_tak_lox_logonce}
 Another feature of \alox which leverages the concept of \e Scopes, is found with overloaded methods
@@ -391,7 +389,7 @@ Another feature of \alox which leverages the concept of \e Scopes, is found with
 They are really 'heavily' overloaded, therefore the most simple version just accepts a \e Logable.
 With this version \alox hides the use of \e Scopes and offers what you would expect from the methods'
 name: logging a statement only the first time it is executed. The different parameters allow to
-cover more complex uses cases than this. All about this <em>Log Statement</em> is found in chapter  \ref alib_mod_log_once.
+cover more complex uses cases than this. All about this <em>Log Statement</em> is found in chapter  \ref alib_mod_alox_log_once.
 
 ## 2.2 Log Data ## {#alib_mod_alox_tak_lox_logdata}
 As being able to 'prune' \alox debug-<em>Log Statements</em> from release code, a low hanging fruit for the \alox
@@ -399,7 +397,7 @@ feature list is to offer a concept for storing and using data, that otherwise wo
 temporary debug variables during the development process. Again, \alox \e Scopes are leveraged
 which makes the otherwise simple methods \alib{lox;Lox::Store} and \alib{lox;Lox::Retrieve} quite powerful.
 
-All about <em>Log Data</em> is found in chapter  \ref alib_mod_log_data.
+All about <em>Log Data</em> is found in chapter  \ref alib_mod_alox_log_data.
 
 \I{################################################################################################}
 ## 3.3. Using Multiple Lox Instances # {#alib_mod_alox_tak_multiple_loxes}
@@ -409,7 +407,7 @@ decided that a next level of complexity is supported. The good news is: for simp
 scenarios, you do not need to know about that.
 
 So, this new 'level of complexity' is simply introduced by the fact that it is possible, and sometimes
-very attractive, to create and use more than one instance of class \b Lox in a software.
+very attractive, to create and use more than one instance of class \b Lox in software.
 Each class is populated with \e Loggers and of course uses an own dedicated tree of domains.
 
 The following paragraphs gives use cases and further background on using multiple \e Loxes.
@@ -420,7 +418,7 @@ There are two fundamental logging scenarios that we call
 \ref alib_alox_faq_debug_vs_release_logging "debug logging and release logging".
 
 For various reasons (performance, code size, security, etc), debug <em>Log Statements</em> should be disabled
-and removed (pruned) from the release version of a software.
+and removed (pruned) from the release version of software.
 
 To achieve all goals and provide a very simple interface into debug logging, the \alox ecosystem
 provides a specific purely static class \alib{lox;Log} which provides access to one instance of
@@ -469,12 +467,12 @@ about use cases where things start getting critical from different point of view
 - \alox is supposed to collect runtime data from <em>the field</em>, hence metrics, which are
   transferred using a tailored \e %Logger that contacts a metrics server at runtime. The team
   that implements such metrics collection, may, for good reason, not want to share 'their' \b Lox
-  with other parts of a software maintained by another team. Accidental mis-configuration of the
+  with other parts of software maintained by another team. Accidental mis-configuration of the
   Lox and its domain may lead to uncontrolled server communication.
 - A Lox is supposed to collect critical runtime errors from deployed software. Such log information
   should be separated from other log streams, e.g., much more 'verbose' standard release-logging
   that goes to a rolling log file
-- A software wants to support writing messages to the \e Linux or <em> Windows OS</em> specific
+- software wants to support writing messages to the \e Linux or <em> Windows OS</em> specific
   system journal. Also in this case, a mis-configured Lox might 'spam' into such system journals
   in an inappropriate manner, and it would be advised to use a separated Lox that is not touched
   outside its scope of activity.
@@ -491,13 +489,12 @@ release log file, can be attached to the 'mission-critical' \b Lox which holds t
 'mission-critical' <em>Log Statements</em>.
 
 ## 3.4. Class ALox and Registration of Lox Instances # {#alib_mod_alox_tak_lox_registration}
-The \alibcamp singleton class \alib{lox;ALoxCamp}, instantiated in global variable \ref alib::ALOX,
-keeps a list of all instances of class \b %Lox that were registered with it.
+The module keeps a list of all instances of class \b %Lox that were registered with it.
 Registration is done by default when constructing a \b Lox.
-The advantage of that registration is that a \b %Lox can be retrieved by its name using
-\alib{lox;ALoxCamp::Get}. This is convenient because this way, references of a \b %Lox do not have
+The advantage of that registration is that a \b %Lox can be retrieved by its name using the static
+method \alib{lox;Lox::Get}. This is convenient because this way, references of a \b %Lox do not have
 to be passed around or otherwise made public, which would clutter your own software's codebase,
-especially your header files.
+especially your header-files.
 
 But there might also be situations, when this <em>'public availability'</em> of a \b %Lox
 instance is not wanted. For this case, optional parameter \p{doRegister} may be set to \c false
@@ -506,19 +503,19 @@ when invoking constructor \alib{lox;Lox::Lox}.
 \note
   Descriptions of other \e 'protection' mechanisms against unwanted manipulation of
   class \b %Lox are described in:
-  - Chapter \ref alib_mod_external_verbosity_configuration and
-  - Chapter \ref alib_mod_domain_substitution_config.
+  - Chapter \ref alib_mod_alox_external_verbosity_configuration and
+  - Chapter \ref alib_mod_alox_domain_substitution_config.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 4 Log Domains #  {#alib_mod_logdomains}
+# 4 Log Domains #  {#alib_mod_alox_logdomains}
 This chapter provides all details on <em>Log Domains</em>. Before reading it, be sure that
-you have read and understood the chapter \ref alib_mod_terminology.
+you have read and understood the chapter \ref alib_mod_alox_terminology.
 
 
 \I{################################################################################################}
-## 4.1 Why Log Domains? # {#alib_mod_logdomains_intro}
+## 4.1 Why Log Domains? # {#alib_mod_alox_logdomains_intro}
 
 Let us quickly recapture what was explained already on <em>Log Domains</em> in the previous chapter
 and the tutorials.
@@ -542,7 +539,7 @@ the <em>Log Domain</em> defaults to "/" if not given. Omitting parameter \p{doma
 tells \alox to set \e all <em>Log Domains</em> to the same \b Verbosity.
 
 \note The fourth parameter of method \b SetVerbosity found in the reference documentation is not
-      covered in this chapter. The impatient reader might refer to \ref alib_mod_external_verbosity_configuration.
+      covered in this chapter. The impatient reader might refer to \ref alib_mod_alox_external_verbosity_configuration.
 
 This probably sounds more complex than it is. If you think about it for a second, it should become obvious.
 As a sample, this mechanism allows logging warning and error messages of an application
@@ -555,7 +552,7 @@ You may collect these severe errors in a special domain "/ADMIN" (real-time admi
 and exclusively activate this domain for this Email-sending \e Logger.
 
 \I{################################################################################################}
-### 4.1.1 Allowed Characters ## {#alib_mod_logdomains_chars_allowed}
+### 4.1.1 Allowed Characters ## {#alib_mod_alox_logdomains_chars_allowed}
 
 Domain names may only consist of the following characters:
 - Upper case letters \c 'A' to \c 'Z',
@@ -564,13 +561,13 @@ Domain names may only consist of the following characters:
 
 If one of this characters is used, \alox replaces this character with \c # (which, as stated above
 is otherwise equally not allowed) without further notice.
-(Also, no \ref alib_mod_internal_domains "internal log statement" is given in this case).
+(Also, no \ref alib_mod_alox_internal_domains "internal log statement" is given in this case).
 As a result, the explicit provision of illegal domain names \c "ABCa$)" or \c "ABC<=>" will each
 result in the same domain name \c "ABC###".
 
 
 \I{################################################################################################}
-## 4.2 Hierarchical Log Domains # {#alib_mod_logdomains_hierarchical_domains}
+## 4.2 Hierarchical Log Domains # {#alib_mod_alox_logdomains_hierarchical_domains}
 
 One of the major design goals of \alox is simplicity. By nature simplicity is sometimes in
 in competition with flexibility or feature richness of an API. One way to resolve such conflicting
@@ -648,12 +645,12 @@ the setting for domain '/UI/DIALOGS' to \e All  would be overwritten by the sett
   it 'immune' against subsequent settings of parent domains. This is especially important when
   configuration is done 'outside' the source code, hence using configuration files, command line
   parameters and such, but could be also helpful otherwise. This protection mechanism is explained
-  in chapter \ref alib_mod_external_verbosity_configuration.
+  in chapter \ref alib_mod_alox_external_verbosity_configuration.
 
 
 The advantages of hierarchical domains so far are:
 - You can control a whole set of domains with one statement
-- If parts of a software that is out of your control (other team, code in a library, etc.) introduces
+- If parts of software that is out of your control (other team, code in a library, etc.) introduces
   new <em>Sub-Log Domains</em>, no changes of \e Verbosity settings in your code parts need to be done (as long as
   you are not interested in directly manipulating this new subdomain).
 
@@ -662,7 +659,7 @@ becomes only obvious in the next chapter!
 
 
 \I{################################################################################################}
-## 4.3 Scope Domains # {#alib_mod_logdomains_default_domains}
+## 4.3 Scope Domains # {#alib_mod_alox_logdomains_default_domains}
 
 People might argue that providing a <em>Log Domain</em> to each <em>Log Statement</em> is an overhead of
 typing. That is true. For this reason - and many more - \alox provides the concept
@@ -681,7 +678,7 @@ is related to <b>the thread that is executing the <em>Log Statement</em></b>, he
 \attention
   For this chapter, explaining the benefit of being able to assign <em>Scope Domains</em> to \e Scopes, we are
   simplifying \alox \e Scope features to a bare minimum.
-  We are deferring the full explanation of possible \e Scope settings to chapter \ref alib_mod_scopes.
+  We are deferring the full explanation of possible \e Scope settings to chapter \ref alib_mod_alox_scopes.
 
 We start really simple and look at \alib{lox;Scope;Scope::Method} which denotes that the <em>Scope Domain</em>
 given with method
@@ -706,7 +703,7 @@ We have already gained some advantages from this most simple use of a <em>Scope 
 
 
 \I{################################################################################################}
-## 4.4 Absolute and Relative Domain Paths# {#alib_mod_logdomains_absolut_and_relative}
+## 4.4 Absolute and Relative Domain Paths# {#alib_mod_alox_logdomains_absolut_and_relative}
 
 As we have learned above, the following two <em>Log Statements</em> are the same when a <em>Scope Domain</em>
 was set for \b %Scope::Method:
@@ -748,13 +745,13 @@ The output would be:
 
 
 \I{################################################################################################}
-## 4.5 Inner and Outer Scopes# {#alib_mod_logdomains_inner_outer_scopes}
+## 4.5 Inner and Outer Scopes# {#alib_mod_alox_logdomains_inner_outer_scopes}
 
 The previous samples used <b>%Scope::Method</b>. Another important \e Scope 'level' is
 \alib{lox;Scope;Scope::Filename}.
 
 As mentioned before, we are not going into the details of the extended \e Scope definition of
-\alox (those are given in \ref alib_mod_scopes), but what is very important to understand is that
+\alox (those are given in \ref alib_mod_alox_scopes), but what is very important to understand is that
 scopes are nested into each other. We talk about <em>outer scopes</em> and
 <em>inner scopes</em>. As you might guess, <b>%Scope::Filename</b> is an outer \e Scope of
 <b>%Scope::Method</b>.
@@ -798,10 +795,10 @@ Some remarks:
 
 \I{################################################################################################}
 
-## 4.6 Further Information and Wrap-Up # {#alib_mod_logdomains_further_wrapup}
+## 4.6 Further Information and Wrap-Up # {#alib_mod_alox_logdomains_further_wrapup}
 
 \I{################################################################################################}
-### 4.6.1 Where to set the Verbosity## {#alib_mod_logdomains_bootstrap}
+### 4.6.1 Where to set the Verbosity## {#alib_mod_alox_logdomains_bootstrap}
 
 The usual way to use \alox is to separate the code that sets the \e Verbosity of <em>Log Domains</em>
 into a single location, normally somewhere in the 'boot-strapping part of a process. This is
@@ -823,17 +820,17 @@ Verbosity of any domain from within the code, but by using external configuratio
   To keep this chapter as simple as possible, all samples herein exclusively
   used the method \e %Lox::SetVerbosity and you may not even have heard yet about other possibilities.
   Information about how \alox is configured externally, is completely separated into an own chapter
-  of this manual: \ref alib_mod_external_verbosity_configuration.
+  of this manual: \ref alib_mod_alox_external_verbosity_configuration.
 
 The separation has good reasons: A portion of the code that logs using a certain set of domains
 should not modify these <em>%Log %Domain's %Verbosity</em>. One day such code could be moved into a library and then
 such changes are merely irreversible (well, in-fact this misbehavior can be 'healed', but this is also only explained in
-chapter \ref alib_mod_external_verbosity_configuration).
+chapter \ref alib_mod_alox_external_verbosity_configuration).
 
 \I{################################################################################################}
-### 4.6.2 Why Does Verbosity Setting Always Work Recursively? ## {#alib_mod_logdomains_recursive}
+### 4.6.2 Why Does Verbosity Setting Always Work Recursively? ## {#alib_mod_alox_logdomains_recursive}
 
-It was explained in section \ref alib_mod_logdomains_hierarchical_domains "Hierarchical Log Domains",
+It was explained in section \ref alib_mod_alox_logdomains_hierarchical_domains "Hierarchical Log Domains",
 that setting the \e Verbosity is always done recursively for all Subdomains of the
 given <em>Log Domain</em>. The reason for this is to avoid 'random' settings as much as possible.
 
@@ -852,7 +849,7 @@ could have different values:
 Therefore, the order of the use of a <em>Log Domain</em> would decide about its \e Verbosity.
 
 One of ALoxs' design goals is to hide features that are not used and which are unnecessarily
-increasing complexity of using \alox if they are not needed (Further explained in \ref alib_mod_apdx_auto_config).
+increasing complexity of using \alox if they are not needed (Further explained in \ref alib_mod_alox_apdx_auto_config).
 For this reason, within this chapter of the manual (which is all about understand what domains
 <em>Log Domain</em> just are), a parameter of method \alib{lox;Lox::SetVerbosity} that can be omitted
 because it has a default value, was not even named.
@@ -863,10 +860,10 @@ each \e Verbosity setting.
 Apart from lifting the always recursive \e Verbosity setting, the main motivation for introducing
 this concept resulted from the general need to prioritize conflicting settings which may come
 from different sources of configuration data. Therefore, if non-recursive settings are needed for any reason,
-refer to chapter \ref alib_mod_external_verbosity_configuration for explanations about how to achieve this.
+refer to chapter \ref alib_mod_alox_external_verbosity_configuration for explanations about how to achieve this.
 
 \I{################################################################################################}
-### 4.6.3 Absolute or Relative Domain Paths? ## {#alib_mod_logdomains_absorrel}
+### 4.6.3 Absolute or Relative Domain Paths? ## {#alib_mod_alox_logdomains_absorrel}
 
 As we learned, \alox allows using absolute or relative <em>Log Domain</em> paths. This is true for <em>Scope Domains</em> as well
 as for parameter \p{domain} in a <em>Log Statement</em>.
@@ -875,11 +872,11 @@ The general recommendation is to use relative paths. There are several advantage
 all arise from the fact that \alox assembles the <em>Scope Domain</em> path by looping through all \e Scopes from
 the most inner to the most outer. As soon as an absolute path is found, the loop is aborted and
 concatenation stops. The benefits of keeping all <em>Log Domain</em> paths relative are highlighted in the
-next chapter (\ref alib_mod_scopes) when all about \e Scopes is explained - including an important use
+next chapter (\ref alib_mod_alox_scopes) when all about \e Scopes is explained - including an important use
 case that justifies absolute <em>Log Domain</em> paths!
 
 \I{################################################################################################}
-### 4.6.4 ALox Internal Log Domains ## {#alib_mod_logdomains_internal}
+### 4.6.4 ALox Internal Log Domains ## {#alib_mod_alox_logdomains_internal}
 
 \alox uses 'itself' to log information about its use. This is helpful e.g., to observe where
 and when a <em>Log Domain</em> is used for the first time or where and when a \e Verbosity
@@ -890,30 +887,30 @@ To keep the 'tree of <em>Log Domains</em>' clean and reserved exclusively for ap
 manages the internal <em>Log Domains</em> in a separated tree.
 
 Information about how to 'address' this tree and when to use it, is explained in chapter
-\ref alib_mod_internal_domains.
+\ref alib_mod_alox_internal_domains.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 5 Scopes in ALox #  {#alib_mod_scopes}
+# 5 Scopes in ALox #  {#alib_mod_alox_scopes}
 \I{################################################################################################}
-## 5.1 Introduction #  {#alib_mod_scopes_intro}
+## 5.1 Introduction #  {#alib_mod_alox_scopes_intro}
 
 \alox uses the concept of \e Scopes in different ways. The most important and prominent use is to set
-so called <em>Scope Domains</em>. Those can be registered and then are used as a 'default' domain
+so-called <em>Scope Domains</em>. Those can be registered and then are used as a 'default' domain
 path with each <em>Log Statement</em> placed within the according \e %Scope. The concept of
-<em>Scope Domains</em> has been explained already in the previous chapter (see \ref alib_mod_logdomains). But to keep it simple,
+<em>Scope Domains</em> has been explained already in the previous chapter (see \ref alib_mod_alox_logdomains). But to keep it simple,
 the full variety of \alox \e Scopes was not yet, explained there. This is what this chapter
 aims to do.
 
-So, be sure, that you have read and understood chapter \ref alib_mod_logdomains, before working yourself
+So, be sure, that you have read and understood chapter \ref alib_mod_alox_logdomains, before working yourself
 through this chapter. Using the more complex possibilities of scopes is optional when using \alox, so you can
 consider this chapter as an advanced topic.
 
 Furthermore, there are other features in \alox that use \e Scopes. Those are elaborated in chapters
-- \ref alib_mod_log_once,
-- \ref alib_mod_prefix_logables and
-- \ref alib_mod_log_data.
+- \ref alib_mod_alox_log_once,
+- \ref alib_mod_alox_prefix_logables and
+- \ref alib_mod_alox_log_data.
 
 
 \alox \e Scopes are enumerated in enum-class \alib{lox;Scope}. The \e Scopes found here are separated in two sets:
@@ -927,7 +924,7 @@ Furthermore, there are other features in \alox that use \e Scopes. Those are ela
 
 
 \I{################################################################################################}
-## 5.2 Language-Related Scopes #  {#alib_mod_scopes_language}
+## 5.2 Language-Related Scopes #  {#alib_mod_alox_scopes_language}
 
 \e Scopes are \b nested into each other. We talk about 'outer' and 'inner' scopes.
 For example the \e Scope of a method is nested into the \e Scope of the file name that the method
@@ -944,7 +941,7 @@ Apart from \e %Scope::Global, to evaluate the actual \e Scope of an invocation o
 class \b Lox, \alox needs to 'automatically' collect information of the calling entity.
 In \alox for C++ is this is achieved using preprocessor macros for all <em>Log Statements</em>.
 
-As explained in detail in chapter \ref alib_mod_debug_and_release_logging, for release-logging, such
+As explained in detail in chapter \ref alib_mod_alox_debug_and_release_logging, for release-logging, such
 automatic collection is not wanted. Without repeating the reasons for this here, let us emphasize
 the consequence:
 
@@ -978,7 +975,7 @@ The good news is: This is absolutely OK! The rationale for claiming this is:
 The following sections describe each of the language-related \e Scopes in detail.
 
 \I{################################################################################################}
-### 5.2.1 Scope::Global ##  {#alib_mod_scopes_language_global}
+### 5.2.1 Scope::Global ##  {#alib_mod_alox_scopes_language_global}
 As the name of this \e Scope indicates, this is the 'most outer' \e Scope of \alox. It is always
 there and only one single 'instance' of it exists per \b Lox. In other words, all <em>Log Statements</em> or other
 invocations of \alox are executed 'within' this singleton scope.
@@ -1000,7 +997,7 @@ attached to the release lox (in addition to attaching it to the debug-lox), with
 of these special <em>Log Statements</em> would be nicely sorted into the <em>Scope Domain</em> of \e %Scope::Global,
 while non of the <em>Log Statements</em> to this release lox need to specify that domain path.
 
-Another use case are special debug situations. Imagine a dubious behavior of a software
+Another use case are special debug situations. Imagine a dubious behavior of software
 is observed rather seldom. A programmer could register a debug \e Logger with \e Verbosity \e All
 for domain '/DEBUG'. Now, when a certain first indication for the start of the dubious behavior
 occurs, a setting of the <em>Scope Domain</em> '/DEBUG' for \e %Scope::Global can be activated.
@@ -1009,7 +1006,7 @@ code would be gathered beyond that temporary <em>Log Domains</em> '/DEBUG' and a
 
 
 \I{################################################################################################}
-### 5.2.2 Scope::Path  ##  {#alib_mod_scopes_language_path}
+### 5.2.2 Scope::Path  ##  {#alib_mod_alox_scopes_language_path}
 
 This scope adresses the directory structure that a C++ source code file is located in.
 Unfortunately, \alox is not able to automatically gather information about the namespace that a
@@ -1049,7 +1046,7 @@ set to any parent directory of the source file are applied!
   not match and reflect the namespace but (quite as its name indicates) the structure of the
   source tree.<br>
   However, if all sources of a project simply reside just in one single directory, then the use of \e %Scope::Path
-  is not advisable. Its effect would be similar to  \ref alib_mod_scopes_language_global "Scope::Global", with the
+  is not advisable. Its effect would be similar to  \ref alib_mod_alox_scopes_language_global "Scope::Global", with the
   only difference that a thread-related \e Scope is applied after \e %Scope::Path but before \e %Scope::Global.
   (Thread-related \e Scopes are discussed later in this chapter).
 \par
@@ -1067,7 +1064,7 @@ set to any parent directory of the source file are applied!
 
 
 \I{################################################################################################}
-### 5.2.3 Scope::Filename  ##  {#alib_mod_scopes_language_filename}
+### 5.2.3 Scope::Filename  ##  {#alib_mod_alox_scopes_language_filename}
 
 \e %Scope::Filename does not really need to be explained. All <em>Log Statement</em> within the same
 source file share the same \e Scope::File. It is an inner scope of \e %Scope::Path.
@@ -1081,7 +1078,7 @@ Of course, this is only true if both files reside in the same directory.
 
 
 \I{################################################################################################}
-### 5.2.4 Scope::Method ##  {#alib_mod_scopes_language_method}
+### 5.2.4 Scope::Method ##  {#alib_mod_alox_scopes_language_method}
 
 \e %Scope::Method comprises all <em>Log Statements</em> which are residing in a certain method
 or function. This is the 'most inner' of the language-related set of \e Scopes
@@ -1102,7 +1099,7 @@ would be overwritten or at least redirected by <em>Scope Domains</em> of a calli
   Unfortunately, \alox receives just the name of a class method or a function. While this
   name is associated with the file name, and thus two or functions or methods with the same
   name that reside in different files, do not share the scope (as expected), those that
-  are implemented in the same header file or compilation unit, do share the same scope.
+  are implemented in the same header-file or compilation unit, do share the same scope.
   This is not what a user would expect but there is no technical way to avoid that.<br>
   Therefore, if two or more functions (in different namespaces) or class methods share the
   same name and reside in the same file, the behavior of \alox might be different to
@@ -1110,7 +1107,7 @@ would be overwritten or at least redirected by <em>Scope Domains</em> of a calli
 
 
 \I{################################################################################################}
-### 5.2.5 Anonymous Scopes ##  {#alib_mod_scopes_language_anonymous}
+### 5.2.5 Anonymous Scopes ##  {#alib_mod_alox_scopes_language_anonymous}
 C++ allows opening and closing 'anonymous scopes' using curly braces '{' and '}'.
 For example, a variable declared in such anonymous scope is not visible to the rest
 of the method after the anonymous scope is closed.
@@ -1127,10 +1124,10 @@ a <em>Log Statement</em> are placed by \alox within the evaluated, resulting dom
 resulted from a <em>Scope Domain</em> setting of an inner \e Scope of \e %Scope::Method.
 
 \I{################################################################################################}
-### 5.2.6 How To Set Scope Domains for Language-Related Scopes ##  {#alib_mod_scopes_language_setting}
+### 5.2.6 How To Set Scope Domains for Language-Related Scopes ##  {#alib_mod_alox_scopes_language_setting}
 
-When reading earlier chapter \ref alib_mod_logdomains and the later chapters
-(\ref alib_mod_log_once, \ref alib_mod_prefix_logables and \ref alib_mod_log_data),
+When reading earlier chapter \ref alib_mod_alox_logdomains and the later chapters
+(\ref alib_mod_alox_log_once, \ref alib_mod_alox_prefix_logables and \ref alib_mod_alox_log_data),
 you might be surprised, that the only way to manipulate a specific \e Scope is to do this with an
 invocation <b>from within</b> that \e Scope itself.
 
@@ -1159,7 +1156,7 @@ hence are not impacted by the \e Scope and potentially associated <em>Scope Doma
   in scopes not reachable by your code: This is when for some reason you want to change
   the domains that a library (or part of the project you do not have access to) uses.
   To do this, \alox provides a concept called <em>Domain Substitution</em>,
-  described in \ref alib_mod_domain_substitution. The huge advantage of this approach is, that this
+  described in \ref alib_mod_alox_domain_substitution. The huge advantage of this approach is, that this
   feature substitutes \b all <em>Log Domains</em>, regardless whether they are evaluated by \alox from
   <em>Scope Domains</em> or if they are given as parameters of the <em>Log Statement</em>.
 
@@ -1181,11 +1178,11 @@ A snapshot of all current settings can be logged using \alib{lox;Lox::State} to 
 settings have been performed. Alternatively, if the snapshot is not enough to understand what is set,
 overwritten and used where, a live log of \alox' internal messages can be activated to identify
 exactly which code lines are doing what in respect to <em>Scope Domains</em>.
-See \ref alib_mod_internal_domains for more information about how to enable internal log messages.
+See \ref alib_mod_alox_internal_domains for more information about how to enable internal log messages.
 
 
 \I{################################################################################################}
-## 5.3 Thread-Related Scopes #  {#alib_mod_scopes_thread}
+## 5.3 Thread-Related Scopes #  {#alib_mod_alox_scopes_thread}
 
 This section adds two new \e Scope 'levels', named:
 
@@ -1222,7 +1219,7 @@ The whole list of <em>Scope Domains</em>, together with the parameter \p{domain}
 <em>Remark: [L] and [T] here indicate language-related and thread-related \e Scopes.</em>
 
 \I{################################################################################################}
-### 5.3.1 Use Cases for Scope::ThreadOuter ##  {#alib_mod_scopes_thread_outer}
+### 5.3.1 Use Cases for Scope::ThreadOuter ##  {#alib_mod_alox_scopes_thread_outer}
 
 An important use case for <em>Scope Domains</em> of \e %Scope::ThreadOuter is useful in single-threaded
 applications, the same as in multithreaded.
@@ -1259,10 +1256,10 @@ blocking the application for too long.
 
 \note
   This last sample nicely shows, how the use of \alox for all debug-logging tasks, leads to new
-  insights of a software, that simple "debug log statements" do not provide!
+  insights of software, that simple "debug log statements" do not provide!
 
 \I{################################################################################################}
-### 5.3.2 Use Cases for Scope::ThreadInner ##  {#alib_mod_scopes_thread_inner}
+### 5.3.2 Use Cases for Scope::ThreadInner ##  {#alib_mod_alox_scopes_thread_inner}
 
 While technically \e %Scope::ThreadInner is very similar to \e %Scope::ThreadOuter, the effect and
 use cases still differs slightly. Instead of 'redirecting' just all log output of a thread into
@@ -1274,11 +1271,11 @@ specific Sub-<em>Log Domains</em> by thread. First, when a <em>Scope Domain</em>
 is set, the \e Verbosity of the new Subdomains will not change. This is true, because all new domains that are
 created by this thread are Subdomains of those <em>Log Domains</em> used before. And such Subdomains
 just inherit the setting as long as they are not controlled explicitly (as explained in
-\ref alib_mod_logdomains_recursive). From here, specifically for this thread, the \e Verbosity of
+\ref alib_mod_alox_logdomains_recursive). From here, specifically for this thread, the \e Verbosity of
 certain domains can now be tweaked until the right set of <em>Log Statements</em> appear.
 
 Imagine a very general class providing a very general feature, hence frequently used by different
-parts of a software. Increasing the \e Verbosity of a <em>Log Domains</em> of such class might increase the
+parts of software. Increasing the \e Verbosity of a <em>Log Domains</em> of such class might increase the
 overall log output too much. Now, by splitting such <em>Log Domains</em> using a <em>Scope Domain</em> for \e %Scope::ThreadInner
 it becomes possible to either decrease the \e Verbosity for threads that are not of current
 interest or by only increasing the \e Verbosity of the thread of interest.
@@ -1294,9 +1291,9 @@ Finally it is noteworthy to mention the impact of \e %Scope::ThreadInner being t
 
 
 \I{################################################################################################}
-### 5.3.3 Multiple Use of Thread-Related Scopes ##  {#alib_mod_scopes_thread_multiple}
+### 5.3.3 Multiple Use of Thread-Related Scopes ##  {#alib_mod_alox_scopes_thread_multiple}
 
-We learned in section \ref alib_mod_scopes_language_path, that this \e Scope through the use of
+We learned in section \ref alib_mod_alox_scopes_language_path, that this \e Scope through the use of
 different parent directories may be seen as whole set of nested \e Scopes itself.
 
 The same is true for \e %Scope::ThreadOuter and \e %Scope::ThreadInner! If multiple <em>Scope Domains</em>
@@ -1315,7 +1312,7 @@ in the next section.
 
 
 \I{################################################################################################}
-### 5.3.4 How To Set Scope Domains for Thread-Related Scopes ##  {#alib_mod_scopes_thread_setting}
+### 5.3.4 How To Set Scope Domains for Thread-Related Scopes ##  {#alib_mod_alox_scopes_thread_setting}
 
 The same method,
 \doxlinkproblem{classalib_1_1lox_1_1Lox.html;a95a374a0dbd5d66583a7d92b216ff612;Lox::SetDomain(const NString&, Scope)}
@@ -1333,7 +1330,7 @@ For the case that the reverse order of adding and removing thread-related <em>Sc
 cannot be guaranteed, class \b Lox offers method \alib{lox;Lox::RemoveThreadDomain} which accepts
 the domain path to be removed explicitly as a parameter.
 
-It was discussed in \ref alib_mod_scopes_language_setting, that those types of \e Scopes can only be
+It was discussed in \ref alib_mod_alox_scopes_language_setting, that those types of \e Scopes can only be
 set from 'within' the \e Scope to be set (the same or an inner \e Scope). This is different
 with thread-related \e Scopes. Method
 \doxlinkproblem{classalib_1_1lox_1_1Lox.html;a95a374a0dbd5d66583a7d92b216ff612;Lox::SetDomain(const NString&, Scope)}
@@ -1342,7 +1339,7 @@ explicitly providing the thread object to associate a thread-related <em>Scope D
 Of course, if this parameter is omitted, the 'actual \e Scope', hence the current thread, is used.
 
 \note
-  While \alib provides class \alib{threads;Thread}, usually, a software using would use a different
+  While \alib provides class \alib{threads;Thread}, usually, software using would use a different
   library to create threads. As long as such library is creating 'native' threads of the underlying
   operating system, this is no issue. To refer to a thread created with a different library, the
   approach is as follows:
@@ -1359,16 +1356,16 @@ settings can be logged using \alib{lox;Lox::State} to investigate which settings
 Alternatively, if the snapshot is not enough to understand what is set, removed and used where,
 a live log of \alox' internal messages can be activated to identify exactly what the code is doing
 in respect to <em>Scope Domains</em>.
-See \ref alib_mod_internal_domains for more information about how to enable internal log messages.
+See \ref alib_mod_alox_internal_domains for more information about how to enable internal log messages.
 
 
 \I{################################################################################################}
-## 5.4 Wrap up #  {#alib_mod_scopes_wrapup}
+## 5.4 Wrap up #  {#alib_mod_alox_scopes_wrapup}
 
 We want to summarize the takeaways of this chapter:
 
 - \e Scopes are used for different features of \alox, as documented in
-  \ref alib_mod_logdomains, \ref alib_mod_log_once, \ref alib_mod_prefix_logables and \ref alib_mod_log_data.
+  \ref alib_mod_alox_logdomains, \ref alib_mod_alox_log_once, \ref alib_mod_alox_prefix_logables and \ref alib_mod_alox_log_data.
 - Most of the samples and explanations in this chapter are related to <em>Scope Domains</em>.
 - \e Scopes are nested, we have inner and outer \e Scopes.
 - Four (programming-)language-related \e Scopes were introduced. They work similar to scopes of
@@ -1408,24 +1405,24 @@ the \e Verbosity of <em>Log Statements</em>. In other words, the main purpose of
 a piece of code produces.
 While \alox may be used to help here quite nicely, there are other software tools and techniques
 available for accomplishing this.<br>
-Therefore our recommendation is: <b>Do not overuse the concept of <em>Scope Domains</em></b>.
+Therefore , our recommendation is: <b>Do not overuse the concept of <em>Scope Domains</em></b>.
 With too many <em>Scope Domains</em> set, the original purpose of <em>Log Domains</em> may become
 harder to achieve. Already the maintenance of \e Verbosities may start causing some unwanted effort.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 6 Lox::Once() #  {#alib_mod_log_once}
-## 6.1 Introduction #  {#alib_mod_logonce_intro}
+# 6 Lox::Once() #  {#alib_mod_alox_log_once}
+## 6.1 Introduction #  {#alib_mod_alox_logonce_intro}
 
 For a better understanding of what is explained in this chapter, it might be advisable to have read chapter
-\ref alib_mod_scopes before continuing with this one. In short, at that place it is explained how \alox defines
+\ref alib_mod_alox_scopes before continuing with this one. In short, at that place it is explained how \alox defines
 language-related \e Scopes (including the 'global' \e Scope) and thread-related \e Scopes.
 Both types are 'interwoven' and form the complete set, as denoted in enum-class \alib{lox;Scope}.
 
 The most important use of \e Scopes in \alox is for setting and using <em>Scope Domains</em>
 which helps sorting and controlling the log output tremendously. Further information on
-this topic is found in chapter \ref alib_mod_logdomains.
+this topic is found in chapter \ref alib_mod_alox_logdomains.
 This chapter provides details about a feature that we simple call \b %Lox::Once.
 
 Using \alox, you have probably come across method \alib{lox;Lox::Once}, with its various parameters
@@ -1455,7 +1452,7 @@ other variations of this method:
   "was a piece of code reached once". This use case is: <em>"Log problems or facts, which will not
   change in the future only once"</em>.
   Here, the configuration file "config.ini" contains wrong information. It is what it is. Do not tell me this
-  twice and do not clutter the log output in subsequent execution of a software.
+  twice and do not clutter the log output in subsequent execution of software.
 
 
 - At this point in time, it might be worth to mention, that the counter is increased with
@@ -1480,7 +1477,7 @@ other variations of this method:
 
 
 \I{################################################################################################}
-## 6.2 Grouping #  {#alib_mod_logonce_grouping}
+## 6.2 Grouping #  {#alib_mod_alox_logonce_grouping}
 
 In the introduction we have seen use cases like:
 - Is a certain piece of code reached?
@@ -1520,13 +1517,13 @@ already performed logs between them.
   logging. Please do not ask us for a use case of this!
 
 In summary, parameter \p{group} is used to group a number of \b Lox::Once statements which are
-located in arbitrary places of a software together and count the number of overall executed logs.
+located in arbitrary places of software together and count the number of overall executed logs.
 
 For a short time, this is all to know about using \e Groups. But we will come back
 to \e Groups after the next section.
 
 \I{################################################################################################}
-## 6.3 Lox::Once and Scopes #  {#alib_mod_logonce_scopes}
+## 6.3 Lox::Once and Scopes #  {#alib_mod_alox_logonce_scopes}
 
 Instead of 'grouping' a set of \e Lox::Once statements by manually assigning them a
 group name, \alox \e Scopes can 'automatically' group statements which in a 'natural' way belong
@@ -1538,7 +1535,7 @@ using \e Scopes:
 
 Comparing the samples, it can be observed, that parameter \p{group} of type \e String was replaced by
 parameter \p{scope} of type \b %Scope, with value \b Scope::Filename. For other possible
-values, see chapter \ref alib_mod_scopes.
+values, see chapter \ref alib_mod_alox_scopes.
 
 From a birds' perspective, the advantages of \e Scopes are:
 - No need to 'invent' a group name and no risk of accidentally using the same name twice (e.g.
@@ -1563,7 +1560,7 @@ disadvantages, so why not combining them?
 
 
 \I{################################################################################################}
-## 6.4 Combining Groups and Scopes #  {#alib_mod_logonce_gs_combined}
+## 6.4 Combining Groups and Scopes #  {#alib_mod_alox_logonce_gs_combined}
 
 The parameter list of \alib{lox;Lox::Once} and some of its overloaded variants, allow to provide
 both, a \e Group name and a \e %Scope.
@@ -1572,7 +1569,7 @@ To understand the consequence, its best to explain how \alox internally handles 
 and their value contains the counter. Now, \alox (to be precise, class \b Lox), creates a
 hash-table for \e Group keys for each 'instance of a scope' where \b Lox::Once is used.<br>
 When parameter \p{scope} is omitted with \b Lox::Once, it simply defaults to \e %Scope::Global, which
-is, as explained in \ref alib_mod_scopes, a singleton for each \b Lox. Consequently, each and every
+is, as explained in \ref alib_mod_alox_scopes, a singleton for each \b Lox. Consequently, each and every
 statement belongs to \e %Scope::Global and this is why \e Groups of default \e %Scope::Global
 seem to work independently from any scope.<br>
 The other way round, if parameter \p{group} is omitted, then there are two options for \alox: If
@@ -1610,7 +1607,7 @@ a little more. Just for example:
 It is up to the reader of this manual and user of \alox to adopt his own use cases to this list.
 
 \I{################################################################################################}
-## 6.5 Passing Multiple Logables To Lox::Once#  {#alib_mod_logonce_multiple_logables}
+## 6.5 Passing Multiple Logables To Lox::Once#  {#alib_mod_alox_logonce_multiple_logables}
 Unlike other methods of class \b %Lox that comprise <em>Log Statements</em> which accept an
 arbitrary amount of logables, method \b %Once and its overloaded variants accept only one logable.
 This restriction is caused by the otherwise complicated set of parameters and overloads of this
@@ -1621,7 +1618,7 @@ with parameter \p{logables}:
 \snippet "ut_alox_lox.cpp"      DOX_ALOX_LOX_ONCE
 
 \I{################################################################################################}
-## 6.6 Wrap-Up #  {#alib_mod_logonce_wrapup}
+## 6.6 Wrap-Up #  {#alib_mod_alox_logonce_wrapup}
 
 Some combinations of \e Scope 'levels' and using \e Groups probably do not make too much sense.
 For example: Grouping different \b LogOnce statements together within \e %Scope::Method? Well, you rather
@@ -1636,25 +1633,25 @@ If this gets all to complicated for you being new to \alox, here are some hints:
 
 - Like with other features of \alox, if parameters are omitted, you don't even see the more complex
   options and you are not bothered too much.
-  See \ref alib_mod_apdx_auto_config for a summary of this.
+  See \ref alib_mod_alox_apdx_auto_config for a summary of this.
 
 - If, especially in decent release-logging scenarios, a more complex setup troubles you,
   switch on \alox internal logging and see exactly what is happening where, when and why!
-  Information on how to do this is found in \ref alib_mod_internal_domains.
+  Information on how to do this is found in \ref alib_mod_alox_internal_domains.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
 
-# 7 Prefix Logables #  {#alib_mod_prefix_logables}
+# 7 Prefix Logables #  {#alib_mod_alox_prefix_logables}
 \I{################################################################################################}
-## 7.1 Introduction #  {#alib_mod_prefix_logables_intro}
+## 7.1 Introduction #  {#alib_mod_alox_prefix_logables_intro}
 
 The feature of \alox called <b>Prefix Logables</b> covered in this chapter, builds upon
 the \alox concept of \e Scopes in a similar way as feature <em>Scope Domains</em> does.
-Therefore it is advisable to have read and understood chapters
-- \ref alib_mod_logdomains and
-- \ref alib_mod_scopes before continuing reading here.
+Therefore , it is advisable to have read and understood chapters
+- \ref alib_mod_alox_logdomains and
+- \ref alib_mod_alox_scopes before continuing reading here.
 
 This chapter will \e not repeat every detail covered already in the aforementioned chapters.
 
@@ -1666,9 +1663,9 @@ Before we explain the use cases for <em>Prefix Logables</em>, let us begin to el
 user of \alox and how \alox processes them.
 
 \I{################################################################################################}
-## 7.2 Setting Prefix Logables #  {#alib_mod_prefix_logables_setting}
+## 7.2 Setting Prefix Logables #  {#alib_mod_alox_prefix_logables_setting}
 
-### 7.2.1 Setting Prefix Logables According to the Scope ## {#alib_mod_prefix_logables_setting_1}
+### 7.2.1 Setting Prefix Logables According to the Scope ## {#alib_mod_alox_prefix_logables_setting_1}
 With the first way of setting and removing <em>Prefix Logables</em> method
 \doxlinkproblem{classalib_1_1lox_1_1Lox.html;a868d9d33d9456b6380abf3bf39cd8b16;SetPrefix(const Box&, Scope)}
  is used. The method and its overloaded versions
@@ -1677,7 +1674,7 @@ is very similar to method
 used for setting <em>Scope Domains</em>. Besides the difference in the name, the only
 difference is the first parameter, which is a \e Logable instead of a domain path string.
 
-All that was said about setting <em>Scope Domains</em> in Chapter \ref alib_mod_logdomains is true
+All that was said about setting <em>Scope Domains</em> in Chapter \ref alib_mod_alox_logdomains is true
 for setting <em>Prefix Logables</em> and this should not be repeated here. The same rules for
 \e %Scopes apply, including the fact that with \e %Scope::ThreadInner and \e %Scope::ThreadOuter,
 a subsequent setting of a <em>Prefix Logable</em> is added to a list of <em>Prefix Logables</em>
@@ -1691,7 +1688,7 @@ corresponding to \alib{lox;Lox::RemoveThreadDomain}, which provides a little ext
 of maintaining <em>Scope Domains</em> in contrast to maintaining <em>Prefix Logables</em>.
 
 \I{################################################################################################}
-### 7.2.2 Setting Prefix Logables According to the Log Domain##  {#alib_mod_prefix_logables_setting_2}
+### 7.2.2 Setting Prefix Logables According to the Log Domain##  {#alib_mod_alox_prefix_logables_setting_2}
 Besides binding <em>Prefix Logables</em> to a \e Scope, \alox provides an alternative
 and this is binding <em>Prefix Logables</em> to a <em>Log Domain</em>.
 The method for doing this is \doxlinkproblem{structalib_1_1expressions_1_1plugins_1_1Calculus_1_1FunctionEntry.html;a3f9769a430a930630a75d41bc7e4055c;FunctionEntry::Signature}.
@@ -1706,10 +1703,10 @@ which are set according to a \e Scope. By default, the exclusivity is not set.
  Alternatively, <em>Prefix Logables</em> bound to a <em>Log Domain</em> can be set using
  configuration variable \ref alxcvALOX_LOXNAME_PREFIXES. Of course, this allows only
  <em>Prefix Logables</em> of string-type to be set. More on this is found in chapter
- \ref alib_mod_apdx_config_vars.
+ \ref alib_mod_alox_apdx_config_vars.
 
 \I{################################################################################################}
-### 7.2.3 Setting More than one Prefix Logable at a Time## {#alib_mod_prefix_logables_setting_3}
+### 7.2.3 Setting More than one Prefix Logable at a Time## {#alib_mod_alox_prefix_logables_setting_3}
 While the <em>Log Statements</em> accept an arbitrary amount of objects, the methods
 to set <em>Prefix Logables</em> have only one parameter. If more than one <em>Prefix Logable</em>
 is to be set, the first alternative is to set them one by one:
@@ -1732,11 +1729,11 @@ to the overall list of \e Logables, the single objects contained in the array ar
     boxes array, respectively vector, is a local variable and will be removed from the stack, as
     boxes as the compound of the statement is closed. (With the closing brace <c>'}'</c>).
 \attention
-    Please consider later chapter \ref alib_mod_prefix_logables_lifecycle for more information.
+    Please consider later chapter \ref alib_mod_alox_prefix_logables_lifecycle for more information.
 
 
 \I{################################################################################################}
-## 7.3 How ALox Processes Prefix Logables # {#alib_mod_prefix_logables_processing}
+## 7.3 How ALox Processes Prefix Logables # {#alib_mod_alox_prefix_logables_processing}
 With any sort of <em>Log Statement</em> in \alox, the <em>Prefix Logables</em> are collected according
 to the \e Scope and the <em>Log Domain</em> of that <em>Log Statement</em>.
 In the same fashion as <em>Scope Domains</em> are concatenated, \alox adds <em>Prefix Logables</em> to the list of \e Logables
@@ -1770,13 +1767,13 @@ this term is not applicable to objects in an ordered array. The answer to this i
 next section.
 
 \I{################################################################################################}
-## 7.4 Use cases of Prefix Logables #  {#alib_mod_prefix_logables_usecases}
+## 7.4 Use cases of Prefix Logables #  {#alib_mod_alox_prefix_logables_usecases}
 
 Talking about the use cases of feature <em>Prefix Logables</em>, we have to distinguish between logging arbitrary
 objects, what \alox supports and logging textual (string) messages, what is by far the most widely
 application for \alox.
 
-### 7.4.1 Textual Logging # {#alib_mod_prefix_logables_usecases_textual}
+### 7.4.1 Textual Logging # {#alib_mod_alox_prefix_logables_usecases_textual}
 When logging textual messages (more precisely: when using \e Loggers derived from abstract class
 \alib{lox::textlogger;TextLogger}, just as all textual \e Loggers delivered with \alox are),
 the impact of <em>Prefix Logable</em> is simple. Class \b %TextLogger
@@ -1784,14 +1781,14 @@ just passes all objects found in the list of \e Logables to its
 \alib{lox::textlogger;ObjectConverter} which in turn (in its default implementation)
 passes them to the formatters found in field \alib{lox::textlogger;StandardConverter::Formatters}.
 This list by default, has two objects, namely of types
-\alib{lang::format;FormatterPythonStyle;FormatterPythonStyle} and
-\alib{lang::format;FormatterJavaStyle;FormatterJavaStyle} attached.
+\alib{format;FormatterPythonStyle;FormatterPythonStyle} and
+\alib{format;FormatterJavaStyle;FormatterJavaStyle} attached.
 This way, \b %TextLogger is well prepared to assemble a nicely formatted log output, by default
 accepting Python formatter strings as well as the corresponding Java syntax.
 
 \note
   As already explained in this manual and in the documentation of class
-  \alib{lang;format::Formatter}, there is an important feature that supports
+  \alib{format;Formatter}, there is an important feature that supports
   the concept of <em>Prefix Logables</em> very nicely: While usually (in other libraries and languages)
   such formatting classes accept \b one format string and an arbitrary amount of objects, with
   this class the format string is included in the object list. The first object may or may not
@@ -1805,8 +1802,8 @@ accepting Python formatter strings as well as the corresponding Java syntax.
   a format string and corresponding arguments.
 
 \note
-  For more information on \e Loggers and \e %TextLogger, see chapters \ref alib_mod_colorful_loggers and
-  \ref alib_mod_ext_loggers.
+  For more information on \e Loggers and \e %TextLogger, see chapters \ref alib_mod_alox_colorful_loggers and
+  \ref alib_mod_alox_ext_loggers.
 
 This explains the term \e 'prefix': Apart from <em>Prefix Logables</em> of \e %Scope::ThreadInner, all
 <em>Prefix Logables</em> are prefixes to the 'log message'. Those of \e %Scope::ThreadInner are suffixes. For the architects
@@ -1820,7 +1817,7 @@ The output will look similar to this:
 \verbinclude pages/generated/ALoxMan_LogSetPrefix___1.txt
 
 
-### 7.4.2 Recursive Logging and Indentation # {#alib_mod_prefix_logables_usecases_recursiveindent}
+### 7.4.2 Recursive Logging and Indentation # {#alib_mod_alox_prefix_logables_usecases_recursiveindent}
 A next use case is recursively increasing 'indentation' of the log messages, as demonstrated
 here:
 
@@ -1844,7 +1841,7 @@ As an alternative to 'indentation', think about using the escape codes found in 
 leads to nicely colorized or bold or italic log output, at least with text-loggers supporting such
 styles. (\alox provides such \e Loggers e.g., for ANSI consoles or Windows OS command windows.)
 
-### 7.4.3 Displaying Current Application States # {#alib_mod_prefix_logables_usecases_appstate}
+### 7.4.3 Displaying Current Application States # {#alib_mod_alox_prefix_logables_usecases_appstate}
 Use cases are depending on the application and situation. Let us touch
 a last one here: Consider an application that causes errors in certain situations. Let's say, a
 phone app seems to start logging errors 'randomly' which means, you do not know when. You suspect
@@ -1857,10 +1854,10 @@ recent log message giving you information about that status. Generally spoken: <
 to add status information to log lines providing information collected elsewhere.
 
 \I{################################################################################################}
-### 7.4.4 Arbitrary Object Logging #  {#alib_mod_prefix_logables_usecases_binary}
+### 7.4.4 Arbitrary Object Logging #  {#alib_mod_alox_prefix_logables_usecases_binary}
 
 The situation with \e Loggers designed to log arbitrary objects is different.
-(How to create such custom, application specific \e Loggers is described in \ref alib_mod_ext_loggers).
+(How to create such custom, application specific \e Loggers is described in \ref alib_mod_alox_ext_loggers).
 
 If only arbitrary objects were supported in  \alox and the standard textual logging would not
 exist as the predominant use-case, then the whole feature probably would have been named <b>Context Logables</b>.
@@ -1883,7 +1880,7 @@ Use cases are endless and cannot be named here, they depend the field of applica
 \alox is used to support.
 
 \I{################################################################################################}
-## 7.5 Lifecycle Management of Prefix Logables in ALox for C++#    {#alib_mod_prefix_logables_lifecycle}
+## 7.5 Lifecycle Management of Prefix Logables in ALox for C++#    {#alib_mod_alox_prefix_logables_lifecycle}
 
 One of the design goals of the \alox Logging Library is to avoid code clutter when using it.
 In a perfect world, <em>Log Statements</em> would be as clear and easy to read as comment lines.
@@ -1956,7 +1953,7 @@ The following code and its output demonstrate what was just said:
 
 
 \I{################################################################################################}
-## 7.6 Wrap-Up #  {#alib_mod_prefix_logables_wrapup}
+## 7.6 Wrap-Up #  {#alib_mod_alox_prefix_logables_wrapup}
 
 This is what this chapter has covered in respect to <em>Prefix Logables</em>:
 - <em>Prefix Logables</em> are \e Logables that can be set according to the \e Scope mechanisms featured by \alox, or
@@ -1974,7 +1971,7 @@ This is what this chapter has covered in respect to <em>Prefix Logables</em>:
 
 As with other features using \alox \e Scopes, on the first sight, this seems to be
 a little complicated. Especially when looking at the list given in chapter
-\ref alib_mod_prefix_logables_processing.
+\ref alib_mod_alox_prefix_logables_processing.
 But when you look at the use cases, it becomes clear, that from the nine options of that list,
 mostly one is used in parallel, seldom two.
 Once the concept of <em>Scope Domains</em> is fully understood, the use of this feature
@@ -1984,17 +1981,17 @@ and of others that leverage \alox \e Scopes, should quickly become very intuitiv
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 8 Log Data (Debug Variables) #  {#alib_mod_log_data}
+# 8 Log Data (Debug Variables) #  {#alib_mod_alox_log_data}
 
 \I{################################################################################################}
-## 8.1 Prerequisites #  {#alib_mod_log_data_prerequisites}
+## 8.1 Prerequisites #  {#alib_mod_alox_log_data_prerequisites}
 
 For a better understanding of what is explained in this chapter, it might be advisable to have read:
-- Chapter \ref alib_mod_scopes. In short, at that place it is explained how \alox defines
+- Chapter \ref alib_mod_alox_scopes. In short, at that place it is explained how \alox defines
   language-related \e Scopes (including the 'global' \e Scope) and thread-related \e Scopes.
   Both types are 'interwoven' and form the complete set, as denoted in enum-class \alib{lox;Scope}
 
-- Chapter \ref alib_mod_log_once
+- Chapter \ref alib_mod_alox_log_once
 
 \attention
   Both chapters are prerequisites for understanding what is explained here.
@@ -2005,11 +2002,11 @@ For a better understanding of what is explained in this chapter, it might be adv
 
 
 \I{################################################################################################}
-## 8.2 Introduction #  {#alib_mod_log_data_intro}
+## 8.2 Introduction #  {#alib_mod_alox_log_data_intro}
 
 The concept of <em>Log Data</em> is a feature used for debugging. The goal that is aimed here
 is similar to the goal of debug-<em>Log Statements</em> themselves. As a reminder, those are:
-- Have a process log out debug messages, that help to understand a software during
+- Have a process log out debug messages, that help to understand software during
   the implementation phase.
 - Avoid adding \b temporary 'debug output statements'. Instead, use \b permanent code, which
   can be disabled and preserved for later use, when needed.
@@ -2031,18 +2028,18 @@ generated giving more information about where and why the exception occurred.
   The whole concept of <em>Log Data</em> provided by \alox is merely a tool to support the process
   of debugging and debug code. Code using \alox <em>Log Data</em> should be pruned from release executables.
   In other words: It is not advised to use \alox Log Data to implement any functionality of
-  an application, for example storing thread-local data used outside of <em>Log Statements</em>.
+  an application, for example storing thread-local data used outside the <em>Log Statements</em>.
   There are other, standardized, reliable and efficient ways to store thread-local data.
 
 \I{################################################################################################}
-## 8.3 Using Log Data #  {#alib_mod_log_data_using}
+## 8.3 Using Log Data #  {#alib_mod_alox_log_data_using}
 
 The interface for setting and retrieving <em>Log Data</em> is provided with methods
 \alib{lox;Lox::Store} and \alib{lox;Lox::Retrieve}.
 
 The type of data stored is \alib{boxing;Box} in <b>%\alox for C++</b>. (What else did you expect?)
 
-While in Chapter \ref alib_mod_log_once of this manual, it was explained in detail how parameters
+While in Chapter \ref alib_mod_alox_log_once of this manual, it was explained in detail how parameters
 \p{group} and \p{scope} of method \alib{lox;Lox::Once} can be omitted, how one of them can be used and what
 happens when both are used, we do not want to repeat these details in this chapter.
 
@@ -2071,11 +2068,11 @@ For clarification, this means, that different <em>Log Data</em> objects are stor
 even if parameters \p{scope} and \p{key} are the same. For example,
 an object stored using \p{Scope}.Method cannot be retrieved from a different method and will also not be overwritten
 within a different method. Again, the consequences and use cases of this design may become
-clearer when reading chapter \ref alib_mod_log_once "Lox::Once".
+clearer when reading chapter \ref alib_mod_alox_log_once "Lox::Once".
 
 
 \I{################################################################################################}
-## 8.4 Lifecycle Management of Log Data+#    {#alib_mod_log_data_lifecycle}
+## 8.4 Lifecycle Management of Log Data+#    {#alib_mod_alox_log_data_lifecycle}
 It is important to understand that in \alox for C++, <em>Log Data</em> objects have to
 be kept in memory, if they are passed as pointers. The question if data is passed as a pointer
 or as a value is answered in the Programmer's Manual of module \alib_boxing.
@@ -2091,10 +2088,10 @@ is extended after it was stored. Be sure to understand this constraint when usin
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 9 Multithreaded Processes #  {#alib_mod_multi_threaded}
+# 9 Multithreaded Processes #  {#alib_mod_alox_multi_threaded}
 
 \I{################################################################################################}
-## 9.1 Introduction # {#alib_mod_multi_threaded_intro}
+## 9.1 Introduction # {#alib_mod_alox_multi_threaded_intro}
 
 What does "logging" have to do with multithreaded applications? Quite a bit, as we will see
 in this chapter.
@@ -2122,10 +2119,10 @@ this modern standard, or use the thread classes provided with \alib (if you use 
 simple applications, but not more!
 
 \I{################################################################################################}
-## 9.2 Mapping Thread Names # {#alib_mod_multi_threaded_mapping}
+## 9.2 Mapping Thread Names # {#alib_mod_alox_multi_threaded_mapping}
 \alox collects information about the thread that was executing a <em>Log Statement</em>. For textual
 logging, struct \alib{lox::textlogger;FormatMetaInfo}, which is a
-\ref alib_mod_config "configuration variable" and this way configurable from outside,
+\ref alib_mod_variables "configuration variable" and this way configurable from outside,
 contains information on how and where class \alib{lox::textlogger;TextLogger}, writes the
 name of the executing thread by default. This default is defined with substring "%tN" in field
 \alib{lox::textlogger::FormatMetaInfo;Format} of that variable. Now, if you want to change the name (without
@@ -2138,18 +2135,18 @@ A sample for using this method is given in the tutorial chapter
 \ref alox_tutcpp_threadnames "14. Name Your Threads".
 
 \I{################################################################################################}
-## 9.3 Thread-Related Scopes # {#alib_mod_multi_threaded_scopes}
+## 9.3 Thread-Related Scopes # {#alib_mod_alox_multi_threaded_scopes}
 
 With the fundamental concept of having \e %Scopes in \alox, and in particular with the fact
-that \alox "interweaves" so called \b %Scope::ThreadInner and \b %Scope::ThreadOuter with other
+that \alox "interweaves" so-called \b %Scope::ThreadInner and \b %Scope::ThreadOuter with other
 language-related scopes (e.g., \b %Scope::Method) and the global \e Scope, \alox supports much more
 of multithreaded applications than just mapping new names to threads!
 
 This is a complex topic and there is a whole bunch of chapters we have to refer you to:
-- \ref alib_mod_scopes
-- \ref alib_mod_log_once,
-- \ref alib_mod_prefix_logables and
-- \ref alib_mod_log_data.
+- \ref alib_mod_alox_scopes
+- \ref alib_mod_alox_log_once,
+- \ref alib_mod_alox_prefix_logables and
+- \ref alib_mod_alox_log_data.
 
 To name just a few "applications" of the features described in the chapters above:
 
@@ -2166,7 +2163,7 @@ To name just a few "applications" of the features described in the chapters abov
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 10 Differences of Debug- and Release-Logging #  {#alib_mod_debug_and_release_logging}
+# 10 Differences of Debug- and Release-Logging #  {#alib_mod_alox_debug_and_release_logging}
 
 The \ref alib_alox_tut and most sample code in this manual, provide information about <em>debug logging</em>.
 The main goal of this chapter is to explain how to implement <em>release logging</em>. This might be
@@ -2180,7 +2177,7 @@ As previous chapters described, any logging with \alox is roughly performed as f
 - Then, anywhere in the source code, <em>Log Statements</em> which perform the logging exclusively
   through the interface of that dedicated object of class \b Lox are inserted.
 
-## 10.1 Debug Logging ##   {#alib_mod_debug_and_release_logging_dbg}
+## 10.1 Debug Logging ##   {#alib_mod_alox_debug_and_release_logging_dbg}
 
 \note
   A-Worx (the maker of \alox) is a consultant to the software industry and one area of
@@ -2215,7 +2212,7 @@ Now, with <em>debug logging</em>, there are some specialties that do not apply i
    as shown in \ref alox_tutcpp_hello_alox "Tutorial: Hello ALox".
 
 
-## 10.2 Release Logging ##   {#alib_mod_debug_and_release_logging_rel}
+## 10.2 Release Logging ##   {#alib_mod_alox_debug_and_release_logging_rel}
 From the previous discussion about the specialties of <em>debug logging</em>, we can now quite easily
 identify how release logging differs and derive a guideline on how to implement it:
 
@@ -2228,8 +2225,8 @@ identify how release logging differs and derive a guideline on how to implement 
 2. One or more objects derived from (abstract) type \alib{lox;detail::Logger} have to be created and attached to the
    release-Lox object(s), usually with setting the right <em>Verbosity</em> for different
    <em>Log Domains</em>.<br>
-   (Both actions are usually performed at the beginning of the life-cycle of a software process, what
-   we call the <em>bootstrapping section</em> of a software.)
+   (Both actions are usually performed at the beginning of the life-cycle of software process, what
+   we call the <em>bootstrapping section</em> of software.)
 
 3. The interface of the lox object itself is directly used for logging. The <em>Log Statements</em>
    work and look similar to <em>debug logging</em>, because as already explained above, an own set
@@ -2237,21 +2234,21 @@ identify how release logging differs and derive a guideline on how to implement 
    vs. <em>Lox_</em> (see \ref GrpALibPreproMacros).<br>
    Each code entity has to set the preprocessor symbol \ref LOX_LOX before using
    <em>release logging</em> macros, because this symbol is used inside all preprocessor macros.
-   This can be done in a general header file of the software, (e.g., the same that exposes the
+   This can be done in a general header-file of the software, (e.g., the same that exposes the
    release-Lox object to that source), or, in more complex scenarios with more than one
    release-Lox object, at any other appropriate source location.
 
 4. By default, the language-related \e Scopes are not usable with release logging. 
-   It is elaborated in \ref alib_mod_scopes_language "Language-Related Scopes", 
+   It is elaborated in \ref alib_mod_alox_scopes_language "Language-Related Scopes", 
    why this is not considered as a big penalty.
    Release executables just should not contain information about source code directories and files.
    For security reasons and to protect a companies or programmers intellectual property.<br>
    When the inclusion of caller information with release logging is activated (see 
-   chapter \ref alib_mod_debug_and_release_logging_ft_1), then the scopes are fully usable.   
+   chapter \ref alib_mod_alox_debug_and_release_logging_ft_1), then the scopes are fully usable.   
                                    
 
-## 10.3 Further Thoughts ##   {#alib_mod_debug_and_release_logging_ft}
-### 10.3.1 Pruning Release Logging ###   {#alib_mod_debug_and_release_logging_ft_1}
+## 10.3 Further Thoughts ##   {#alib_mod_alox_debug_and_release_logging_ft}
+### 10.3.1 Pruning Release Logging ###   {#alib_mod_alox_debug_and_release_logging_ft_1}
 Probably just because it was easy to implement (!), the C++ version of \alox supports the optional
 pruning of <em>release logging</em> statements as well (see \ref ALOX_REL_LOG).
 This might sound confusing in the first moment, but it allows creating different
@@ -2266,7 +2263,7 @@ However, if done, language-related scopes can be used with <em>release logging</
 
 
 
-### 10.3.2 More Complex Use Cases ###   {#alib_mod_debug_and_release_logging_ft_2}
+### 10.3.2 More Complex Use Cases ###   {#alib_mod_alox_debug_and_release_logging_ft_2}
 \alox allows usage in various fashions. By having the concept of different \e %Loggers aggregated
 in one or more \b Lox objects, using an hierarchical structure of <em>Log Domains</em>, which by
 default inherit their \e Verbosity from their parent domain
@@ -2293,7 +2290,7 @@ However, once the basic concepts of \alox are understood, it is easy to build su
 tailored to the complex case itself.
 
 
-### 10.3.3 Using ALox and Libraries ###    {#alib_mod_debug_and_release_logging_ft_3}
+### 10.3.3 Using ALox and Libraries ###    {#alib_mod_alox_debug_and_release_logging_ft_3}
 Using \alox with libraries, is basically the same as using \alox in a single code entity. However,
 we recommend the following principles:
 - For <em>release  logging</em>, a library should provide an initialization method that receives a reference
@@ -2312,49 +2309,47 @@ we recommend the following principles:
   in granular way.
 
 
-### 10.3.4 The ALib Report Writer ###    {#alib_mod_debug_and_release_logging_ft_4}
-\alib, the general purpose C++ library that \alox is one module of many, provides a concept for
-writing reports. This mechanism is used to report problems in debug-versions of \alib and optionally
-of software using ALib. With class \alib{lox::ALoxReportWriter}, \alox implements such mechanism to
-direct \alib reports to an \alox \e %Logger. This is all transparently set up and destructed with methods
-\alib{lox;Log::AddDebugLogger} and \alib{lox;Log::RemoveDebugLogger}.
+### 10.3.4 Logging ALib Assertions ###    {#alib_mod_alox_debug_and_release_logging_ft_4}
+\alib, the general purpose C++ library that incorporates \alox as one of many modules, provides a 
+concept for raising assertions, warnings and debug-messages. 
+This mechanism is used to report problems in debug-versions of \alib and may optionally used by
+of software that uses \alib. 
+With function \alib{lox::ALoxAssertionPlugin}, \alox implements the provided plug-in mechanism to
+direct the textual output to an \alox \e %Logger. 
+This is all transparently set up and destructed with methods \alib{lox;Log::AddDebugLogger} and 
+\alib{lox;Log::RemoveDebugLogger}.
 
-Applications that do not use debug logging may want to use methods
-\alib{lox;Log::AddALibReportWriter} and \alib{lox;Log::RemoveALibReportWriter} with debug-builds.
+Applications that do not use debug logging may want to use method
+\alib{lox;Log::SetALibAssertionPlugin} to add and remove the plugin "manually" with 
+debug-builds.
 
-It is important to set the verbosity of the (internal) domain provided with method
-\alib{lox;ALoxReportWriter::LogDomain} to a proper level, to enable the logging of any reports.
+It is important to set the verbosity of the domains used to a proper level, to enable the logging 
+of assertions, which are logged to a subdomain of the domain given with namespace variable 
+\alib{lox;ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX}. (This variable may be changed by the using code.)
+                                                                                     
+The following code samples a proper bootstrap using the release-logger.:
 
-A demonstration of how to do this is found in the \alox release logging sample code.
+\snippet "ut_alox_dox.cpp"     DOX_ALOX_SET_ASSERTION_PLUGIN
 
 \note
   <b>\alox for C++</b> does not provide a corresponding preprocessor macro.
-  Instead, macro \b Log_Prune (not \b %Lox_Prune!) should be used to perform the
-  the invocation of \b %Log::AddALibReportWriter and \b %Log::RemoveALibReportWriter with debug-builds.
-  The following code samples a proper bootstrap. First the following header has to be included
-  by the compilation unit:
-  \snippet "ut_alox_dox.cpp"     DOX_ALOX_INSTALL_REPORT_WRITER_0
-
-\note
-  Then this code adds the report writer:
-  \snippet "ut_alox_dox.cpp"     DOX_ALOX_INSTALL_REPORT_WRITER
-
-\note
-  Upon termination, such report writer is to be removed as sampled here:
-  \snippet "ut_alox_dox.cpp"     DOX_ALOX_INSTALL_REPORT_WRITER_2
+  Instead, macro \b Log_Prune (not \b %Lox_Prune!) should be used to perform the invocations 
+  with debug-builds.
+  
+Upon termination, the plug-in is to be removed as sampled here:
+  \snippet "ut_alox_dox.cpp"     DOX_ALOX_SET_ASSERTION_PLUGIN_2
 
 
+### 10.3.5 Other differences of Debug and Release Logging ###    {#alib_mod_alox_debug_and_release_logging_ft_5}
 
-### 10.3.5 Other differences of Debug and Release Logging ###    {#alib_mod_debug_and_release_logging_ft_5}
-
-Appendix reference chapter \ref alib_mod_apdx_auto_config might hint to other differences of
+Appendix reference chapter \ref alib_mod_alox_apdx_auto_config might hint to other differences of
 debug and release logging.
 
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 11 Internal Logging #  {#alib_mod_internal_domains}
+# 11 Internal Logging #  {#alib_mod_alox_internal_domains}
 
 Well, it seems like a miracle that C++ compilers are written in C++ and looking behind the
 scenes it is really fine piece of <em>software art</em> that you discover when start
@@ -2368,7 +2363,7 @@ work with them. A first introduction to this is given in the language-specific t
 chapter \ref alox_tutcpp_config "16. ALox Configuration Information and Internal Log Messages".
 
 \I{################################################################################################}
-## 11.1 The Internal Domain Tree # {#alib_mod_internal_domains_tree}
+## 11.1 The Internal Domain Tree # {#alib_mod_alox_internal_domains_tree}
 <em>Log Domains</em> are hierarchically organized in \alox. All <em>Log Domains</em> together
 constitute a tree of <em>Log Domains</em>. Class \alib{lox;Lox} maintains the tree, inserts
 <em>Log Domains</em> 'on the fly' and manages the \e Verbosity on a per <em>Log Domain</em> and
@@ -2405,11 +2400,11 @@ and warnings if something goes wrong inside of \alox (e.g., when you pass wrong 
 to \alox, etc.).
 
 \I{################################################################################################}
-## 11.2 Subdomains used by ALox # {#alib_mod_internal_domains_sub}
+## 11.2 Subdomains used by ALox # {#alib_mod_alox_internal_domains_sub}
 
 For different topics, \alox uses different Subdomains for its internal logging. As usual,
 this allows controlling the \e Verbosity of the internal log output more granular then by setting
-the internal root domain \c "$/". For example, if a software uses wrong <em>Log Domains</em> evaluated from a more
+the internal root domain \c "$/". For example, if software uses wrong <em>Log Domains</em> evaluated from a more
 complex configuration of <em>Scope Domains</em>, then, to investigate into the problem,
 subdomain <c>'DMN'</c> could be set to more verbose, while
 suppressing other internal messages:
@@ -2430,22 +2425,22 @@ VAR        | Used when parsing and processing external variables.
 
 
 \I{################################################################################################}
-## 11.3 External Use of Internal Domains ## {#alib_mod_internal_domains_external}
-
+## 11.3 External Use of Internal Domains ## {#alib_mod_alox_internal_domains_external}
 It is not 'forbidden' to have custom <em>Log Statements</em> using the internal domain tree:
-
 \snippet "ut_alox_dox.cpp"        Man_InternalDomains_ext___3
 
 Of course it is advisable to do so only if there are good reasons for that.
-There is one occasion where this is already done, and that is the \alib{lox;ALoxReportWriter}
-described in previous chapter \ref alib_mod_debug_and_release_logging_ft_4.
-The report writer logs to internal domain <c>'$/REPORT'</c> and this makes a lot of sense, because
-this way, internal \alib reports are directed to the same domain tree as internal \alox logging,
-hence all internal logging of \alibmods go to the internal tree.
-
+For example, a user might want to redirect \alib assertion output to the internal domain tree. 
+(Note that such output is performed with function \alib{lox;ALoxAssertionPlugin} as it is
+described in the previous chapter \ref alib_mod_alox_debug_and_release_logging_ft_4.)
+                       
+This could be done by changing namespace variable \alib{lox::ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX},
+for example, to the internal domain <c>"$/ALIB"</c>.
+This way, internal \alib assertions and warnings are directed to the same domain tree as internal 
+\alox logging, hence all internal logging of \alibmods would then go to the internal tree.
 
 \I{################################################################################################}
-## 11.4 Final Remarks # {#alib_mod_internal_domains_remarks}
+## 11.4 Final Remarks # {#alib_mod_alox_internal_domains_remarks}
 
 It is absolutely OK, to register a \e %Logger exclusively for internal domains. Methods
 \alib{lox;Lox::RemoveLogger} always removes the logger from both, internal and standard
@@ -2462,10 +2457,10 @@ command line parameter or other external configuration variable sources.
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 12 External Configuration #  {#alib_mod_external_configuration}
+# 12 External Configuration #  {#alib_mod_alox_external_configuration}
 
 \I{################################################################################################}
-## 12.1 Introduction # {#alib_mod_external_configuration_intro}
+## 12.1 Introduction # {#alib_mod_alox_external_configuration_intro}
 
 With the term <em>"external configuration"</em>, we are addressing any type of configuration
 data that an application might have access to. The most common types of such configuration data
@@ -2474,22 +2469,21 @@ are:
 - Environment variables and
 - Configuration files, e.g., "INI-files"
 
-For reading such configuration data, \alox relies on the facilities provided by underlying utility
-library \alib. Configuration mechanics of \alib are gathered in module \alib_config. It is advisable
-to read its Programmer's Manual.
+For reading such configuration data, \alox relies on the facilities provided by underlying 
+module \alib_variables. It is advisable to read its Programmer's Manual.
 
-<b>In short, the features of module %ALib Configuration are:</b>
+<b>In short, the features of the module \alib_variables_nl are:</b>
 
-- A public instance of class \alib{config;Configuration} is found in field \alib{lang;Camp::config}
+- A public instance of class \alib{variables;Configuration} is found in field \alib{camp;Camp::config}
   and with that in singleton \ref alib::ALOX, which is derived from class \b Camp.
   \alox always tries to read configuration data from this object. If no data is found, it falls
   back to defaults.
 - Class \b %Configuration supports \b 'plug-ins' that read configuration data from different sources
   at the moment a variable is requested. Default plug-ins are those for reading
   <b>command-line parameters</b> and <b>environment variables</b>.
-- In addition, a class to import and export INI-files is provided with \alib{config;IniFileFeeder}.<br>
+- In addition, a class to import and export INI-files is provided with \alib{variables;IniFileFeeder}.<br>
   Custom configuration standards and sources can be supported using the API that module
-  \alib_config offers.
+  \alib_variables offers.
 - Different configuration data sources have different \b priority and may thus overwrite each other.
   For example, command-line parameters have a higher priority than variables
   defined in an INI-files. This way, command-line parameters 'overwrite' INI-file entries.
@@ -2497,7 +2491,7 @@ to read its Programmer's Manual.
   allows even more flexible configuration possibilities .
 
 \I{################################################################################################}
-## 12.2 Relationship of ALox, Applications and Configuration Data # {#alib_mod_external_configuration_relationship}
+## 12.2 Relationship of ALox, Applications and Configuration Data # {#alib_mod_alox_external_configuration_relationship}
 
 It may be very obvious to the reader, but lets spend a minute and think about the relationship
 of \alox and applications using it.
@@ -2516,7 +2510,7 @@ database is needed. And this is exactly what \alib - and therewith \alox - inten
 
 Then, other use cases and variants are:
 - Having separated configuration systems for the application and \alox. For documentation on
-  how to do this, see chapter \ref alib_manual_bootstrapping_customize_resconf of the
+  how to do this, see chapter \ref alib_mod_bs_customize_resconf of the
   \alib Programmer's Manual.
 - Have \b no configuration system for \alox: The most obvious reason why this might be wanted is that a
   developer of an \alox enabled software might not want to allow the end user to reconfigure \alox (i.e. switching
@@ -2539,18 +2533,18 @@ application basis.
 
 
 \I{################################################################################################}
-## 12.3 How ALox Uses the ALib Configuration System  # {#alib_mod_external_configuration_alox}
+## 12.3 How ALox Uses the ALib Variable System  # {#alib_mod_alox_external_configuration_alox}
 
-\note For details consult the \ref alib_mod_config "Programmer's Manual of camp ALib Config".
+\note For details consult the \ref alib_mod_variables "Programmer's Manual of camp ALib Config".
 All configuration variables are declared in one place with enumeration \alib{lox;Variables}.
 
-Module \alib_config_nl imposes a data "contract" that asks a programmer to respect priorities of
+Module \alib_variables_nl imposes a data "contract" that asks a programmer to respect priorities of
 variables and write values only if permission is granted. Of course, as \alox is a sibling camp,
 it uses the configuration system exactly as this contract expects.
-In particular, when using interface method \alib{config;Variable::Define} to write configuration
+In particular, when using interface method \alib{variables;Variable::Define} to write configuration
 data, values are only written with standard priority.
 
-Furthermore, \alox leverages the flexibility that the priorities of the \alib configuration
+Furthermore, \alox leverages the flexibility that the priorities of the \alib variable
 system brings by exposing parameter \p{priority} in methods \alib{lox;Lox::SetVerbosity}
 and \alib{lox;Lox::SetSourcePathTrimRule}. This way, settings made 'in code' are by default
 overruled by any type of external configuration. If wanted, a programmer may specify a higher
@@ -2559,9 +2553,9 @@ priority and this way either allow only certain, higher prioritized external sou
 
 <b>For the user of \alox, the benefits of this approach towards external configuration data are:</b>
 
-- \alox does not impose new requirements to module \alib_config_nl. In respect to the configuration
+- \alox does not impose new requirements to module \alib_variables_nl. In respect to the configuration
   sources installed, everything remains untouched.
-- \alib Because all variables are using \ref alib_config_declaration_decl_resourced "resourced declarations",
+- \alib Because all variables are using \ref alib_variables_declaration_decl_resourced "resourced declarations",
   a user of the library may modify variables in the following ways:
   - Variable names can be changed
   - Category names can be changed: either for a subset of the variables or for all.
@@ -2572,24 +2566,24 @@ priority and this way either allow only certain, higher prioritized external sou
   explicitly demanded:
   - An application may also choose to expose only selected variables to the outside.
   - An application may store \alib and \alox configuration data in a configuration file which is
-    separated from its own configuration. (See \ref alib_manual_bootstrapping_customize_resconf)
+    separated from its own configuration. (See \ref alib_mod_bs_customize_resconf)
 - A custom configuration plug-in will not only work in respect to prioritizing values of external
   variables, but also in respect to consistency with \alox verbosity settings.
 
 
 \I{################################################################################################}
-## 12.4 Concrete Steps on Integrating ALox Configuration in your Software# {#alib_mod_external_configuration_concrete}
+## 12.4 Concrete Steps on Integrating ALox Configuration in your Software# {#alib_mod_alox_external_configuration_concrete}
 
 After the discussion of the previous sections it should be quite straightforward to understand how
 \alox is to be integrated to your software in respect to external configuration data.
 Here are some hints:
 
-- Follow the steps provided in chapter \ref alib_config_external to have your configuration
-  system feeding its values into the configuration provided with module \alib_config_nl.
+- Follow the steps provided in chapter \ref alib_variables_external to have your configuration
+  system feeding its values into the configuration provided with module \alib_variables_nl.
 
-- Alternatively: Use built-in mechanics, for example class \alib{config;IniFileFeeder}.
+- Alternatively: Use built-in mechanics, for example class \alib{variables;IniFileFeeder}.
 
-- During \ref alib_manual_bootstrapping "bootstrapping of ALib", patch the resources of
+- During \ref alib_mod_bs "bootstrapping of ALib", patch the resources of
   module \alib_alox, to change variable names to match you application name or shortcut.
   This is needed to avoid clashing of environment variables when two \alib enabled applications exist.
 
@@ -2601,7 +2595,7 @@ Here are some hints:
   'programmatically' change verbosities of various domains at once.
 
 - Protect values that must not be changed from outside by defining variables with priority
-  \alib{config;Priority;Priority::Protected}. Do this during or right after bootstrap, before
+  \alib{variables;Priority;Priority::Protected}. Do this during or right after bootstrap, before
   variables are used.
 
 - Apply the previous two steps to one variable to redefine configuration behavior.
@@ -2615,7 +2609,7 @@ Here are some hints:
   - Depending on the command line switch, set the value of variable \alib{lox::Variables;VERBOSITY}
     to <c>"${MYAPP_VERBOSITY_1[2|3]}"</c>, also in protected mode.
     With \c "${}", a portion of a variable value
-    \ref alib_config_values_substitution "can be substituted" with the contents of another
+    \ref alib_variables_values_substitution "can be substituted" with the contents of another
     named variable.
 
   What is achieved here, is that there are custom 'presets' defined for the verbosities
@@ -2629,25 +2623,25 @@ Here are some hints:
 - Finally, before the termination of a process, copy those auto-generated \alox variables
   that you are interested in to your write-enabled configuration plug-in.
   This way, the user sees variables with comments and learns how to leverage those.<br>
-  Built-in type \alib{config;IniFileFeeder} provides export methods that do exactly this.
+  Built-in type \alib{variables;IniFileFeeder} provides export methods that do exactly this.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 13 External Verbosity Configuration #  {#alib_mod_external_verbosity_configuration}
+# 13 External Verbosity Configuration #  {#alib_mod_alox_external_verbosity_configuration}
 
 \I{################################################################################################}
-## 13.1 Introduction # {#alib_mod_external_verbosity_configuration_intro}
+## 13.1 Introduction # {#alib_mod_alox_external_verbosity_configuration_intro}
 
 This Chapter brings us back to talking about <em>Log Domains</em> and their attribute <em>Verbosity</em>
 which are associated with pairs of a <em>Log Domains</em> and a \e %Logger.
 \note
-  Please make sure that you have read and understood \ref alib_mod_logdomains before continue reading.
+  Please make sure that you have read and understood \ref alib_mod_alox_logdomains before continue reading.
 
 Setting such \e Verbosity by invoking \alib{lox;Lox::SetVerbosity} is easy and straightforward.
-However, when working in a team, different team members, working on different parts of a software,
+However, when working in a team, different team members, working on different parts of software,
 naturally are interested in different information. Now, when the \e Verbosity is defined in the source
-(preferably the bootstrap section of a software), then these would be randomly changed when
+(preferably the bootstrap section of software), then these would be randomly changed when
 checking source files in and out of a source control system.
 Therefore, \alox supports to read \e Verbosity settings from the command line, from environment
 variables, from an INI-file or from any other custom data source. This way, all personal changes
@@ -2659,17 +2653,17 @@ external configuration works in \alox.
 
 
 \I{################################################################################################}
-## 13.2 Priority of Verbosity Settings # {#alib_mod_external_verbosity_configuration_prios}
+## 13.2 Priority of Verbosity Settings # {#alib_mod_alox_external_verbosity_configuration_prios}
 
-In chapter \ref alib_mod_logdomains of the \alox tutorial and elsewhere in the \alox documentation,
+In chapter \ref alib_mod_alox_logdomains of the \alox tutorial and elsewhere in the \alox documentation,
 we have just not mentioned optional parameter \p{priority} of the overloaded set of methods \alib{lox;Lox::SetVerbosity}.
 It was silently omitted, because this parameter brings a new new level of complexity to the table.
-The good news is that (as explained in \ref alib_mod_apdx_auto_config) when the parameter
+The good news is that (as explained in \ref alib_mod_alox_apdx_auto_config) when the parameter
 is omitted, \alox behaves as if this feature was not existing.
 
-So, what can we do with it? The parameter is of enum type \alib{config::Priority}. From the
-namespace you can already tell that we are using an enumeration of sibling module \alib_config here!
-The parameter defaults to its enum element \alib{config;Priority;Priority::Standard}.
+So, what can we do with it? The parameter is of enum type \alib{variables::Priority}. From the
+namespace you can already tell that we are using an enumeration of sibling module \alib_variables here!
+The parameter defaults to its enum element \alib{variables;Priority;Priority::Standard}.
 This tells us something: If we do not touch the parameter, the domain is set with only a
 priority a little higher than the priority of "default values". That sounds like a quite low
 priority, doesn't it?
@@ -2677,7 +2671,7 @@ priority, doesn't it?
 When passing a higher value here by just adding <c>+ 1</c> to the constant, subsequent invocations
 for the <em>Log Domain</em> in question will be ignored. Let's look at the following sample:
 
-\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_CONFIG_1
+\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_VARIABLES_1
 
 And its output:
 
@@ -2688,10 +2682,10 @@ higher priority. Also, if a setting was given on parent domain <c>"/"</c> with s
 now, all other Subdomains were changed, but <c>"/MYDOM"</c> and its Subdomains would keep their
 setting.
 
-With \alox internal logging (see \ref alib_mod_internal_domains)
+With \alox internal logging (see \ref alib_mod_alox_internal_domains)
 activated, \alox nicely reports what is going on. We add line:
 
-\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_CONFIG_2
+\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_VARIABLES_2
 
 to the top of the sample. Now the output is:
 
@@ -2713,10 +2707,10 @@ because you are currently working on the UI. Now you have a random problem with 
 handling. As long as this problem occurs, <em>Log Statements</em> related to mouse event should stay \c Verbose.
 Therefore, you enable them 'permanently' by invoking
 
-\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_CONFIG_3
+\snippet "ut_alox_dox.cpp"        MAN_EXT_VERBOSITY_VARIABLES_3
 
 After that, any changes in parent domains, even for root-domain, will not disable <em>Log Statements</em> of
-mouse events any more. When the mouse event handling is fixed, these settings can be deleted
+mouse events anymore. When the mouse event handling is fixed, these settings can be deleted
 again.
 
 \note
@@ -2727,17 +2721,17 @@ again.
   of \e Verbosity settings would not even have been implemented with \alox.
 
 \I{################################################################################################}
-## 13.3 Priority of External Configuration # {#alib_mod_external_verbosity_configuration_configprios}
+## 13.3 Priority of External Configuration # {#alib_mod_alox_external_verbosity_configuration_configprios}
 
 We learned two fundamantel things from the previous chapter:
 1. Using hidden parameter \p{priority} with \e Verbosity settings, allows \alox to ignore
    verbosity settings, in case a previous setting was made with a higher priority already.
-2. The priority enumeration used, stems from sibling camp \alib_config.
+2. The priority enumeration used, stems from sibling camp \alib_variables.
 
-Next, we take a look at the other enumeration elements of \alib{config::Priority}.
+Next, we take a look at the other enumeration elements of \alib{variables::Priority}.
 (Please do this now and return back to here.)
 
-With this prioritization, module \alib_config_nl provides a very natural behavior for choosing
+With this prioritization, module \alib_variables_nl provides a very natural behavior for choosing
 \alox <em>Verbosities</em>, dependent on the source of information.
 This should be quickly discussed on a sample:
 - A team works together on different areas of one executable software.
@@ -2747,7 +2741,7 @@ This should be quickly discussed on a sample:
   hard coded domain settings. However: Their logging does not change, because they have either
   - a private INI-file, that is not managed by the source control system.
   - a second INI-file, which in contrast to the one which is updated with the source control system
-    is private and attached to the \alib_config_nl with a higher priority (e.g., 20000+1) than the
+    is private and attached to the \alib_variables_nl with a higher priority (e.g., 20000+1) than the
     normal INI-file
   - an environment variable set, which overrules the INI-File coming from the source control system.
   - command line parameters set, for example in the IDE settings of the debug-configuration
@@ -2771,7 +2765,7 @@ an email and ask him to run the software again, but providing a command line par
 enables verbose logging for a tree of domains...
 
 This manual stops here with use cases. They are really huge. The "marriage" of sibling modules
-\alib_config_nl with \alib_alox_nl through hidden parameter \p{priority} of method
+\alib_variables_nl with \alib_alox_nl through hidden parameter \p{priority} of method
 \alib{lox;Lox::SetVerbosity}, which is directly "lent" from the configuration system,
 just heavily pays off!<br>
 
@@ -2779,7 +2773,7 @@ just heavily pays off!<br>
   In case you want to disable the whole thing and just deny changes made to a certain
   <em>Log Domain</em> by any user of your software, you can do this easily:
   Just add a hard-coded call to \alib{lox;Lox::SetVerbosity} providing the hidden
-  parameter \p{priority} with level \alib{config;Priority;Protected}.
+  parameter \p{priority} with level \alib{variables;Priority;Protected}.
   From there on, from nowhere lese but from within the source code a future change can be
   made. Only a next statement with the same maximum priority can overrule this setting.<br>
 
@@ -2790,10 +2784,10 @@ just heavily pays off!<br>
 
 
 \I{################################################################################################}
-## 13.4 Variable LOXNAME_LOGGERNAME_VERBOSITY # {#alib_mod_external_verbosity_configuration_variable}
+## 13.4 Variable LOXNAME_LOGGERNAME_VERBOSITY # {#alib_mod_alox_external_verbosity_configuration_variable}
 
 As a reader may has already guessted, this camp does not only "lent the concept of priorities"
-from sibling camp \alib_config, but of course also imports and exports <em>Verbositiy</em>
+from sibling camp \alib_variables, but of course also imports and exports <em>Verbositiy</em>
 information from and to configuration data systems.
 
 A programmer needs nothing special to do. The same as \alox creates <em>Log Domains</em> on the fly as soon
@@ -2801,7 +2795,7 @@ as you are using them, the same it reads configuration data for these <em>Log Do
 an explicit mandate for that. It just always does. If no external configuration is used, nothing
 is read or exported and \alox will not complain. However, if it finds configuration data that influences
 the \e Verbosity setting of <em>Log Domains</em> you are using, then you will get noted by \alox as soon as
-you have activated \ref alib_mod_internal_domains "Internal Logging".
+you have activated \ref alib_mod_alox_internal_domains "Internal Logging".
 
 The variable that is used to store <em>Verbosity</em> information is named
 <b>ALOX/LOGGERNAME/VERBOSITY_WITH_LOXNAME</b>.Please read its
@@ -2822,12 +2816,12 @@ passed to method \alib{lox;Lox::SetVerbosity} using optional parameter \p{priori
 
 \note
   For more general theory of configuraiton variables, please consult:
-  - The \ref alib_mod_config "Programmer's Manual" of module \alib_config_nl.
+  - The \ref alib_mod_variables "Programmer's Manual" of module \alib_variables_nl.
   - A basic understanding of how \alib and its \alibcamps are "bootstrapped" is helpful.
     During bootstrapping it is decided whether your application shares the configuration files with
     \alib or if you application wants to divert \alib and \alox configuration to separated files,
-    and may other things like that. \alib bootstrapping is discussed in full length in chapter
-    \ref alib_manual_bootstrapping of the foundational Programmer's Manual of \alib.
+    and may other things like that. \alib bootstrapping is discussed in full length in the
+    \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
 
 
 The formal syntax of variable \ref alxcvALOX_LOGGERNAME_VERBOSITY_WITH_LOXNAME is given with:<p>
@@ -2869,7 +2863,7 @@ is a little different than when using method \alib{lox;Lox::SetVerbosity}! The d
   the statement is placed (hence the <em>Scope Domains</em>), can be addressed. Although it is not
   often recommended to do so, sometimes this possibility is be very helpful. For example to do a
   quick, temporary setting or for settings that are made explicitly "programmatically", meaning
-  those who are depending on state conditions of a software)
+  those who are depending on state conditions of software)
 
 In general, as already described, controlling the \e Verbosity using configuration variables
 is preferred over using method <b>%Lox::SetVerbosity</b>. This is the reason why \alox
@@ -2887,10 +2881,10 @@ variables from within the source code.
 
 <p>
 \note
-  To address the internal domain tree (see \ref alib_mod_internal_domains), provide string
+  To address the internal domain tree (see \ref alib_mod_alox_internal_domains), provide string
   \b "INTERNAL_DOMAINS" for parameter \c domainpath. This can also be used as a prefix e.g.
 
-        INTERNAL_DOMAINS/REPORT = verbose ;
+        INTERNAL_DOMAINS/ALIB = verbose ;
   However, a \e Logger that is not configured to log on internal <em>Log Domain</em>, cannot
   be enabled for doing so using this configuration variable. Instead, a \e Logger  has to be added
   to the internal <em>Log Domain</em> tree once by the software itself. This behavior is wanted
@@ -2899,17 +2893,17 @@ variables from within the source code.
 
 
 \I{################################################################################################}
-## 13.5 Receiving the Resulting Domains From A Variable   # {#alib_mod_external_verbosity_configuration_variable_writeback}
+## 13.5 Receiving the Resulting Domains From A Variable   # {#alib_mod_alox_external_verbosity_configuration_variable_writeback}
 
 If a configuration source is write-enabled, of course configuration variables can be written back,
 for example if an application closes. To leverage this feature, \alox writes all verbosities that
 resulted from the patterns given in variable \ref alxcvALOX_LOGGERNAME_VERBOSITY_WITH_LOXNAME
-during a software run, back to the configuration variable. This is done at the moment a \e Logger
+during software run, back to the configuration variable. This is done at the moment a \e Logger
 is removed from a \b %Lox object.
 
 If now, an external configuration source is enabled to write configuration data back to a source,
 then the changed variable can be presented back to the end-user. A simple "write-back-enabled" type
-is found with class \alib{config::IniFileFeeder}.
+is found with class \alib{variables::IniFileFeeder}.
 In the sample application provided with this library, this approach is demonstrated.
 At the beginning of function <c>main()</c>, bootstrapping is haltet after the first phase, an
 INI-file is created and and all file contents is fed to the configuration system:
@@ -2917,7 +2911,7 @@ INI-file is created and and all file contents is fed to the configuration system
  \snippet "ALox/sample.cpp"                 DOXYGEN_CREATE_INIFILE
 
  At the end of function <c>main()</c>, we remove the INI-File and use method
- \alib{config;IniFileFeeder::Export}, to fill the INI-file with all defaults.
+ \alib{variables;IniFileFeeder::Export}, to fill the INI-file with all defaults.
  This of course saves an end-user of your software quite some work.
 
  \snippet "ALox/sample.cpp"         DOXYGEN_REMOVE_INIFILE
@@ -2934,12 +2928,12 @@ to adopt his preferences and needs.
 
 \note Again: If you don't like this, or don't like it for some subsets of your log statements,
       a programmer has the full control over allowing such changes or not!
-      Also, overloaded methods \alib{config;IniFileFeeder::Export}, allow to just write back
+      Also, overloaded methods \alib{variables;IniFileFeeder::Export}, allow to just write back
       only certain variables.
 
 Usually, only variables that did not exist yet in a configuration file, are written.
-But type \alib{config;IniFileFeeder} has a special feature: It allows putting the word \c "writeback"
-(respectively what is resourced with to token <c>"INIWB"</c>) in a line in the INI-file above a
+But type \alib{variables;IniFileFeeder} has a special feature: It allows putting the word \c "writeback"
+(respectively what is resourced with to token <c>"CFGIniWB"</c>) in a line in the INI-file above a
 variable. If this is detected, the new value of the variable is overwriting the previous value of
 the INI-file.
 
@@ -2969,15 +2963,15 @@ Both behaviors can be changed either
  - by directly manipulating the field in the variable, after a logger got attached, or
  - by adding tag <c>ExportAll</c> manually to an external configuration.
 
- Of course, in case of INI-files, \alib{config;IniFileFeeder::SetWriteBackFlag;writing back of entries}
+ Of course, in case of INI-files, \alib{variables;IniFileFeeder::SetWriteBackFlag;writing back of entries}
  has to be enabled, if the domain list should be adjusted by future runs of the same application.
 
 
 \I{################################################################################################}
-## 13.6 Writing Substitution Variables  # {#alib_mod_external_verbosity_configuration_variable_writeback_subst}
+## 13.6 Writing Substitution Variables  # {#alib_mod_alox_external_verbosity_configuration_variable_writeback_subst}
 What was explained in the previous chapter about writing back verbosity settings to INI-files,
 can be extended a little further when combined with
-\ref alib_config_values_substitution "configuration variable substitution".
+\ref alib_variables_values_substitution "configuration variable substitution".
 
 Let's imagine a developer of an application has some problems with interfacing the XWindow library.
 Hence, she would focus on the relevant domains and change the \e Verbosities to this:
@@ -3052,21 +3046,21 @@ To conclude, lets take some further notes on what was said above:
   specified as  <c>-v, --verbosity \<val\></c>.<br>
   Now, the software could write a variable of e.g., \b ALOX_REL_CONSOLE_VERBOSITY
   (a release logger responsible for the software's standard output) with either
-  \alib{config;Priority;Priority::Standard} or \alib{config;Priority;Priority::Protected}
+  \alib{variables;Priority;Priority::Standard} or \alib{variables;Priority;Priority::Protected}
   (use the latter to disallow the user to hack in).
   The value of the variable set 'in code' would either contain substituted system-wide external
   variables, or hard-coded strings (again, depending on the necessary protection level of the software).
 
-- If module \alib_config is wished to be used in a software, besides the use of \alox,
+- If module \alib_variables is wished to be used in software, besides the use of \alox,
   hence for the applications own config parameter, it is possible to separate application-specific
   configuration variables in different configuration file. When looking at the quite long config
   file above, the motivation for this is obvious: \alox should not clutter an application's
   config file with all its information. The way how to do this is described in detail
-  in the Programmer's Manual of \alib in chapter \ref alib_manual_bootstrapping.
+  in the Programmer's Manual of \alib in chapter \ref alib_mod_bs.
 
 
 \I{################################################################################################}
-## 13.6 Wrap-up # {#alib_mod_external_verbosity_configuration_wrapup}
+## 13.6 Wrap-up # {#alib_mod_alox_external_verbosity_configuration_wrapup}
 
 As a summary, these are the takeaways of this chapter:
 
@@ -3085,18 +3079,18 @@ As a summary, these are the takeaways of this chapter:
   of the general one.
 - In special situations it is recommended to protect certain <em>Log Domains</em> from being changed
   at runtime. This is done by explicitly providing
-  \alib{config;Priority;Priority::Protected} to method \b %Lox::SetVerbosity.
+  \alib{variables;Priority;Priority::Protected} to method \b %Lox::SetVerbosity.
   A similar issue is described for <em>Domain Substitution</em>
-  \ref alib_mod_domain_substitution_config_prevent "in an upcoming chapter".
+  \ref alib_mod_alox_domain_substitution_config_prevent "in an upcoming chapter".
 - External setting of \e Verbosity has different (partly more, partly less) possibilities
   in comparison to "programmatically" setting. A way to extend the programmatically setting
   to work the same as external configuration, is by using an in-memory configuration file,
-  with higher priority than \alib{config;Priority;Priority::Standard}.
+  with higher priority than \alib{variables;Priority;Priority::Standard}.
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 14 Trimming Source File Paths and Clickable IDE Output #  {#alib_mod_trim_source_path}
+# 14 Trimming Source File Paths and Clickable IDE Output #  {#alib_mod_alox_trim_source_path}
 To collect the path information of a <em>Log Statement</em>, the C++ version of \alox
 uses preprocessor macro \c \_\_FILE\_\_.
 
@@ -3119,7 +3113,7 @@ Source file paths can become quite long and for various different reasons, it mi
 a redundant or irrelevant prefix from the it.
 
 \I{################################################################################################}
-## 14.1 Source Path Trim Rules #  {#alib_mod_trim_source_path_set}
+## 14.1 Source Path Trim Rules #  {#alib_mod_alox_trim_source_path_set}
 
 \alox provides a mechanism to trim the path of source files by using a set of rules.
 
@@ -3130,7 +3124,7 @@ The advantage of having the static, global table is that a user can set 'hints' 
 the path only once (at bootstrap) and forget about it. All instances of \b Lox will use it.
 
 \I{################################################################################################}
-### 14.1.1 Automatic Detection of Trim Rules ##  {#alib_mod_trim_source_path_set_automatic}
+### 14.1.1 Automatic Detection of Trim Rules ##  {#alib_mod_alox_trim_source_path_set_automatic}
 \alox tries to detect trimable portions of a source path automatically.
 For that, \alox compares the actual path name of the executable of the currently running
 process with the path of a source file. The prefix both have in common is identified as trimable.
@@ -3182,7 +3176,7 @@ When things become more complex, it is advisable to add <em>Source Path Trim Rul
 
 
 \I{################################################################################################}
-### 14.1.2 Programmatical Provision of Trim Rules ##  {#alib_mod_trim_source_path_set_programmatical}
+### 14.1.2 Programmatical Provision of Trim Rules ##  {#alib_mod_alox_trim_source_path_set_programmatical}
 A user of \alox may use method \alib{lox;Lox::SetSourcePathTrimRule} to add
 <em>Source Path Trim Rules</em> explicitly.
 When you reconsider the sample above, explicit setting leads to better results even in simple
@@ -3239,7 +3233,7 @@ Only one rule per source path is executed. In other words, as soon as a rule mat
 a source path, no further attempts for trimming are performed.
 
 \I{################################################################################################}
-### 14.1.3 Trim Rules Provided by External Configuration Variables## {#alib_mod_trim_source_path_set_config}
+### 14.1.3 Trim Rules Provided by External Configuration Variables## {#alib_mod_alox_trim_source_path_set_config}
 
 Setting <em>Source Path Trim Rules</em> <em>'from within the source code'</em> is easy and
 straightforward. However, when working in a team such changes might not be appreciated by other
@@ -3247,13 +3241,13 @@ team members. In this and other situations it is advisable to retrieve <em>Sourc
 from external configuration data, command-line parameters or other sources at runtime.
 
 For <em>Source Path Trim Rules</em> and also other configuration data, \alox leverages the configuration
-facility provided by sibling module \alib_config.
+facility provided by sibling module \alib_variables.
 
 \note
    - For general information on \alox configuration variables consult \ref alib_alox_cfgvars.<br>
    - For information on how to pass configuration data from custom sources to \alox, refer to
-     the Programmer's Manual of module \alib_config.
-   - Furthermore, previous chapter \ref alib_mod_external_verbosity_configuration
+     the Programmer's Manual of module \alib_variables.
+   - Furthermore, previous chapter \ref alib_mod_alox_external_verbosity_configuration
      gives a great introduction in external configuration techniques, including a source code
      sample that can be quickly copied to your own code.
 
@@ -3280,32 +3274,32 @@ As an example, an INI-file of an application might have the following subsection
 \snippet "ut_alox_lox.cpp"        Man_SourcePathTrimming
 
 \I{################################################################################################}
-### 14.1.4 Priority of Trim Rules ##  {#alib_mod_trim_source_path_set_priorities}
+### 14.1.4 Priority of Trim Rules ##  {#alib_mod_alox_trim_source_path_set_priorities}
 
-Different trim rules might be redundant or even contradict each other. Therefore the rules
+Different trim rules might be redundant or even contradict each other. Therefore , the rules
 are equipped with a priority. Rules with higher priority are applied first.
 Once a rule matches, no further rule is applied.
-The priority is defined with enumeration \alib{config::Priority} and "lent" (for good reasons)
-from sibling module \alib_config.  It is are set as follows:
+The priority is defined with enumeration \alib{variables::Priority} and "lent" (for good reasons)
+from sibling module \alib_variables.  It is are set as follows:
 - In the case that a rule is read from an external configuration
   variable, the priority value is set to the priority value of the configuration plug-in that
   provided the variable.
 - In the case that the rule is set from within the source code, the priority is taken from
   optional parameter \p{priority} of method \alib{lox;Lox::SetSourcePathTrimRule}.
-  The parameter defaults to \alib{config;Priority;Priority::Standard} and thus "hard-coded" trim
+  The parameter defaults to \alib{variables;Priority;Priority::Standard} and thus "hard-coded" trim
   rules in source code have a lower priority than those in external configuration.
-- Rules that are automatically detected have a priority of \alib{config;Priority;Priority::AutoDetected}
+- Rules that are automatically detected have a priority of \alib{variables;Priority;Priority::AutoDetected}
   and thus are overruled by all others.
   To change this behavior, any other priority may be specified in the source code, especially
-  the pre-defined value \alib{config;Priority;Priority::Protected}, which
+  the pre-defined value \alib{variables;Priority;Priority::Protected}, which
   allows a programmer to give the rule set in the source code the highest priority and this way
   to protect the rule from external manipulation.
 
 \I{################################################################################################}
-### 14.1.5 Verifying Trim Rules ##  {#alib_mod_trim_source_path_set_veryfy}
+### 14.1.5 Verifying Trim Rules ##  {#alib_mod_alox_trim_source_path_set_veryfy}
 
 With most methods invoked on class \b Lox, internal log messages are provided (See
-\ref alib_mod_internal_domains). When setting <em>Source Path Trim Rules</em>, this is \b not the
+\ref alib_mod_alox_internal_domains). When setting <em>Source Path Trim Rules</em>, this is \b not the
 case. The rationale here is, that in most cases no \e %Logger is attached to the \b %Lox attached,
 yet. If something goes wrong with source path trimming, e.g., when you are not sure if a rule was
 read from external configuration variables, you can use method \alib{lox;Lox::State} to dump out
@@ -3320,7 +3314,7 @@ rule is displayed.
 
 
 \I{################################################################################################}
-### 14.1.6 Removing Trim Rules ##  {#alib_mod_trim_source_path_set_remove}
+### 14.1.6 Removing Trim Rules ##  {#alib_mod_alox_trim_source_path_set_remove}
 
 In very special situations (e.g., \alox uses it for unit testing) method
 \alib{lox;Lox::ClearSourcePathTrimRules} can be used to clear the rules of a \b %Lox instance,
@@ -3332,7 +3326,7 @@ optionally including all global rules.
     class \b %Lox in question, because the automatic rule and its creation is local to the each
     \b %Lox.
 
-## 14.2 Considerations in respect to Scope Functionality #  {#alib_mod_trim_source_path_scope}
+## 14.2 Considerations in respect to Scope Functionality #  {#alib_mod_alox_trim_source_path_scope}
 The benefits of having \alox using reduced length source file paths in consideration to \e Scopes
 is in respect to performance. All data associated with language-related \e Scopes is stored and
 retrieved in hash-tables with keys containing the source path.<br>
@@ -3347,7 +3341,7 @@ then the directory before the tree of namespace directories should be included i
 
 
 \I{################################################################################################}
-## 14.3 Considerations in respect to Logging Meta-Information #  {#alib_mod_trim_source_path_set_metainfo}
+## 14.3 Considerations in respect to Logging Meta-Information #  {#alib_mod_alox_trim_source_path_set_metainfo}
 
 \note
   This section is about textual logging with the use of \e Loggers derived from class
@@ -3358,7 +3352,7 @@ Due to the rich meta-information that \alox provides, the log output lines quick
 Therefore, trimming the path of source files in the log output to a level that still allows 
 distinguishing all files properly, can help a lot to reduce such width.
 
-The \ref alib_config_types_custom "registered configuration variable" type \alib{lox::textlogger;FormatMetaInfo},
+The \ref alib_variables_types_custom "registered configuration variable" type \alib{lox::textlogger;FormatMetaInfo},
 with its instance found in every \alox \b TextLogger, provides a format string to structure the meta
 info. For the source path, two format parameters exists:
 - <b>%SP</b>: Provides the full path name
@@ -3375,7 +3369,7 @@ output lines, you might want to change the format of the meta info to match the 
 IDE requires.
 
 \note
-  In documentation page \ref alib_mod_ide_setup, detailed instructions for selected platforms and
+  In documentation page \ref alib_mod_alox_ide_setup, detailed instructions for selected platforms and
   IDEs are given.
 
 Certain build systems/compilers might not provide the absolute path information
@@ -3385,7 +3379,7 @@ this path needs correction to be absolute.
 \alox provides a feature to do such correction. An optional parameter of method
 \alib{lox;Lox::SetSourcePathTrimRule} allows specifying a replacement string
 for what is cut by a rule. (This replacement string can of course also be set using
-the configuration variables described in previous chapter \ref alib_mod_trim_source_path_set_config.)
+the configuration variables described in previous chapter \ref alib_mod_alox_trim_source_path_set_config.)
 Sometimes it might be needed to "fiddle around" with the options of the trim rules and the
 format of the \b %TextLogger output, until finally your IDE recognizes the source information
 correctly. But once succeeded, it proofs being worth the effort!
@@ -3399,10 +3393,10 @@ and your way to go is displaying a (best possible) trimmed path, to reduce overa
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 15 Log Domain Substitution #  {#alib_mod_domain_substitution}
+# 15 Log Domain Substitution #  {#alib_mod_alox_domain_substitution}
 
 \I{################################################################################################}
-## 15.1 Introduction # {#alib_mod_domain_substitution_intro}
+## 15.1 Introduction # {#alib_mod_alox_domain_substitution_intro}
 
 <em>Domain Substitution</em> is a concept of \alox that allows manipulating the effective domain of
 <em>Log Statements</em> without changing neither these statements nor the <em>Scope Domains</em>
@@ -3433,7 +3427,7 @@ with providing a nulled or empty string for \p{domainPath}.
 There is no explicit other method for clearing the rules.
 
 \I{################################################################################################}
-## 15.2 How Class Lox Processes the Rules # {#alib_mod_domain_substitution_processing}
+## 15.2 How Class Lox Processes the Rules # {#alib_mod_alox_domain_substitution_processing}
 
 Rules for <em>Domain Substitution</em> are applied after any other evaluation of the resulting domain is performed.
 The rules are applied in the order of their definition. Therefore, rules that are passed from
@@ -3453,9 +3447,9 @@ This amount of loops should be more than enough for all major use cases. Even a 
 loop is necessary very seldom.
 
 \I{################################################################################################}
-## 15.3 Substitution Rules and External Configuration # {#alib_mod_domain_substitution_config}
+## 15.3 Substitution Rules and External Configuration # {#alib_mod_alox_domain_substitution_config}
 
-### 15.3.1 Using External Configuration ## {#alib_mod_domain_substitution_config_using}
+### 15.3.1 Using External Configuration ## {#alib_mod_alox_domain_substitution_config_using}
 
 Setting <em>Domain Substitution Rules</em> <em>'from within the source code'</em> is easy and straightforward. However, when
 working in a team such changes might not be appreciated by other team members. In this and
@@ -3463,13 +3457,13 @@ other situations it is advisable to retrieve <em>Domain Substitution Rules</em> 
 parameters or other sources at runtime.
 
 For <em>Domain Substitution Rules</em> and also other configuration data, \alox leverages the
-configuration facility provided by sibling \alib module \alib_config
+configuration facility provided by sibling \alib module \alib_variables
 
 \note
    - For general information on \alox configuration variables consult \ref alib_alox_cfgvars.<br>
    - For information on how to pass configuration data from custom sources to \alox, refer to
-     the Programmer's Manual of module \alib_config.
-   - Furthermore, previous chapter \ref alib_mod_external_verbosity_configuration
+     the Programmer's Manual of module \alib_variables.
+   - Furthermore, previous chapter \ref alib_mod_alox_external_verbosity_configuration
      gives a great introduction in external configuration techniques, including a source code
      sample that can be quickly copied to your own code.
 
@@ -3492,12 +3486,12 @@ would receive the two rules specified.
 
 
 \I{################################################################################################}
-### 15.3.2 Preventing The Use Of External Configuration ## {#alib_mod_domain_substitution_config_prevent}
+### 15.3.2 Preventing The Use Of External Configuration ## {#alib_mod_alox_domain_substitution_config_prevent}
 
 Sometimes it might be wanted that <em>Domain Substitution Rules</em> are not manipulable externally. A reason could be that
 by the nature of these rules, unauthorized users are enabled to change the <em>Log Domains</em> and hence
 also to change their \e Verbosity, which otherwise can be prevented for protection
-(see \ref alib_mod_external_verbosity_configuration).
+(see \ref alib_mod_alox_external_verbosity_configuration).
 
 To keep things simple, \alox does not provide an explicit interface to prevent reading the rules
 from the configuration, because, the fast way out is to delete all rules after the creation of the
@@ -3507,7 +3501,7 @@ from the configuration, because, the fast way out is to delete all rules after t
 
 
 \I{################################################################################################}
-## 15.4 Final Remarks # {#alib_mod_domain_substitution_wrapup}
+## 15.4 Final Remarks # {#alib_mod_alox_domain_substitution_wrapup}
 
 <em>Domain Substitution</em> rules are always applied to all \e %Loggers within a \b %Lox.
 
@@ -3529,9 +3523,9 @@ domain tree with those of the internal tree or vice versa.
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 16 Colorful Loggers #  {#alib_mod_colorful_loggers}
+# 16 Colorful Loggers #  {#alib_mod_alox_colorful_loggers}
 \I{################################################################################################}
-## 16.1 Technical Prerequisites # {#alib_mod_colorful_loggers_prereq}
+## 16.1 Technical Prerequisites # {#alib_mod_alox_colorful_loggers_prereq}
 
 To explain the use of colorful log output in \alox, it is best to elaborate roughly on some
 details of the \alox software architecture.
@@ -3545,7 +3539,7 @@ human-readable meta-information of <em>Log Statements</em>, class \b %TextLogger
 These sequences are gathered in class \alib{lox;ESC}. The ESC-sequences are quite similar to those known from
 ANSI terminals. They provide settings of foreground and background colors and font styles.
 The ESC-sequences may occur in the (string type) \e Logables and as well in fields
-of \ref alib_config_types_custom "registered configuration variable" type \alib{lox::textlogger;FormatMetaInfo}.
+of \ref alib_variables_types_custom "registered configuration variable" type \alib{lox::textlogger;FormatMetaInfo}.
 
 Here is a quick sample:
 
@@ -3595,7 +3589,7 @@ digraph TextLoggers
 \enddot
 
 \I{################################################################################################}
-## 16.2 Colorful Logging with ALox #  {#alib_mod_colorful_loggers_wrapup}
+## 16.2 Colorful Logging with ALox #  {#alib_mod_alox_colorful_loggers_wrapup}
 
 The takeaways from this short technical spotlight are now fairly obvious:
 
@@ -3609,15 +3603,15 @@ The takeaways from this short technical spotlight are now fairly obvious:
 - A developer of a custom \e %Logger that should not be enabled to support ESC-sequences, simply can
   derive from class \b %PlainTextLogger which finds and removes ESC-sequences before the
   messages are passed to the custom type.
-  (For the creation of custom loggers, see also chapter \ref alib_mod_ext_loggers).
+  (For the creation of custom loggers, see also chapter \ref alib_mod_alox_ext_loggers).
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# 17 Loggers and Implementing Custom Types #  {#alib_mod_ext_loggers}
+# 17 Loggers and Implementing Custom Types #  {#alib_mod_alox_ext_loggers}
 
 \I{################################################################################################}
-## 17.1 Class Logger # {#alib_mod_loggers_logger}
+## 17.1 Class Logger # {#alib_mod_alox_loggers_logger}
 
 \alox is designed to support different log streams. A log stream is a destination for the \e Logables
 and can be the IDE console, the terminal console, a file, a web service or anything that accepts
@@ -3657,11 +3651,11 @@ While all \alox code tries to be short and simple, class \b %Logger is particula
 So, let us quickly walk through the class by looking at its members.
 
 \I{################################################################################################}
-### 17.1.1 The fields of class Logger ## {#alib_mod_loggers_logger_fields}
+### 17.1.1 The fields of class Logger ## {#alib_mod_alox_loggers_logger_fields}
 There are just a few fields in class \alib{lox;detail::Logger}.
 
 \I{################################################################################################}
-#### 17.1.1.1 Name and TypeName ### {#alib_mod_loggers_logger_fields_name}
+#### 17.1.1.1 Name and TypeName ### {#alib_mod_alox_loggers_logger_fields_name}
 class \b %Logger has two members, \alib{lox::detail;Logger::Name} and \alib{lox::detail;Logger::TypeName}
 that can be read using \alib{lox::detail;Logger::GetName} and \alib{lox::detail;Logger::GetTypeName}.
 
@@ -3674,7 +3668,7 @@ Both fields are not used internally but only provided to be used by classes mana
 If multiple \e Loggers are attached to a \b Lox, they need to have unique \e Names.
 
 \I{################################################################################################}
-#### 17.1.1.2 TimeOfCreation and TimeOfLastLog ### {#alib_mod_loggers_logger_fields_TimeOf}
+#### 17.1.1.2 TimeOfCreation and TimeOfLastLog ### {#alib_mod_alox_loggers_logger_fields_TimeOf}
 These are two time stamps that contain the time of the creation of the
 \alib{lox;detail::Logger} (or the time this timestamp was reset to) and the time of the last log.
 These two members are normally used to calculate the elapsed time (the cumulated time an application is running)
@@ -3682,14 +3676,14 @@ and the time difference between two log calls. The latter is especially interest
 log outputs on a debug console, as it allows getting a first quick impression about your
 software's performance, lock states, bottlenecks, etc.
 
-#### 17.1.1.3 CntLogs ### {#alib_mod_loggers_logger_fields_CntLogs}
+#### 17.1.1.3 CntLogs ### {#alib_mod_alox_loggers_logger_fields_CntLogs}
 This is a simple counter of the number of logs processed so far. Feel free to
 reset it as you like, it is not used anywhere internally, other than as an option
 to output with each log line.
 
 
 \I{################################################################################################}
-### 17.1.2 Methods of class Logger ## {#alib_mod_loggers_logger_methods}
+### 17.1.2 Methods of class Logger ## {#alib_mod_alox_loggers_logger_methods}
 
 Besides the protected constructor, which just initializes some default values for the \e Loggers'
 fields, abstract method \alib{lox::detail;Logger::Log} is the most important.
@@ -3699,7 +3693,7 @@ Derived classes only need to implement this abstract method with code that is ex
 When the method is invoked, class \b Lox already performed various checks, including that the
 \b %Verbosity justifies the execution.
 
-### 17.1.3 Implementing a Custom Logger ## {#alib_mod_loggers_logger_customloggers}
+### 17.1.3 Implementing a Custom Logger ## {#alib_mod_alox_loggers_logger_customloggers}
 As an experienced programmer after reading the previous sections, it is certainly fully obvious
 to you which steps need to be taken to create your own variation of class
 \alib{lox;detail::Logger} that directs your \e Logables to a certain data drain in a specific format.
@@ -3718,11 +3712,11 @@ through this chapter.
 
 
 \I{################################################################################################}
-## 17.2 Abstract class TextLogger # {#alib_mod_loggers_textlogger}
+## 17.2 Abstract class TextLogger # {#alib_mod_alox_loggers_textlogger}
 
 When you think about debug log output you think about logging textual messages that
 get displayed on your debug console. We think the use of a logging ecosystem for this
-quite simple purpose is advisable as soon as a software project bigger than
+quite simple purpose is advisable as soon as software project bigger than
 two pages of code!
 
 While \alox wants to be a perfect tool for quick, easy and comfortable debug logging,
@@ -3769,7 +3763,7 @@ digraph TextLoggers
    and still do pure textual logging.
 
 \I{################################################################################################}
-### 17.2.1 Helper-classes for TextLogger ## {#alib_mod_loggers_textlogger_helpers}
+### 17.2.1 Helper-classes for TextLogger ## {#alib_mod_alox_loggers_textlogger_helpers}
 Class \alib{lox;textlogger::TextLogger} contains two helper-classes as public fields.
 The advantage of using helpers is that they can be replaced at runtime by your own, tailored
 versions of these helpers and this way you can change the default behavior of existing \e Logger
@@ -3778,8 +3772,8 @@ types, without deriving new ones.
 The helper-classes are described in the following two paragraphs.
 
 \I{################################################################################################}
-#### 17.2.1.1 Class FormatMetaInfo ### {#alib_mod_loggers_textlogger_MetaInfo}
-The following \ref alib_config_types_custom "registered configuration variable" types are used by
+#### 17.2.1.1 Class FormatMetaInfo ### {#alib_mod_alox_loggers_textlogger_MetaInfo}
+The following \ref alib_variables_types_custom "registered configuration variable" types are used by
 class \alib{lox;textlogger::TextLogger} to assemble the meta-information of each log line,
 which incorporates things like date and time, thread information, \e Verbosity and
 <em>Log Domain</em>:
@@ -3847,7 +3841,7 @@ completely and maybe do not want to even rely on a format string, then feel free
 virtual method \alib{lox::textlogger;TextLogger::writeMetaInfo}.
 
 \I{################################################################################################}
-#### 17.2.1.2 Class ObjectConverter ### {#alib_mod_loggers_textlogger_ObjectConverter}
+#### 17.2.1.2 Class ObjectConverter ### {#alib_mod_alox_loggers_textlogger_ObjectConverter}
 Class \alib{lox::textlogger;ObjectConverter} is used by class
 \alib{lox;textlogger::TextLogger} to convert the \e Logables that get passed by the user
 through the <em>Log Statements</em> to the \e %Logger into a string representation.
@@ -3856,21 +3850,21 @@ implementation used with the built-in loggers is provided with type
 \alib{lox;textlogger::StandardConverter}.
 
 This class is still is extremely simple, as it lazily transfers this responsibility
-to instances of types which are derived from class \alib{lang;format::Formatter}.
+to instances of types which are derived from class \alib{format;Formatter}.
 This abstract class and corresponding standard implementations are provided with
-sibling \alib module \alib_basecamp.
+\alib module \alib_format.
 
 Please consult the \alib documentation of classes
-- \alib{lang::format;Formatter},
-- \alib{lang::format;FormatterPythonStyle} and
-- \alib{lang::format;FormatterJavaStyle}
+- \alib{format;Formatter},
+- \alib{format;FormatterPythonStyle} and
+- \alib{format;FormatterJavaStyle}
 
 to learn more about how these classes work.
 
 As you see, also here are different "levels" of possibilities of how to change and implement custom
 functionality in respect to converting the \e Logables while using class \b %TextLogger:
 - A straight forward approach is to implement interfaces of module \alib_boxing, namely
-  \alib{boxing;FAppend} or \alib{lang::format;FFormat}.
+  \alib{boxing;FAppend} or \alib{format;FFormat}.
 - Own formatters may be implemented and attached to the instance of \b %StandardConverter.
 - Alternatively an own object converter might be implemented.
 
@@ -3884,7 +3878,7 @@ functionality in respect to converting the \e Logables while using class \b %Tex
   with \alib.
 
 \I{################################################################################################}
-### 17.2.2 The Multi-Line Features of Class TextLogger ## {#alib_mod_loggers_textlogger_multiline}
+### 17.2.2 The Multi-Line Features of Class TextLogger ## {#alib_mod_alox_loggers_textlogger_multiline}
 Class \alib{lox;textlogger::TextLogger} provides a feature to log a message into multiple lines.
 This is useful for example, if you want to log a string that contains XML text.
 Instead of one vast log line, *TextLogger* is configured by default to separate the text
@@ -3917,7 +3911,7 @@ The following modes are available:
 
 
 \I{################################################################################################}
-### 17.2.3 Locking the Standard Output Streams ## {#alib_mod_loggers_textlogger_stdio_lock}
+### 17.2.3 Locking the Standard Output Streams ## {#alib_mod_alox_loggers_textlogger_stdio_lock}
 
 Class \alib{lox;textlogger::TextLogger} can avoid concurrent access to the 
 standard io-streams <c>std::cout</c> and <c>std::cerr</c> in multithreaded programs.
@@ -3927,10 +3921,10 @@ To enable the use of this lock for a derived custom type, all that has to be don
 value \c true for parameter \p{usesStdStreams} of the protected constructor of class \b TextLogger.
 
 If an application writes to those streams in parallel to \alox, such direct writes should be 
-performed likewise only after the this lock was acquired. 
+performed likewise only after this lock was acquired. 
 
 \I{################################################################################################}
-### 17.2.4 Recursive Log Statements ## {#alib_mod_loggers_textlogger_recursive}
+### 17.2.4 Recursive Log Statements ## {#alib_mod_alox_loggers_textlogger_recursive}
 
 \alox supports recursive log calls. Recursion occurs when log statements are executed during the
 evaluation of the logables that belong to another "outer" log statement. 
@@ -3956,7 +3950,7 @@ We recommend a look at the built-in classes' source code to have an idea what ne
 in respect to field of concern.
 
 \I{################################################################################################}
-## 17.3 Logger implementations provided by ALox # {#alib_mod_loggers_implementations}
+## 17.3 Logger implementations provided by ALox # {#alib_mod_alox_loggers_implementations}
 
 While the abstract classes \b %Logger, \b %TextLogger and \b %PlainTextLogger are located in the
 namespaces \ref alib::lox::detail, and \ref alib::lox::textlogger,
@@ -3984,7 +3978,7 @@ useful in performance-critical sections of your code. If you would do 1000 log e
 the performance loss for your application would only be around 0.1%.
 
 \I{################################################################################################}
-## 17.4 Summary and outlook # {#alib_mod_loggers_summary}
+## 17.4 Summary and outlook # {#alib_mod_alox_loggers_summary}
 
 The following summarizes the takeaways of this chapter:
 - We learned about abstract class \b %Logger and its simple structure and few fields.
@@ -4009,7 +4003,7 @@ then please do not hesitate to propose the code to us as an extension of the ope
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# Appendix A: Configuration Variables #  {#alib_mod_apdx_config_vars}
+# Appendix A: Configuration Variables #  {#alib_mod_alox_apdx_config_vars}
 
 \alox defines several configuration variables, which are read from configuration files
 (e.g. INI-files), environment variables or the command line interface.
@@ -4017,8 +4011,8 @@ Their use are documented in various places. A reader might consult:
 
 - For general information on \alox configuration variables consult \ref alib_alox_cfgvars.
 - For information on how to pass configuration data from custom sources to \alox, refer to
-  the Programmer's Manual of module \alib_config.
-- Furthermore, previous chapter \ref alib_mod_external_verbosity_configuration
+  the Programmer's Manual of module \alib_variables.
+- Furthermore, previous chapter \ref alib_mod_alox_external_verbosity_configuration
   gives a great introduction to external configuration techniques, including a source code
   sample that can be quickly copied to your own code.
 
@@ -4048,16 +4042,16 @@ The configuration variables (and their documentation) are:
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# Appendix B: Auto-Configuration and Orthogonality #  {#alib_mod_apdx_auto_config}
+# Appendix B: Auto-Configuration and Orthogonality #  {#alib_mod_alox_apdx_auto_config}
 
 \I{################################################################################################}
-## B.1 Introduction # {#alib_mod_apdx_auto_config_intro}
+## B.1 Introduction # {#alib_mod_alox_apdx_auto_config_intro}
 
 \alox addresses two fundamental 'use cases', namely
 \ref alib_alox_faq_debug_vs_release_logging "debug logging< and release logging".
 While technically both are similar, from a conceptual perspective the two are very different things.
 
-Looking into the head of a software developer that thinks about debug logging, you will find
+Looking into the head of software developer that thinks about debug logging, you will find
 the following thoughts:
 - "I will quickly write some output routines and if not needed comment them out or just delete them."
 - "Don't bother me, I am not willing to read a user manual for generating simple debug output."
@@ -4103,24 +4097,23 @@ And this is <b>the goal of this appendix chapter</b>: We try to collect, list an
 \note
   The list might not be too well sorted and certain points may seem to be off-topic. Please excuse.
   Many of the things that happen 'automatically' or 'on the fly' can be observed by activating the
-  <em>internal logging</em> as described in \ref alib_mod_internal_domains.
+  <em>internal logging</em> as described in \ref alib_mod_alox_internal_domains.
 
 
 \I{################################################################################################}
-## B.2 Initialization, Lox and Logger Instances ## {#alib_mod_apdx_auto_config_list_init}
+## B.2 Initialization, Lox and Logger Instances ## {#alib_mod_alox_apdx_auto_config_list_init}
 
 \I{################################################################################################}
-### B.2.1 ALib/ALox Bootstrapping ###  {#alib_mod_apdx_auto_config_list_init_init}
+### B.2.1 ALib/ALox Bootstrapping ###  {#alib_mod_alox_apdx_auto_config_list_init_init}
 Bootstrapping \alox is a matter of bootstrapping the \aliblong, because \alox is just one out of several
 modules which all needs to be duely initialized and shut down. All about this process is
-documented with chapter \ref alib_manual_bootstrapping "4. Bootstrapping And Shutting Down ALib"
-of the Programmer's Manual of \alib.
+documented in the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
 
 As long as no major configuration changes are planned to be done, the standard bootstrapping
 and shutdown is just a matter of invoking one function. Thus, the minimum \alox "hello world"
 sample looks like this:
 
-\snippet ut_alox_dox.cpp        ALoxTut_Minimum_Hello2
+\snippet ut_alox_dox.cpp        ALoxTut_Minimum_Hello
 
 \note In previous versions, with debug-logging, \alox could start a missing bootstrapping itself,
       but this feature was removed.
@@ -4128,18 +4121,18 @@ sample looks like this:
 With this standard bootstrapping, reading \alox variables given with command line options or
 environment variables is already in place!
 
-In chapter \ref alib_mod_external_verbosity_configuration_variable_writeback, a quick sample
+In chapter \ref alib_mod_alox_external_verbosity_configuration_variable_writeback, a quick sample
 of how to slightly customize bootstrapping is given, which allows writing all defaulted \alox
 variables into a custom INI-file.
 
 
 \I{################################################################################################}
-### B.2.2 The Lox Singleton for Debug-Logging ### {#alib_mod_apdx_auto_config_list_init_log}
+### B.2.2 The Lox Singleton for Debug-Logging ### {#alib_mod_alox_apdx_auto_config_list_init_log}
 For debug logging, a pre-configured instance of class \b %Lox is created and used.
-More information on this is given in chapter \ref alib_mod_debug_and_release_logging_dbg.
+More information on this is given in chapter \ref alib_mod_alox_debug_and_release_logging_dbg.
 
 \I{################################################################################################}
-### B.2.3 Adding and Removing Loggers to a Lox ### {#alib_mod_apdx_auto_config_list_init_addlogger}
+### B.2.3 Adding and Removing Loggers to a Lox ### {#alib_mod_alox_apdx_auto_config_list_init_addlogger}
 While method  \alib{lox;Lox::RemoveLogger} is available for removing a \e %Logger from a
 \b %Lox instance, there is no method for explicitly adding one. Instead, the method that allows
 to control the \e Verbosity of a <em>Log Domain</em> and its Subdomains for a \e %Logger,
@@ -4150,7 +4143,7 @@ as parameter has to be used. In subsequent invocations, alternatively, the name 
 \e %Logger can be provided.
 
 \I{################################################################################################}
-### B.2.4 Logger Names ###  {#alib_mod_apdx_auto_config_list_init_loggernames}
+### B.2.4 Logger Names ###  {#alib_mod_alox_apdx_auto_config_list_init_loggernames}
 Each \e %Logger attached to a \b %Lox has to have a unique name. Nevertheless, \e %Loggers can be constructed
 without explicitly providing a name. In this case, a default name which is different with each
 derived type of \e %Logger is used. This way, many standard use cases do not require the user to
@@ -4162,20 +4155,20 @@ the same \b %Lox, then with their creation, a dedicated, distinguishable name ha
 be provided.
 
 In addition, when reading \e Verbosity settings from external configuration (as described in
-\ref alib_mod_external_verbosity_configuration), it is advisable to explicitly name \e Loggers, so
+\ref alib_mod_alox_external_verbosity_configuration), it is advisable to explicitly name \e Loggers, so
 that external configuration data stays "compatible" at the moment a different \e %Logger type is used
 for a certain task. On the other hand: this is \e not necessary for the standard debug \e %Logger
 created automatically or explicitly by calling \alib{lox;Log::AddDebugLogger}
 (see more info on this below), because such \e %Loggers are always named \c "DEBUG_LOGGER".
 
 \I{################################################################################################}
-### B.2.5 Using a Logger with Multiple Lox Instances ### {#alib_mod_apdx_auto_config_list_init_loginmultiplelox}
+### B.2.5 Using a Logger with Multiple Lox Instances ### {#alib_mod_alox_apdx_auto_config_list_init_loginmultiplelox}
 It is allowed to attach an instance of a \e %Logger to multiple \b %Lox instances. 
 Concurrent access will be locked in case multithreading 
 \ref alib_threads_intro_codeselector "is activated".  
 
 \I{################################################################################################}
-### B.2.6 Console Loggers and Debug Logger ### {#alib_mod_apdx_auto_config_list_init_consoleloggers}
+### B.2.6 Console Loggers and Debug Logger ### {#alib_mod_alox_apdx_auto_config_list_init_consoleloggers}
 Method \alib{lox;Lox::CreateConsoleLogger} creates an appropriate type of \e Logger
 depending on the operating system, IDE used (if in IDE), implementation language, configuration
 variable, etc.
@@ -4191,26 +4184,26 @@ creates a second, IDE specific \e Logger. See reference documentation of the met
 for more details.<br>
 For both \e %Loggers, root domain <c> '/'</c> is set to \e %Verbosity.Verbose. In addition, the \e Verbosity
 for internal \alox messages is set to \e %Verbosity.Warning.
-(More information on internal \alox messages is found in \ref alib_mod_internal_domains.)
+(More information on internal \alox messages is found in \ref alib_mod_alox_internal_domains.)
 
 Finally, method \b %Lox::AddDebugLogger is automatically invoked internally at the moment that
 the \b %Lox singleton used for debug-logging is used and no other \e Logger was attached, yet.
 
 \note The exception to this rule is when a \e Logger was added to the
-      \ref alib_mod_internal_domains "internal domain tree" only.
+      \ref alib_mod_alox_internal_domains "internal domain tree" only.
       In this case, the normal standard domain tree is still free of loggers and therefore,
       a debug logger is automatically attached.
 
 \I{################################################################################################}
-## B.3 Source Path Trimming ## {#alib_mod_apdx_auto_config_list_spt}
+## B.3 Source Path Trimming ## {#alib_mod_alox_apdx_auto_config_list_spt}
 If no <em>Source Path Trim Rules</em> are given a default rule is automatically detected and registered.<br>
 If <em>Source Path Trim Rules</em> are given, path separators <c>'/'</c> and <c>'\'</c> are
 corrected to suit the target platform of compilation.
 
-For more information see chapter \ref alib_mod_trim_source_path.
+For more information, see chapter \ref alib_mod_alox_trim_source_path.
 
 \I{################################################################################################}
-## B.4 Log Domains and Verbosity ##  {#alib_mod_apdx_auto_config_list_ldv}
+## B.4 Log Domains and Verbosity ##  {#alib_mod_alox_apdx_auto_config_list_ldv}
 <em>Log Domains</em> are created on the fly as needed (used). <em>Log Domain</em>, once created, are never deleted and a user does
 not need to care about their management.
 New, unknown <em>Log Domains</em> inherit their \b Verbosity from their parent.
@@ -4220,26 +4213,26 @@ prioritization is applied: First INI_file settings, which are overwritten by env
 settings, which are overwritten by command-line parameters. All of them are overwriting
 settings made invocations of \b %Lox::SetVerbosity in the source code - as long as optional
 parameter \p{priority} is not given.<br>
-More information on this is found in \ref alib_mod_external_verbosity_configuration.
+More information on this is found in \ref alib_mod_alox_external_verbosity_configuration.
 
 \I{################################################################################################}
-### B.5 Logging Text and Objects ##  {#alib_mod_apdx_auto_config_list_logables}
+### B.5 Logging Text and Objects ##  {#alib_mod_alox_apdx_auto_config_list_logables}
 
-### B.5.1 Arbitrary Logables ###  {#alib_mod_apdx_auto_config_list_logables_arbitrary}
+### B.5.1 Arbitrary Logables ###  {#alib_mod_alox_apdx_auto_config_list_logables_arbitrary}
 \alox API transparently hides the fact that it is made for logging arbitrary \e objects - not
 just text messages. Features for logging text is just an application build on the concept
 of logging abstract \e 'Logables'.
 This is not only true for the \e Logables provided in <em>Log Statements</em>, but also for
-\ref alib_mod_prefix_logables "Prefix Logables". More information about logging arbitrary
-objects is found in \ref alib_mod_ext_loggers.
+\ref alib_mod_alox_prefix_logables "Prefix Logables". More information about logging arbitrary
+objects is found in \ref alib_mod_alox_ext_loggers.
 
 \I{################################################################################################}
-### B.5.2 Namespace 'textlogger' ###  {#alib_mod_apdx_auto_config_list_logables_textlogger}
+### B.5.2 Namespace 'textlogger' ###  {#alib_mod_alox_apdx_auto_config_list_logables_textlogger}
 When logging text, classes found in namespace \ref alib::lox::textlogger are doing quite a
 bit of things in the background that are not obvious to the user. For example:
 
 - \alox \alib{lox;ESC}-codes are removed from textual \e Logables if a \e Logger
-  does not support them. (For more information see \ref alib_mod_colorful_loggers.)
+  does not support them. (For more information, see \ref alib_mod_alox_colorful_loggers.)
 - Classes derived from \e %TextLogger by default recognize multi-line text in \e Logables
   (in standard line ending, Windows line ending or mixed mode) and format multi-line text accordingly.
 - With the help of utility class \alib{strings::util;AutoSizes}, class \b %TextLogger
@@ -4258,27 +4251,29 @@ bit of things in the background that are not obvious to the user. For example:
   by custom code that write to these streams.
 
 
-### B.5.3 C++ Strings ###  {#alib_mod_apdx_auto_config_list_logables_cppstrings}
+### B.5.3 C++ Strings ###  {#alib_mod_alox_apdx_auto_config_list_logables_cppstrings}
 In \alox for C++, logging strings leverages the string facilities of underlying ALib, which allows
-to transparently pass just any sort of string object to <em>Log Statements</em>, including references or pointers to almost
-any custom string type - without any sort of explicit prior conversion!
-This is achieved using 'template meta programming'. Information on how to adopt custom string types
-is found in the \ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
+to transparently pass just any sort of string object to <em>Log Statements</em>, including 
+references or pointers to almost any custom string type - without any sort of explicit prior 
+conversion!
+This is achieved using \ref alib_manual_appendix_tca "type traits". 
+Information on how to adopt custom string types is found in the 
+\ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
 
 
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# Appendix C: Preprocessor Symbols and Macros #  {#alib_mod_apdx_prepro}
+# Appendix C: Preprocessor Symbols and Macros #  {#alib_mod_alox_apdx_prepro}
 
-## C.1 ALox Compiler Symbols ## {#alib_mod_apdx_prepro_sym}
+## C.1 ALox Compiler Symbols ## {#alib_mod_alox_apdx_prepro_sym}
 
 Compiler symbols, including those that control features of \alox, are documented with the
 \ref GrpALibPreproSymbols "reference documentation" of \aliblong.
 
 
 
-## C.2 ALox Macros ## {#alib_mod_apdx_prepro_macros}
+## C.2 ALox Macros ## {#alib_mod_alox_apdx_prepro_macros}
 
 \alox for C++ makes extensive use of preprocessor macros.
 Those mainly achieve:
@@ -4339,10 +4334,10 @@ For an introduction of how to use these macros, work yourself through the \ref a
 \I{################################################################################################}
 \I{################################################################################################}
 \I{################################################################################################}
-# Appendix D: IDE Setup for ALox for C++ #  {#alib_mod_ide_setup}
+# Appendix D: IDE Setup for ALox for C++ #  {#alib_mod_alox_ide_setup}
 
 \I{################################################################################################}
-## D.1 Introduction # {#alib_mod_ide_setup_1}
+## D.1 Introduction # {#alib_mod_alox_ide_setup_1}
 
 The C++ version of \alox is distributed as an \alibcamp of \aliblong.
 \note This is contrast to the currently discontinued versions of <b>ALox for C#</b> and
@@ -4354,14 +4349,14 @@ of the \alib Programmer's Manual.
 
 
 \I{################################################################################################}
-## D.2. Using ALox with Different IDEs#    {#alib_mod_ide_setup_ides}
+## D.2. Using ALox with Different IDEs#    {#alib_mod_alox_ide_setup_ides}
 In the following sections, the use of ALox with different IDEs is discussed. Besides specifics
 in respect to project setup, an overview about how \alox clickable log output is supported - and
 achieved! "Achieving" here means most of all to configure the output format in a way that the
 IDE "understands" the source file and line number information and links them to the editor and source.
 
 To change the format of the log output, field \alib{lox::textlogger::FormatMetaInfo;Format} of the
-\ref alib_config_types_custom "configuration variable" can be modified. This can be done either
+\ref alib_variables_types_custom "configuration variable" can be modified. This can be done either
 programmatically, or, if available in the external configuration of an application.
 If you are new to \alox, the easiest way to play around with different log output formats, is to
 compile and run the sample project. This will generate an INI-file (in your personal OS-specific
@@ -4376,7 +4371,7 @@ then still reading these might help you in understanding how such support is pos
 
 
 \I{################################################################################################}
-### D.2.1. QT Creator##    {#alib_mod_ide_setup_qtcreator}
+### D.2.1. QT Creator##    {#alib_mod_alox_ide_setup_qtcreator}
 
 [QT Creator](http://doc.qt.io/qtcreator/index.html) can be used in two different "modes", with
 CMake files and with QMake files. Unfortunately, in respect to clickable log-output there is a
@@ -4389,7 +4384,7 @@ tremendous difference in the behavior of QT Creator.
 
 
 \I{################################################################################################}
-#### D.2.1.1 Using QT Creator with QMake ### {#alib_mod_ide_setup_qtcreator_qm}
+#### D.2.1.1 Using QT Creator with QMake ### {#alib_mod_alox_ide_setup_qtcreator_qm}
 
 In respect to log output file name recognition, we have made the following observations:
 
@@ -4402,7 +4397,7 @@ In respect to log output file name recognition, we have made the following obser
   reason is obviously that QT Creator parses the output window and colorizes all source links it
   detects in blue - and removing all other color code!
 - The rules how source paths are recognized by QTCreator is not known to us. Often,
-  trimmed source file paths are sufficient (see chapter \ref alib_mod_trim_source_path)
+  trimmed source file paths are sufficient (see chapter \ref alib_mod_alox_trim_source_path)
   but sometimes the full path has to be given. Especially if libraries that use ALox are involved,
   the trimmed path is sometimes not enough. In this case, a source path trim rule might be created
   that turns relative source file paths (provided by QMake to the C++ compiler) into absolute ones.
@@ -4437,7 +4432,7 @@ contain the following entries:
 
 
 \I{################################################################################################}
-#### D.2.1.2 Using QT Creator with CMake ###   {#alib_mod_ide_setup_qtcreator_cm}
+#### D.2.1.2 Using QT Creator with CMake ###   {#alib_mod_alox_ide_setup_qtcreator_cm}
 
 <em>QT Creator</em> has a built in CMake support which works really well with the CMake files
 provided with the project (as of the time of this writing).
@@ -4471,7 +4466,7 @@ Therefore, we recommend to set the following two configuration variables:
 
 
 \I{################################################################################################}
-### D.2.2. Using ALox with Visual Studio##    {#alib_mod_ide_setup_vstudio}
+### D.2.2. Using ALox with Visual Studio##    {#alib_mod_alox_ide_setup_vstudio}
 
 When you are new to \alib and you just want to play around with it a bit, the easiest thing
 is to open the Visual studio solution found in
@@ -4493,10 +4488,10 @@ Finally, the \alib include directory has to be added to your project.
 
 \note
   When using ALox in a Microsoft Windows software, it may be important to
-  include <em>windows.h</em> before any ALox header file. The reason is that \alib
+  include <em>windows.h</em> before any ALox header-file. The reason is that \alib
   includes <em>windows.h</em> unless it was included already. When the \alib
   library includes <em>windows.h</em>, it uses some defines like <em>WIN32_LEAN_AND_MEAN</em>
-  or <em>NOGDI</em> to minimize the impact of that huge header file. If <em>windows.h</em>
+  or <em>NOGDI</em> to minimize the impact of that huge header-file. If <em>windows.h</em>
   is included before including ALox (AWorx library), it is up to the embedding application
   which level of windows functionality is needed.
 
@@ -4512,7 +4507,7 @@ adjustments need to be done.
 
 
 \I{################################################################################################}
-### D.2.3 Using ALox with JetBrains CLion ## {#alib_mod_ide_setup_clion}
+### D.2.3 Using ALox with JetBrains CLion ## {#alib_mod_alox_ide_setup_clion}
 
 [CLion](https://www.jetbrains.com/clion/)s' build system relies on \e CMake.
 Pre-configured project folders are provides with

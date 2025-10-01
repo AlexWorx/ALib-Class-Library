@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -16,128 +16,184 @@
 
 Welcome the Programmer's Manual of the  <b>%ALib C++ Class Library</b>!
 
-This manual explains the structure and concepts of the library and it's general use.
-The library is divided into <b>"modules"</b> which together comprise the actual library
-functionality. Please note, that for each of these modules a dedicated
-\ref alib_manual_modules_overview "Programmer's Manual" exists,
-which solely address a module's field of application.
+While we are proud of presenting \alib, we are likewise proud of providing you with not only
+this manual, but with additional separated manuals which are dedicated to the different 
+parts of the library - which we call "ALib Modules".
 
-The module's entities reside in inner namespaces of the libraries root namespace \ref alib,
-which consequently is rather quite empty - apart from tons of <em>type aliases</em>.
-(The rationale for these aliases is \ref alib_nsalib_type_aliases "explained here".)
-The majority of the remaining code in that namespace is related to organize the
-modules.
+This foundational manual explains the structure and concepts of the library, how to select only 
+parts of it and build your stripped and lean version, and of-course how the library is used in general.
 
-It becomes quite obvious that, before talking any further about this library, all about
-<b>%ALib Modules</b> has to be explained.
-
+The first thing we need to discuss is how the library is structured into \alibmods_nl.
+This became especially true, since C++20 likewise introduced the concept and even the new keyword 
+\c module, which this library supports seamlessly.
 
 \I{################################################################################################}
 # 2. ALib Modules # {#alib_manual_modules}
 
-Being a "general purpose" C++ library, quite different areas of programming are addressed by \alib.
-This is why the library code and documentation is organized into different "modules".
+As a "general purpose" C++ library, \alib tackles a wider range of programming areas, which is why 
+its code and documentation are systematically structured in a 
+\ref alib_manual_why_layering "top-down layered hierarchy".<br>
+For this reason, the library was divided into currently 
+\ref alib_manual_modules_table "25 different modules", a step taken well in advance of the 
+introduction of C++20's module concept.
 
-\note
-  The term \e module relates to the planned future C++ language feature with the same name.
-  As of today C++ modularization is not technically used with \alib, yet.
-  Experimental support for implementing \alibmods_nl as C++ modules is planned for
-  \checkpromise{one of the next release, probably in 2025}. It is expected that \alibmods_nl
-  can be 100% translated into true C++ 20 modules.
+An \alib module:
+- Covers a certain topic or field of application.
+- Is a subset of the overall list of \alib types.
+- Comes with a dedicated Programmer's Manual as well as complete reference documentation.
+- Occupies a dedicated inner namespace of the overarching outer namespace #alib.
+- Has two defined relationships to other \alibmods, namely "mandatory dependencies" and 
+  "optional dependencies."
+- Has one main header to include the main types of the module in your compilation unit and 
+  optionally has one or more additional sub-headers. Header names always start with 
+  "ALib." and end with ".H"
+  
+<p><p>
+As a sample, let us look at module \alib_strings_nl:
+- Its about string manipulation, conversion, 3rd-party interoperability, formatting, etc. 
+- Included types are \alib{String}, \alib{CString}, \alib{AString},
+  \alib{Substring}, but also \alib{Tokenizer}, \alib{strings::util;CalendarDate},
+  and various others.
+- Its Programmer's Manual is \ref alib_mod_strings "is found here".    
+- Its namespace is #alib::strings (the link targets the module's reference manual)     
+- It is dependent on modules \alib_characters and \alib_lang and it has
+  has optional dependencies to modules \alib_time and \alib_monomem.
+- Its main header is \implude{Strings} and various sub-headers, for 
+  example, \implude{Strings.Tokenizer}, or \implude{Strings.Calendar}. 
 
-The rationals for organizing the library in modules are:
-
-1. <b>Design Principle of Orthogonality</b><br>
-   The modularization of the library is first of all a design principle, forcing library
-   features to "fall into place" and make types and methods "orthogonal". (Orthogonal software
-   can be considered as the opposite of "spaghetti code".)
-
-2. <b>Comprehensible</b><br>
-   Users of the library are able to grasp the overall feature set much faster due to the
-   modularization. As an example, the
-   \ref alib_expressions_intro_procon "features of module ALib Expressions", is currently more
-   than 25 bullet points. A user not interested in run-time expression evaluation, will
-   not be bothered with that, because the module has an own namespace, separated
-   \ref alib::expressions "reference documentation" and an own
-   \ref alib_mod_expressions "Programmer's Manual".
-
-3. <b>Well Defined Library Bootstrapping</b><br>
-   As explained in a later chapter, bootstrapping a software process written in C++ needs to
-   obey to some certain rules which the programming language itself does not provide support
-   for. \alibmods_nl tremendously helps organizing the library bootstrap process.
-
-4. <b>Minimum Footprint</b><br>
-   Modules can be compiled and used separately from others, as long as there is no dependency
-   between modules.
-   When using \https{CMake,cmake.org/} to build the library, all module-dependencies are
-   automatically resolved: If a using application just needs a single module, that module is
-   all that has to be specified with CMake. The provided scripts select the dependent modules and
-   corresponding source files automatically.
-
-5. <b>Build-Speed</b><br>
-   The ability to just partly compile (and use) \alib also increases build speed. Not only that
-   of the library itself, but also that of the user code (due to the selective header inclusion).
-
+Well, this is all quite normal, but we wanted to point out here that we care for a simple 
+but reliable and everywhere complete structure and offering.
 
 \I{################################################################################################}
-## 2.1 Normal Modules vs. ALib Camps ## {#alib_manual_modules_twotypes}
-\alib distinguishes between normal modules and so called \alibcamps_nl.
-This term is explained in a \ref alib_manual_camp_modules "later chapter". For now, it is
-sufficient to know that an \alibcamp_nl is a more "heavy-weighted" entity, compared to a
-normal module.
+## 2.1  The Term "ALib Build" ## {#alib_manual_alib_build}
+Within this manual, within the distinct manuals of the \alibmods_nl and within the reference 
+documentation, the term <em><b>"ALib Build"</b></em> is frequently used.
+
+\par Definition 
+   An \alibbuild_nl defines the <em>"permutation of modules"</em> that have been selected 
+   from the overall set of modules available.
+   Such selection may optionally be performed at the time of compiling the library.
+   In case it is not performed, simply all \alibmods_nl are included in the \alibbuild_nl.
+   
+
+It might be in a user's interest to reduce \alib to a subset of its functionality, and this way
+speed up compilation and decrease library footprint.
+
+It is to be noted that the omission of single modules might have "side effects" on included 
+modules: While they are still compilable and function well - just certain features might be 
+dropped!<br> 
+This is due to what we call an <b><em>"optional dependency"</em></b>. 
+An optional dependency from module \b A to module \b B could be phrased as:<br>
+<em>\"Module \b A provides extended functionality in case that module \b B is included in the
+ALib Build.\"</em>
+
+As a sample, \alib_files can be compiled with the absence of module \alib_expressions.
+But in this case functionality for filtering file trees using run-time expressions will not
+be available.
+
+The reference documentation of functions, methods, or types that are dropped when reducing the 
+\alibbuild gives (in most cases) a prominent hint on this specific relationship.
+To stay with the sample, you can look out for such a note at the end of the reference documentation 
+of class \alib{files;FileExpressions}.
 
 \I{################################################################################################}
-## 2.2 Overview Of Modules ## {#alib_manual_modules_overview}
-
-### 2.2.1 Non-Camp Modules ###
-The following table lists all non-Camp modules in alphabetical order:
-
-Name <br>(Programmer's Manual)             |Namespace <br>(Reference Documentation)    | Description |
--------------------------------------------|-------------------------|-------------------------------
-\ref alib_mod_bitbuffer     "BitBuffer"    | \ref alib::bitbuffer    |Provides types to read and write data into a stream of bits in a platform-independent manner. Furthermore different compression algorithms are given.
-\ref alib_mod_boxing        "Boxing"       | \ref alib::boxing       |Implements <b>"auto-boxing"</b> for C++, known from higher level programming languages. Transparently wraps C++ values of arbitrary type together with run-time type information into very lightweight objects. In other words, this library provides <em>"type-safe void pointers which support virtual function calls"</em>, provides type-safe a variadic argument paradigm and much more.
-\ref alib_mod_characters    "Characters"   | \ref alib::characters   |Mitigates C++ character type, character pointer and character array hell.
-\ref alib_mods_contmono     "Containers"   | \ref alib::containers   |ALib container types. Furthermore tools to enable the containers of the C++ Standard Library to use \alib{lang;Allocator;alib allocators} are included.
-\ref alib_mod_enums         "Enums"        | \ref alib::enums        |Extensions for otherwise limited C++ enum types.
-\ref alib_mods_contmono     "Monomem"      | \ref alib::monomem      |Monotonic allocation utilities to avoid heap-memory usage. Together with the concepts introduced with module \alib_containers, the amount of potential use cases for monotonic allocation are tremendously extended. Note that the cost of heap allocation is largely underestimated by programmers.
-\ref alib_mod_singletons    "Singletons"   | \ref alib::singletons   |Implements the singleton paradigm that overcomes the Windows OS DLL boundaries (caused by Window DLL's local data segments), while under other operating systems chooses a faster, straight-forward implementation.
-\ref alib_mod_strings       "Strings"      | \ref alib::strings      |With a least intrusive design offers compatible, lightweight, secure, efficient, complete and convenient C++ string classes.
-\ref alib_mod_threads       "Threads"      | \ref alib::threads      |Low-level thread primitives.
-\ref alib_mod_threadmodel   "ThreadModel"  | \ref alib::threadmodel  |High-level multithreading tools.
-\ref alib_mod_time          "Time"         | \ref alib::time         |A few useful tools for otherwise limited C++ scoped and non-scoped enum types.
-
-### 2.2.2 ALib Camps ###
-The following table lists all "ALib Camps" in alphabetical order.
-
-Name <br>(Programmer's Manual)             |Namespace <br>(Reference Documentation)    | Description |
--------------------------------------------|---------------------------|-------------------------------
-\ref alib_mod_alox          "ALox"         | \ref alib::lox            |A very unique and powerful approach to implement a software's debug and release logging facilities.
-\ref alib_mod_basecamp      "BaseCamp"     | \ref  alib::lang::basecamp|Fundamental types related to the operating system, but also fundamental concepts for the C++ language, like the sophisticated standard \alib throwable type \alib{lang;Exception}, text formatting tools and other things that found no other home.
-\ref alib_mod_cli           "CLI"          | \ref alib::cli            |Implements parsing and partly the processing of command line arguments (CLI stands for "command line interface"). In case of pure CLI software, provides tools for formatted and localized help and result output.
-\ref alib_mod_config        "Configuration"| \ref alib::config         |Transparently encapsulates access to configuration or other input data coming from various sources, like command line parameters, environment variables, INI-files, 3rd-party configuration databases, etc. Support for persistent write-back of such data is given.
-\ref alib_mod_expressions   "Expressions"  | \ref alib::expressions    |Expression parser, compiler and a virtual machine for evaluation of compiled expressions. Excels in respect to speed and flexibility and is very easy to adopt in own projects.
-\ref alib_mod_files         "Files"        | \ref alib::files          |Directory and File scanner, optionally filtering with \alib_expressions_nl.
-
-\I{################################################################################################}
-## 2.3 Module Dependencies ## {#alib_manual_modules_dependencies}
-### 2.3.1 Mandatory Dependencies ### {#alib_manual_modules_dependencies_mandatory}
-One feature of \alib is that active support for the use of just a subset of its modules is
-provided. Now, with the selection of a single module, all modules that the select one depends on,
-have to be added to that specific reduced library built.
-For example, module \alib_strings does not compile without the availability of module
-\alib_characters.
-
-The following diagram shows the mandatory dependencies between the modules:
-\anchor alib_manual_modules_dependency_graph
-
-\I{Comment: Sometimes, doxygen does not show the graph below. Then an empty graph helps. Dont know what this is!}
-
-  \dot
-  digraph forSomeReasonsDoxygenSometimesNeedsAnEmptyGraphHere_Strange {}
-  \enddot
+## 2.2 ALib Module Hierarchy ## {#alib_manual_modules_graph}
+With the knowledge we now have about \alibmods_nl and \alibbuilds_nl, we can continue this
+manual with a graph that shows all \alibmods_nl and their mandatory and optional dependencies: 
+  
 
 \dot
-digraph ModuleDependencies
+digraph ALibModules
+{
+    newrank=true
+    compound=true;
+    fontsize="10";
+    fontname="Open Sans";
+
+    node [shape=plaintext, fontsize="10", fontname="Open Sans"]
+                           
+    Bootstrap      [label= "Bootstrap"   shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_bs"           ];
+
+    //--- ALib Camps ---
+//  Application    [label= Application     shape= "component" style="bold" color="chocolate"   URL="\ref alib_mod_app"          ];
+    ALox           [label= ALox            shape= "component" style="bold" color="chocolate"   URL="\ref alib_mod_alox"         ];
+    Camp           [label= Camp            shape= "component" style="bold" color="chocolate4"  URL="\ref alib_mod_camp"         ];
+    CLI            [label= CLI             shape= "component" style="bold" color="chocolate"   URL="\ref alib_mod_cli"          ];
+    Expressions    [label= Expressions     shape= "component" style="bold" color="chocolate"   URL="\ref alib_mod_expressions"  ];
+    Files          [label= Files           shape= "component" style="bold" color="chocolate"   URL="\ref alib_mod_files"        ];
+
+    Bootstrap      -> { ALox CLI Expressions Files }          [ color="gray69"  style=dotted, penwidth=2 ];
+
+    //--- Below Camp ---
+    Format           [label= Format       shape= "box" color="dodgerblue4"  URL="\ref alib_mod_format"     ];
+    Exceptions       [label= Exceptions   shape= "box" color="dodgerblue4"  URL="\ref alib_mod_exceptions" ];
+    Resources        [label= Resources    shape= "box" color="dodgerblue4"  URL="\ref alib_mod_resources"  ];
+    System           [label= System       shape= "box" color="dodgerblue4"  URL="\ref alib_mod_system"     ];
+    Variables        [label= Variables    shape= "box" color="dodgerblue4"  URL="\ref alib_mod_variables"  ];
+
+
+  //Application     -> { CLI ALox                      }  [ color="midnightblue" ];
+  //Application     -> { Files Expressions ThreadModel }  [ color="gray69"  style=dotted, penwidth=2 ];
+    Files           -> { Expressions ALox                }  [ color="gray69"  style=dotted, penwidth=2 ];
+    Files           -> { Camp                            }  [ color="midnightblue" ];
+    CLI             -> { Camp                            }  [ color="midnightblue" ];
+    Expressions     -> { Camp                            }  [ color="midnightblue" ];
+    ALox            -> { Camp                            }  [ color="midnightblue" ];
+
+    Variables       -> { System Monomem Containers       }  [ color="gray15" ];
+    Camp            -> { Format Variables                }  [ color="gray15" ];
+    Format          -> { Exceptions                      }  [ color="gray15" ];
+    Exceptions      -> { Resources Boxing EnumRecords    }  [ color="gray15" ];
+    System          -> { Boxing EnumRecords              }  [ color="gray15" ];
+    Resources       -> { Strings Containers Monomem      }  [ color="gray15" ];
+
+                            
+    ThreadModel    [label= ThreadModel           shape= "box"        color="dodgerblue4"     style="bold"  URL="\ref alib_mod_threads"      ];
+    BitBuffer      [label= BitBuffer             shape= "box"        color="dodgerblue4"     style="bold"  URL="\ref alib_mod_bitbuffer"    ];
+                                                 
+    Boxing         [label= Boxing                shape= "box"        color="dodgerblue4"   URL="\ref alib_mod_boxing"       ];
+    Containers     [label= Containers            shape= "box"        color="dodgerblue4"   URL="\ref alib_mods_contmono"    ];
+    EnumRecords    [label= EnumRecords           shape= "box"        color="dodgerblue4"   URL="\ref alib_mod_enums"        ];
+    Monomem        [label= Monomem               shape= "box"        color="dodgerblue4"   URL="\ref alib_mods_contmono"    ];
+    Singletons     [label= Singletons            shape= "box"        color="dodgerblue4"   URL="\ref alib_mod_singletons"   ];
+    Strings        [label= Strings               shape= "box"        color="dodgerblue4"   URL="\ref alib_mod_strings"      ];
+
+    subgraph Modules2        {  rank="same"  ALox CLI Expressions                  color="dodgerblue4" }
+    //subgraph Modules3        {  rank="same"  Monomem Strings                       color="dodgerblue4" }
+                                                
+    //--- dependencies base module -> base module 
+    BitBuffer       -> { Monomem Containers }            [ color="gray15"  ];
+    ThreadModel     -> { Boxing Containers Monomem }     [ color="gray15"  ];
+
+
+    //--- dependencies base module -> base module 
+    Boxing          -> { Singletons          }            [ color="gray15"  ];
+    EnumRecords     -> { Singletons  Strings }            [ color="gray15"  ];
+
+     
+    // optional dependencies
+    Singletons      -> { Monomem Containers }          [ color="gray69"  style=dotted, penwidth=2 ];
+    Boxing          -> { Monomem Containers Strings}   [ color="gray69"  style=dotted, penwidth=2 ];
+    Containers      -> { Strings  }                    [ color="gray69"  style=dotted, penwidth=2 ];
+    Strings         -> { Monomem  }                    [ color="gray69"  style=dotted, penwidth=2 ];
+    EnumRecords     -> { Monomem Containers Boxing }   [ color="gray69"  style=dotted, penwidth=2 ];
+    Containers      -> { Monomem  }                    [ color="gray69"  style=dotted, penwidth=2 ];
+    BitBuffer       -> { EnumRecords  }                [ color="gray69"  style=dotted, penwidth=2 ];
+    Resources       -> { EnumRecords  }                [ color="gray69"  style=dotted, penwidth=2 ];
+    ThreadModel     -> { EnumRecords Strings }         [ color="gray69"  style=dotted, penwidth=2 ];
+    System          -> { Monomem Exceptions }          [ color="gray69"  style=dotted, penwidth=2 ];
+}
+\enddot       
+      
+\checkpromise{
+\note Currently the graph-generation tool draws weird lines between the modules.
+      We don't know why this happens and hope that it will be fixed in the future. }       
+
+
+Besides the topmost Module \alib_bootstrap, the following foundational and lowest-level modules, 
+which were excluded from the graph above, are <b>always included in any \alibbuild_nl:</b>
+\dot
+digraph ALibBaseModules
 {
     newrank=true
     compound=true;
@@ -146,1006 +202,299 @@ digraph ModuleDependencies
 
     node [shape=plaintext, fontsize="10", fontname="Open Sans"]
 
-
-    //--- ALib Camps ---
-    BaseCamp       [label= BaseCamp        shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_basecamp"     ];
-    ALox           [label= ALox            shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_alox"         ];
-    CLI            [label= CLI             shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_cli"          ];
-    Configuration  [label= Configuration   shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_config"       ];
-    Expressions    [label= Expressions     shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_expressions"  ];
-    Files          [label= Files           shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_files"        ];
-
-
-    //--- dependencies camp -> camp
-    ALox            ->  Configuration     [ color="midnightblue" ];
-    Configuration   ->  BaseCamp          [ color="midnightblue" ];
-    CLI             ->  BaseCamp          [ color="midnightblue" ];
-    Expressions     ->  BaseCamp          [ color="midnightblue" ];
-    Files           ->  BaseCamp          [ color="midnightblue" ];
-
-    //--- Non-Camp Modules ---
-    BitBuffer      [label= BitBuffer       shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_bitbuffer"    ];
-    Boxing         [label= Boxing          shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_boxing"       ];
-    Characters     [label= Characters      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_characters"   ];
-    Containers     [label= Containers      shape= "box"        color="cornflowerblue"   URL="\ref alib_mods_contmono"    ];
-    Enums          [label= Enums           shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_enums"        ];
-    Monomem        [label= Monomem         shape= "box"        color="cornflowerblue"   URL="\ref alib_mods_contmono"    ];
-    Singletons     [label= Singletons      shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_singletons"   ];
-    Strings        [label= Strings         shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_strings"      ];
-    ThreadModel    [label= ThreadModel     shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_threads"      ];
-    Threads        [label= Threads         shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_threads"      ];
-    Time           [label= Time            shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_time"         ];
-
-    subgraph sameRankE   {  rank="same";  Time; Characters; Containers ; Monomem; Singletons;  }
-
-    //--- dependencies module -> module
-    BitBuffer       -> Monomem       [ color="cornflowerblue"  ];
-    BitBuffer       -> Containers    [ color="cornflowerblue"  ];
-    BitBuffer       -> Enums         [ color="cornflowerblue"  ];
-    Boxing          -> Characters    [ color="cornflowerblue"  ];
-    Boxing          -> Singletons    [ color="cornflowerblue"  ];
-    Enums           -> Singletons    [ color="cornflowerblue"  ];
-    Enums           -> Strings       [ color="cornflowerblue"  ];
-    Strings         -> Characters    [ color="cornflowerblue"  ];
-    ThreadModel     -> Boxing        [ color="cornflowerblue"  ];
-    ThreadModel     -> Containers    [ color="cornflowerblue"  ];
-    ThreadModel     -> Enums         [ color="cornflowerblue"  ];
-    ThreadModel     -> Monomem       [ color="cornflowerblue"  ];
-    ThreadModel     -> Threads       [ color="cornflowerblue"  ];
-    Threads         -> Strings       [ color="cornflowerblue"  ];
-    Threads         -> Time          [ color="cornflowerblue"  ];
-
-    //--- dependencies camp -> module
-    BaseCamp        -> Boxing        [ color="cornflowerblue"  ];
-    BaseCamp        -> Containers    [ color="cornflowerblue"  ];
-    BaseCamp        -> Enums         [ color="cornflowerblue"  ];
-    BaseCamp        -> Monomem       [ color="cornflowerblue"  ];
-    BaseCamp        -> Strings       [ color="cornflowerblue"  ];
-    BaseCamp        -> Time          [ color="cornflowerblue"  ];
+    Assert         [label= "Assert"      shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_assert"       ];
+    Characters     [label= "Characters"  shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_characters"   ];
+    EnumOps        [label= "EnumOps"     shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_enums"        ];
+    Lang           [label= "Lang"        shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_lang"         ];
+    Threads        [label= "Threads"     shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_threads"      ];
+    Time           [label= "Time"        shape= "box"        color="black" penwidth=2   URL="\ref alib_mod_time"         ];
+    
 }
-\enddot
+\enddot       
 
-\note
-  - The light blue modules show "normal" \alibmods_nl.
-  - The dark blue modules show \alibcamps_nl.
-  - The two small rectangles on the left side of some of the module boxes indicate that a
-    module has initialization and termination functions that needs to be invoked with bootstrapping
-    a process, respectively terminating it. As it can be seen (and will be discussed later)
-    this is true for all \alibcamps_nl, but also for some of the normal ones.
+This graph is a good reference for answering various questions. 
+I.e., <em>\"Which other modules will be included in an \alibbuild_nl if I need module Xyz?\"</em>
+For example, if a user aims to include the functionality of the module \alib_threadmodel_nl
+in an application, the graph tells us that in addition, the modules
+\alib_boxing_nl, \alib_containers_nl and \alib_monomem_nl are directly dependent. Furthermore, 
+the module \alib_boxing_nl has a next dependency to \alib_singletons_nl. 
+This means, together with the module \alib_threadmodel_nl itself, five selectable modules are 
+included.
 
-\note
-  The exact meaning of these differences will be discussed later in this manual.
+This is not the full picture, yet: On the bottom of the graph there are seven foundational modules
+which are always included in any \alibbuild_nl.
 
-
-\I{################################################################################################}
-### 2.3.2 Optional Dependencies ### {#alib_manual_modules_dependencies_supporting}
-Besides the mandatory dependencies shown in the graph above, also \b optional relations between the
-modules exist. An optional relationship from module \b A to module \b B could be phrased as:<br>
-<em>\"Module \b A provides more/extended functionality in case that module \b B is included in the
-library built.\"</em>.
-
-These relationships are documented with each module's Programmer's Manual.
-Furthermore, within the reference documentation, you will find sentences like
-<em>\"This feature is available only if the module <b>ALib XYZ</b> is included in the \alibdist_nl.\"</em>
-
-The following diagram shows the optional dependencies:
-
-\dot
-digraph OptionalModuleDependencies
-{
-    compound=true;
-    fontsize="10";
-    fontname="Open Sans";
-
-    node [shape=plaintext, fontsize="10", fontname="Open Sans"]
-
-
-    //--- ALib Camps ---
-    BaseCamp       [label= BaseCamp        shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_basecamp"     ];
-    ALox           [label= ALox            shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_alox"         ];
-    Configuration  [label= Configuration   shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_config"       ];
-    CLI            [label= CLI             shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_cli"          ];
-    Expressions    [label= Expressions     shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_expressions"  ];
-    Files          [label= Files           shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_files"        ];
-
-//    subgraph sameRank1   {  rank="same";  CLI; Expressions; ALox;     }
-//    subgraph sameRank1   {  rank="same";  Configuration; BaseCamp;      }
-
-    //--- optional dependencies camp -> camp
-    Expressions     ->  Configuration   [ color="midnightblue" ];
-    Files           ->  Expressions     [ color="midnightblue" ];
-
-    //--- Non-Camp Modules ---
-    Boxing         [label= Boxing          shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_boxing"       ];
-    Characters     [label= Characters      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_characters"   ];
-    Containers     [label= Containers      shape= "box"        color="cornflowerblue"   URL="\ref alib_mods_contmono"    ];
-    Enums          [label= Enums           shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_enums"        ];
-    Monomem        [label= Monomem         shape= "box"        color="cornflowerblue"   URL="\ref alib_mods_contmono"    ];
-    Singletons     [label= Singletons      shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_singletons"   ];
-    Strings        [label= Strings         shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_strings"      ];
-    ThreadModel    [label= ThreadModel     shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_threads"      ];
-    Threads        [label= Threads         shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_threads"      ];
-    Time           [label= Time            shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_time"         ];
-
-      subgraph sameRankA   {  rank="same";  Expressions; BaseCamp }
-      subgraph sameRankB   {  rank="same";  ALox; Configuration ;CLI }
-      subgraph sameRankE   {  rank="same";  Boxing;    Strings;                         }
-      subgraph sameRankF   {  rank="same";  Time; Characters ; Containers ; Monomem; Singletons  }
-
-
-    //--- optional dependencies headless -> headless
-    BaseCamp        -> Threads       [ color="cornflowerblue"  ];
-    BaseCamp        -> Configuration [ color="cornflowerblue"  ];
-
-    Threads         -> Enums         [ color="cornflowerblue"  ];
-    Threads         -> Monomem       [ color="cornflowerblue"  ];
-
-    Strings         -> Threads       [ color="cornflowerblue"  ];
-    Strings         -> Enums         [ color="cornflowerblue"  ];
-    Strings         -> BaseCamp      [ color="cornflowerblue"  ];
-
-    Boxing          -> Threads       [ color="cornflowerblue"  ];
-    Boxing          -> Strings       [ color="cornflowerblue"  ];
-    Boxing          -> BaseCamp      [ color="cornflowerblue"  ];
-    Boxing          -> Monomem       [ color="cornflowerblue"  ];
-
-    Enums           -> BaseCamp      [ color="cornflowerblue"  ];
-    Enums           -> Strings       [ color="cornflowerblue"  ];
-
-    Monomem         -> Threads       [ color="cornflowerblue"  ];
-    Monomem         -> Strings       [ color="cornflowerblue"  ];
-
-    Singletons      -> Threads       [ color="cornflowerblue"  ];
-    Singletons      -> Monomem       [ color="cornflowerblue"  ];
-    Singletons      -> Strings       [ color="cornflowerblue"  ];
-
-
-    //--- optional dependencies camp -> normal
-    ALox            -> Threads       [ color="cornflowerblue"  ];
-    Configuration   -> Threads       [ color="cornflowerblue"  ];
-    BaseCamp        -> Threads       [ color="cornflowerblue"  ];
-    Expressions     -> Time          [ color="cornflowerblue"  ];
-}
-\enddot
+The good news is, that the \alib build system will 
+\ref alib_manual_build_cmake_1 "care about this automatically". 
+To stay in the sample, all you have to do is announce the module \alib_threadmodel_nl. 
+The scripts will resolve the mandatory dependencies automatically.<br> 
+Modules with optional dependencies have to be added explicitly. 
+In this sample, we would recommend also adding the module \alib_strings. 
+Details on this are given in the later chapter \ref alib_manual_build.        
 
 
 \I{################################################################################################}
-## 2.4 Impacts of Module Dependencies ## {#alib_manual_modules_impact}
-If a user wishes to use and compile only a subset of \alib, the fact of having (selectable) modules
-that are connected through a set of dependencies, has to be taken into account in different ways.
+## 2.3 Tabular List Of Modules ## {#alib_manual_modules_table}
 
-To denote a full or reduced version of \alib, the term \alibdist is used.
+The following table lists all \alibmods_nl in alphabetical order. 
+The table includes links to the reference documentation as well to the Programmer's Manual of each 
+module.
 
-\I{################################################################################################}
-### 2.4.1 Impact on Source Selection / Compilation ### {#alib_manual_modules_impact_sources}
-
-The selection of \alib library source code to compile (either to a dedicated library file or directly
-into a custom software unit) depends on the permutation of selected modules.
-Now, as the modules have dependencies, all sources of all dependent modules have to be
-(recursively) selected.
-
-\alib comes with a set of \e CMake scripts that perform such selection. Even if \e CMake is not used
-for the daily build process, the scripts may be used once to select the source and header files
-needed to feed them into the build system in place.
-
-All details about the build process are given in section \ref alib_manual_build "6. Building The Library".
-
-\I{################################################################################################}
-### 2.4.2 Impact on Header File Inclusion and Code Selection ### {#alib_manual_modules_impact_codeselection}
-
-\alib header files are designed to be always includable, without the precondition to include other
-files before. For example, to work with type \alib{strings;TAString;AString}, it is enough
-to state
-
-        #include "alib/strings/astring.hpp"
-
-at the top of the compilation unit in question. Through the recursive header inclusion, the very
-first header that is processed is always:
-
-&nbsp;&nbsp;&nbsp;&nbsp;\alibheader{alib.hpp}
-
-This header analyzes the given set of \ref GrpALibPreproSymbols "compiler symbols" which
-define the modules included in a distribution. These symbols are named <b>ALIB_<em>MODULENAME</em></b>
-and thus enumerate to:
-
-- \ref ALIB_ALOX
-- \ref ALIB_BOXING
-- ...
-- ...
-- \ref ALIB_TIME
-
-Each symbol that is not given will be defined as either \c 0 or \c 1, by resolving all dependencies
-of those symbols given.
+Name <br>(Programmer's Manual)             | Namespace <br>(Reference Documentation) | Description |
+-------------------------------------------|-----------------------------------------|-------------------------------
+\ref alib_mod_alox          "ALox"         | \ref alib::lox                          |A very unique and powerful approach to implement software's debug and release logging facilities.
+\ref alib_mod_assert        "Assert"       | \ref alib::assert                       |Raising assertions, warnings and other messages. Available only with debug-builds, respectively when the compiler-symbol \ref ALIB_DEBUG is given.
+\ref alib_mod_bitbuffer     "BitBuffer"    | \ref alib::bitbuffer                    |Provides types to read and write data into a stream of bits in a platform-independent manner. Furthermore different compression algorithms are given.
+\ref alib_mod_bs            "Bootstrap"    | \ref alib                               |Well defined bootstrap mechanisms for \alib as well as - optionally - for consumeers of the library. A phased approach that, for example, to assure availablility of resources and configuration data at defined stages. This module is always ranked highest in the list and has optional dependencies to each module that needs bootstrapping. 
+\ref alib_mod_boxing        "Boxing"       | \ref alib::boxing                       |Implements <b>"auto-boxing"</b> for C++, known from higher level programming languages. Transparently wraps C++ values of arbitrary type together with run-time type information into very lightweight objects. In other words, this library provides <em>"type-safe void pointers which support virtual function calls"</em>, provides type-safe a variadic argument paradigm and much more.
+\ref alib_mod_camp          "Camp"         | \ref  alib::camp                        |Introduces the concept of \alibcamps, which a \alibmods_nl that manage externalized resources, configuration variables and which support extended bootstrapping strategies.
+\ref alib_mod_characters    "Characters"   | \ref alib::characters                   |Mitigates C++ character type, character pointer and character array hell.
+\ref alib_mods_contmono     "Containers"   | \ref alib::containers                   |ALib container types. Furthermore tools to enable the containers of the C++ Standard Library to use \alib{lang;Allocator;alib allocators} are included.
+\ref alib_mod_cli           "CLI"          | \ref alib::cli                          |Implements parsing and partly the processing of command line arguments (CLI stands for "command line interface"). In case of pure CLI software, provides tools for formatted and localized help and result output.
+\ref alib_mod_enums         "EnumOps"      | \ref alib::enumops                      |Unary and binary operators for C++ enum elements.
+\ref alib_mod_enums         "EnumRecords"  | \ref alib::enumrecords                  |Named (printable) C++ enum elements.
+\ref alib_mod_exceptions    "Exceptions"   | \ref alib::exceptions                   |C++ exceptions which allow the collection of information while unwinding the stack. Furthermore, externalized (resourced) user messages, leveraging \alib formatting capabilities to embed dynamic information about the errors.  
+\ref alib_mod_expressions   "Expressions"  | \ref alib::expressions                  |Expression parser, compiler and a virtual machine for evaluation of compiled expressions. Excels in respect to speed and flexibility and is very easy to adopt in own projects.
+\ref alib_mod_files         "Files"        | \ref alib::files                        |Directory and File scanner, optionally filtering with \alib_expressions_nl.
+\ref alib_mod_format        "Format"       | \ref alib::format                       |String formatting.
+\ref alib_mod_lang          "Lang"         | \ref alib::lang                         |The most foundational module of \alib, providing specific to the (modern) C++ language.
+\ref alib_mods_contmono     "Monomem"      | \ref alib::monomem                      |Monotonic allocation utilities to avoid heap-memory usage. Together with the concepts introduced with module \alib_containers, the amount of potential use cases for monotonic allocation are tremendously extended. Note that the cost of heap allocation is largely underestimated by programmers.
+\ref alib_mod_resources     "Resources"    | \ref alib::resources                    |Mangement of - optionally externalized - static string resources.
+\ref alib_mod_singletons    "Singletons"   | \ref alib::singletons                   |Implements the singleton paradigm that overcomes the Windows OS DLL boundaries (caused by Window DLL's local data segments), while under other operating systems chooses a faster, straight-forward implementation.
+\ref alib_mod_strings       "Strings"      | \ref alib::strings                      |With a least intrusive design offers compatible, lightweight, secure, efficient, complete and convenient C++ string classes.
+\ref alib_mod_system        "System"       | \ref alib::system                       |Class \alib{system;Path} and a few other types related to operating systems.
+\ref alib_mod_threadmodel   "ThreadModel"  | \ref alib::threadmodel                  |High-level multithreading tools.
+\ref alib_mod_threads       "Threads"      | \ref alib::threads                      |Low-level thread primitives.
+\ref alib_mod_time          "Time"         | \ref alib::time                         |Types for calendrical and non-calendrical date and time processing. Always included in any \alibbuild.
+\ref alib_mod_variables     "Variables"    | \ref alib::variables                    |Transparently encapsulates access to configuration or other input data coming from various sources, like command line parameters, environment variables, INI-files, 3rd-party configuration databases, etc. Support for persistent write-back of such data is given.
 
 \I{################################################################################################}
-### 2.4.3 Impact on Bootstrapping ### {#alib_manual_modules_impact_bootstrapping}
-
-Selected modules have to be initialized in the right order. "Most independent" have to be
-initialized first, dependent modules afterwards.
-All information about bootstrapping the library is provided later in this manual, namely
-in chapter \ref alib_manual_bootstrapping "4. Bootstrapping ALib".
+## 2.4 Including/Importing ALib Modules ## {#alib_manual_modules_impludes}
 
 \I{################################################################################################}
-### 2.4.4 Single Threaded Library Compilation ### {#alib_manual_modules_impact_singlethreaded}
-Excluding module \alib_threads from an \alibdist_nl has the special effect of
-compiling \alib for single-threaded execution. Due to the fact that \alib uses class
-\alib{threads;Lock} and sibling types from this module for all its <em>"mutex locks"</em>,
-leaving out this module removes just all concurrency protection from <b>every remaining module</b>!
+## 2.4.1 How Including/Importing Works ## {#alib_manual_modules_impludes_intro}
+ALib employs a design that allows switching between C++20 Modules and legacy builds without 
+requiring any changes to your codebase. 
 
-The advantage of this approach lies of course in performance and code size of single-threaded
-compilations, because setting a mutex is a redundant action there. It is important to understand that
-module \alib_threads_nl is <b>mandatory</b> if concurrent access to library functions
-is performed.
+This is achieved by not supporting (or requiring!) the direct use of the keyword \c import to 
+access ALib modules. Instead, the <b>same header files for both compilation modes</b> are to be
+used and to be included in the traditional way.
 
-In debug-compilations of the library, if module \alib_threads_nl is omitted, single-threaded
-use is therefore asserted: An \alib assertion is raised when multi-threading is detected.
+These headers manage the necessary preprocessor configuration (which are still needed with
+C++20 Modules) and either import modules or include traditional headers based on your 
+chosen compilation mode. 
+This approach also ensures that ALib's macro-based features (like type trait specialization helpers) 
+work consistently across both modes.
 
-To detect multi-threading in debug-code, the underlying threading library (e.g., "pthreads" on
-GNU/Linux) has to be provided with the build. For this reason, the default <b>CMake</b>-script,
-which is described in later sections, does \b not depend on the inclusion of module
-\alib_threads_nl, but just \b always searches the target system's thread library.
-If found, symbol \ref ALIB_EXT_LIB_THREADS_AVAILABLE is passed to the C++ compiler.
+This design approach not only ensures that a user's codebase remains independent of the 
+compilation mode (aka whether C++20 Modules are used or not), but also offers additional advantages:
 
-The way to prevent searching and adding a thread library is by setting special <b>CMake</b> cached
-variable \ref alib_manual_build_cmake_3 "ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH" to \c true.
+- It maintains compatibility with environments and compilers that don't yet fully support C++20 
+  modules.
+- Legacy compiles are facing a highly reduced set of includes.
+  (Before the transition, \alib mostly followed the widespread "one type one header" approach). 
+- In C++20 module mode, no extra header inclusion (to define necessary preprocessor symbols) is 
+  needed.   
+- The headers automatically adopt to the \alibbuild_nl. 
+  This means, if certain (optional) \alibmods_nl are excluded from the library, the headers will
+  silently skip otherwise mandatory imports, respectively recursive inclusion.     
+  Only if then dropped functionality is used, compilation errors will occur. 
+  (Those can be then managed in the using code by using the guard symbols 
+  \ref ALIB_BOXING, \ref ALIB_STRINGS, \ref ALIB_MONOMEM, etc.)    
+- There is no noticeable difference between the modular and legacy versions - both produce 
+  identical optimized code.
+                                         
+\note 
+  For those interested, we share our observations and experiences from transitioning the \alib 
+  codebase to support C++20 Modules in this \ref alib_c20module_shift "dedicated blog-page".
 
-In general it could be said:
-\note
-   In case of doubt, it is recommended to include module \alib_threads in an \alibdist_nl.
+The header names that either import a C++20 Module or recursively include necessary sub-headers
+always are prefixed by <b>"ALib."</b>, followed by the module name in \b UpperCamelCase, and have 
+the extension <b>".H"</b>. Sometimes after the module name, an extension name is given, separated 
+by a period <b>'.'</b>. For example:
 
-...unless a user knows exactly what she is doing!
+        #include "ALib.Strings.H"        
+        #include "ALib.Strings.Tokenizer.H"        
+        #include "ALib.Format.H"        
+
+\note 
+  All other filenames in the \alib codebase use lowercase letters, and neither the ".H" nor ".h" 
+  file extensions are used elsewhere in \alib. 
+  This design choice was deliberately made to help your IDE to easily propose and auto-complete 
+  your inclusion statements. 
+
+\attention
+  As a result of this design, the \alib documentation never references the C++20 Module entities 
+  directly, and never talks about their names. 
+  While the names are irrelevant to the code using them, it should be mentioned that their names
+  correspond exactly to the filenames of the header files to include.<br>
+  The names become relevant only in the case that a compilation error like this occurs:
+
+        error: declaration of 'CalendarDateTime' must be imported from module 'ALib.Strings.Calendar' before it is required  
+
+\attention
+  All you need to do in this case is to take the name, append <c>".H"</c> and use this as your
+  inclusion header to add: 
+
+        #include "ALib.Strings.Calendar.H"        
+        
+                       
+\I{################################################################################################}
+## 2.4.2 Include/Import Header Reference ## {#w}
+
+<b>The following table lists all header files available.</b>    
+
+Module                                     | Headers to Include
+-------------------------------------------|---------------------------------------------------------------------
+\ref alib_mod_alox          "ALox"         | \implude{ALox}<br>\implude{ALox.Impl} 
+\ref alib_mod_assert        "Assert"       | \implude{Lang} (No own include) 
+\ref alib_mod_bitbuffer     "BitBuffer"    | \implude{BitBuffer} 
+\ref alib_mod_bs            "Bootstrap"    | \implude{Bootstrap}   
+\ref alib_mod_boxing        "Boxing"       | \implude{Boxing}<br>\implude{Boxing.StdFunctors} 
+\ref alib_mod_camp          "Camp"         | \implude{Camp}<br>\implude{Camp.Base} 
+\ref alib_mod_characters    "Characters"   | \implude{Lang} (important type traits are imported here already)<br>\implude{Characters.Functions} 
+\ref alib_mods_contmono     "Containers"   | \implude{Containers.FixedCapacityVector}<br>\implude{Containers.HashTable}<br>\implude{Containers.List}<br>\implude{Containers.LRUCacheTable}<br>\implude{Containers.SharedPtr}<br>\implude{Containers.SharedVal}<br>\implude{Containers.StringTree} 
+\ref alib_mod_cli           "CLI"          | \implude{CLI} 
+\ref alib_mod_enums         "EnumOps"      | \implude{EnumOps} 
+\ref alib_mod_enums         "EnumRecords"  | \implude{EnumRecords}<br>\implude{EnumRecords.Bootstrap} 
+\ref alib_mod_exceptions    "Exceptions"   | \implude{Exceptions}   
+\ref alib_mod_expressions   "Expressions"  | \implude{Expressions}<br>\implude{Expressions.Impl} 
+\ref alib_mod_files         "Files"        | \implude{Files}<br>\implude{Files.TextFile} 
+\ref alib_mod_format        "Format"       | \implude{Format}<br>\implude{Format.FormatterJavaStyle}<br>\implude{Format.FormatterPythonStyle}<br>\implude{Format.Paragraphs}<br>\implude{Format.PropertyFormatter}<br>\implude{Format.PropertyFormatters} 
+\ref alib_mod_lang          "Lang"         | \implude{Lang}<br>\implude{Lang.CIFunctions}<br>\implude{Lang.CIMethods}
+\ref alib_mods_contmono     "Monomem"      | \implude{Monomem}<br>\implude{Monomem.SharedMonoVal}<br>\implude{Monomem.StdContainers} 
+\ref alib_mod_resources     "Resources"    | \implude{Resources} 
+\ref alib_mod_singletons    "Singletons"   | \implude{Singletons} 
+\ref alib_mod_strings       "Strings"      | \implude{Strings}<br>\implude{Strings.AutoSizes}<br>\implude{Strings.Calendar}<br>\implude{Strings.Escaper}<br>\implude{Strings.Monomem}<br>\implude{Strings.Search}<br>\implude{Strings.StdFunctors}<br>\implude{Strings.StdIOStream}<br>\implude{Strings.Token}<br>\implude{Strings.Tokenizer}<br>\implude{Strings.Vector}
+\ref alib_mod_system        "System"       | \implude{System} 
+\ref alib_mod_threadmodel   "ThreadModel"  | \implude{ThreadModel} 
+\ref alib_mod_threads       "Threads"      | \implude{Threads} 
+\ref alib_mod_time          "Time"         | \implude{Time} 
+\ref alib_mod_variables     "Variables"    | \implude{Variables}<br>\implude{Variables.IniFile}<br>\implude{Variables.Plugins}<br>\implude{Variables.ResourcePool} 
+                
+\I{################################################################################################}
+## 2.4.1 Further Public Headers ## {#alib_manual_modules_impludes_further}
+Besides the headers which either import or include portions of an \alibmod_nl, a few further
+public headers are present.
+     
+1. <b>"Compatibility Headers"</b><br>
+   Five so called <em>"compatibility header-files"</em> exist. 
+   More information on those are given in chapter \ref alib_manual_build_more_externallibs.                                                        
+
+2. <b>Switching Macro ALIB_CALLER</b><br>
+   The two headers \implude{Lang.CIFunctions} and \implude{Lang.CIMethods} are provided to switch the macro 
+   \ref ALIB_CALLER to either work with functions and static methods, where no \c this pointer
+   is available, or to work with method members of types. 
+   More information on this topic is provided in 
+   the appendix-chapter \ref alib_manual_appendix_callerinfo.   
 
 \I{################################################################################################}
-## 2.4.5 Common library files ## {#alib_manual_modules_common_files}
-There are a few source files and corresponding types in \alib that are not associated with a module,
-but rather belong to the library in general.
-The source files are located in subfolder <c>alib/lang</c> - without its subfolders (!) - and the
-corresponding C++ types are collected in the library's root namespace #alib::lang.
-
-These files are not further organized and have to be included in the build process independent of
-the selected modules.
-
-\I{################################################################################################}
-## 2.5  The Term "ALib Distribution" ## {#alib_manual_modules_dist}
-Within this manual, the distinct manuals of \alibmods_nl and within the reference documentation,
-the term <em><b>"ALib Distribution"</b></em> is frequently used. The term addresses the permutation of modules
-that have been selected from the overall set of modules, at the time of compiling the library.
-It might be in a user's interest to reduce \alib to a subset of its functionality and this way
-speed up compilation and decrease library footprint.
-
-The omission of single modules might have "side effects" on other modules in that respect, that
-while they are still compilable, certain features might be dropped. If this is the case,
-such dropping is always documented with the feature (function, type, method, member, etc.).
-
-As a sample, \alib_expressions can be compiled with the absence of module \alib_config.
-But in this case functionality for loading and automatically compiling nested expression
-strings defined in INI-files, command-line arguments, etc. is dropped.
-
-\I{################################################################################################}
-## 2.6  Special Treatment For Modules ALox And Threads ## {#alib_manual_modules_special_alox}
-A special treatment is granted to module \alib_alox, by having header file \alibheader{alox.hpp}
-always included in any \alibdist. For this reason, the file is placed outside of
-directory \alibsrcdir{alox}, and instead right inside the source's root folder \alibsrcdir.
+## 2.5  Special Treatment For Module ALox ## {#alib_manual_modules_special_alox}
+A special treatment is granted to the module \alib_alox, by having the header-file \implude{ALox}
+still defining the logging macros, even if this module is not included in an \alibbuild. 
 
 This allows a user to place \alox log statements in a compilation unit without the need of testing
-preprocessor symbol \ref ALIB_ALOX or the use of macros \ref IF_ALIB_ALOX and \ref IFNOT_ALIB_ALOX,
-in the case that her sources should be ready to compile likewise in an \alibdist_nl that does
-not include \alox.
+preprocessor symbol \ref ALIB_ALOX or the use of macros \ref IF_ALIB_ALOX and \ref IFNOT_ALIB_ALOX.
+Such custom sources are this way still ready to compile against an \alibbuild_nl that does not 
+include \alox.
 
-Similar to this, macros \ref ALIB_LOCK and \ref ALIB_LOCK_WITH remain available in the absence
-of module \alib_threads, as already discussed in previous section
-\ref alib_manual_modules_impact_singlethreaded.
-
-
-\I{################################################################################################}
-\I{##########  3.  ALib Camps and Module BootCamp                                                }
-\I{################################################################################################}
-# 3. ALib Camps and special Module BootCamp # {#alib_manual_camp_modules}
-After the previous chapter has given detailed information about how \alib is structured into
-modules and that an \alibdist can be reduced to a subset of these modules, it is time to
-talk about \alibcamps_nl.
+If the module \alib_alox_nl is not included, the macros are "empty" and this way, all 
+log-statements just get "pruned".
+                                                         
+\note
+  This is similar to the behaviour of macros like \ref ALIB_LOCK and \ref ALIB_LOCK_WITH, which
+  remain available but empty, even with 
+  \ref alib_manual_multithreading "single-threaded compilations" of the library. 
 
 \I{################################################################################################}
-## 3.1 Terminology ## {#alib_manual_camp_modules_terminology}
+## 2.6 ALib Camps ## {#alib_manual_modules_camps}
+To close this section, we quickly want to explain the term \alibcamp_nl. 
 
-In short, an \alibcamp_nl is an \alibmod_nl, which
-1. Follows a defined "bootstrap" and "shutdown" process, and
-2. Is enabled to manage externalized resources.
+\par Definition
+  An \alibcamp_nl is an \alibmod_nl which uses the facilities provided with the 
+  equally named module \alib_camp. These facilities include three things:
+  1. Access to externalized string resources,
+  2. access to external configuration data, and  
+  3. A well-defined bootstrap and shutdown process invoked at the start and termination of 
+     the software process.
+                                
+In other words: \alib offers a module named \alib_camp, and that subset of other modules
+which rely on it, are called <em>"ALib Camp Modules"</em> or just \alibcamps_nl.
+ 
+If you look at the \ref alib_manual_modules_graph "hierarchy graph" of the previous section,
+you will quickly identify module \alib_camp and the camp-modules that build on it. 
 
-Both techniques are required by most softwares, but are not well supported by the C++ language.
-This unfortunately is likewise true for the C++ language feature called "C++ Modules", introduced
-with language version C++ 20.
+Today, those are:
+- \ref alib_mod_alox "ALib ALox", 
+- \alib_cli, 
+- \alib_expressions, and 
+- \alib_files.
 
-Details for both features (bootstrapping and externalized resources) is provided in the next
-chapter. For now, the following facts and terminology is important to understand:
-
-1. Those \alibmods_nl which require sophisticated bootstrapping and externalized resources,
-   are named \alibcamps_nl.
-2. Both features become available by adding a singleton class to a module which derives from
-   class \alib{lang;Camp}.
-3. The concept can be used by custom code. Once the concept is understood, creating a custom
-   \b Camp can help structure the boot process and the resource management
-   of an application tremendously.
-   Again: unfortunately, there is a huge lack of support in the C++ language for both fields
-   of concern and hence are often challenging and error-prone parts of software.
-
-With this in mind, specific module \alib_basecamp can be explained. This module resides in
-source folder \alibsrcdir{lang/basecamp} and introduces class \alib{lang::Camp} and all tool types needed
-for bootstrapping and resource management.
-
-It would be as simple as this, if we did not add something more to it: We defined this module
-as a home for classes where we did not think it made much sense to introduce an extra module for.
-Or, in other words: where we thought: Whenever a user of the library decides to include
-an \alibcamp_nl in the \alibdist, then certain functionality would usually be needed and added
-likewise.<br>
-The module organizes this functionality by introducing inner namespaces in \ref alib::lang.
-Those are:
-- %alib::lang::\alib{lang;format}: Classes that support text formatting in various ways.
-- %alib::lang::\alib{lang;resources}: Managing externalized resources.
-- %alib::lang::\alib{lang;system}: System-related types like \alib{lang::system;ProcessInfo}
-  or \alib{lang::system;EnvironmentVariables}.
-
-In addition, source files found in folder \alibsrcdir{lang/message} add types like
-\alib{lang;Exception} and \alib{lang;Report} to namespace \ref alib::lang.
-
-
-This functionality needs bootstrapping and resources already, and this is why module \alib_basecamp_nl
-is an \alibcamp_nl itself. And finally, because this is the lowest and most fundamental of all
-\alibcamps_nl, its name was chosen to be "BaseCamp"!
-
-Let's recap this chapter quickly:
-- Some of the \alibmods_nl are \alibcamps_nl
-- \alibcamps_nl provide externalized resources and bootstrap management
-- Custom software might use this concept and create <b> custom camp modules</b>.
-- The most fundamental \alibcamp_nl is module \alib_basecamp and provides all that is needed to
-  implement further \alibcamps_nl.
-- in addition, module \alib_basecamp provides certain standard functionality that all "higher level-"
-  \alibcamps need.
+More on this topic is given with the dedicated Programmer's Manual \alib_camp. 
 
 \I{################################################################################################}
-## 3.2 Class Camp ## {#alib_manual_camp_modules_campmodule}
-As just mentioned, module \alib_basecamp_nl introduces class \alib{lang;Camp} and every
-other "high level" module, aka \alibcamp_nl, presents a singleton instance of a derived type.
-For example, the singleton type of camp \alib_expressions is class \alib{expressions;ExpressionsCamp}
-and the one of camp \alib_cli is class \alib{cli;CliCamp}.<br>
-
-These singleton objects - including that of \alib_basecamp_nl itself - are collected in namespace
-#alib with global instances and are named in capital letters:
-- \ref alib::BASECAMP
-- \ref alib::ALOX
-- \ref alib::CLI
-- \ref alib::CONFIG
-- \ref alib::EXPRESSIONS
-- \ref alib::FILES
-
-This is the basic setup for solving the two challenges: Bootstrapping and Resource Management.
-Before this manual now dives into the details, one final prerequisite should be given:
-\alibcamps_nl may (and usually do) share resources and configuration data. Therefore class
-\b Camp implements its data members \alib{lang::resources;ResourcePool} and \alib{config;Configuration}
-as pointers.
-
-\I{################################################################################################}
-\I{##########  4.  Bootstrapping ALib                                                              }
-\I{################################################################################################}
-# 4. Bootstrapping And Shutting Down ALib # {#alib_manual_bootstrapping}
-
-The term "bootstrapping" means the one-time initialization of the library that is to be performed
-in an early stage of a software process.
-The counterpart of bootstrapping is "shutting down" the library.
-
-Standard bootstrapping and shutdown of \alib is performed by invoking functions #alib::Bootstrap
-and #alib::Shutdown.
-Such invocation usually is performed as one of the first and last actions in function <c>main()</c>.
-In source code, this simply looks like this:
-
-\code{.cpp}
-        #include "alib/alib.hpp"
-
-        int main( int argc, const char **argv )
-        {
-            // save cli arguments to global ALib variables
-            alib::ARG_C=  argc;
-            alib::ARG_VN= argv;
-
-            // bootstrapping
-            alib::Bootstrap();
+# 3. Bootstrapping And Shutting Down ALib # {#alib_manual_bs}
+Bootstrapping a software process can often become complex, especially when various parts of an 
+application fail to align seamlessly.
             
-            ...
-            ...
-            ...
+The C++ language itself does not offer a standard approach for initiating or managing the startup 
+process effectively. 
+As a result, larger projects frequently postpone creating their own bootstrapping mechanisms until 
+later stages of development, leading to unnecessary difficulties and inefficiencies.
 
-            // termination of ALib
-            alib::Shutdown();
+To address this, \alib not only provides an interface for bootstrapping the library but also 
+introduces a structured concept that users can optionally integrate into their projects.
 
-            return 0;
-        }
-\endcode
-
-The following chapters explain the details behind these invocations, provide recipes to customize
-certain aspects of the process, and explain how  - optionally - the provided mechanics can be
-leveraged for the bootstrapping and shutdown of custom code entities likewise.
-
-\attention If you are new to \alib, you should skip the rest of this chapter completely and
-           rather continue reading next manual chapter \ref alib_manual_build "6. Building The Library".<br>
-           The reason for this is that the recipe above is good for the standard use cases of \alib
-           and that the rest of this chapter becomes more and more complex and <b>probably very
-           irritating to a new user!</b><br>
-           So \ref alib_manual_build "please go ahead, nothing to see here!"  \emoji :sweat_smile:
-
-
+This bootstrapping approach is encapsulated as a dedicated \alibmod, with all related details 
+and usage instructions discussed thoroughly in its dedicated \ref alib_mod_bs "Programmer's Manual".
 
 \I{################################################################################################}
-## 4.1 Weak Support For Bootstrapping In C++ ## {#alib_manual_bootstrapping_cpp}
+# 4. Multithreading Support # {#alib_manual_multithreading}
+\alib offers two distinct modules for multi-threading support: \alib_threads and \alib_threadmodel. 
+The \alib_threadmodel_nl module is a higher-level, optional component that can be included or 
+excluded from an \alibbuild as needed.
+       
+In contrast, the \alib_threads_nl module operates at a much lower level. 
+Like foundational modules such as \alib_lang or \alib_time, it cannot be excluded from the build. 
+This module is relatively compact, containing the \alib{threads;Thread} class, along with various 
+mutex implementations, such as \alib{threads;Lock}.
 
-The following circumstances increase the complexity of bootstrapping:
+Now, the library can be compiled using the \ref ALIB_SINGLE_THREADED preprocessor (and CMake) 
+symbol. 
+Single-threaded applications should do this, because with that, some superfluous overhead  
+is dropped from the build. 
 
-<b>1. The C++ Language:</b><br>
+But even then, parts of the \alib_threads_nl module are still available when compiled in 
+single-threaded mode: They remain as empty skeleton types and methods.  
+Additionally, several corresponding preprocessor macros, for example, \ref ALIB_LOCK_WITH, 
+are preserved but are likewise emptied.
 
-\par
-The C++ language specification misses sophisticated support for bootstrapping a software process.
-Basically, the only two things that are guaranteed by the language are:
-- Global and static data will be initialized.
-- After this is done, a method called <c>main()</c> is invoked.
+This approach offers significant advantages: The library code remains uncluttered, and your code 
+benefits as well. By utilizing the macros and types provided by \alib, you can develop applications, 
+which likewise support single-threaded and multi-threaded versions with minimal effort.
 
-\par
-This specification especially misses an order of the initialization of global or static data.
-Note that data initialization might execute arbitrary constructor code (before method <c>main()</c>
-is invoked!), hence also the order of such custom code execution is random.
-
-<b>2. Resources And Configuration Data:</b><br>
-
-\par
-Bootstrapping becomes even more complicated with the use of
-1. Resources (for example externally managed string resources) and
-2. Configuration data (e.g., configuration files, command line parameters, etc.).
-
-\par
-With \alib, such custom data sources might furthermore be provided by plug-ins, which means the code
-entity that performs the provision of resources and configuration data needs to be initialized
-before the data is used.
-
-<b>4. Module Dependencies:</b><br>
-
-\par
-The dependencies between the modules have to be respected during initializations.
-As mentioned already, dependent modules have to be initialized first.
-
-<b>4. Multithreaded Access:</b><br>
-
-\par
-Multithreaded software has to take preparations to avoid undefined behavior due to thread-racing
-conditions while accessing "shared resources", which is often simply shared memory.
-Such preparation involves a performance penalty.
-In the case that all modifications of the memory that is to be protected can be aggregated to
-a one-time initialization action during bootstrap, such precaution could be omitted if
-bootstrapping guaranteed a period of single threaded access.
+All further information on this topic is provided with the 
+\ref alib_mod_threads "dedicated Programmer's Manual" of module \alib_threads_nl.
+                                                                                          
+\I{################################################################################################}
+# 5. Building The Library # {#alib_manual_build}
 
 \I{################################################################################################}
-## 4.2 Bootstrapping Non-Camp Modules ## {#alib_manual_bootstrapping_nocamps}
-An \alibdist might consist of only "non-Camp" modules. Currently those are:
-\ref alib_mod_bitbuffer     "BitBuffer",
-\ref alib_mod_boxing        "Boxing",
-\ref alib_mod_characters    "Characters",
-\ref alib_mods_contmono     "Containers",
-\ref alib_mod_enums         "Enums",
-\ref alib_mods_contmono     "Monomem",
-\ref alib_mod_singletons    "Singletons",
-\ref alib_mod_strings       "Strings",
-\ref alib_mod_threads       "Threads" and
-\ref alib_mod_time          "Time",
-
-In this case that such a reduced  \alibdist_nl is wanted, the snippet of function <c>main()</c>
-shown above is all that is needed, because their bootstrapping is done by namespace functions
-#alib::Bootstrap, respectively #alib::Shutdown. These two functions are internally changed
-depending on the \alibdist_nl and thus a user of the library does not need to care on the details.
-
-                  b
-Nevertheless, the details are listed here. In fact, only \b five of the non-camp modules provide any
-bootstrapping functionality. Each module provides either namespace functions \b %Bootstrap or
-\b %Shutdown (or both) for that. Those are:
-
-Module             | Bootstrap function                | Shutdown Function                 
--------------------| ----------------------------------| -------------------------------
-\alib_boxing       | \ref alib::boxing::Bootstrap()    | (no shutdown necessary/available)
-\alib_enums        | \ref alib::enums::Bootstrap()     | (no shutdown necessary/available)
-\alib_singletons   | (no bootstrap necessary/available)| \ref alib::singletons::Shutdown()
-\alib_time         | \ref alib::time::Bootstrap()      | \ref alib::time::Shutdown()
-\alib_threads      | \ref alib::threads::Bootstrap()   | \ref alib::threads::Shutdown()
-
-\note For that reason, these five modules have the small rectangular markers in the
-      \ref alib_manual_modules_dependencies "dependency graphs"
-
-
-More complex boot strapping strategies that are shown in the following chapters, will always
-under the hood and automatically care for the non-Camp modules. Therefore, a reader might easily
-forget about them!
-
+## 5.1 Overview ## {#alib_manual_build_overview}
 
 \I{################################################################################################}
-## 4.3 Bootstrapping ALib Camps ## {#alib_manual_bootstrapping_camps}
-When \alibcamps are included in the \alibdist, then things can become a little more complex.
+### 5.1.1 Platforms and Toolchains ### {#alib_manual_build_overview_platforms}
 
-But first of all the good news: Even in the usual case that one or more \alibcamps_nl are included in
-an \alibdist, bootstrapping and shutdown of the library is done exactly the same
-as \ref alib_manual_bootstrapping "shown above". In other words:
-
-\attention The following chapters about bootstrapping should be read only if you want to modify
-           the bootstrap process for one of the following reasons:
-           - A custom \alibcamp_nl was built, which should be integrated in the bootstrap process
-           - Customized configuration and/or resource-data setups or mechanics should be
-             implemented
-           - Other custom reasons, not foreseen by the author of this text.
-
-If the above does not apply to your field of application, all you might need to know is that
-functions #alib::Bootstrap and #alib::Shutdown are internally largely extended in the presence of
-\alibcamps_nl but, it is still the same simple call.
-
-\I{################################################################################################}
-### 4.3.1 ALib Camps Bootstrap Interface ### {#alib_manual_bootstrapping_camps_if}
-
-For bootstrapping and shutdown, types derived from class \alib{lang::Camp} need to implement two
-protected, \b abstract methods, namely 
-- \alib{lang;Camp::bootstrap} and
-- \alib{lang;Camp::shutdown}.
-
-Both methods are invoked more than once: Bootstrapping is done in <b>three phases</b>, defined by
-enumeration \alib{BootstrapPhases} and shutdown is done in <b>two phases</b>, defined by
-enumeration \alib{ShutdownPhases}.
-The implementations of the methods need to switch upon the given levels and perform different tasks.
-
-Each phase will be finished for all camps, before a subsequent phase is initiated.
-The loop over the phases and its inner loop over the list of camps is implemented with
-namespace functions:
-- \doxlinkproblem{namespacealib.html;ac33999bb9be31380c6ae139210d23083;alib::Bootstrap(BootstrapPhases targetPhase; lang::Camp* targetCamp, int,int,TCompilationFlags)}.
-,
-  respectively
-- \doxlinkproblem{namespacealib.html;acd654b95c6e1833f4f04d0fc19e4ce36;alib::Shutdown(ShutdownPhases targetPhase; lang::Camp* targetCamp)}
-.
-
-\note
-    These new overloaded versions are available only with inclusion of header
-    \alibheader{lang/basecamp/bootstrap.hpp}, which in turn is only available with inclusion of
-    the \alib_basecamp in the \alibdist_nl.<p>
-    The parameterless versions we had seen before are declared in header file
-    \alibheader{alib.hpp}, and thus "always" available.
-
-
-\I{################################################################################################}
-### 4.3.2 Bootstrap Phases ### {#alib_manual_bootstrapping_camps_bs}
-
-With function \doxlinkproblem{namespacealib.html;ac33999bb9be31380c6ae139210d23083;Bootstrap;alib::Bootstrap(BootstrapPhases targetPhase, lang::Camp* targetCamp, int,int,TCompilationFlags)},
-an outer loop over all phases is initiated. An inner loop iterates over all camps, in order of their
-"dependency level". For each combination of phase and camp, virtual method \alib{lang;Camp::bootstrap}
-is called. This ensures that for each phase, "low level camps" are initialized first and those of
-"higher level" are initialized next.
-
-The three phases are defined as follows:
-
-1. \alib{BootstrapPhases::PrepareResources}<br>
-   All initialization actions that exclusively involve static data, is deemed to be performed
-   in this phase. For example, the \alib{boxing;BootstrapRegister;registration} of
-   \ref alib_boxing_functions "box-functions" is to be done in this phase.
-
-   The phase received its name from the fact that the  \alib{lang::resources;ResourcePool} is already
-   available and a camp is supposed to feed its static default resource strings to the instance
-   retrieved with \alib{lang;Camp::GetResourcePool}.
-
-   More on this topic will be explained in a later chapter.<br>
-
-
-2. \alib{BootstrapPhases::PrepareConfig}<br>
-   In this phase, the configuration object is available and receivable with \alib{lang;Camp::GetConfig}.
-   It may now be extended with plug-ins, but <b>access to configuration variables is not allowed yet!</b> <br>
-   For most camps there is not much to do in this phase.<br>
-   One important action usually placed here is to initialize static
-   \ref alib_enums_records "ALib Enum Records". If - as it is recommended -
-   \ref alib_enums_records_resourced "record definitions are given using externalized strings",
-   then this is definitely the right place to invoke \alib{enums;EnumRecords::Bootstrap} for each
-   enumeration in question.
-   \note
-     While the enumeration records are static data and could also be initialized in the first
-     phase, after the definition of resources, placing it in this phase allows camps of higher
-     dependency levels to modify (patch!) the resources of a lower level camp  - before their use.
-
-   <br>
-
-3. \alib{BootstrapPhases::Final}<br>
-   In this phase, final initialization steps may be performed.<br>
-   Only in this phase the <b>start of threads is allowed (!)</b>, as any mandatory \alib initializations which
-   are not protected against racing conditions are deemed to be performed in the previous phases.<br>
-   Furthermore, access to configuration variables is allowed in this phase.
-
-
-\I{################################################################################################}
-### 4.3.3 Shutdown Phases ### {#alib_manual_bootstrapping_camps_sd}
-
-With function \doxlinkproblem{namespacealib.html;acd654b95c6e1833f4f04d0fc19e4ce36;alib::Shutdown(ShutdownPhases targetPhase; lang::Camp* targetCamp)}
-,
-an outer loop over the two shutdown phases is initiated.
-Again, an inner loop iterates over all camps, but this time in \b reverse order of their
-"dependency level". For each combination of phase and camp, virtual method \alib{lang;Camp::shutdown}
-is called. This ensures that for each phase, "high level camps" are shut down first and those of
-"lower level" are shutdown later.
-
-The two phases are defined as follows:
-
-1. \alib{ShutdownPhases::Announce}<br>
-   Within this phase, a camps can rely on the full stability of a software and all camps.
-   Only actions might be taken that do not result in defects if features of a camp are still
-   used. Typical samples of actions to perform with this phase are writing out configuration data or
-   making an application's state  persistent, to be able to restore it with a next run of a
-   software.
-   <br><br>
-
-2. \alib{ShutdownPhases::Destruct}<br>
-   This is the "true" shutdown phase. After this phase was invoked, a camp is obligated to have
-   freed all its resources and is allowed to be dysfunctional afterwards.
-
-
-\I{################################################################################################}
-## 4.4 List "Camps" ## {#alib_manual_bootstrapping_list_camps}
-
-For default bootstrapping and shutdown, this is almost all we need to know. The remaining question is:
-Where is the list of \alibcamps_nl, which is used for the inner loops of functions \b Bootstrap and
-\b Shutdown, defined?
-
-Just like the overloaded, parameterized \b Bootstrap and \b Shutdown functions, the list becomes
-available with the inclusion of camp \alib_basecamp and with including its header file
-\alibheader{lang/basecamp/bootstrap.hpp}. There, the declaration \ref alib::CAMPS is given,
-along with function \ref alib::BootstrapAddDefaultCamps, which fills list <b>%alib::CAMPS</b> in the
-right order. The right order means: respecting the dependency hierarchy and permutation of camp
-\alib{lang;basecamp::BaseCamp} and those other camps, which might be included in \alibdist_nl.
-
-With a complete \alibdist_nl, the list will be:
-1. \ref alib::BASECAMP
-2. \ref alib::CONFIG
-3. \ref alib::ALOX
-4. \ref alib::CLI
-5. \ref alib::EXPRESSIONS
-6. \ref alib::FILES
-
-Again, the list is traversed from top to bottom with bootstrapping and in reverse order when
-the camps are shut down.
-
-Now, if function \ref alib::Bootstrap is invoked without explicitly filling the list beforehand,
-(right as it was shown in the introductory section of this chapter), then the empty list will
-be detected and function \b BootstrapAddDefaultCamps is automatically invoked.
-
-In later sections of this manual, options for modifying these defaults will be demonstrated.
-
-\I{################################################################################################}
-## 4.5 Standard Bootstrapping ## {#alib_manual_bootstrapping_standard}
-With the knowledge taken from the previous sections, it is now easily understood what was said
-in the introductory chapter:
-\par
-    <em>Standard bootstrapping of \alib is performed by invoking function \alib{Bootstrap}</em>
-
-Consequently the simple version of bootstrapping was given like this:
-
-        int main( int argc, const char **argv )
-        {
-            alib::Bootstrap();
-            ...
-            ...
-
-
-This standard invocation of function \alib{Bootstrap} not only fills the list \ref alib::CAMPS,
-but also invokes overloaded function<br>
-\doxlinkproblem{namespacealib.html;ac33999bb9be31380c6ae139210d23083;alib::Bootstrap(BootstrapPhases targetPhase, lang::Camp* targetCamp, int,int,TCompilationFlags)}.
-<br>
-with parameters:
-- \p{targetPhase}= \alib{BootstrapPhases::Final}, and
-- \p{targetCamp} = <b>alib::CAMPS.Back()</b>
-
-The loop iterating the phases, starts with the first phase that the camps have \b not been
-bootstrapped with, yet, and ends with the given \p{targetPhase}. With that, all phases are executed
-in above sample. And because the target camp is set to the last one in the list, the inner loop
-covers all camps.
-
-What was not discussed, yet is when the instances of \alib{lang::resources;ResourcePool} and
-\alib{config::Configuration} are created and how the corresponding pointer
-members \alib{lang;Camp::resourcePool} and \alib{lang;Camp::config} are set.
-
-This is how this is done:
-- An instance of class \alib{lang::resources;ResourcePool} is created before executing the first
-  phase \alib{BootstrapPhases;PrepareResources} and is distributed among the camps.<br>
-  The distribution is performed in reverse order, starting with the given \p{targetCamp}
-  and from there to the lower level camps.
-
-- The same is done with a new instance of class \alib{config;Configuration}, but this is
-  done only before executing second phase \alib{BootstrapPhases;PrepareConfig}.
-
-
-The following schematic summarizes this:
-
-  - Outer loop: Phase PrepareResources
-    - Creation of a resource pool.
-    - 1st inner loop: Distribution to lower level camps in reverse (descending) order.
-    - 2nd inner loop: Invocation of <em>bootstrap( PrepareResources )</em> on all dependent camps, in ascending order.
-  - Outer loop: Phase PrepareConfig
-    - Creation of configuration instance.
-    - 1st inner loop: Distribution to lower level camps in reverse (descending) order.
-    - 2nd inner loop: Invocation of <em>bootstrap( PrepareConfig )</em> on all dependent camps, in ascending order.
-  - Outer loop: Phase Final
-    - Invocation of <em>bootstrap( Final )</em> on all camps, in ascending order.
-
-With this information the standard process of bootstrapping is well defined. The following
-chapters introduce different ways to customize bootstrapping.
-
-\I{################################################################################################}
-## 4.6 Customizing The Bootstrap Process ## {#alib_manual_bootstrapping_customize}
-
-\I{################################################################################################}
-### 4.6.1 Bootstrapping Custom Camps ### {#alib_manual_bootstrapping_custommods}
-As explained in previous chapter \ref alib_manual_bootstrapping_cpp, the reason why bootstrapping
-\alib is a non-trivial task, does not lie in specifics of this library, but in a general lack of
-support for bootstrapping in the C++ language. Any more complex software needs to solve this
-task.
-
-Consequently, it might be a reasonable decision, to adopt what this library offers and use this
-concept and the mechanics to bootstrap custom code units likewise.
-
-Doing this is rather simple. The steps are:
-1. Create a custom type derived from class \alib{lang;Camp} along with a global singleton instance of
-   this type.
-2. In the <c>main()</c> function, invoke \alib{BootstrapAddDefaultCamps}.
-3. Next, use method \alib{containers;List::PushBack} to add the static instance of the custom
-   camp type(s) to variable \alib{CAMPS}.
-4. Perform bootstrapping by invoking function \ref alib::Bootstrap.
-
-\note A complete source code sample is given with the \ref alib_cli_tut "tutorial of ALib Camp CLI".
-      Here is the corresponding excerpt from the its <b>main()</b>-function:
-      \code{.cpp}
-        int main( int argc, const char **argv )
-        {
-            alib::ARG_C  = argc;
-            alib::ARG_VN = argv;
-
-            // 1. Add our custom camp to the list of camps
-            alib::BootstrapAddDefaultCamps();
-            alib::CAMPS.PushBack( &SAMPLE_CAMP );
-
-            // 2. Initialize all modules
-            alib::Bootstrap();
-            ...
-            ...
-      \endcode
-
-
-In more complex scenarios, a software can also create more than one module.
-Each camp may be appended to list \ref alib::CAMPS (see step 3). If these camps are following a
-dependency hierarchie, then the lowest (most independent) camps should be attached first.
-The target camp of the bootstrapping (step 4) is the latest camp added.
-
-This recipe addresses the simple cases. When a software chooses to hook itself into the bootstrap
-mechanism of \alib as shown above, the resources and configuration data (including for example INI-files)
-are shared between all modules and thus contain both, data of \alib and that of custom camps.
-
-Often, this is not a desired scenario, because:
-- A software does not want to bother an end-user with the rather technical resources and
-  configuration variables provided by \alib. Cluttering custom data with \alib data should be avoided
-- A software might want to disallow an end-user to modify configuration data and/or resources
-  of \alib.
-- etc.
-
-How these goals can be reached is explained in the next section.
-
-\I{################################################################################################}
-### 4.6.2 Using Custom Resources and/or Configuration Plug-ins ### {#alib_manual_bootstrapping_customize_resconf}
-
-The default implementation of class \alib{lang::resources;ResourcePool} used with non-customized
-bootstrapping is of type  \alib{lang::resources;LocalResourcePool} and this does \b not externalize
-the resource strings. To use either alternative, built-in type \alib{config;ConfigResourcePool}
-or a custom implementation of the interface that attaches to a 3rd-party "resource pool backend",
-all that needs to be done is to create such instance and pass it to method
-\alib{lang;Camp::BootstrapSetResourcePool} of the last (!) camp in \ref alib::CAMPS.<br>
-This has to be done \b before the first invocation of function
-\doxlinkproblem{namespacealib.html;ac33999bb9be31380c6ae139210d23083;Bootstrap;alib::Bootstrap(BootstrapPhases targetPhase, lang::Camp* targetCamp, int,int,TCompilationFlags)}.
-
-As documented with class \alib{config;Configuration}, the type allows being equipped with custom
-mechanics for loading external data. To do so, the bootstrapping process has to be interrupted
-after the configuration is internally created. This is done by explicitly specifying
-\alib{BootstrapPhases::PrepareConfig} with function \b Bootstrap.
-
-Now, the configuration can be accessed with \alib{lang;Camp::GetConfig} and
-is manipulated as wanted. When done, bootstrapping is finalized by invoking \b Bootstrap a
-second time with argument \alib{BootstrapPhases::Final}.
-
-The schematic that shows both approaches at once, then looks as follows:
-- Create instance \b myResources on the last camp in \ref alib::CAMPS.
-- Invoke \b BootstrapSetResourcePool(myResources).
-- Invoke \b Bootstrap(PrepareConfig).
-- Modify configuration object received with \b GetConfig (on any of the \alibcamps_nl, because
-  they still all share the same instance).
-- Invoke \b Bootstrap(Final).
-
-
-\I{################################################################################################}
-### 4.6.3 Using Multiple Resources and/or Configuration Instances ### {#alib_manual_bootstrapping_customize_non_shared}
-
-With the bootstrap process described so far,
-- different instances of a resource pool, and
-- \b one instance of class \b Configuration, but customized, e.g., with custom
-  \alib{config;ConfigurationPlugin}
-
-
-To also add a different configuration instances, method \alib{lang::Camp;BootstrapSetConfig} is
-given, just like the already introduced method \alib{lang;Camp::BootstrapSetResourcePool}.
-
-Both methods may be called on arbitrary camps, \b before starting bootstrapping the corresponding
-phase.
-
-An object set this way will not be overwritten when the corresponding bootstrap phase distributes
-instances from higher- to lower-level camps. Moreover, if the algorithm finds an object already
-set, then the distribution loop continues with this object!
-
-This allows a rather natural way to separate all camps into logical sets that share one
-resource pool and/or configuration.
-
-Nevertheless, to also distribute different configuration objects, the bootstrap phases have
-to be separated, as shown in the next section.
-
-\I{################################################################################################}
-### 4.6.4 Separating Bootstrap Phases ### {#alib_manual_bootstrapping_customize_separated}
-The fact that method
-\doxlinkproblem{namespacealib.html;ac33999bb9be31380c6ae139210d23083;alib::Bootstrap(BootstrapPhases targetPhase; lang::Camp* targetCamp, int,int,TCompilationFlags)}.
-
-is allowed to be called with setting parameter \p{targetCamp} to a "lower level" camp
-(one that is not the last of list \ref alib::CAMPS), allows bootstrapping lower-level camps separately
-from bootstrapping higher-level ones.
-
-As discussed in previous section, such approach might be needed in case that custom camps are integrated
-into the \alib bootstrap process.
-
-Let's consider the following sample:
-1. Custom camp \b MyApp is  derived from class \alib{lang::Camp}
-2. In the <c>main()</c> function, \alib{BootstrapAddDefaultCamps} is invoked.
-3. The singleton of \b MyApp is added to the end of list \alib{CAMPS} (hence on the last \alib camp)
-4. Bootstrapping is fully performed on the second last singleton in list \b CAMPS.
-5. Bootstrapping is afterwards fully performed on singleton \b MyApp.
-
-The consequences from this approach are:
-- The set of \alibcamps_nl share a different resource pool and configuration object than \b MyApp.
-- During the bootstrapping of \b MyApp, built-in \alibcamps_nl are already fully bootstrapped and functional.
-
-\note If you want to test that you have understood the mechanics of bootstrapping \alib, you might
-      answer the following question for yourself: Why can step 5 above be done by simply
-      invoking parameterless funcition \ref alib::Bootstrap()?
-
-Alternatively the same can be reached with the following recipe:
-1. - 3. same as above
-4. Create instance \b alib_Resources and set it on the last \alibcamp_nl in \ref alib::CAMPS.
-5. Invoke \b Bootstrap(PrepareConfig).
-6. Create an instance alib_Configuration and set it also on the last \alibcamps_nl  in \ref alib::CAMPS.
-7. Invoke \b Bootstrap(Final).
-
-\I{################################################################################################}
-### 4.6.5 Conclusion ### {#alib_manual_bootstrapping_customize_conclusion}
-We admit, that what was said above is a little complex. But once you understand why both recipes
-given above lead to the same very same result, you can tell that you understood
-<b>ALib Bootstrapping</b>!<br>
-With this toolset and the knowledge that:
-- Both recipes can be mixed,
-- Custom resource pool instances might load resources externally, instead of compiling them into
-  an executable's data section,
-- Different camps may use different resource pools
-- The same is true for configuration data
-- Completely other custom operations can be performed in the different bootstrap phases defined with
-  \alibcamps_nl,
-- etc.
-
-... bootstrapping a software becomes a very well defined and organized undertaking!
-
-
-\I{################################################################################################}
-### 4.6.5 Customization Of Shutdown ### {#alib_manual_bootstrapping_custom_shutdown}
-Customization of shutting down \alib should be a seldom need and works the same in principle.
-Everything is done in reverse order.
-Function \doxlinkproblem{namespacealib.html;acd654b95c6e1833f4f04d0fc19e4ce36;alib::Shutdown(ShutdownPhases targetPhase; lang::Camp* targetCamp)}
-
-has defaulted parameters \p{targetPhase} and \p{targetCamp} and if not specified alle camps
-in list #alib::CAMPS are shutdown over both phases. For this, parameter \p{targetCamp}, this time
-defaults to the first camp in the list.
-
-if \p{targetPhase} is specified as \alib{ShutdownPhases;Announce} then only the first
-phase is performed and custom actions might be taken before invoking the second phase
-\alib{ShutdownPhases::Destruct}.
-
-For simplicity, in contrast to bootstrapping the resource and configuration objects are
-destroyed right in the reverse loop of phase \b Destruct, in contrast to adding a post-process
-second loop and done with bootstrapping. Thus, a "lower" camp's resources and config objects
-might be already destroyed, at the moment the camp itself is destructed. Hence, phase \b Announce
-is the true last point of action in respect to an involvement of these objects.
-
-
-\I{################################################################################################}
-## 4.7 Assuring Compilation Compatibility ## {#alib_manual_bootstrapping_assertcomp}
-
-Due to the facts that
-- \alib allows reducing to a subset of its functionality by changing the \alibdist_nl, and
-- \alib provides a set of compilation flags, which for example switches default character sizes,
-        or turns other features on or off, and also because
-- \alib follows the policy of having the freedom to quite radically changing the internal structure
-         and types with any new version, in other words is never "downwards compatible",
-
-it is important that a compiled \alib library must be incompatible to compilation units
-that actually use the library. For example, the footprint (size) of library types might be different.
-
-With C++, if incompatible compilation units are mixed, often no warning is issued (neither by
-the compiler nor the linker) and the execution of a process might lead to very strange behavior
-which is irritating and hardly to debug.
-
-To detect incompatible compilation settings and library versions, three preprocessor symbols have
-been defined. Each symbol has a corresponding namespace variable compiled into the library.
-The symbols and variables are:
-
-Preprocessor Symbol          | Namespace Variable
------------------------------| ---------------------------------
-\ref ALIB_VERSION            | \ref alib::VERSION
-\ref ALIB_REVISION           | \ref alib::REVISION
-\doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}   | \ref alib::COMPILATION_FLAGS
-
-Along with that, namespace function \ref alib::AssertALibVersionAndFlags is given, which expects
-comparison values for each of the namespace variables. The little trick here is, that the
-parameters are defaulted with the macros. Consequently, the parameters must not be given when
-the function is invoked.
-
-Furthermore, the parameters are also silently (aka defaulted) added to overloaded functions
-\ref alib::Bootstrap, which internally invokes \b AssertALibVersionAndFlags().
-
-<b>For this reason, nothing specific has to be done by a user of the library, as the checks are already
-performed with bootstrapping!</b>
-
-\note
-   With \e CMake builds, if \e CMake function \ref alib_manual_build_cmake_5 "ALibSetCompilerAndLinker"
-   is used with a custom target, all settings are guaranteed to be compatible to a library that
-   is built within the same CMake process.
-
-\I{################################################################################################}
-\I{##########  5.  Multithreading                                                                  }
-\I{################################################################################################}
-
-# 5. Multithreading Support # {#alib_manual_multithreading}
-With \alib, switching support for multithreading on and off is not a preprocessor symbol. 
-Instead, the support is dependent on selecting module \alib_threads into the \alibdist
-or not.
-
-If it is not selected, certain macros and function remain to exists: They are just emptied and 
-with that pruned by the preprocessor or optimized out bei the compiler.
-
-This slight breaking of the rule - namely to have entities belonging to a certain module still 
-existing when this module is not available - brings a huge benefit: All other modules and likewise
-the custom code library users, can be implemented without much code cluttering. 
-
-The gaol here is: Protection mechanisms against thread racing conditions should generally be
-included in any user's project, they are just pruned in case that code used with an
-\alibdist_nl that misses module \alib_threads_nl.
-
-All further information is provided with the \ref alib_mod_threads "dedicated Programmer's Manual"
-of module \alib_threads_nl.
-
-
-\I{################################################################################################}
-\I{##########  6.  Build                                                                           }
-\I{################################################################################################}
-
-# 6. Building The Library # {#alib_manual_build}
-
-\I{################################################################################################}
-## 6.1 Overview ## {#alib_manual_build_overview}
-
-\I{################################################################################################}
-### 6.1.1 Platforms and Toolchains ### {#alib_manual_build_overview_platforms}
-
-As of today, <b>%ALib for C++</b> is compiled and tested under the following platforms and
-toolchain combinations:
-- GNU/Linux Arch 6.12.1, GNU C++ 14.2.1 / Clang++ 18.1.8, C++ 17/20/23, 32-Bit / 64-Bit<br>
+The current release was compiled and tested under the following platforms and toolchain combinations:
+- GNU/Linux Arch 6.16.8, Clang++ 20.1.8, C++20/23, 32-Bit / 64-Bit, optional <b>C++20 Module Support</b><br>
   (This is the main development platform.)
-- WindowsOS 10/11, MSC 19.42 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
-- WindowsOS 10/11, MinGW, GCC 13.47  C++ 17/20, 64-Bit 
-- macOS Sequoia 15.2, Apple M2 / ARM64, Apple Clang Version 16.0.0, C++ 17/20/23, 64-Bit
-- Raspberry 3, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
-- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
+- GNU/Linux Arch 6.16.8, GNU C++ 15.2.1, C++20/23, 32-Bit / 64-Bit
+- WindowsOS 11, MSC 19.44 (Visual Studio 2026 Insiders, Platform v145), C++20, 32-Bit/64-Bit
+- WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
+- macOS Tahoe 26.0, Apple M2 / ARM64, Apple Clang Version 17.0.0, C++20/23, 64-Bit
+- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23   
+- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23 
 
 All development was performed in a) CLion/CMake (all platforms) and b) Visual Studio Community
 Edition 2022. All necessary IDE files are included in the repository.
@@ -1158,9 +507,10 @@ This allows quickly inserting the right platform/toolchain specific code at thes
 \note We would be very happy to receive your feedback/input on necessary changes for other
       platforms!
 
-Especially errors occurring in header \alibheader{lang/integers.hpp} might be quite likely for unknown
-platform / toolchain combinations. Here, a set of five compiler symbols might be passed using
-the build system (e.g., CMake), which are documented with symbol \ref ALIB_SIZEOF_INTEGER.
+Especially errors occurring in internal header \alibheader{lang/integers.inl} might be quite 
+likely for unknown platform / toolchain combinations. 
+Here, a set of five compiler-symbols might be passed using the build system (e.g., CMake), which 
+are documented with symbol \ref ALIB_SIZEOF_INTEGER.
 
 <b>The C++ compiler warning level is defaulted to the bearable maximum.</b> This means, that the
 inclusion of \alib headers into a custom project's compilation process should never lead to
@@ -1169,41 +519,45 @@ are used.
 
 
 \I{################################################################################################}
-### 6.1.2 Reference Toolchain CMake ### {#alib_manual_build_overview_cmake}
+### 5.1.2 Reference Toolchain CMake ### {#alib_manual_build_overview_cmake}
 
-While project files for different IDEs might be provided with the codebase, the main development of \alib is
-performed using \https{CMake,cmake.org/} scripts.
+While project files for different IDEs might be provided with the codebase, the main development 
+of \alib is performed using \https{CMake,cmake.org/} scripts.
 Also, the relationship of source file and \alibmod_nl selection is <b>"officially defined"</b>
 by CMake scripts.
 
 \par
-  <b>The \e CMake scripts included in the \alib distributions are to be seen as the
-  reference guideline to building \alib. The scripts may even be more precise (and up-to-date!)
-  than the documentation you currently read itself.</b>
+  <b>The \e CMake scripts coming with \alib are to be seen as the reference guideline to building 
+  \alib. The scripts may even be more precise (and up to date!) than the documentation you 
+  currently read itself.</b>
 
-
-Even for non-experienced users (in respect to CMake), the syntax of the file should be easily understood.
+Even for non-experienced users (in respect to CMake), the syntax of the file should be easily 
+understood.
 So, do not hesitate to open and read the CMake files for your project setup reference.
 
-A Microsoft Visual Studio solution and according project files which build an \alib DLL and the
-unit tests, are included in the \alib distribution.
+A Microsoft Visual Studio solution and the according project files which build an \alib DLL and the
+unit tests and sample applications, are included in the \alib project folder.
 These may be used to compile an \alib library that includes all of \alib, which can be used
 for own projects.<br>
-Limited library projects that include only a selection of modules of \alib are not provided
+Limited library projects that include only a selection of the modules of \alib are not provided
 and thus have to be created if they are desired.
 
 
 \I{################################################################################################}
-### 6.1.3 Library Installation ### {#alib_manual_build_overview_noinstall}
+### 5.1.3 Library Installation ### {#alib_manual_build_overview_noinstall}
 As of today, no installation process of a shared library version of \alib is available with
 the build process defined. Not installing a library has of course the disadvantage, that every
 software project needs to compile its own version of it, and the library is by default not shared between
 applications, even if compiled as a "shared library", respectively DLL.
 
 While this may change in the future, the advantage of this approach is that an application has
-a lot flexibility in respect to compiling \alib using the exact set of features it desires.
+a lot of flexibility in respect to compiling \alib using the exact set of features it desires.
+And then: installing libraries that use C++20 Modules (if \alib is compiled so) is currently not 
+even a well-defined process. 
+It seems, due to the latter, the trend goes a little into the direction to have a dedicated
+compilation of C++ libraries per application.  
 
-Therefore, to enable a software to use \alib, the sources of the library have to become a part
+Therefore, to enable software to use \alib, the sources of the library have to become a part
 of the build process in any form. As usual, there are three possible basic options:
 1. Compiling \alib to a static library,
 2. compiling \alib to a shared library or
@@ -1217,14 +571,15 @@ When this manual section talks about "building the ALib library", one of the thr
 
 
 \I{################################################################################################}
-### 6.1.4 Unit Tests ### {#alib_manual_build_overview_unittests}
-An extensive set of unit tests is included in the distribution.
+### 5.1.4 Unit Tests ### {#alib_manual_build_overview_unittests}
+An extensive set of unit tests is included in the distribution, along with a corresponding
+CMake script to build those.
 
 
 \I{################################################################################################}
-## 6.2 Performing A Test Compilation  ## {#alib_manual_build_test}
+## 5.2 Performing A Test Compilation  ## {#alib_manual_build_test}
 Clone the \alib repository from \https{ALib at GitHub,github.com/AlexWorx/ALib-Class-Library}
-to a place where you commonly store 3rd party libraries that your projects are using.
+to a place where you commonly store 3rd-party libraries that your projects are using.
 Alternatively, download and unpack the ZIP file to that same place.
 
 In this documentation, we will refer to this library location as the <b><em>ALIB_BASE_DIR</em></b>.
@@ -1232,8 +587,8 @@ After a fresh installation, it should contain at least the following subfolders:
 
         ALIB_BASE_DIR/build
         ALIB_BASE_DIR/docs
-        ALIB_BASE_DIR/html
         ALIB_BASE_DIR/src
+        ALIB_BASE_DIR/src.samples
         ALIB_BASE_DIR/tools
 
 
@@ -1272,15 +627,14 @@ After you cd into the 'release' folder, the cmake command is:
 
 
 \I{################################################################################################}
-## 6.3 A Step-By-Step CMake Sample ##  {#alib_manual_build_sample}
-
-With using \e CMake, compiling and using \alib  is very straight forward.
+## 5.3 A Step-By-Step CMake Sample ##  {#alib_manual_build_sample}
+With using \e CMake, compiling and using \alib is very straight forward.
 This is because a set of easy to use \e CMake scripts is provided, of which one is to be included
 into the custom  \e CMake script.
 
 The following demonstrates this step-by-step along the sample project found in folder
 
-        ALIB_BASE_DIR/src/samples/alox
+        ALIB_BASE_DIR/src.samples/alox
 
 <br>
 <b>Step 1: Creating the CMake file</b><br>
@@ -1290,12 +644,12 @@ A custom \e CMake file has to be created. To start with, the top of the file mig
 
 <br>
 <b>Step 2: Choose %ALib Modules</b><br>
-The list of \alib modules to be included in the built is defined with \e CMake list variable
-\c ALIB_DISTRIBUTION which has to be set before invoking the \alib \e CMake script.
+The list of \alib modules to be included in the \alibbuild is defined with \e CMake list variable
+\c ALIB_BUILD which has to be set before invoking the \alib \e CMake script.
 If the list is left empty, it will be defaulted to \b "ALL", which chooses all \alib modules
 available.<br>
 In our sample, we add \b "ALOX", which chooses module \alib_alox and all
-\ref alib_manual_modules_dependency_graph "dependent modules".
+\ref alib_manual_modules_graph "dependent modules".
 
 
  \snippet "../../build/cmake/samples/ALox/CMakeLists.txt"        DOXYGEN_CMAKE_INCLUDE_2
@@ -1303,7 +657,7 @@ In our sample, we add \b "ALOX", which chooses module \alib_alox and all
 
 <br>
 <b>Step 3: Set Other Feature Variables</b><br>
-Our project should be compiled using C++ 17. This is set with:
+Our project should be compiled using C++20. This is set with:
 
  \snippet "../../build/cmake/samples/ALox/CMakeLists.txt"        DOXYGEN_CMAKE_INCLUDE_3
 
@@ -1334,8 +688,8 @@ Now we are good to define our custom project in a usual way:
 
 <br>
 <b>Step 7: Add Compiler And Linker Settings</b><br>
-Our main project needs to share some \alib compiler and linker settings with the \alib
-library project. To achieve this we invoke \e CMake function <c>ALibSetCompilerAndLinker</c>:
+Our main project \ref alib_mod_bs_assertcomp "has to share" some \alib compiler and linker settings 
+with the \alib library project. To achieve this we invoke \e CMake function <c>ALibSetCompilerAndLinker</c>:
 
  \snippet "../../build/cmake/samples/ALox/CMakeLists.txt"        DOXYGEN_CMAKE_INCLUDE_7
 
@@ -1347,12 +701,12 @@ standard \e CMake task:
  \snippet "../../build/cmake/samples/ALox/CMakeLists.txt"        DOXYGEN_CMAKE_INCLUDE_8
 
 
-That's it. With this simple CMake file we have created a tailored \alibdist library
+That's it. With this simple CMake file we have created a tailored \alibbuild (selection of modules)
 and have linked it to our sample project, which is now ready to be built!
 
 
 \I{################################################################################################}
-## 6.4 The Build Process In Detail##  {#alib_manual_build_cmake}
+## 5.4 The Build Process In Detail##  {#alib_manual_build_cmake}
 
 The previous chapter demonstrated the use of the \e CMake script \c ALib.cmake provided with
 \alib. In the following sections a reference documentation on all aspects of the script is
@@ -1362,10 +716,11 @@ Along these lines, the build requirements of \alib is explained - also for users
 system. independent of the build-system used, the following information has to be collected and
 accordingly set:
 
-- The set of \alib source files that comprise the desired set of \alibmods.
-- C++ Version 17 or higher (to be set with the compiler).
-- compiler symbols that select the \alibmods have to be passed to the compiler.
-- compiler symbols that choose \alib features have to be passed to the compiler.
+- The set of \alib source files that comprise the desired permutation of \alibmods_nl, what 
+  we call an \alibbuild.
+- C++ Version 20 or higher (to be set with the compiler).
+- compiler-symbols that select the \alibmods have to be passed to the compiler.
+- compiler-symbols that choose \alib features have to be passed to the compiler.
 - External library dependencies have to be determined.
 - Linker flags have to be defined.
 
@@ -1374,20 +729,41 @@ accordingly set:
   are \ref GrpALibPreproSymbols "documented here".
 
 \I{################################################################################################}
-### 6.4.1  Selecting ALib Modules ###  {#alib_manual_build_cmake_1}
-\e CMake list variable \c ALIB_DISTRIBUTION is an input/output list which defines the particular
-\alibmods that should be included in the built.
-The script will process the values given and will extend the list to include all necessary modules that
-the \ref alib_manual_modules_dependency_graph "given selection depends on".
+### 5.4.1  C++20 Module Version ###  {#alib_manual_build_cmake_c20modules}
 
-The values correspond to the \ref alib_manual_modules_overview "module names" in upper case letters,
-hence \b ALOX, \b BOXING, \b CHARACTERS, etc...
+\attention
+  The C++20 Module compilation is considered experimental.
+  While it seems stable and very reliable under GNU/Linux with an actual Clang compiler,
+  we did not succeed in getting it to work with the GCC or MSVC compiler yet.
+
+All that is needed to be done is to place 
+
+        set( ALIB_C20_MODULES   "On" )
+        
+in your CMake script, before script <b>ALib.cmake</b> is invoked.                                                               
+Everything described in the following sections remain the same. As discussed in chapter
+\ref alib_manual_modules_impludes of this manual, the using code also remains the same.
+
+A sort of blog-text, describing some experience we made when transitioning the library,
+is given with \ref alib_c20module_shift.
+
+
+\I{################################################################################################}
+### 5.4.2  Selecting The Included ALib Modules ###  {#alib_manual_build_cmake_1}
+\e CMake list variable \c ALIB_BUILD is an input/output list which defines the particular
+\alibmods that should be included in the build.
+The script will process the values given and will extend the list to include all necessary modules 
+that the \ref alib_manual_modules_graph "given selection depends on".
+
+The values correspond to the \ref alib_manual_modules_table "module names" in upper case letters,
+hence \b ALOX, \b BOXING, \b CHARACTERS, etc... (Lower-case or mixed case names are allowed
+as input, but will be internally converted to upper case.) 
 
 If the variable is not set or contains special name \b "ALL", all modules are chosen to be built
 and included.
-
+                  
 \I{################################################################################################}
-### 6.4.2  Variables For Directory and Source Code Definitions ###  {#alib_manual_build_cmake_2}
+### 5.4.3  Variables For Directory and Source Code Definitions ###  {#alib_manual_build_cmake_2}
 The following \e CMake variables are available after the invocation of the script:
 - \c ALIB_BASE_DIR<br>
   Defines the directory where the \alib project is stored.<br>
@@ -1396,7 +772,7 @@ The following \e CMake variables are available after the invocation of the scrip
 <p>
 
 - \c ALIB_SOURCE_DIR<br>
-  Defines the directory where the \alib source files are stored. The header files are located
+  Defines the directory where the \alib source files are stored. The header-files are located
   in the same directories.<br>
   This variable may also be specified before entering the script to specify a different directory
   than the default, which is
@@ -1404,31 +780,38 @@ The following \e CMake variables are available after the invocation of the scrip
             ${ALIB_BASE_DIR}/src
 <p>
 
-- \c ALIB_SOURCE_FILES<br>
-  The list of source files (compilation units) needed to compile \alib.
+Besides the directory, the following CMake list variables are defined. Each list contains
+all names of source files of the corresponding type, which have to be present according
+to the \alibbuild defined in the previous step.<br>
+The file names come with absolute path names. 
+ CMake List  | File type description   
+-----------|--------------------------------------------------------------------------------
+  ALIB_MPP | C++20 Module files (respectively aggregation headers with legacy builds). 
+  ALIB_INL | C++ header files which are included by the <em>.mpp</em>-files.
+  ALIB_CPP | Compilation units.
+  ALIB_HPP | Legacy Header, containing mostly necessary preprocessor definitions.
+  ALIB_H   | Module access headers. The only header files to be included by using code. Usable in both modes, C++20 and legacy. See chapter \ref alib_manual_modules_impludes).
 <p>
 
-- \c ALIB_INCLUDE_FILES<br>
-  The list of header files needed to compile \alib.
-
-
 \I{################################################################################################}
-### 6.4.3  Cached CMake Variables ###  {#alib_manual_build_cmake_3}
+### 5.4.4  Cached CMake Variables ###  {#alib_manual_build_cmake_3}
 The script will create a set of cached boolean \e CMake variables (which are variables that can be
 edited with CMake GUI tools and various C++ IDEs).
 
 The following variables correspond directly to \ref GrpALibPreproSymbols "preprocessor symbols"
-used for code selection and thus this list links to their corresponding documentation:
+used for code selection, and thus this list links to their corresponding documentation:
 
-- \ref ALIB_CHARACTERS_WIDE
+- \ref ALIB_C20_MODULES
+- \ref ALIB_CAMP_OMIT_DEFAULT_RESOURCES
 - \ref ALIB_CHARACTERS_SIZEOF_WCHAR
+- \ref ALIB_CHARACTERS_WIDE
 - \ref ALIB_DEBUG
-- \ref ALIB_DEBUG_BOXING
-- \ref ALIB_DEBUG_CONTAINERS
-- \ref ALIB_DEBUG_CRITICAL_SECTIONS
 - \ref ALIB_DEBUG_ALLOCATIONS
-- \ref ALIB_DEBUG_MONOMEM
 - \ref ALIB_DEBUG_ARRAY_COMPRESSION
+- \ref ALIB_DEBUG_CONTAINERS
+- \ref ALIB_DEBUG_BOXING
+- \ref ALIB_DEBUG_CRITICAL_SECTIONS
+- \ref ALIB_DEBUG_MEMORY
 - \ref ALIB_DEBUG_RESOURCES
 - \ref ALIB_DEBUG_STRINGS
 - \ref ALIB_EXT_LIB_THREADS_AVAILABLE
@@ -1438,16 +821,27 @@ used for code selection and thus this list links to their corresponding document
 - \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 - \ref ALIB_FEAT_SINGLETON_MAPPED
 - \ref ALIB_FILES_FORCE_STD_SCANNER
-- \ref ALIB_GDB_PP_FIND_POINTER_TYPES
-- \ref ALIB_GDB_PP_SUPPRESS_CHILDREN
 - \ref ALIB_PRECOMPILED_HEADER
-- \ref ALIB_RESOURCES_OMIT_DEFAULTS
 - \ref ALOX_DBG_LOG
 - \ref ALOX_DBG_LOG_CI
 - \ref ALOX_REL_LOG
 - \ref ALOX_REL_LOG_CI
 
 In addition, the following further cached variables are set:
+                           
+- <b>ALIB_CLANG_USE_LIBCPP</b><br>
+  If the to true and the Clang compiler is used, then the LLVM \e libc++ library is used instead
+  of the default \e libstdc++. The variable is evaluated in CMake function \b ALibSetCompilerAndLinker
+  (see \ref alib_manual_build_cmake_5 "section below").
+  Technically, this variable adds the option <em>-stdlib=libc++</em> to the compiler command line
+  as well as <em>c++</em> to the list of link-libraries of the linker command line.
+  \note In case precompiled 3rd-party libraries are used which are not compiled against 
+        the LLVM \e libc++ library, the build will fail. Hence the variable is set to false
+        by default and should only be used if all libraries used by a project are known to be
+        compiled against the LLVM \e libc++ library.  
+  
+<p>. 
+
 
 - <b>ALIB_VERSION</b><br>
   Defines the \alib library version. This variable cannot be changed, respectively will be
@@ -1460,10 +854,20 @@ In addition, the following further cached variables are set:
 - <b>ALIB_CMAKE_VERBOSE</b><br>
   If set to \c true, extended information will be printed with running the \e CMake script.
   See \ref alib_manual_build_more_otherbuildsystems for details.
-
+             
+  \anchor ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH
 - <b>ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH</b><br>
   If set to \c true, the provided script will not search for a thread library on the target
-  platform. For more information see chapter \ref alib_manual_modules_impact_singlethreaded.
+  platform. 
+  In debug-compilations of the library, if the compiler-symbol \ref ALIB_SINGLE_THREADED is passed,
+  still a multi-threading library is of use. This is because with such a build, the library
+  assures single-threaded use: An \alib assertion is raised when multi-threading is detected!
+  Therefore, the target system's thread library is still searched and linked, unless this
+  symbol is set.<br> 
+  If found, symbol \ref ALIB_EXT_LIB_THREADS_AVAILABLE is passed to the C++ compiler.
+  
+  The way to prevent searching and adding a thread library is by setting special <b>CMake</b> cached
+  variable \ref alib_manual_build_cmake_3 "ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH" to \c true.
 
 - <b>ALIB_DEBUG_GLIB</b><br>
   If \c true, symbols \b _GLIBCXX_DEBUG, \b _GLIBCXX_DEBUG_PEDANTIC and
@@ -1474,9 +878,8 @@ In addition, the following further cached variables are set:
   \b ALIB_LINKER_OPTIONS
 
 
-
 \I{################################################################################################}
-### 6.4.4  CMake Build-Setting Variables ###  {#alib_manual_build_cmake_4}
+### 5.4.5  CMake Build-Setting Variables ###  {#alib_manual_build_cmake_4}
 The script will create the following non-cached \e CMake variables, which can be used to define
 build-settings of custom projects:
 
@@ -1487,28 +890,28 @@ build-settings of custom projects:
 
 - <b>ALIB_COMPILER_WARNINGS</b><br>
   Will contain compiler parameters to set the (high!) warning level used with compiling \alib.
-  This variable can for example be used as a parameter to \e CMake function
+  This variable can, for example, be used as a parameter to \e CMake function
   \c target_compile_options().<br>
   Custom entries may be added to the list before invoking \b ALib.cmake.
-  If entry <em>"ALIB_SUPPRESS_COMPILER_WARNINGS"</em> is found, that entry is removed and no
+  If the entry <em>"ALIB_SUPPRESS_COMPILER_WARNINGS"</em> is found, that entry is removed and no
   compiler-specific warning settings are added to this symbol.
 <p>
 
 - <b>ALIB_COMPILER_OPTIONS</b><br>
   Will contain parameters to be passed to the compiler when linking \alib.
-  This variable can for example be used as a parameter to \e CMake function
+  This variable can, for example, be used as a parameter to \e CMake function
   \c target_compile_options().
 <p>
 
 - <b>ALIB_LINKER_OPTIONS</b><br>
   Will contain parameters to be passed to the linker when linking \alib.
-  This variable can for example be used as a parameter to \e CMake function
+  This variable can, for example, be used as a parameter to \e CMake function
   \c set_target_properties().
 <p>
 
 - <b>ALIB_EXTERNAL_LIBS</b><br>
   Will contain a list of external libraries needed to build \alib.
-  This variable can for example be used as a parameter to \e CMake function
+  This variable can, for example, be used as a parameter to \e CMake function
   \c target_link_libraries().
 
 In addition, the following non-cached variable is an input variable which may be set before
@@ -1516,10 +919,11 @@ invoking the script:
 
 - <b>ALIB_COMPILER_FEATURES</b><br>
   May contain \e CMake feature parameters to be passed to the compiler.
-  This variable can for example be used as a parameter to \e CMake function \c target_compile_features().
+  This variable can, for example, be used as a parameter to \e CMake function 
+  - \c target_compile_features().
 
 \I{################################################################################################}
-### 6.4.5  CMake Functions Defined By The Script ###  {#alib_manual_build_cmake_5}
+### 5.4.6  CMake Functions Defined By The Script ###  {#alib_manual_build_cmake_5}
 The script will define the following \e CMake functions:
 
 - <b>ALibAddStaticLibrary</b><br>
@@ -1533,11 +937,14 @@ The script will define the following \e CMake functions:
 
 - <b>ALibSetCompilerAndLinker( target )</b><br>
   This function applies the settings of all variables listed in the previous section to the given
-  \p{target}. In addition, the \e target's CMake property \c POSITION_INDEPENDENT_CODE is switched
-  on.
+  \p{target}. In addition, the target's CMake property \c POSITION_INDEPENDENT_CODE is switched
+  on. Furthermore, CMake variable \b ALIB_CLANG_USE_LIBCPP is evaluated and, if set to \c true
+  and Clang compiler is used, the option \c -stdlib=libc++ is added to the compiler command line
+  as well as \c c++ to the list of link-libraries of the linker command line.
+<p>
 
 \I{################################################################################################}
-### 6.4.6  Library Filename ###  {#alib_manual_build_cmake_6}
+### 5.4.6  Library Filename ###  {#alib_manual_build_cmake_6}
 The library's filename is determined by (non-cached) \e CMake variable \c ALIB_LIBRARY_FILENAME.
 If this variable is \b not set before invoking script <c>ALib.cmake</c>, then the name is
 determined automatically from the selected modules.
@@ -1548,33 +955,37 @@ in the previous section.
 If not provided, the name will be assembled according to the following set of rules:
 
 - The name starts with \c "alib_".
-- The library version is appended, for example \c "2412R0".
-- In the case of debug-builds, term \c "_DBG" is appended.
-- In the case that all modules are selected in the \alibdist, no further rule is applied.
-
-- Otherwise, each selected module's name is added in capital letters, separated by an underscore
+- The library version is appended, for example \c "2510R0".
+- In the case of debug-builds, the term \c "_DBG" is appended.
+- In the case that variable \b ALIB_SINGLE_THREADED is set, the term \c "_ST" is appended.
+- In the case that all modules are selected in the \alibbuild, no information about modules is 
+  appended. 
+  Otherwise, each selected module's name is added in capital letters, separated by an underscore
   character (<c>'_'</c>) unless a module is not "superseded" by another module that has a
-  \ref alib_manual_modules_dependency_graph "mandatory dependency" to it.
-
-- As an exception, in the case that module \alib_strings is included (and no other module
-  supersedes it) and furthermore, in the case that \ref ALIB_DEBUG_STRINGS is set,
-  suffix <c>"_DBGSTRINGS"</c> is appended instead of <c>"_STRINGS"</c> .
+  \ref alib_manual_modules_graph "mandatory dependency" to it.
+- If one of the variables
+  - ALIB_DEBUG_MEMORY, 
+  - ALIB_DEBUG_CONTAINERS, 
+  - ALIB_DEBUG_STRINGS, or 
+  - ALIB_DEBUG_RESOURCES
+      
+  is given, then the prefix <c>"DBG"</c>" is added to the module name appended. 
 
 - In the case that \alib_alox is included, the suffixes <c>_ALOX</c> is extended by
   suffix <c>NRL</c> if release logging is switched off. In addition, suffix <c>NDL</c> is added with
-  debug-builds that do not include debug logging. Note that both exception cover the
+  debug-builds that do not include debug logging. Note that both exceptions cover the
   non-default, unusual compilation cases in respect to the availability of debug- and release logging.
 
 
 \I{################################################################################################}
-## 6.5 More Information ##  {#alib_manual_build_more}
+## 5.5 Further Information ##  {#alib_manual_build_more}
 
-### 6.5.1 Other Build Systems ### {#alib_manual_build_more_otherbuildsystems}
+### 5.5.1 Other Build Systems ### {#alib_manual_build_more_otherbuildsystems}
 
 As already explained, the \e CMake build process is viewed to be the reference process for \alib
 compilation.
 
-For none\e CMake users, the selection of the exact minimum set of source and header files,
+For none\e CMake users, the selection of the exact minimum set of source and header-files,
 is probably the most difficult (and annoying) task.
 In \e CMake we have separated the source selection into script:
 
@@ -1582,14 +993,14 @@ In \e CMake we have separated the source selection into script:
 
 which is invoked by the main script.
 
-This script might be analysed to identify the source and header file dependencies of the
+This script might be analysed to identify the source and header-file dependencies of the
 different \alibmods.
 
 Likewise, script
 
             ALIB_BASE_DIR/build/cmake/ALibModules.cmake
 
-might be analysed to get actual (and correct) information about module dependencies.
+might be analyzed to get actual (and correct) information about module dependencies.
 
 
 Furthermore, by setting CMake cache variable \b ALIB_CMAKE_VERBOSE to \c true, running \e CMake
@@ -1597,70 +1008,69 @@ will write extended information that might be used and copied into the configura
 of other build systems or into IDE project files.
 
 Among the data displayed is:
-- List of modules included in the distribution.
-  (Modules that the user \ref alib_manual_build_cmake_1 "explicitly selected" plus recursive dependencies)
-- List of source and header files that are needed for the build.
-- Resulting library filename.
-- Base folder of source files.
-- The compiler symbols (definitions) passed.
+- List of modules included in the build.
+  (Modules that the user \ref alib_manual_build_cmake_1 "explicitly selected" plus recursive 
+  dependencies)
+- List of modules excluded from the build.
+- List of source files that are needed for the build.
+- The resulting library filename.
+- The base folder of source files.
+- The compiler-symbols (definitions) passed.
 - The compiler warning flags.
 - The compiler features and other flags.
 - The linker flags
 - External libraries used.
 
-
 \I{################################################################################################}
-### 6.5.2 Choosing C++ Language Version ### {#alib_manual_build_more_cppversion}
+### 5.5.2 Choosing C++ Language Version ### {#alib_manual_build_more_cppversion}
 
-As demonstrated in the chapter \ref alib_manual_build_sample "A Step-By-Step CMake Sample" (Step 3),
+As demonstrated in the chapter \ref alib_manual_build_sample (Step 3),
 \e CMake variable \c ALIB_COMPILER_FEATURES may be used to determine the C++ language standard for
 \alib targets and optionally for custom targets (i.e. if function \c ALibSetCompilerAndLinker is
 invoked for a custom target).
 
-\alib requires C++ language level \c 17 as a minimum and is compatible with levels \c 20 and \c 23.
-\alib might perform better with higher language levels.
+\alib requires C++ language level \c 20 as a minimum and is compatible with level \c 23.
 
 \e CMake provides other (maybe even more preferable) mechanics to determine/set the C++ language
 level, which of course may be used alternatively.
 
 \I{################################################################################################}
-### 6.5.3 Copying The Sources ### {#alib_manual_build_more_copysources}
+### 5.5.3 Copying The Sources ### {#alib_manual_build_more_copysources}
 
-If \e CMake variable \c ALIB_SOURCE_COPY_TARGET_DIR is set before invoking CMake script
-\c %ALib.cmake, then the source code (compilation units and header files) are copied to the
-directory specified in the variable. If the variable does not point to a valid directory, an
-error is raised and the \e CMake script is stopped.
+If \e CMake variable \c ALIB_SOURCE_COPY_TARGET_DIR is set before invoking the CMake script
+\c %ALib.cmake, then the source files are copied to the directory specified in the variable. 
+If the variable does not point to a valid directory, an error is raised and the \e CMake script 
+is stopped.
 
-The files copied represent exactly the set of files which are needed for compiling the combination
-of \alibmods, which are optionally specified with list variable \c ALIB_DISTRIBUTION
-(see \ref alib_manual_build_cmake_1).
+The files copied represent exactly the set of files which are needed for compiling the 
+selected \alibbuild (combination of \alibmods), which is optionally specified with the variable 
+\c ALIB_BUILD (see \ref alib_manual_build_cmake_1).
 
 This feature therefore can be used to create a fresh, filtered copy of the \alib source tree
 tailored to an application. Nevertheless, it is usually not recommended to do so, because
-source files that are not used by a combination of modules are neither included as header files,
+source files that are not used by a combination of modules are neither included as header-files,
 nor compiled. The feature is rather used by the \alib developers to verify module and source code
 dependencies.
 
 \I{################################################################################################}
-### 6.5.4 External Library Dependencies ### {#alib_manual_build_more_externallibs}
-
+### 5.5.4 External Library Dependencies ### {#alib_manual_build_more_externallibs}
 ALib has <b>no mandatory</b> dependencies to external (3rd-party) libraries.
 The following \b optional dependencies exist:
 
 1. Boost RegEx<br>
-   If enabled by compiler symbol \ref ALIB_FEAT_BOOST_REGEX, a dependency to
+   If enabled by the compiler-symbol \ref ALIB_FEAT_BOOST_REGEX, a dependency to
    \https{boost,www.boost.org} library component
    \https{regex,www.boost.org/doc/libs/1_68_0/libs/regex/doc/html/index.html} is made.
    As a result, the following \alib features become available:
    - In module \alib_strings, class \alib{strings::util;RegexMatcher}
    - In module \alib_expressions, with expression compiler plugin \alib{expressions::plugins;Strings},
      expression term \b RegExMatch.
-
+                            
 2. Standard C++ library<br>
    Some support to make types of the C++ standard library compatible with various concepts of
-   \alib is activated by including compatibility header files found in source folder
-   \alibsrcdir{compatibility}.<br>
-   For more information see the following namespace documentations:
+   \alib are activated by including <em>"compatibility header-files"</em>.
+   Those are named <b>"ALib.Compatibility.Std<NAME>"</b> 
+   For more information, see the following namespace documentation:
    - #alib::characters::compatibility::std
    - #alib::strings::compatibility::std
    - #alib::boxing::compatibility::std
@@ -1669,35 +1079,42 @@ The following \b optional dependencies exist:
    If \alib is used in combination with the \https{QT Class Library,www.qt.io}, compatibility
    support for character array types (strings and character vectors) of the <em>QT Library</em>
    becomes available with modules \alib_boxing and \alib_strings.<br>
-   Such support is activated simply by including compatibility header files found in source folder
-   \alibsrcdir{compatibility}.<br>
-   For more information see the following namespace documentations:
+   Such support is activated simply by including  <em>"compatibility header-files"</em>
+   named <b>"ALib.Compatibility.QT<NAME>"</b> 
+
+   For more information, see the following namespace documentations:
    - #alib::characters::compatibility::qt
    - #alib::boxing::compatibility::qt
 
 \I{################################################################################################}
-\I{##########  7.  Using the library                                                               }
+\I{##########  6.  Using the library                                                               }
 \I{################################################################################################}
 
-# 7. Using The Library # {#alib_manual_use}
+# 6. Using The Library # {#alib_manual_use}
 There is little to say here, so we note just some bullet points: 
 
-- A shortest C++ program was given with chapter \ref alib_manual_bootstrapping.
+- A shortest C++ program is given at the start of the 
+  \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
   From there, a user of the library should start directly with the topic and module of 
-  interest. 
-- Before releasing \alib, all header files are tested to be includable without the need to 
-  include a dependency header. This means, for example, if a user wants to use \alib for scanning
-  a directory and working with file trees, the single include of 
-  header file <b>"alib/files/fscanner.hpp"</b> would include all necessary dependent header files.
+  interest. Often, the dedicated Programmer's Manuals linked 
+  \ref alib_manual_modules_table "in this table" provide some sample code to start with.  
+- To access an \alibmod, one or a few header files have to be included.
+  The complete list of available header files to include (respectively \c import) a module
+  is given at the end of chapter \ref alib_manual_modules_impludes.  
+  For example, if a user wants to use \alib for scanning
+  a directory and working with file trees, the single include of the header file \implude{Files} 
+  is sufficient.
 - When compiling code against \alib, each compilation unit needs to receive the same compiler
   symbols as were given to the library itself. 
   With debug-compilations, this will be checked with the invocation of function \alib{Bootstrap}.<br>
-  If different compilation symbols are used, then   
+  If different compilation symbols are used, then, in debug-compilations, an assertion will be 
+  raised with bootstrapping. The mechanics behind this are quickly explained in chapter
+  \ref alib_mod_bs_assertcomp of the Programmer's Manual of the module \alib_bootstrap_nl.      
 - When using \alib with Microsoft Windows OS, it may be important to
-  include <em>windows.h</em> before any \alib header file. 
+  include <em>windows.h</em> before any \alib header-file. 
   The reason is that \alib includes <em>windows.h</em> unless it was included already. 
   When the \alib library includes <em>windows.h</em>, it uses some defines like 
-  <em>WIN32_LEAN_AND_MEAN</em> or <em>NOGDI</em> to minimize the impact of that huge header file. 
+  <em>WIN32_LEAN_AND_MEAN</em> or <em>NOGDI</em> to minimize the impact of that huge header-file. 
   If <em>windows.h</em> is included before including ALox (AWorx library), it is up to the 
   embedding application which level of windows functionality is needed.
 
@@ -1734,22 +1151,22 @@ suggests such rules, others say that it is especially valuable, that code outsid
   of the templated class is the common use. 
   This is why, for example, class \alib{containers;SharedVal} carries no leading <b>'T'</b>,  
   while class \alib{monomem;TSharedMonoVal} does.   
-- Template parameters types are also UpperCamelCase with a leading <b>'T'</b>. Only in seldom cases, a
-  template parameter is just named <b>"T"</b>. Usually the name should indicate what kind
-  of templated type is expected or what is to be done with it.
-- Template structs that might specialized by users of this library are UpperCamelCase with
-  a (snake_case) prefix of <b>"T_"</b>. For example, \b T_Boxer or \b T_CharArray.
-- Template structs that are \b not to be specialized by users (because they have been specialized
-  sufficiently by \alib already) are UpperCamelCase with a prefix of <b>"TT_"</b>.
-  This second 'T' could be considered indicating the word "tool", as usually these are tool structs
-  that provide a certain information about a types. Examples are found with
-  \alib{characters::TT_IsChar}, \alib{strings::TT_IsAppendable} or
-  \alib{boxing::TT_IsCustomized}.
-         
-- Methods and field-members that are available only with debug-builds, are prefixed
-  <em>"Dbg"</em>. Often, these members remain available in release-builds, but are empty
-  and often static and constexpr. This way they are optimized out by the compiler, while
-  their use does not have to be pruned using the preprocessor (i.e. macro \ref ALIB_DBG()
+- Template parameters types are also UpperCamelCase with a leading <b>'T'</b>. 
+  Only in seldom cases, a template parameter is just named <b>"T"</b>. 
+  Usually the name should indicate what kind of templated type is expected or what is to be done 
+  with it.
+- Type traits that might specialized by users of this library are UpperCamelCase with
+  the postfix of <b>"Traits"</b>. For example, \alib{characters;ArrayTraits} or 
+  \alib{boxing;BoxTraits}.
+- C++ Concepts usually are prefixed <b>"Is"</b>, for example, with 
+  \alib{characters;IsImplicitArraySource},
+  \alib{strings;IsAppendable} or \alib{boxing;IsCustomized}. 
+  In fewer cases, the prefix <b>"Has"</b> is used, for example, with
+  \alib{resources;HasResources} or \alib{enumrecords;HasRecords}.   
+- Methods and field-members that are available only with debug-builds are prefixed
+  <em>"Dbg"</em>. Often, these members remain available in release-builds but are then empty
+  and probably static and constexpr. This way they are optimized out by the compiler, while
+  their use does not have to be pruned using the preprocessor (i.e., macro \ref ALIB_DBG()
   or symbol \ref ALIB_DEBUG). 
 
 As a final remark, when browsing the code it could be noticed that a lot of block-formatting is used.
@@ -1816,25 +1233,27 @@ statements to a compilation unit. With \alib this could, for example, look like 
      using namespace alib::expressions;
      
 To avoid the need of the right "permutation" of using statements at the top of a users'
-compilation unit, \alib "mirrors" all important types into this outer namespace with type definition
-statements. For example, at the end of header file \alibheader{expressions/compiler.hpp},
+compilation unit, \alib exposes all important types into this outer namespace with type definition
+statements (C++ keyword \c using). 
+For example, at the end of header-file \alibheader{expressions/compiler.inl},
 just before closing outer namespace \b alib, the following statement is made:
-\snippet "expressions/compiler.hpp"    DOX_MANUAL_ALIASES_COMPILER
+\snippet "expressions/compiler.inl"    DOX_MANUAL_ALIASES_COMPILER
 With that, a single:
 
      using namespace alib;
      
 fits for all \alib types and in most cases, this single using statement is all that is
-needed. This approach does not generate conflicts: If for example the using code would have
+needed. This approach does not generate conflicts: If, for example, the using code would have
 an own class named "Compiler", it can fall back to the standard schematic, by adding just:
 
      using namespace alib::threads;
      using namespace alib::strings;
      
 and accessing class Compiler explicitly as <c>alib::expressions::Compiler</c>.
+
 \note
-  The reason why this all is possible is due to (a next great) design decision of C++.
-  While the  \em CODE in the following snippet:
+  The reason why all this is possible is due to (a next great) design decision of C++.
+  While the \em CODE in the following snippet:
          namespace A { namespace B {  CODE } }
 \note
   "sees" all types in namespace \c A, with this snippet:
@@ -1846,40 +1265,159 @@ and accessing class Compiler explicitly as <c>alib::expressions::Compiler</c>.
 ### A.3.2 Aliases of Template Types  ###
 Most of the type aliases are as simple as sampled with class \b Compiler above.
 Also templated types are often just a 1:1 alias, for example:
-\snippet "monomem/sharedmonoval.hpp"    DOX_MANUAL_ALIASES_SHAREDMONOVAL
+\snippet "monomem/sharedmonoval.inl"    DOX_MANUAL_ALIASES_SHAREDMONOVAL
 
-But sometimes template parameters become fixed.
+But sometimes template parameters become predefined with the alias.
 Often (but not always) with that the name changes, i.e., the leading \b T is removed.
 As an example, take:
-\snippet "files/ftree.hpp"    DOX_MANUAL_ALIASES_FTREE
+\snippet "files/ftree.inl"    DOX_MANUAL_ALIASES_FTREE
 
 In some few situations, mostly due to technical reasons, template parameters are even changing
 their position. Of-course, some special care has to be taken if such types are used
 aliased or not. As an example, take:
-\snippet "lang/bitset.hpp"    DOX_MANUAL_ALIASES_BITSET
+\snippet "lang/bitset.inl"    DOX_MANUAL_ALIASES_BITSET
 
 Finally, often several different aliases are defined in namespace <b>%alib</b>, providing
 different permutations of template types.
-For example, type #alib::strings;TAString is aliased as:
+For example, type #alib::strings::TAString is aliased as:
 - \ref alib::AString,
-- \ref alib::NString,
-- \ref alib::WString,
+- \ref alib::NAString,
+- \ref alib::WAString,
 - \ref alib::AStringMA,
-- \ref alib::AStringPA,
-- \ref alib::AStringPA,
+- \ref alib::NAStringMA,
+- \ref alib::WAStringMA,
+- \ref alib::AStringPA, 
 - \ref alib::NAStringPA, and
-- a plethora of more!
+- \ref alib::WAStringPA.
 
+           
+\I{################################################################################################}
+## A.4 Type-Traits, Concepts and Adapters ## {#alib_manual_appendix_tca}
+### A.4.1 Terminology ### 
+
+Understanding the interplay between \e "concepts", \e "type-traits", and \e "adapters" is essential 
+for mastering modern C++ programming, especially when working with libraries like \alib. 
+Here's a concise overview of these elements and their interactions:
+
+\par Type-Traits: 
+Introduced in C++11, type-traits are templates that provide compile-time information about types. 
+They enable metaprogramming by allowing developers to query and manipulate type properties. 
+For instance, <c>std::is_integral<T>::value</c> checks if T is an integral type. 
+
+
+\par Concepts: 
+Added in C++20, concepts define a set of requirements (such as functions, types, or constants) 
+that a type must satisfy. 
+They act as compile-time predicates, ensuring that template parameters meet specific criteria, 
+leading to clearer and more robust code. 
+For example, a concept can require that a type offers certain member functions or provides 
+a certain type alias. 
+
+\par Adapters: 
+In C++, adapters are \https{software design-patterns,en.wikipedia.org/wiki/Software_design_pattern} 
+that allow incompatible interfaces to work together. 
+They "adapt" one interface to another, facilitating code reuse and flexibility. 
+For instance, stream adapters can modify data streams to fit different input/output interfaces.
+
+
+### A.4.2 Use in ALib ### 
+
+Most of the \e concepts introduced by \alib are formulated as expressions that depend on the 
+specialization of certain \e type trait structures. 
+Then, the methods that use these concepts as requirements often leverage other mandatory members of 
+the same type-trait structures for their implementation. 
+The following scheme illustrates this relationship:
+
+\dot
+digraph AdapterUse
+{
+    node [shape=record, fontname=Courier,   fontsize=12];
+    edge [shape=record, fontname=Helvetica, fontsize=10];
+    typetraits [ label="Type-Traits"];
+    concept[ label="Concept"];
+    adapter[ label="Adapter::Method"];
+    concept -> typetraits[ arrowhead="open" label= "Requirement expression" ];
+    adapter -> typetraits[ arrowhead="open" label= "Implementation" ];
+    adapter -> concept[ arrowhead="open" label= "Selection" ];
+}
+\enddot
+ 
+
+This design ensures:
+- <b>Flexibility:</b><br> 
+  Users can extend or modify type behaviors by specializing type-traits without altering the core 
+  library code.
+
+- <b>Type Safety:</b><br>
+  Concepts enforce that only types meeting specific criteria are used in particular contexts, 
+  preventing misuse.
+
+- <b>Least Intrusive:</b><br>
+  By specializing \alib type-traits, users define how their types interact with ALib's templates 
+  and functions.
+  Such specialization can be performed in code units which are separated from the user's type 
+  definition.
+  Concepts then validate these types at compile-time, ensuring they conform to the expected 
+  interfaces. 
+  This layered approach allows seamless interaction between user-defined types and 
+  \alib's functionalities without introducing unnecessary dependencies on \alib in the using code.
+
+- <b>Easy Adaptability:</b><br>
+  By adhering to this <em>design pattern</em> across \alib, users are quickly directed towards
+  what they need to do to adapt its custom types - without reading through our (lengthy) 
+  Programmer's Manuals.  
+
+The latter claim about "easiness" should be quickly sampled:
+- A user has an instance of type "MyType".
+
+        MyType myInstance;
+          
+- A user wants to append a string representation of that type to an \alib \b %AString and writes:
+
+        AString as;
+        as << myInstance;  
+
+- This creates a compiler error-message. 
+  Among the different hints of the compiler, the user will see something like this:
+                         
+        note: because 'alib::strings::IsAppendable<MyType, char, alib::lang::HeapAllocator>'
+                                                             
+- If the user clicks this line, the IDE will show the adapter method that is restricted by the 
+  concept \alib{strings;IsAppendable}.
+   
+- From here, the user can navigate to the definition of this concept.
+  There he will quickly see that this concept's constraint string exclusively relies on 
+  the type trait \alib{strings;AppendableTraits}.
+   
+- The next click in the IDE will lead to the declaration of the type trait.
+  Its reference documentation explains on how to specialize it for \b MyType - and that is all 
+  the user has to do.  
+ 
+
+### A.4.3 Further Reading ### 
+For a deeper understanding, consider exploring the following resources:
+                       
+- \https{C++ Reference on Type-Traits,en.cppreference.com/w/cpp/header/type_traits}: 
+  Provides detailed information on standard type-traits and their usage.
+    
+- \https{C++ Reference on Constraints and Concepts,en.cppreference.com/w/cpp/language/constraints}: 
+  Offers insights into how concepts are defined and applied in C++20. 
+
+- \https{C++ Short Stories: Type-Traits\, Concepts\, and Type Constraints,www.jakubkonka.com/2017/09/02/type-traits-cpp.html}: 
+  An article that delves into the practical applications of type-traits and concepts in modern C++. 
+
+These resources provide foundational knowledge that complements the design and usage patterns 
+employed in \alib.
 
 \I{################################################################################################}
-## A.4 Collecting Caller Information ## {#alib_manual_appendix_callerinfo}
-A core class included in any \alibdist is \alib{lang::CallerInfo}. 
+## A.5 Collecting Caller Information ## {#alib_manual_appendix_callerinfo}
+A core class included in any \alibbuild is \alib{lang::CallerInfo}. 
 It stores the following information:
 - Filename, line number, and function name received with corresponding built-in preprocessor
   symbols \b __FILE__, \b __LINE__ and a compiler-dependent symbol which is fetched with
   \ref ALIB_CALLER_FUNC.
 - The C++ type id, fetched with keyword \c typeid, usually passing argument <c>*this</c>.
-- The C++ thread id of type <c>std::thread::id</c>. This is only included if compiler symbol
+- The C++ thread id of type <c>std::thread::id</c>. This is only included if the compiler-symbol
   \ref ALIB_EXT_LIB_THREADS_AVAILABLE evaluates to \c true.
   
 It is used to collect information about the caller of a function or method member.
@@ -1918,24 +1456,24 @@ The following macros make use of the caller-macros:
   The macros fail to work and produce compiler errors if used within static methods or namespace 
   functions.
    
-This is because they use keyword <c>this</c> to identify a caller's type. 
-Unfortunately, the C++ language in combination with the preprocessor does not allow automatic 
-detection of the absence of keyword \c this. 
+This is because they use the keyword <c>this</c> to identify a caller's type. 
+Unfortunately, the C++ language in combination with the preprocessor does not allow the automatic 
+detection whether it is legal to use keyword \c this or not . 
 For this reason the core macro \ref ALIB_CALLER has to be redefined before a code unit 
 defines functions and restored back afterward. 
-To do this, header files \alibheader{lang/callerinfo_functions.hpp} and 
-\alibheader{lang/callerinfo_methods.hpp} are provided. 
+To do this, header-files \implude{Lang.CIFunctions} and \implude{Lang.CIMethods} 
+are provided. 
 The following example demonstrates how they are to be used:
 
   \snippet "ut_lang.cpp"    DOX_LANG_CALLER 
 
 \I{################################################################################################}
-## A.5 T.HPP-Files And Custom Template Instantiations ## {#alib_manual_appendix_t_hpp_files}
+## A.6 T.HPP-Files And Custom Template Instantiations ## {#alib_manual_appendix_t_inl_files}
 
 \I{################################################################################################}
-### A.5.1 The Challenge and ALib's Solution ### {#alib_manual_appendix_t_hpp_files_challenge}
+### A.6.1 The Challenge and ALib's Solution ### {#alib_manual_appendix_t_inl_files_challenge}
 In C++, templates offer a powerful mechanism for writing generic and reusable code.
-But using templates extensively in header files leads to longer compilation times and
+But using templates extensively in header-files leads to longer compilation times and
 potential code bloat, particularly when templates are instantiated multiple times across different
 translation units.
 The problem becomes significant in larger projects where a template may be used with many types or
@@ -1949,13 +1487,14 @@ To mitigate these issues, with a few template types, \alib separates
 
 into three different files. These files are:
 
-1. A <b>HPP-file</b> (.hpp) for template class declarations.<br>
+1. The internal <b>INL-file</b> (.inl) used for the template class declarations exported with
+   the C++ module.<br>
    This header is missing the definition of those methods that should not be compiled with a
    unit that does not instantiate a templated type with a specific combination
    of template parameters.<br>
-   In other words, this header is to be included by code that relies on the fact that a different
-   compilation unit has instantiated that type already.
-2. A <b>T.HPP-file</b> (.t.hpp) providing the missing (and and not inlined) method definitions.<br>
+   In other words, the contents of this file is exposed by importing the module and is not relevant
+   for a user.
+2. A <b>T.INL-file</b> (.t.inl) providing the missing (and and not inlined) method definitions.<br>
 3. A <b>CPP-file</b> (.cpp) that includes both, the declaration and definition files, and explicitly
    instantiates the template for specific, commonly used types.
 
@@ -1963,8 +1502,8 @@ This approach results in improved compilation speed, code modularity, and manage
 while still allowing users the flexibility of creating custom instantiations when necessary.
 
 \I{################################################################################################}
-### A.5.2 Instantiations of Custom Types ### {#alib_manual_appendix_t_hpp_files_customize}
-With this recipe in place, it is fairly straight forward how to instantiate your custom
+### A.6.2 Instantiations of Custom Types ### {#alib_manual_appendix_t_inl_files_customize}
+With this recipe in place, it is fairly straight forward to instantiate your custom
 version of an \alib-type of that sort. Let's quickly look at a sample.
 
 For class #alib::monomem::TMonoAllocator, provided with module \alib_monomem, only one built-in
@@ -1973,46 +1512,59 @@ This specifies the single template parameter \p{TAllocator} to be of type
 \alib{lang;HeapAllocator}. This instantiation is then aliased as #alib::MonoAllocator.<br>
 The corresponding files are:
 
-- \alibheader{monomem/monoallocator.hpp},
-- \alibheader{monomem/monoallocator.t.hpp}, and
-- \alibheader{monomem/monoallocator.cpp}
+- \alibheader{monomem/monoallocator.inl},
+- \alibheader{monomem/monoallocator.t.inl}, and
+- \alibheader{monomem/monomem.cpp}
 
 Let us look at the compilation unit (the \b CPP-file):
 
-\snippet "alib/monomem/monoallocator.cpp"        ALIB_MANUAL_T_HPP_FILE_USAGE
+\snippet "monomem/monomem.cpp"        ALIB_MANUAL_T_HPP_FILE_USAGE
 
-That is all that the CPP-file needs to contain.
+That is basically all that the CPP file needs to contain. 
+Of-course, with optional C++20 Module compilation of \alib, the file got a little more complex,
+so please refer to the sources for  complete insights. 
 
 With this in mind, we can now instantiate a custom mono-allocator, one that uses a \b PoolAllocator
 as its memory source. This is done in the \alib unit-tests. Here is the excerpt:
 
-\snippet "containers_monomem/ut_monomem.cpp"               ALIB_MANUAL_T_HPP_FILE_USAGE2
+\snippet "containers_monomem/ut_monomem_instantiation.cpp"         ALIB_MANUAL_T_HPP_FILE_USAGE_IMPL
+
+Note that the compilation unit - although it is your own file and is located outside \alib - 
+<b>still needs to specify</b> <c>module ALib.Monomem;</c>.
+Because any compilation unit must only specify one module, you have to place this code into
+a dedicated compilation unit specifically created for this purpose.  
+
+Next, create your custom header-file or place it anywhere in your existing headers. 
+(In the case of C++20 Modules, do not use the \c export keyword.) 
+There, copy the instantiation code and place keyword <c>extern</c> in front, to turn it into a 
+declaration:
+
+\snippet "containers_monomem/ut_monomem.cpp"               ALIB_MANUAL_T_HPP_FILE_USAGE_DECL
+
+
+This announces that the linker will find the instantiation.
 
 With this in place, we can start using the instantiation:
 
-\snippet "containers_monomem/ut_monomem.cpp"               ALIB_MANUAL_T_HPP_FILE_USAGE3
-
+\snippet "containers_monomem/ut_monomem.cpp"               ALIB_MANUAL_T_HPP_FILE_USAGE_USAGE
 
 To summarize, the fast track approach when a specific instantiation of an \alib type that
 splits some method definitions from the type declaration is needed, is to have a look at the
 compilation unit (the CPP-file), copy its code to an own compilation unit, and replace the given type
 with your own type. 
 
-If this type is needed in different places, create your custom header file and copy the 
-instantiation code and add keyword <c>extern</c> to turn it into a declaration. 
-This announces that the linker will find the instantiation.
-Such a header file has to include only the HPP-file that \alib provides, and not the "T.HPP"-file.
 
 \attention
   With WindowsOS and DLL-compilation, things may become more complicated. 
-  Here, compiler-symbol \ref ALIB_API has to be set rightfully for the code-unit that implements
+  Here, the compiler-symbol \ref ALIB_DLL has to be set rightfully for the code-unit that implements
   an instantiation. 
   This manual cannot go into further details of this topic. 
-  Instead general information on compiling and linking under WindowsOS has to be consulted.     
+  Instead, general information on compiling and linking under WindowsOS has to be consulted.     
 
 \I{################################################################################################}
-### A.6  Pretty Printers ### {#alib_manual_appendix_t_prettyprinters}
+## A.7  Pretty Printers # {#alib_manual_prettyprinters}
 For gdb (GNU Debugger), some "pretty printers" are available. Please consult page
 \ref alibtools_debug_helpers_gdb.
+                   
 
 <br><br><br><br><br><br> */

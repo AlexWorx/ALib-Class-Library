@@ -1,15 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/expressions/plugins/math.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
 #   include <cmath>
-#endif // !DOXYGEN
+
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 
 #if !defined(M_PI)
 #   define M_PI         3.14159265358979323846
@@ -55,10 +69,10 @@ FUNC(   ceil     , return  ::ceil     (FLT(*args)); )
 FUNC(   floor    , return  ::floor    (FLT(*args)); )
 FUNC(   trunc    , return  ::round    (FLT(*args)); )
 FUNC(   round    , return  ::round    (FLT(*args)); )
-FUNC(   rint     , return  static_cast<integer>(::llrint(FLT(*args))); )
+FUNC(   rint     , return  integer(::llrint(FLT(*args))); )
 FUNC(   remainder, return  ::remainder(FLT(*args),FLT(*(args+1))); )
 
-FUNC(   rand     , return  static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX); )
+FUNC(   rand     , return  double(std::rand()) / double(RAND_MAX); )
 
 FUNC(   sin      , return  ::sin      (FLT(*args)); )
 FUNC(  asin      , return  ::asin     (FLT(*args)); )
@@ -117,10 +131,9 @@ Math::Math( Compiler& compiler )
     // load identifier/function names from resources
     constexpr int tableSize= 34;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPM", functionNames
-                                ALIB_DBG(,tableSize)                               );
+    strings::util::LoadResourcedTokens( EXPRESSIONS, "CPM", functionNames
+                                        ALIB_DBG(,tableSize)                  );
 
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
 
     // Constant identifiers
@@ -172,7 +185,6 @@ Math::Math( Compiler& compiler )
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize                                     )
-    ALIB_WARNINGS_RESTORE
 }
 
 

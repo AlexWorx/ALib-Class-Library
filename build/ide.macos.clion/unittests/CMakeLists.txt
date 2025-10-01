@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Unit Tests
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -11,7 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
-cmake_minimum_required( VERSION 3.18.0 )
+cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 
 project("ALib_UnitTests")
 
@@ -22,7 +22,7 @@ project("ALib_UnitTests")
     #set( ALIB_PRECOMPILED_HEADER           "On" )
 
     # Allow valgrind runs ?
-    list( APPEND ALIB_SYMBOLS      "ALIB_UT_AVOID_ANALYZER_WARNINGS=0"   )
+    #list( APPEND ALIB_SYMBOLS      "ALIB_UT_AVOID_ANALYZER_WARNINGS=0"   )
 
     # Uncomment to exclude huge loops, sleep times, thread races, etc
     #list( APPEND ALIB_SYMBOLS   "ALIB_UT_ROUGH_EXECUTION_SPEED_TEST"    )
@@ -32,7 +32,6 @@ project("ALib_UnitTests")
 
     # C++ Version selection
 
-    #set(CMAKE_CXX_STANDARD 17)
     #set(CMAKE_CXX_STANDARD 20)
     #set(CMAKE_CXX_STANDARD 23)
 
@@ -40,19 +39,16 @@ project("ALib_UnitTests")
     #add_compile_options(-m32)
 
     #### Module CAMP is mandatory to build the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "CAMP"  )
+    #list( APPEND ALIB_BUILD         "CAMP"  )
 
-    #### These "micro modules" are optional: may be commented out. #####
-    #list( APPEND ALIB_DISTRIBUTION         "TIME"    )
-    #list( APPEND ALIB_DISTRIBUTION         "THREADS"  )  # includes TIME
-
-    #### The "higher level" modules are optional to be included in the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "ALL"           )
-    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"     )
-    #list( APPEND ALIB_DISTRIBUTION         "CONFIGURATION" )
-    #list( APPEND ALIB_DISTRIBUTION         "CLI"           )
-    #list( APPEND ALIB_DISTRIBUTION         "EXPRESSIONS"   )
-    #list( APPEND ALIB_DISTRIBUTION         "ALOX"          )
+    #### Restrict modules by commenting out. #####
+    #list( APPEND ALIB_BUILD         "ALL"           )
+    #list( APPEND ALIB_BUILD         "BITBUFFER"     )
+    #list( APPEND ALIB_BUILD         "VARIABLES" )
+    #list( APPEND ALIB_BUILD         "CLI"           )
+    #list( APPEND ALIB_BUILD         "EXPRESSIONS"   )
+    #list( APPEND ALIB_BUILD         "FILES"         )
+    #list( APPEND ALIB_BUILD         "ALOX"          )
 
 
     #### ALib Features ####
@@ -71,7 +67,7 @@ project("ALib_UnitTests")
     #set( ALIB_FILES_FORCE_STD_SCANNER      "On" )
 
     #set( ALIB_DEBUG_ALLOCATIONS            "On" )
-    #set( ALIB_DEBUG_MONOMEM                "On" )
+    #set( ALIB_DEBUG_MEMORY                "On" )
     #set( ALIB_DEBUG_ARRAY_COMPRESSION      "Off")
     #set( ALIB_DEBUG_STRINGS                "On" )
     #set( ALIB_DEBUG_RESOURCES              "On" )

@@ -1,19 +1,27 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/expressions/detail/parser_impl.hpp"
-#   include "alib/expressions/compiler.hpp"
-#   include "alib/lang/basecamp/camp_inlines.hpp"
-#   include "alib/monomem/aliases/stdvector.hpp"
-#endif // !DOXYGEN
-
-
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/expressions/expressions.prepro.hpp"
+#include "ALib.Monomem.StdContainers.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.Expressions.Impl;
+    import   ALib.Expressions;
+#else
+#   include "ALib.Expressions.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 namespace alib {  namespace expressions { namespace detail {
 
 // #################################################################################################
@@ -27,68 +35,67 @@ ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator& allocator )
 , binaryOperators     (allocator)
 {
     // characters to be known
-    syntaxTokens [static_cast<unsigned char>('(')]= true;
-    syntaxTokens [static_cast<unsigned char>(')')]= true;
-    syntaxTokens [static_cast<unsigned char>(',')]= true;
-
-    operatorChars[static_cast<unsigned char>('?')]= true;
-    operatorChars[static_cast<unsigned char>(':')]= true;
+    syntaxTokens [u8'(']= true;
+    syntaxTokens [u8')']= true;
+    syntaxTokens [u8',']= true;
+    operatorChars[u8'?']= true;
+    operatorChars[u8':']= true;
 
     // define unary ops
     for( auto& op : compiler.UnaryOperators )
     {
         ALIB_ASSERT_ERROR( !unaryOperators.Contains(op), "EXPR",
-                           "Doubly defined unary operator symbol {!Q'}.", op )
+                           "Doubly defined unary operator symbol '{}'.", op )
 
         unaryOperators.EmplaceUnique(op);
         for( auto it : op )
-            operatorChars[static_cast<unsigned char>(it)]= true;
+            operatorChars[it]= true;
     }
 
     for( auto& op : compiler.AlphabeticUnaryOperatorAliases )
     {
         ALIB_ASSERT_ERROR( !unaryOperators.Contains(op.first), "EXPR",
-                           "Doubly defined unary operator symbol {!Q'}.", op.first )
+                           "Doubly defined unary operator symbol '{}'.", op.first )
 
         unaryOperators.EmplaceUnique(op.first);
         if( !isalpha( op.first.CharAtStart() ) )
             for( auto it : op.first )
-                operatorChars[static_cast<unsigned char>(it)]= true;
+                operatorChars[it]= true;
     }
 
 
-    for( auto op : compiler.BinaryOperators )
+    for( auto& op : compiler.BinaryOperators )
     {
         ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first), "EXPR",
-                           "Doubly defined binary operator symbol {!Q'}.", op.first )
+                           "Doubly defined binary operator symbol '{}'.", op.first )
         if( op.first == A_CHAR("[]") )
         {
-            syntaxTokens[static_cast<unsigned char>('[')]= true;
-            syntaxTokens[static_cast<unsigned char>(']')]= true;
+            syntaxTokens[u8'[']= true;
+            syntaxTokens[u8']']= true;
         }
         else
         {
             binaryOperators.EmplaceUnique(op.first);
             for( auto it : op.first )
-                operatorChars[static_cast<unsigned char>(it)]= true;
+                operatorChars[it]= true;
         }
     }
 
-    for( auto op : compiler.AlphabeticBinaryOperatorAliases )
+    for( auto& op : compiler.AlphabeticBinaryOperatorAliases )
     {
         ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first), "EXPR",
-                           "Doubly defined binary operator symbol {!Q'}.", op.first )
+                           "Doubly defined binary operator symbol '{}'.", op.first )
 
         ALIB_DBG( auto originalOp= )
         compiler.BinaryOperators.Find( op.second );
         ALIB_ASSERT_ERROR( originalOp != compiler.BinaryOperators.end(), "EXPR",
-                           "Alias {!Q'} defined for unknown operator {!Q'}.",
+                           "Alias '{}' defined for unknown operator '{}'.",
                            op.first, op.second )
 
         binaryOperators.EmplaceUnique(op.first);
         if( !isalpha( op.first.CharAtStart() ) )
             for( auto it : op.first )
-                operatorChars[static_cast<unsigned char>(it)]= true;
+                operatorChars[it]= true;
     }
 }
 
@@ -109,7 +116,7 @@ void ParserImpl::NextToken()
     character first= scanner.CharAtStart<NC>();
 
     //------------------------------  Syntax Tokens ------------------------------
-    if( syntaxTokens[static_cast<unsigned char>(first)]  )
+    if( syntaxTokens[first]  )
     {
         token= Tokens(first);
         scanner.ConsumeChar();
@@ -118,16 +125,16 @@ void ParserImpl::NextToken()
 
     //------------------------------  Symbolic operators ------------------------------
     // read up to 3 operator characters
-    if( operatorChars[static_cast<unsigned char>(first)] )
+    if( operatorChars[first] )
     {
         integer operatorLength= 1;
         scanner.ConsumeChar();
-        if( operatorChars[static_cast<unsigned char>(scanner.CharAtStart() ) ] )
+        if( operatorChars[scanner.CharAtStart() ] )
         {
             scanner.ConsumeChar();
             ++operatorLength;
 
-            if( operatorChars[static_cast<unsigned char>(scanner.CharAtStart() ) ] )
+            if( operatorChars[scanner.CharAtStart() ] )
             {
                 scanner.ConsumeChar();
                 ++operatorLength;
@@ -135,9 +142,7 @@ void ParserImpl::NextToken()
         }
 
         token= Tokens::SymbolicOp;
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         tokString= String( expression.Buffer() + tokPosition, operatorLength );
-        ALIB_WARNINGS_RESTORE
 
         // special treatment for Elvis with spaces "? :"
         if(    tokString == A_CHAR("?") && compiler.BinaryOperators.Contains( A_CHAR("?:") )   )
@@ -202,9 +207,7 @@ void ParserImpl::NextToken()
                      || next == '_'                         ) );
 
         token= Tokens::Identifier;
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         tokString= String( expression.Buffer() + tokPosition, endOfIdent );
-        ALIB_WARNINGS_RESTORE
         scanner.ConsumeChars<NC>( endOfIdent );
         return;
     }
@@ -283,12 +286,10 @@ void ParserImpl::NextToken()
             throw e;
         }
 
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         String quoted( expression.Buffer() + tokPosition + 1,
                        expression.Length() - scanner.Length() - tokPosition -2 );
-        ALIB_WARNINGS_RESTORE
         token    = Tokens::LitString;
-        tokString.Allocate(compileTimeAllocator, String1K(quoted) << Format::Escape( lang::Switch::Off ) );
+        tokString.Allocate(compileTimeAllocator, String1K(quoted) << Escape( lang::Switch::Off ) );
         return;
     }
 
@@ -479,7 +480,7 @@ AST* ParserImpl::parseSimple()
                     NextToken();
                     return pop();
                 }
-                astFunction->Arguments.EmplaceBack( Start() );
+                astFunction->Arguments.emplace_back( Start() );
 
                 if( token == Tokens::Comma )
                     continue;
@@ -531,7 +532,7 @@ AST* ParserImpl::parseSimple()
         throw e;
     }
 
-    ALIB_ERROR( "EXPR", "Internal error. This should never happen.")
+    ALIB_ERROR( "EXPR", "Internal error. This should never happen." )
     return nullptr;
 }
 
@@ -580,11 +581,9 @@ String ParserImpl::getUnaryOp()
                     NextToken();
                 else
                 {
-                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     tokString= String( tokString.Buffer() + partialRead,
                                        tokString.Length() - partialRead );
                     tokPosition+= partialRead;
-                    ALIB_WARNINGS_RESTORE
                 }
                 return key;
             }
@@ -622,11 +621,9 @@ String ParserImpl::getBinaryOp()
                     NextToken();
                 else
                 {
-                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     tokString = String( tokString.Buffer() + partialRead,
                                         tokString.Length() - partialRead );
                     tokPosition += partialRead;
-                    ALIB_WARNINGS_RESTORE
                 }
                 return key;
             }

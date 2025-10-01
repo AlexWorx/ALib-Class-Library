@@ -466,7 +466,7 @@ class ALibPrinterSelector:
                     typeName= typeName[8::]
 
                     if typeName == "Path":
-                        cWidth= gdb.lookup_type("alib::lang::system::PathCharType").sizeof
+                        cWidth= gdb.lookup_type("alib::system::PathCharType").sizeof
                         asBuffer= getASString( value, cWidth )
                         display= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
                         if( cWidth != stdCharWidth ):
@@ -759,7 +759,7 @@ class ALibPrinterSelector:
 
 
             ################################## Config ##################################
-            elif typeName.startswith( 'config::' ):
+            elif typeName.startswith( 'variables::' ):
                 typeName= typeName[8:]
 
 

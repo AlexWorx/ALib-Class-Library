@@ -1,25 +1,12 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_boxing of the \aliblong.
+/// This header-file is part of module \alib_boxing of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-#ifndef HPP_ALIB_BOXING_BOXES
-#define HPP_ALIB_BOXING_BOXES 1
-#pragma once
-#if !defined(HPP_ALIB_BOXING_BOXING)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
+ALIB_EXPORT namespace alib { namespace boxing {
 
-#include "alib/lang/stdcontainerallocator.hpp"
-#include <vector>
-
-namespace alib {
-
-namespace monomem { template<typename TAllocator> class TMonoAllocator; }
-
-namespace boxing {
 //==================================================================================================
 /// A vector of objects of type \alib{boxing;Box}.
 /// Specializes class \c std::vector<Box> (publicly) with a constructor and methods to add a
@@ -129,7 +116,7 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     template<typename TAllocatorArgs>
     TBoxes& Add( const TBoxes<TAllocatorArgs>& boxes )
     {
-        AddArray( boxes.data(), static_cast<integer>(boxes.size()) );
+        AddArray( boxes.data(), integer(boxes.size()) );
         return *this;
     }
 
@@ -175,7 +162,7 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     //==============================================================================================
     integer Size()                                                                             const
     {
-        return static_cast<integer>( vectorBase::size() );
+        return integer( vectorBase::size() );
     }
 
     //==============================================================================================
@@ -232,7 +219,7 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     /// Cloning is performed 'into' the allocator used by the \b %Boxes instance.
     ///
     /// \par Availability
-    ///   This method is available only if the module \alib_monomem is included in the \alibdist.
+    ///   This method is available only if the module \alib_monomem is included in the \alibbuild.
     //==============================================================================================
     void CloneAll()
     {
@@ -243,14 +230,25 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
 }; // class TBoxes
 
 
-extern template ALIB_API  void TBoxes<lang::HeapAllocator>::AddArray( const Box* boxArray, integer length );
+extern template ALIB_DLL  void TBoxes<lang::HeapAllocator>::AddArray( const Box* boxArray, integer length );
 #if ALIB_MONOMEM
-extern template ALIB_API  void TBoxes<MonoAllocator      >::AddArray( const Box* boxArray, integer length );
+extern template ALIB_DLL  void TBoxes<MonoAllocator      >::AddArray( const Box* boxArray, integer length );
 #endif
-}
+
+} // namespace alib[::boxing]
+
+/// Type alias in namespace \b alib.
+using     BoxesHA= boxing::TBoxes<lang::HeapAllocator>;
+
+#if ALIB_MONOMEM
+/// Type alias in namespace \b alib.
+using     BoxesMA= boxing::TBoxes<MonoAllocator>;
+
+/// Type alias in namespace \b alib.
+using     BoxesPA= boxing::TBoxes<PoolAllocator>;
+#endif
 
 
-} // namespace [alib::boxing]
+} // namespace [alib]::boxing
 
-#endif // HPP_ALIB_BOXING_BOXES
 

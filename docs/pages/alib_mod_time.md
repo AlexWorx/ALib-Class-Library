@@ -1,15 +1,15 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
-\page alib_mod_time   ALib Module Time - Programmer's Manual
+\page alib_mod_time   ALib Time  - Programmer's Manual
 
 \tableofcontents
-
+                                         
 
  \I{################################################################################################}
 # 1. Introduction # {#alib_time_intro}
@@ -18,7 +18,7 @@ This \alibmod provides types for calendrical date and time processing as well as
 for non-calendrical steady and monotonic time measurement.
 
 In essence, this module uses standard library types found in namespace \c std::chrono, and
-encapsulates their functionality to provide some very common use-case of it in an easy to use and
+encapsulates their functionality to provide some common use-cases of it in an easy to use and
 better readable interface.
 
 \note
@@ -26,9 +26,14 @@ better readable interface.
   standard library to be as formal as possible and its extraordinary quality in this respect is
   unrivalled by the library's of most other computer languages.<br>
   However it is right and just a consequence to have libraries like \alib that morph such a formal
-  and explicit API into one of many possible concrete use cases, of course limiting the original
+  and explicit API into one of many possible concrete use cases, of-course limiting the original
   functionality.
 
+The module and its functionality are considered essential and cannot be 
+\ref alib_manual_alib_build "excluded from an ALib Build", unlike higher-level 
+modules can. 
+
+The module is accessed by including header \implude{Time}.
 
  \I{################################################################################################}
 # 2. Points In Time # {#alib_time_points}
@@ -82,7 +87,7 @@ dates and clock times, class \alib{time;TickConverter} is provided.
 This class allows converting values of type \b %Ticks to values of type \b %DateTime and vice versa,
 which then can be converted further.
 Of course, it is up to the software using this type, to ensure that these ambiguities are duly made
-transparent to the end-user of a software: The end user has to know how converted monotonic clock
+transparent to the end-user of software: The end user has to know how converted monotonic clock
 values are to be interpreted!
 
 At the point of creation of an object of type \b %TickConverter, internally two "probe" values
@@ -109,50 +114,43 @@ if the system clock was changed while a process's log file was written.
 Therefore, no \b %DateTime values are stored with log entries, and if calendrical display
 is needed, a conversion using class \b %TickConverter is performed. The object used for this
 is created only once and in favor to provide steady log dates, is not updated by the module.
-This means, if a software runs for a longer time, changes of the system clock are \b not
+This means, if software runs for a longer time, changes of the system clock are \b not
 reflected and therefore, the calendrical date and time values displayed may start to deviate
 from the true system clock!<br>
-A software that is using the module has to decide to either actively
+software that is using the module has to decide to either actively
 \alib{time;TickConverter::SyncClocks;update the converter} (and hence introduce non steady
 log entries) or to acknowledge the user of the software of  the problem of interpreting the
-date/time values! Now in this sample, a software that implements a server process, probably
+date/time values! Now in this sample, software that implements a server process, probably
 running for days, weeks or even months without a reset, would synchronize the logging module's
 time converter on a regular basis, e.g., once an hour, to ensure correct calendrical log dates.
-In contrast to that, a software that performs a certain task and then exits would not update
+In contrast to that, software that performs a certain task and then exits would not update
 the converter as break in the time flow would just be confusing. A user (reader) of the log file
 has to be made aware that all calendar dates given, are to be interpreted "relative" to the
 system's clock setting that the first log-entry showed.
 
 
 \I{################################################################################################}
-# 5. Further Support With Module BaseCamp # {#alib_time_system}
+# 5. Further Support With Module Basecamp # {#alib_time_system}
 
-Two utility classes that are directly concerned to the types of this module have \b not been
-implemented with this module but with module \alib_basecamp. The rationale for this is that these
-utility classes make use extensive use of other functionality in that module and the goal was to
-keep this \alib_time_nl a lean and very low level module.
-
-The classes are:
-
-- \alib{lang::system;CalendarDateTime}<br>
+Two utility classes that are directly concerned with the types of this namespace are implemented 
+with camp \alib_strings. Those are:
+- \alib{strings::util;CalendarDateTime}<br>
   Provides bidirectional conversions between values of class \b %DateTime and
   gregorian calendar dates and 24h clock times.<br>
   Furthermore, comprehensive features for conversion of values to human-readable strings
   (formatting) is implemented with this type.
 
-- \alib{lang::system;CalendarDuration}
+- \alib{strings::util;CalendarDuration}
   Implements bidirectional conversions between duration values of classes \b %DateTime and
   \b Ticks on the one hand and human-readable durations (seconds, minutes, hours, days, etc.) on the
   other hand.<br>
   Furthermore, "intuitive" conversion of durations to human-readable strings (formatting) is
   implemented for this type.
 
-
 \I{################################################################################################}
 # 6. Utilities # {#alib_time_util}
-To measure a set of durations and receive cumulated, average, minimum and maximum values of
+To measure a set of durations and receive cumulated, average, minimum, and maximum values of
 all probes, class \alib{time;StopWatch} is provided.
-
 
 
 Furthermore this namespace incorporates types used for conversion of "time points" and

@@ -1,20 +1,33 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
-
-#if !DOXYGEN
-#   include "alib/cli/cliutil.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#   include "alib/enums/serialization.hpp"
-#   include "alib/monomem/aliases/stdvector.hpp"
-#endif // !DOXYGEN
-
-#include <vector>
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
 #include <algorithm>
+#include "ALib.Monomem.StdContainers.H"
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.CLI;
+    import   ALib.Characters.Functions;
+    import   ALib.Strings;
+    import   ALib.Strings.Tokenizer;
+    import   ALib.Format;
+#else
+#   include "ALib.Characters.Functions.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.CLI.H"
+#endif
+// ======================================   Implementation   =======================================
 
 namespace alib::cli {
 
@@ -72,8 +85,9 @@ AString CLIUtil::GetCommandUsageFormat( CommandLine& cmdLine, CommandDecl& cmd )
     return result;
 }
 
+#include "ALib.Lang.CIFunctions.H"
 bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, Paragraphs& text )
-{
+{ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
     text.AddMarked( cmdLine.AppInfo );
 
     String argList= NULL_STRING;
@@ -81,7 +95,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
     if( helpCmd )
     {
         if(  helpCmd->ParametersOptional.IsNotEmpty() )
-            argList= helpCmd->ParametersOptional.Front()->Args.Front();
+            argList= helpCmd->ParametersOptional.front()->Args.front();
         else if( cmdLine.ArgCount() > helpCmd->Position + 1  )
         {
             argWasPeeked= true;
@@ -91,7 +105,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
     else
     {
         if(  helpOpt->Args.IsNotEmpty() )
-            argList= helpOpt->Args.Front();
+            argList= helpOpt->Args.front();
         else if( cmdLine.ArgCount() > helpOpt->Position + 1 )
         {
             argWasPeeked= true;
@@ -220,7 +234,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
             {
                 cmdLine.RemoveArg( helpOpt->Position + 1 );
                 ++helpOpt->ConsumedArguments;
-                helpOpt->Args.PushBack( argList );
+                helpOpt->Args.push_back( argList );
             }
         }
 
@@ -246,7 +260,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
         auto snapshot= cmdLine.allocator.TakeSnapshot();
         StdVectorMono<std::pair<Enum, ExitCodeDecl *>>
                 sortedExitCodes(cmdLine.allocator);
-        for( auto declIt : cmdLine.ExitCodeDecls )
+        for( auto& declIt : cmdLine.ExitCodeDecls )
             sortedExitCodes.emplace_back(declIt);
         std::sort( sortedExitCodes.begin(), sortedExitCodes.end(),
                 []( std::pair<Enum, ExitCodeDecl *>& lhs,
@@ -256,7 +270,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
                 }
                );
 
-        for( auto declIt : sortedExitCodes )
+        for( auto& declIt : sortedExitCodes )
             text.Add( "  {:>3}: {}\n       {}", declIt.first.Integral(),
                                                 declIt.second->Name(),
                                                 declIt.second->FormatString() );
@@ -298,7 +312,7 @@ bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt)
     Substring arg= NULL_STRING;
     bool      argWasPeeked= false;
     if( dryOpt.Args.IsNotEmpty() )
-        arg= dryOpt.Args.Front();
+        arg= dryOpt.Args.front();
     else if( cmdLine.ArgCount() > dryOpt.Position )
     {
         argWasPeeked= true;
@@ -308,14 +322,14 @@ bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt)
     if( arg.IsNotEmpty() )
     {
         DryRunModes dryRunMode;
-        if( enums::Parse( arg, dryRunMode ) && arg.IsEmpty() )
+        if( enumrecords::Parse( arg, dryRunMode ) && arg.IsEmpty() )
         {
             cmdLine.DryRun= dryRunMode;
             if( argWasPeeked )
             {
                 cmdLine.RemoveArg( dryOpt.Position + 1 );
                 ++dryOpt.ConsumedArguments;
-                dryOpt.Args.PushBack( cmdLine.GetArg(dryOpt.Position + 1) );
+                dryOpt.Args.push_back( cmdLine.GetArg(dryOpt.Position + 1) );
             }
         }
 
@@ -398,7 +412,7 @@ namespace
     {
         std::vector<Option*> options;
         std::vector<Option*> optionsOfActType;
-        auto overallSize= optionsOriginal.Count();
+        auto overallSize= optionsOriginal.size();
         options       .reserve( size_t(overallSize) );
         optionsOfActType.reserve( size_t(overallSize) );
         for( auto* optionOrig : optionsOriginal )
@@ -416,7 +430,7 @@ namespace
                     if( options[actIdx]->Declaration == decl )
                     {
                         optionsOfActType.push_back( options[actIdx] );
-                        options.erase( options.begin() + static_cast<integer>(actIdx) );
+                        options.erase( options.begin() + integer(actIdx) );
                     }
                     else
                         ++actIdx;
@@ -434,7 +448,7 @@ namespace
                               actIdx + 1, optionsOfActType.size(),
                               actOption->Position,
                               app.GetArg(actOption->Position),
-                              actOption->Args.Count()                          )
+                              actOption->Args.size()                          )
                         .PushIndent(5);
 
                     uinteger argNo= 0;
@@ -471,7 +485,7 @@ AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
         .Add( "COMMANDS PARSED:")
         .PushIndent( 2 );
             cnt= 0;
-            for( auto cmd : cmdLine.CommandsParsed )
+            for( auto& cmd : cmdLine.CommandsParsed )
             {
                 ++cnt;
                 dump.Add( "- {:8}with argument #{}", cmd->Declaration->Identifier(), cmd->Position )
@@ -519,3 +533,4 @@ AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
 }
 
 } // namespace alib::cli
+#include "ALib.Lang.CIMethods.H"

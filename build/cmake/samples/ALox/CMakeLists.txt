@@ -1,7 +1,7 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Samples
+#  CMakeLists.txt - ALib Samples
 #
-#  Copyright 2015-2024 A-Worx GmbH, Germany
+#  Copyright 2013-2025 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -20,7 +20,7 @@
 # -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_1]
-    cmake_minimum_required( VERSION 3.18.0 )
+    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
     project("ALox.Samples")
 #! [DOXYGEN_CMAKE_INCLUDE_1]
 
@@ -30,10 +30,10 @@
 ## -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_2]
-    list( APPEND  ALIB_DISTRIBUTION        "ALOX"       )
+    list( APPEND  ALIB_BUILD        "ALOX"       )
 #! [DOXYGEN_CMAKE_INCLUDE_2]
-#! [DOXYGEN_CMAKE_INCLUDE_3]
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
+    #! [DOXYGEN_CMAKE_INCLUDE_3]
+    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
 #! [DOXYGEN_CMAKE_INCLUDE_3]
 #! [DOXYGEN_CMAKE_INCLUDE_4]
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )
@@ -47,7 +47,7 @@
 # -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_6]
-    add_executable            ( ALoxSamples   ${ALIB_BASE_DIR}/src/samples/ALox/sample.cpp  )
+    add_executable            ( ALoxSamples   ${ALIB_BASE_DIR}/src.samples/ALox/sample.cpp  )
 #! [DOXYGEN_CMAKE_INCLUDE_6]
 #! [DOXYGEN_CMAKE_INCLUDE_7]
     ALibSetCompilerAndLinker  ( ALoxSamples )

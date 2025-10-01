@@ -5,7 +5,7 @@ build/cmake/moduletests/compilation_output.txt
 docs/pages/generated/
 docs/doxygen/dot
 docs/doxygenDotFixer.cfg
-docs/doxygen/doxyfile.ini
+tools/SourceCleaner
 
 .private
 *.zip
@@ -21,12 +21,13 @@ build/ide.clion_win
 
 
 #vvvvvvvvvvvvvvvvvvvvvvvv Jetbrains IDEs vvvvvvvvvvvvvvvvvvvvvvvv
+**/.idea/sshConfigs.xml
 **/.idea/vcs.xml
 **/.idea/GrepConsole.xml
 **/.idea/sonarlint/
 **/.idea/material_theme_project.xml
 **/.idea/material_theme_project_new.xml
-
+**/.junie
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij

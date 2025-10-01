@@ -1,25 +1,48 @@
 // #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib_precompile.hpp"
+#include "alib_precompile.hpp"
+#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
+#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
+#endif
+#if ALIB_C20_MODULES
+    module;
+#endif
+// ======================================   Global Fragment   ======================================
+#include "alib/alox/alox.prepro.hpp"
+#include "ALib.Strings.Vector.H"
 
-#if !DOXYGEN
-#   include "alib/alox/textlogger/variables.hpp"
-#   include "alib/monomem/localallocator.hpp"
-#   include "alib/monomem/aliases/stringvector.hpp"
-#   include "alib/strings/util/tokenizer.hpp"
-#   include "alib/enums/serialization.hpp"
-#endif // !DOXYGEN
-
-
+// ===========================================   Module   ==========================================
+#if ALIB_C20_MODULES
+    module ALib.ALox.Impl;
+    import   ALib.Lang;
+    import   ALib.Strings;
+    import   ALib.Boxing;
+    import   ALib.EnumRecords;
+    import   ALib.EnumRecords.Bootstrap;
+    import   ALib.Variables;
+    import   ALib.Camp;
+    import   ALib.Camp.Base;
+#else
+#   include "ALib.Lang.H"
+#   include "ALib.Strings.H"
+#   include "ALib.Boxing.H"
+#   include "ALib.EnumRecords.Bootstrap.H"
+#   include "ALib.Variables.H"
+#   include "ALib.Camp.H"
+#   include "ALib.Camp.Base.H"
+#   include "ALib.ALox.H"
+#   include "ALib.ALox.Impl.H"
+#endif
+// ======================================   Implementation   =======================================
 #if !DOXYGEN
 
 // FormatMetaInfo
-DOX_MARKER([DOX_CONFIG_DEFINETYPE2])
-namespace alib::config::detail {
+DOX_MARKER([DOX_VARIABLES_DEFINETYPE2])
+namespace alib::variables::detail {
 
 void  VMeta_FormatMetaInfo::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
@@ -47,13 +70,13 @@ void  VMeta_FormatMetaInfo::exPort(VDATA* data, Configuration&, const StringEsca
     escaper.Escape(rec.MsgSuffix        , dest, A_CHAR(","));
 }
 
-} // namespace [alib::config::detail]
-DOX_MARKER([DOX_CONFIG_DEFINETYPE2])
+} // namespace [alib::variables::detail]
+DOX_MARKER([DOX_VARIABLES_DEFINETYPE2])
 
-namespace alib::config::detail {
+namespace alib::variables::detail {
 
 // FormatDate
-ALIB_API void  VMeta_FormatDateTime::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
+ALIB_DLL void  VMeta_FormatDateTime::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatDateTime>();
     LocalAllocator4K la;
@@ -64,7 +87,7 @@ ALIB_API void  VMeta_FormatDateTime::imPort(VDATA* data, Configuration&, const S
     rec.TimeOfDay  .Reset(results.TryGet(1));
     rec.ElapsedDays.Reset(results.TryGet(2));
 }
-ALIB_API void  VMeta_FormatDateTime::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
+ALIB_DLL void  VMeta_FormatDateTime::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
 {
     (void)cfg;
     auto& rec= data->As<alib::lox::textlogger::FormatDateTime>();
@@ -74,7 +97,7 @@ ALIB_API void  VMeta_FormatDateTime::exPort(VDATA* data, Configuration& cfg, con
 }
 
 // FormatTimeDiff
-ALIB_API void  VMeta_FormatTimeDiff::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
+ALIB_DLL void  VMeta_FormatTimeDiff::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatTimeDiff>();
     LocalAllocator4K la;
@@ -91,7 +114,7 @@ ALIB_API void  VMeta_FormatTimeDiff::imPort(VDATA* data, Configuration&, const S
     rec.Hours                .Reset( results.TryGet(7));
     rec.Days                 .Reset( results.TryGet(8));
 }
-ALIB_API void  VMeta_FormatTimeDiff::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
+ALIB_DLL void  VMeta_FormatTimeDiff::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
 {
     (void)cfg;
     auto& rec= data->As<alib::lox::textlogger::FormatTimeDiff>();
@@ -107,7 +130,7 @@ ALIB_API void  VMeta_FormatTimeDiff::exPort(VDATA* data, Configuration& cfg, con
 }
 
 // FormatMultiLine
-ALIB_API void  VMeta_FormatMultiLine::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
+ALIB_DLL void  VMeta_FormatMultiLine::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatMultiLine>();
     LocalAllocator4K la;
@@ -125,7 +148,7 @@ ALIB_API void  VMeta_FormatMultiLine::imPort(VDATA* data, Configuration&, const 
     rec.DelimiterReplacement  .Reset(results.TryGet(5));
 }
 
-ALIB_API void  VMeta_FormatMultiLine::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
+ALIB_DLL void  VMeta_FormatMultiLine::exPort(VDATA* data, Configuration& cfg, const StringEscaper& escaper, AString& dest)
 {
     (void)cfg;
     auto& rec= data->As<alib::lox::textlogger::FormatMultiLine>();
@@ -141,7 +164,7 @@ ALIB_API void  VMeta_FormatMultiLine::exPort(VDATA* data, Configuration& cfg, co
 }
 
 // FormatOther
-ALIB_API void  VMeta_FormatOther::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
+ALIB_DLL void  VMeta_FormatOther::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatOther>();
     LocalAllocator4K la;
@@ -152,7 +175,7 @@ ALIB_API void  VMeta_FormatOther::imPort(VDATA* data, Configuration&, const Stri
     rec.NoMethodInfo                .Reset(results.TryGet(1));
     rec.LogNumberMinDigits= int(Substring( results.TryGet(2) ).ParseDec());
 }
-ALIB_API void  VMeta_FormatOther::exPort(VDATA* data, Configuration&, const StringEscaper& escaper, AString& dest)
+ALIB_DLL void  VMeta_FormatOther::exPort(VDATA* data, Configuration&, const StringEscaper& escaper, AString& dest)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatOther>();
 #if ALIB_CHARACTERS_WIDE
@@ -168,7 +191,7 @@ ALIB_API void  VMeta_FormatOther::exPort(VDATA* data, Configuration&, const Stri
 }
 
 // FormatAutoSizes
-ALIB_API void  VMeta_FormatAutoSizes::imPort(VDATA* data, Configuration&, const StringEscaper& , const String& src)
+ALIB_DLL void  VMeta_FormatAutoSizes::imPort(VDATA* data, Configuration&, const StringEscaper& , const String& src)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatAutoSizes>();
 
@@ -181,7 +204,7 @@ ALIB_API void  VMeta_FormatAutoSizes::imPort(VDATA* data, Configuration&, const 
     rec.LogMessage.Import( importLog );
 }
 
-ALIB_API void  VMeta_FormatAutoSizes::exPort(VDATA* data, Configuration&, const StringEscaper& , AString& dest)
+ALIB_DLL void  VMeta_FormatAutoSizes::exPort(VDATA* data, Configuration&, const StringEscaper& , AString& dest)
 {
     auto& rec= data->As<alib::lox::textlogger::FormatAutoSizes>();
     rec.Main      .Export( dest );
@@ -190,7 +213,7 @@ ALIB_API void  VMeta_FormatAutoSizes::exPort(VDATA* data, Configuration&, const 
 }
     
 // Replacements
-ALIB_API void  VMeta_Replacements::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
+ALIB_DLL void  VMeta_Replacements::imPort(VDATA* data, Configuration&, const StringEscaper& escaper, const String& src)
 {
     auto& pairs= data->As<alib::lox::textlogger::Replacements>().Pairs;
     LocalAllocator4K la;
@@ -212,7 +235,7 @@ ALIB_API void  VMeta_Replacements::imPort(VDATA* data, Configuration&, const Str
     }
 }
 
-ALIB_API void  VMeta_Replacements::exPort(VDATA* data, Configuration&, const StringEscaper& escaper, AString& dest)
+ALIB_DLL void  VMeta_Replacements::exPort(VDATA* data, Configuration&, const StringEscaper& escaper, AString& dest)
 {
     auto& pairs= data->As<alib::lox::textlogger::Replacements>().Pairs;
     for(auto it = pairs.begin() ; it != pairs.end() ; )
@@ -228,23 +251,23 @@ ALIB_API void  VMeta_Replacements::exPort(VDATA* data, Configuration&, const Str
 }
 
 // ColorfulLoggerParameters
-ALIB_API void  VMeta_ColorfulLoggerParameters::imPort(VDATA* data, Configuration&, const StringEscaper&, const String& src)
+ALIB_DLL void  VMeta_ColorfulLoggerParameters::imPort(VDATA* data, Configuration&, const StringEscaper&, const String& src)
 {
     auto& CLP= data->As<alib::lox::textlogger::ColorfulLoggerParameters>();
     Substring p= src;
     p.Trim();
-    if( p.IsNotEmpty() && !enums::Parse<lox::textlogger::ColorfulLoggerParameters::LightColorUsage>( p, CLP.LCU ) )
+    if( p.IsNotEmpty() && !enumrecords::Parse<lox::textlogger::ColorfulLoggerParameters::LightColorUsage>( p, CLP.LCU ) )
     {
-        ALIB_WARNING( "ALOX", "Error parsing variable CONSOLE_LIGHT_COLORS value {!Q'}.", src )
+        ALIB_WARNING( "ALOX", "Error parsing variable CONSOLE_LIGHT_COLORS value '{}'.", src )
     }
 }
 
-ALIB_API void  VMeta_ColorfulLoggerParameters::exPort(VDATA* data, Configuration&, const StringEscaper&, AString& dest)
+ALIB_DLL void  VMeta_ColorfulLoggerParameters::exPort(VDATA* data, Configuration&, const StringEscaper&, AString& dest)
 {
     auto& CLP= data->As<alib::lox::textlogger::ColorfulLoggerParameters>();
     dest << CLP.LCU;
 }
 
-} //namespace [alib::config::detail]
+} //namespace [alib::variables::detail]
 #endif //if !DOXYGEN
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -23,7 +23,7 @@ This manual covers two \alibmods, namely:
 
 The rationale behind joining both modules in one manual is because both topics are closely tight
 together:
-1. Containers define how a software organizes its objects, and
+1. Containers define how software organizes its objects, and
 2. Monotonic allocation is an alternative way for containers to allocate the memory they need.
 
 The reason why two separate \alibmods_nl have been established is because still both topics are
@@ -37,7 +37,7 @@ different namespaces:
 - #alib::monomem.
 
 Finally, outside both modules, in namespace #alib::lang, which is available independent
-from the list of modules included in an \alibdist, a few types implement an abstraction layer to 
+from the list of modules included in an \alibbuild, a few types implement an abstraction layer to 
 memory allocation. Among those types are:
 - \alib{lang::Allocator} and
 - \alib{lang::AllocatorInterface}, and
@@ -69,7 +69,7 @@ Their use is also covered in this manual.
 ## 1.1 Allocation Models ## {#alib_contmono_intro_builtin_allocation}
 Two "built-in" sorts of memory are available with the C++ language:
 - <b>Local- Or Stack-Allocation<br></b>
-  Local variables are created on the so called <em>"stack-frame"</em>, which is a limited, usually
+  Local variables are created on the so-called <em>"stack-frame"</em>, which is a limited, usually
   fixed size, linear memory buffer associated with each execution thread of a running process.
   Local variables are often called <em>"automatic variables"</em>, because they are constructed and
   deleted without the need of keywords <c>new</c> and <c>delete</c>.<br>
@@ -125,7 +125,7 @@ This is why \alib (and various other 3rd-party libraries) offers further memory 
 
 The module name <em>"monomem"</em> stands for <em>"monotonic memory"</em>.
 The term <em>monotonic</em>  here relates to the way that memory allocation may be performed
-by a software: At a certain point in execution time, a set of allocations is performed which are
+by software: At a certain point in execution time, a set of allocations is performed which are
 all deleted at a distinct future point in time. The used memory for allocation is
 <em>"monotonically growing"</em> during a defined time span.
 
@@ -290,7 +290,7 @@ be caused (in the whole system!) by a higher peak memory consumption.
 
 The takeaway from the previous section was that weakening the requirements to perform
 monotonic allocation might immensely broaden its use cases and with that the potential to
-optimize the performance of a software.
+optimize the performance of software.
 
 Now, let us construct a sample that - at the first sight - is not a candidate for optimization
 and let's think ways to turn it into a candidate. Consider the following scenario:
@@ -340,15 +340,15 @@ The consequence of this approach are:
   (Remember: monotonic allocation can be used when a set of objects share the same lifespan,
    which is now the case.)
 
-A reader could now comment that such recycling technique is not necessarily related to monotonic
+A reader could now comment that such a recycling technique is not necessarily related to monotonic
 memory and can easily be used without it.
 This is very true and reflected by the fact that we are talking about
-two separate \alibmods_nl in this manual: \alib_containers_nl and \alib_monomem_nl. Both are
-\ref alib_manual_modules_dependencies_mandatory "not dependent" on each other. The topic of
-"recycling container objects" is completely covered with module \alib_containers_nl and
-furthermore, type \alib{lang::StdContainerAllocatorRecycling} even provides mechanics to enable
+two separate \alibmods_nl in this manual: \alib_containers_nl and \alib_monomem_nl. 
+As \ref alib_manual_modules_graph "shown here", both are not dependent on each other. 
+The topic of "recycling container objects" is completely covered with module \alib_containers_nl 
+and furthermore, type \alib{lang::StdContainerAllocatorRecycling} even provides mechanics to enable
 recycling for containers of the C++ Standard Library. Finally, in a next independent effort,
-module \alib_monomem_nl, besides monotonic allocation offers in addition mechanics for recycling
+module \alib_monomem_nl, besides monotonic allocation, offers mechanics for recycling
 non-container objects.
 
 Note that with both in place, recycling, and monotonic allocation, the joint benefit surpasses
@@ -381,12 +381,12 @@ and \alib_monomem_nl, have to be introduced.
 
 These prerequisites consider the generalization of the idioms introduced by module \alib_monomem_nl,
 with the result that \b all other \alibmods_nl can make use of monotonic allocation,
-without having any header file dependencies into module \alib_monomem_nl.
+without having any header-file dependencies into module \alib_monomem_nl.
 
 Consequently, the types introduced here neither belong to \alib_monomem_nl nor to
 \alib_containers_nl. 
 Instead, they do belong to the core of \alib and thus reside in namespace #alib::lang.
-Remember that types of that namespace are always included in an \alibdist, independent of its module
+Remember that types of that namespace are always included in an \alibbuild, independent of its module
 selection.
 
 
@@ -446,7 +446,7 @@ For now, let's skip reading their reference documentation.
 All details of these types will be discussed in a later chapter \ref alib_contmono_stdcontainers.
                 
 \divkt
-  Unlike C++ 17 std::pmr allocators, which use dynamic (virtual) types, \alib allocators use 
+  Unlike C++17 std::pmr allocators, which use dynamic (virtual) types, \alib allocators use 
   templates instead.  
   Only low-level methods need to be implemented and are defined by a non-existing 
   \alib{lang;Allocator;prototype class}.<br>
@@ -580,12 +580,12 @@ and it is foreseeable that also in future releases no alternative will be given.
   have started it and continue to maintain the types, if the barriers that the architecture of 
   the <c>std</c>-types imposes towards implementing efficient allocation strategies, 
   were not so high. 
-  We had once hoped that with C++ 17 namespace <c>std::pmr</c> things become better, 
-  but this was only partly the case.   
+  We had once hoped that with C++17 namespace <c>std::pmr</c> the situation improved, but this 
+  was only partly the case.   
                      
 \attention
   While the rationale for the provision of the alternatives to the C++ standard container types
-  is given mainly in this and the next chapter \ref alib_contmono_stdcontainers, accross
+  is given mainly in this and the next chapter \ref alib_contmono_stdcontainers, across
   this manual and in the reference documentation, even more indications of why we started replacing
   them in our software, can be found.<br>
 
@@ -619,11 +619,11 @@ The following container types are provided with module \alib_containers_nl :
   resource. Note that this type is located in (and available with) module \alib_monomem_nl
   and is discussed in separate later chapter \ref alib_contmono_smv.   
 - \alib{containers;StringTree}, a specialized container which has a wide area of use cases.
-  This container is for example used with camps \alib_config, \alib_alox, and \alib_files.
+  This container is for example used with camps \alib_variables, \alib_alox, and \alib_files.
 
 All container types provided, accept an \alib{lang;Allocator} with construction which they use
 for allocations. In the "simple" case of using class \alib{lang::HeapAllocator}, (which is
-always included in any \alibdist, independent of the inclusion of module \alib_monomem_nl,)
+always included in any \alibbuild, independent of the inclusion of module \alib_monomem_nl,)
 alternative constructors exist that do not expect an external allocator.<br>
 Of course, a user of the library could also provide an own allocator type and run these containers
 with that.
@@ -676,7 +676,7 @@ which in turn contain the element objects. In other words, a programmer wants to
 entries, restricted to depth two. Such situation might for example be found with INI-files.
 The outer list is the list of INI-file sections and each section holds a list of INI-file variables.
 
-Now, a software should be free to create and delete arbitrary sections and arbitrary variables
+Now, software should be free to create and delete arbitrary sections and arbitrary variables
 within such sections during the life-cycle of the object.
 The problem arises if a complete category is deleted: While the object for the category itself
 is recycled with the creation of a next category, the list of entries of such recycled
@@ -720,7 +720,7 @@ Here is a quick sample taken from the unit tests that demonstrates the use of sh
 \I{################################################################################################}
 ## 4.4 Recycling Of Non-Node Types ## {#alib_contmono_containers_recycling_nonnodetypes}
 
-The implementation of class \alib{containers;HashTable} allocates so called <em>"bucket arrays"</em>
+The implementation of class \alib{containers;HashTable} allocates so-called <em>"bucket arrays"</em>
 besides node objects. If, with the insertion of a new element, the
 \alib{containers;HashTable::MaxLoadFactor;maximum load factor} of the hash-table is reached,
 a new, bigger bucket array is allocated and the existing nodes are "re-hashed". Then the former
@@ -789,7 +789,7 @@ the concept should be used without imposing too many risks.
 
 As quickly mentioned in chapter \ref alib_contmono_alib_prereq_stdcontalloc, namespace #alib::lang
 introduces type \alib{lang;StdContainerAllocator}. This is independent of the inclusion of
-either module \alib_containers_nl or \alib_monomem_nl in the \alibdist.
+either module \alib_containers_nl or \alib_monomem_nl in the \alibbuild.
 
 \par Please Read Now:
     To avoid redundancy, we would ask you to
@@ -884,7 +884,7 @@ anywhere internally.
 
 
 \I{################################################################################################}
-## 5.3. C++ 17 Polymorphic Memory Resources ## {#alib_contmono_stdcontainers_pmr}
+## 5.3. C++17 Polymorphic Memory Resources ## {#alib_contmono_stdcontainers_pmr}
 
 With C++ language version \c 17, the standard library was extended by namespace <c>std::pmr</c>
 which stands for <em>"polymorphic memory resource"</em>. The standard here primarily aims to allow
@@ -925,7 +925,7 @@ Notes
 
 <p>                    
 \divkt
-  The library offers allocator as well as container types, which are not related to C++ 17 standards
+  The library offers allocator as well as container types, which are not related to C++17 standards
   but can be used stand-alone. The designers of \alib have good reasons for this.<br>
   Of-course we appreciate the need to bridge \alib mechanics into those of C++ standards. 
   Therefore, the library provides those "bridge-types", that are considered reasonable in respect  
@@ -997,7 +997,7 @@ are missing this feature. They only accept values and will thus will never incre
 sizes. This is a design decision: In case a change should be recognized, the low-level
 methods \b allocate and \b reallocate have to be used.
 
-Finally, if compiler symbol \ref ALIB_DEBUG_ALLOCATIONS is set, then an acceptance of a higher
+Finally, if the compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS is set, then an acceptance of a higher
 size than requested, has to be announced by calling method
 \alib{lang;Allocator::dbgAcknowledgeIncreasedAllocSize}. Otherwise, the internal debug-checks
 would (rightfully) report size mismatch errors when an object is freed.
@@ -1050,11 +1050,11 @@ three solutions possible to solve the non-trivial cases.
 ## 6.3 Using Meta-Info Singletons to Reclaim Allocation Information  ## {#alib_contmono_poolallocator_metatrick}
 This is a hands-on chapter providing a recipe to implement safe and efficient use of class
 \alib{monomem;TPoolAllocator} along with a concrete implementation. Instead of
-introducing some artificial sample, we are looking at the internals of camp \alib_config, which
+introducing some artificial sample, we are looking at the internals of camp \alib_variables, which
 constitutes the access to external configuration variables with \alib.
 
 \par Recycling with Class StringTree
-Class \alib{config;Configuration} inherits container type \alib{containers;StringTree},
+Class \alib{variables;Configuration} inherits container type \alib{containers;StringTree},
 which in turn uses container type \alib{containers;HashTable} to store the string-based
 paths to the elements as well as the element data itself. This architecture implements a nice sample
 of a recycling technique: An unlimited number of insertions and removals of entries into a
@@ -1076,39 +1076,39 @@ destructed, and freed?
 
 The explanation should be given as step-by-step recipe:
 1. Class \c Configuration provides the method 
-   \alib{config::Configuration;RegisterType<typename TVMeta>()}.
+   \alib{variables::Configuration;RegisterType<typename TVMeta>()}.
    This method does only take one single template parameter, and no run-time parameters.
    The template parameter has to specify a type that is derived from virtual abstract base type
-   \alib{config;VMeta}.
+   \alib{variables;VMeta}.
 2. The type registration method creates an instance of this type, and this is the only instance
    of this class ever created. It invokes a first virtual function, namely
-   \alib{config;VMeta::typeName}. This is the name of the "variable type" that class
+   \alib{variables;VMeta::typeName}. This is the name of the "variable type" that class
    \b Configuration just was acknowledged of. The returned name is used as a key for an internal
    hash map that carries all meta-information singletons of all registered types
-   (see field \alib{config;Configuration::types}).
-3. If you look at the \alib{config;VMeta;virtual interface of type VMeta}, the strategy
+   (see field \alib{variables;Configuration::types}).
+3. If you look at the \alib{variables;VMeta;virtual interface of type VMeta}, the strategy
    already becomes clear, as we find methods \b size(), \b construct() and \b destruct().
    But let's continue to the end.
 4. With any overloaded method that "declares" a configuration variable, the typeName is somehow
    provided. With that type name, a pointer to the meta-info singleton is received from the hash
-   map and attached to the newly created string tree \alib{config::detail;Entry}.
+   map and attached to the newly created string tree \alib{variables::detail;Entry}.
 5. A next field in the entry is a pointer to the data. Using the information given with virtual 
-   method \alib{config;VMeta::size}, an appropriate piece of memory is retrieved from the pool 
-   allocator. This memory is passed to the method \alib{config;VMeta::construct} and with that 
+   method \alib{variables;VMeta::size}, an appropriate piece of memory is retrieved from the pool 
+   allocator. This memory is passed to the method \alib{variables;VMeta::construct} and with that 
    the declaration of the variable is done.
    \note In theory this should be called a \b definition of the variable, not a declaration. 
-         But camp \alib_config considers variables as defined only after at least a default 
+         But camp \alib_variables considers variables as defined only after at least a default 
          value was written from any variable source, even though from the C++ perspective, the 
          constructor of the custom type has run.
-6. When a variable is deleted, \alib{config;VMeta::destruct} is called and then
-   \alib{config;VMeta::size} is invoked again and its value passed to the pool allocator for
+6. When a variable is deleted, \alib{variables;VMeta::destruct} is called and then
+   \alib{variables;VMeta::size} is invoked again and its value passed to the pool allocator for
    freeing the object.
 
 This approach imposes only one restriction to the custom types that are usable with run-time
 variables offered by that \alibmod_nl: The alignment of the types must not exceed what is
-specified as the fixed alignment used by the pool-allocator. Class \alib{config;Configuration}
+specified as the fixed alignment used by the pool-allocator. Class \alib{variables;Configuration}
 uses the default-value of the template parameter \p{TAlignment}, which is defined by 
-compiler symbol \ref ALIB_MONOMEM_POOLALLOCATOR_DEFAULT_ALIGNMENT. 
+the compiler-symbol \ref ALIB_MONOMEM_POOLALLOCATOR_DEFAULT_ALIGNMENT. 
 If greater alignments are needed, the library and its using code entities have to be compiled with 
 specifying this symbol. 
 But common use-cases of configuration variables do not require greater alignments for custom types.
@@ -1118,8 +1118,8 @@ above, you will see that this class has several members of type \alib{AStringPA}
 Consequently, this class needs a pool allocator at construction which is passed to each string 
 member. 
 This is, of course, again the pool allocator of the \b Configuration object. 
-It is offered for custom use with methods \alib{config;VMeta::construct} and 
-\alib{config;VMeta::destruct}.
+It is offered for custom use with methods \alib{variables;VMeta::construct} and 
+\alib{variables;VMeta::destruct}.
 
 We hope walking you through this real-world sample we have motivated you to consider using 
 pool-allocation in future software designs. 
@@ -1253,7 +1253,7 @@ in the outer type.
 \par    
   Within \alib, samples are:
   - Classes \alib{files;FTree} and \alib{files;TSharedFTree}, and   
-  - classes \alib{config;Configuration} and \alib{config;TSharedConfiguration}.  
+  - classes \alib{variables;Configuration} and \alib{variables;TSharedConfiguration}.  
                
 \par Scheme Two
   This scheme is applied if using the type directly is rather \b not an option and instead, the
@@ -1263,7 +1263,7 @@ in the outer type.
 \par    
   Within \alib, samples are:
   - classes \alib{expressions;ExpressionVal} and \alib{expressions;Expression}.   
-  - Classes \alib{lang::detail;ExceptionEntry} and \alib{lang;Exception}.<br>
+  - Classes \alib{exceptions::detail;ExceptionEntry} and \alib{exceptions;Exception}.<br>
     Well, this is already a slight exception to the rule: class \b %Exception holds a linked list 
     of values, hence here, <em>"Entry"</em> was chosen as the postfix instead of <em>"Val"</em>.   
 
@@ -1280,7 +1280,7 @@ In short:
   release of locks.
 - Macros \ref ALIB_LOCK_WITH and \ref alib_threads_locks_auto_macros "its sibling definitions", 
   allow to prune all lock operations in case module \alib_threads_nl is not included in an 
-  \alibdist and thus multithreading support is willingly suppressed.  
+  \alibbuild and thus multithreading support is willingly suppressed.  
                     
 For details consult that module's \ref alib_mod_threads "Programmer's Manual".
 
@@ -1305,7 +1305,7 @@ Here is a quick sample snippet that shows this with type \alib{files;TSharedFTre
       to either \alib{threads;SharedLock} or <c>void</c>.<br> 
       The choice is made in dependence of the inclusion of module \alib_threads_nl.<br>
        
-With debug-compilations and furthermore compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set,
+With debug-compilations and furthermore the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set,
 the integrated lock is automatically attached to the instance of \alib{lang;DbgCriticalSections}
 that is embedded in the underlying \b StringTree of contained class \alib{files;FTree}.
 With that, (often) assertions are raised in case the instance is used without prior acquisition.<br>
@@ -1317,7 +1317,7 @@ in addtion, the assertions can be switched on and with the method
       chapter \ref alib_threads_intro_assert_locks of the Programmer's Manual of module 
       \alib_threads. 
 
-The very same approach was taken with class \alib{config;TSharedConfiguration} and its alias
+The very same approach was taken with class \alib{variables;TSharedConfiguration} and its alias
 type \alib{SharedConfiguration}.   
 
 
@@ -1385,9 +1385,9 @@ when used, are:
         
 Still these chains could be valuable in complex scenarios.                                                   
 \note If you do not believe that such chains can be useful, consider the creation and destruction
-      of plenty of \alib{lang::Exception} instances, for example in a multithreaded server 
+      of plenty of \alib{exceptions::Exception} instances, for example in a multithreaded server 
       application. Each exception uses a monotonic allocator of 1kb to collect exception messages
-      (see detail chapter \ref alib_basecamp_message_exception_smv on \alib exceptions).  
+      (see detail chapter \ref alib_exceptions_exception_smv on \alib exceptions).  
       
       
 Another scenario where instantiations of other chains may come handy is when a user of the library
@@ -1402,7 +1402,7 @@ The explanation and a source-code sample that concretely shows how to instantiat
         
 is given in the general \alib manual, because the recipe applies to other template types of 
 \alib as well.<br> 
-On interest, consult chapter \ref alib_manual_appendix_t_hpp_files.  
+On interest, consult chapter \ref alib_manual_appendix_t_inl_files.  
                 
 \divkt
  - \alib allows allocators to be chained, where one allocator can delegate memory requests to another. 
@@ -1422,8 +1422,8 @@ This chapter can be made brief: There is no built-in protection against racing c
 caused by parallel allocations invoked by different threads.
 Consequently, any mechanism of protection has to be performed by the using code.
 
-With special compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, which is enabled by default
-with the inclusion of module \alib_threads_nl in the \alibdist_nl, allocators will add code that 
+With the special compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, which is enabled by default
+with the inclusion of module \alib_threads_nl in the \alibbuild_nl, allocators will add code that 
 checks the exclusive use of critical sections. If those checks raise an assertion, the using code
 needs to add locks to prevent racing conditions in multithreaded software. 
 
@@ -1447,7 +1447,7 @@ In case of multi-threading, things become even more complex and a well-thought d
 On the other hand, the performance benefits of using monotonic allocation, for various reasons
 may also become very huge in multi-threading applications.
 
-An expected multi-threading use of a software entity can be a driver for both: either for sharing an
+An expected multi-threading use of software entity can be a driver for both: either for sharing an
 allocator or for creating dedicated allocators used by specific threads. 
 It is use-case-dependent and cannot simply be used as a guideline to decide about it.
  
@@ -1502,7 +1502,7 @@ This consequence can be "overseen" easily.
 Also note, that several \alib modules make use of this allocator instance also \b after 
 bootstrapping. 
 For example, when new instances of classes \alib{threads;Thread} and \alib{lox;Lox} are registered,
-or when class \alib{lang::system;Path} detects default directories for the first time.
+or when class \alib{system;Path} detects default directories for the first time.
 
 For this reason, with debug-compilations, it is asserted that the global allocator is duly locked.
 Further details are given in chapter \ref alib_threads_intro_assert_locks of the 
@@ -1532,7 +1532,7 @@ and why she is doing it.
 The global instance is constructed using special constructor 
 \alib{monomem::TMonoAllocator;TMonoAllocator(const char*, std::nullptr_t)}, which does not allocate a 
 first buffer and produces an invalid instance. At the beginning of the 
-\ref alib_manual_bootstrapping "bootstrapping process" method 
+\ref alib_mod_bs "bootstrapping process" method 
 \alib{monomem::TMonoAllocator;IsInitialized} is used to check if the allocator was rightfully 
 initialized already. If not, a placement-new is performed, passing an initial size of \c 128 
 kilobytes and a growth factor of \c 200.
@@ -1580,16 +1580,16 @@ Instead, following rules apply:
   the alignment in any other way than that it has to be a power of two. 
 - Type \alib{monomem;TPoolAllocator} ignores the parameter and uses the fixed 
   alignment that is given with its template parameter \p{TAlignment}.
-  This parameter defaults to compiler symbol \ref ALIB_MONOMEM_POOLALLOCATOR_DEFAULT_ALIGNMENT, 
+  This parameter defaults to the compiler-symbol \ref ALIB_MONOMEM_POOLALLOCATOR_DEFAULT_ALIGNMENT, 
   and this symbol in turn defaults to <c>alignof(void*)</c>.<br>
   The type definition \ref alib::PoolAllocator, which is used across other modules of \alib, uses 
   this default value. This has some implications at the moment that a library (or code unit that is 
   not under control of a programmer) fixes the alignment to a value that is too low to allocate
   a user's type. 
   As good example is the restriction concerning the alignment of custom types that are to be stored 
-  in instances of class \alib{config;Variable} provided by module \alib_config. 
-  (See chapter \ref alib_config_types_custom of the Programmer's Manual of module 
-  \alib_config for more information.)<br>
+  in instances of class \alib{variables;Variable} provided by module \alib_variables. 
+  (See chapter \ref alib_variables_types_custom of the Programmer's Manual of module 
+  \alib_variables for more information.)<br>
    
   While the maximum value of template parameter \p{TAlignment} depends on the chained allocator,    
   for technical reasons, passing a value lower than <c>alignof(void*)</c> to template 
@@ -1604,7 +1604,7 @@ In debug-compilations \alib assertions are raised when unsupported alignments ar
 ## 11.2 String Allocations ## {#alib_contmono_further_strings}
 
 ### 11.2.1 Simple String Copies ### {#alib_contmono_further_strings_copy}
-String data is often assembled (e.g., using a \alib{lang::format;Formatter}) and the character
+String data is often assembled (e.g., using a \alib{format;Formatter}) and the character
 buffer for this sometimes need to be allocated for later use. The simplest approach to this
 is method \alib{strings;TString::Allocate} (or corresponding constructor
 \alib{strings;TString;TString(TAllocator& allocator, const TString<TChar>&)}), which is templated
@@ -1623,29 +1623,20 @@ readability. In fact it is a type definition providing both template parameters 
 the "real" string buffer type \ref alib::strings::TString<TChar, TAllocator>. Besides choosing
 the standard character size, type definition \alib{AString} chooses heap allocation.
 
-With the inclusion this module \alib_monomem in the \alibdist, further type definitions for
-\b %MonoAllocator and \b %PoolAllocator become available. The following table gives an overview
-of the different combinations of character and allocator types. Note that the alias type definitions
-themselves are made in outer namespace #alib.
+With including \implude{Strings.Monomem}, further type definitions using classes 
+\b %MonoAllocator and \b %PoolAllocator become available. 
+The following table gives an overview of the different combinations of character and allocator types. 
+Note that the alias type aliases themselves are made in outer namespace #alib.
 
 Name                       |  Allocator Type      | Character Type
 -------------------------- |----------------------|------------------
 \alib{AStringMA}           | \alib{MonoAllocator} | \alib{character}
 \alib{AStringPA}           | \alib{PoolAllocator} | \alib{character}
-\alib{ComplementAStringMA} | \alib{MonoAllocator} | \alib{complementChar}
-\alib{ComplementAStringPA} | \alib{PoolAllocator} | \alib{complementChar}
-\alib{StrangeAStringMA}    | \alib{MonoAllocator} | \alib{strangeChar}
-\alib{StrangeAStringPA}    | \alib{PoolAllocator} | \alib{strangeChar}
 \alib{NAStringMA}          | \alib{MonoAllocator} | \alib{nchar}
 \alib{NAStringPA}          | \alib{PoolAllocator} | \alib{nchar}
 \alib{WAStringMA}          | \alib{MonoAllocator} | \alib{wchar}
 \alib{WAStringPA}          | \alib{PoolAllocator} | \alib{wchar}
-\alib{XAStringMA}          | \alib{MonoAllocator} | \alib{xchar}
-\alib{XAStringPA}          | \alib{PoolAllocator} | \alib{xchar}
 
-The aliases associated with a \b %MonoAllocator are declared in header
-\alibheader{monomem/aliases/astringma.hpp}, those associated with \b %PoolAllocator in header
-\alibheader{monomem/aliases/astringpa.hpp}.
 
 For cases where the initial buffer size is not known, but an average or maximum size is, an alternative
 is to emplace an instance of class \alib{strings;TLocalString;LocalString} inside
@@ -1653,35 +1644,26 @@ monotonic memory. The effect of doing so is that the internal reserved buffer is
 allocated together with the object itself. If the buffer is exceeded, dynamic allocation is
 used.<br>
 It is good practice to use \b type LocalString (for example \alib{String32} with container types.
-They can be used for attributes of the contained value the same as for key-attributes (for example
-in case of \c HashTable). Their fixed (templated) internal buffer size has to be chosen carefully
+They can be used for attributes of the contained value the same as for key-attributes (for example,
+in case of class \c HashTable). Their fixed (templated) internal buffer size has to be chosen carefully
 depending on the data that the strings are supposed to hold. The goal here is to find a good
 trade-off between minimizing the average allocation overhead and minimizing the number of
 occasional dynamic allocations caused by buffer exceeds.
         
-Corresponding aliases using different character and allocator types are given:
+Corresponding aliases using different character and allocator types are likewise given with the
+inclusion of \implude{Strings.Monomem}.
 
 Name                           |  Allocator Type      | Character Type
 ------------------------------ |----------------------|------------------
 \alib{LocalStringMA}           | \alib{MonoAllocator} | \alib{character}
 \alib{LocalStringPA}           | \alib{PoolAllocator} | \alib{character}
-\alib{ComplementLocalStringMA} | \alib{MonoAllocator} | \alib{complementChar}
-\alib{ComplementLocalStringPA} | \alib{PoolAllocator} | \alib{complementChar}
-\alib{StrangeLocalStringMA}    | \alib{MonoAllocator} | \alib{strangeChar}
-\alib{StrangeLocalStringPA}    | \alib{PoolAllocator} | \alib{strangeChar}
 \alib{NLocalStringMA}          | \alib{MonoAllocator} | \alib{nchar}
 \alib{NLocalStringPA}          | \alib{PoolAllocator} | \alib{nchar}
 \alib{WLocalStringMA}          | \alib{MonoAllocator} | \alib{wchar}
 \alib{WLocalStringPA}          | \alib{PoolAllocator} | \alib{wchar}
-\alib{XLocalStringMA}          | \alib{MonoAllocator} | \alib{xchar}
-\alib{XLocalStringPA}          | \alib{PoolAllocator} | \alib{xchar}
-
-The aliases associated with a \b %MonoAllocator are declared in header
-\alibheader{monomem/aliases/localstringma.hpp}, those associated with \b %PoolAllocator in header
-\alibheader{monomem/aliases/localstringpa.hpp}.
 
 Furthermore type definitions corresponding to \alib{String8}, \alib{String16}, \alib{String32}...,
-are given in these headers with: 
+are given with this extra module: 
 - \alib{StringMA8}, \alib{StringMA16}, \alib{StringMA32} ... \alib{StringMA4K}, and 
 - \alib{StringPA8}, \alib{StringPA16}, \alib{StringPA32} ... \alib{StringPA4K}. 
  
@@ -1690,17 +1672,15 @@ are given in these headers with:
 Class \alib{strings;util::TStringVector} is a utility type of module \alib_strings which is
 templated with an allocator.
 
-With the inclusion of header \alibheader{monomem/aliases/stringvector.hpp}, the following
-type definitions become available:w  \alib{StringVectorMA}, \alib{StringVectorPA},
+With the inclusion of header \implude{Strings.Monomem}, the following
+type definitions become available:  \alib{StringVectorMA}, \alib{StringVectorPA},
 \alib{NStringVectorMA}, \alib{NStringVectorPA}, \alib{WStringVectorMA}, and \alib{WStringVectorPA}.
 
 \I{################################################################################################}
 ## 11.3 Class Boxes ## {#alib_contmono_further_boxes}
 Class \alib{boxing;TBoxes} constitutes a <c>std::vector</c> of elements of type \alib{boxing;Box}.
 Definition of types \alib{BoxesMA} and \alib{BoxesPA} are made with the inclusion
-of header \alibheader{boxing/boxing.hpp} already. This is done via forward declarations of types
-\b MonoAllocator and \b PoolAllocator, even if module \alib_containers_nl is not included in the  
-\alibdist.
+of header \implude{Boxing} already. 
 
 \I{################################################################################################}
 ## 11.4 Debugging ## {#alib_contmono_further_debug}
@@ -1717,31 +1697,28 @@ available:
   the allocator of the compile-time scope must not be used, because of the multithreaded design
   interaction. To assert that a using code does not accidentally use the wrong scope for 
   allocations, the allocator of the compile-time scope is locked.
-- Method \alib{monomem;TMonoAllocator::DbgDumpStatistics} becomes available.        
+- Function \alib{monomem;DbgDumpStatistics} becomes available.        
    
-With special compiler symbol \ref ALIB_DEBUG_MONOMEM, the following features are activated:
-- Method \alib{monomem;TMonoAllocator::DbgGetStatistics} becomes available and method
-  \alib{monomem;TMonoAllocator::DbgDumpStatistics} will collect more metrics than before.         
+With the special compiler-symbol \ref ALIB_DEBUG_MEMORY, the following features are activated:
+- Method \alib{monomem;TMonoAllocator::DbgGetStatistics} becomes available and function
+  \alib{monomem;DbgDumpStatistics} will collect more metrics than before.         
 - A warning in the destructor of class \alib{monomem;TMonoAllocator} raised if more than <b>15</b>
   memory buffers have been created. This might indicate that the allocation size of an allocator
   should be raised.
 - A warning in the destructor of class \alib{monomem;TMonoAllocator} raised if memory has been
   requested, that is bigger than the half of the allocator's actual allocation size.
 - Various \alox debug-logging into domain <b>/ALIB/MONOMEM/</b> and Subdomains is performed.
-- With class \b TMonoAllocator, the following features become available:
-  - Method \alib{monomem;TMonoAllocator::DbgGetStatistics}
-  - Method \alib{monomem;TMonoAllocator::DbgDumpStatistics}
-  - An \alib warning is raised if an allocation request exceeds
-    \alib{monomem::TMonoAllocator::nextBuffersUsableSize}.
+- With class \b TMonoAllocator, an \alib warning is raised if an allocation request exceeds
+  \alib{monomem::TMonoAllocator::nextBuffersUsableSize}.
 
-With special compiler symbol \ref ALIB_DEBUG_CONTAINERS, the following features are activated
+With the special compiler-symbol \ref ALIB_DEBUG_CONTAINERS, the following features are activated
 for class \b HashTable:
   - Function \alib{containers;DbgGetHashTableDistribution}.
   - Function \alib{containers;DbgDumpDistribution}.
   - Function \alib{containers;DbgDumpHashtable}.
 
 
-With special compiler symbol \ref ALIB_DEBUG_ALLOCATIONS, the following features are activated:
+With the special compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS, the following features are activated:
 - Allocated memory of any allocator (\alib{lang;HeapAllocator}, \alib{monomem;TMonoAllocator} and
   \alib{monomem;TPoolAllocator;PoolAllocator}) is surrounded by "magic bytes", which are tested to
   be intact with <b>free</b>-methods. This can be also manually checked with
@@ -1767,8 +1744,8 @@ With special compiler symbol \ref ALIB_DEBUG_ALLOCATIONS, the following features
   Likewise memory which is released with method \alib{monomem;TMonoAllocator::Reset},
   is overwritten to invalidate existing data.
 
-Finally, with special compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, which is enabled by default
-with the inclusion of module \alib_threads_nl in the \alibdist_nl, the following features are activated:
+Finally, with the special compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, which is enabled by default
+with the inclusion of module \alib_threads_nl in the \alibbuild_nl, the following features are activated:
 - allocators will add code that checks the exclusive use of critical sections. 
   If those checks raise an assertion, the using code needs to add locks to prevent racing conditions 
   in multithreaded software.
@@ -1796,8 +1773,8 @@ real-time systems, server-side applications), then types  \b MonoAllocator, \b L
 The fact that this Programmer's Manual needed quite lengthy introduction chapters and contains 
 many general knowledge sections, explains why alternative allocation strategies are not
 often found in programming languages.<br> 
-Even the C++ language only in their C++ 17 level, received valuable and consistent types in that 
-area 
+Even the C++ language only in their C++17 level, received valuable and consistent types in that 
+area. 
 
 From our perspective, the mechanisms that these two combined \alibmods provide, 
 - go quite beyond the C++ standard's approach,

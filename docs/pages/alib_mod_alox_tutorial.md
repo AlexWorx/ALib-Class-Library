@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -94,7 +94,7 @@ In this tutorial we stick to the simple case, maybe adding a second \e Logger he
 In the tutorial language we do not further explain these macros. So do not be surprised when the presented sample code
 shows a macro, while the explaining text refers to the method invocations that are represented by these macros.
 For a information on \alib_alox_nl macros for logging, please refer to Programmer's Manual appendix
-chapter \ref alib_mod_apdx_prepro_macros "C.2 ALox Macros".
+chapter \ref alib_mod_alox_apdx_prepro_macros "C.2 ALox Macros".
 
 \I{################################################################################################}
 # 3. Create a tutorial project or equip your current project with ALox #   {#alox_tutcpp_createproject}
@@ -107,7 +107,7 @@ of \aliblong.
 \note
   Of course, you can skip this step and continue \e reading the tutorial
   without setting up \alib_alox_nl now. For some IDEs, there might be a
-  \ref alib_mod_ide_setup "ready to use solution" available that minimizes efforts when you want
+  \ref alib_mod_alox_ide_setup "ready to use solution" available that minimizes efforts when you want
   to follow the samples and play around a little.
 
 To include all headers necessary for this tutorial, add the following statements to your source file:
@@ -240,7 +240,7 @@ Even better: The \alib_alox_nl code is not even compiled into the release target
 are logging out during developing and debugging your software, it is all automatically gone in the
 release version.
 
-This is achieved by providing the right set of \ref GrpALibPreproSymbols "compiler symbols" when
+This is achieved by providing the right set of \ref GrpALibPreproSymbols "compiler-symbols" when
 \ref alib_manual_build "setting up the project".
 Only project configurations that have the symbol \ref ALOX_DBG_LOG set to \c 1 will contain \alib_alox_nl
 debug logging statements.
@@ -452,7 +452,7 @@ To avoid all this (and gain even more cool features) \alib_alox_nl provides a fe
 
 The term \e Scope is known from your programming language. For example, a variable declared
 within a class method, 'automatically' carries the scope of that method. This means, it is not
-visible outside of that method. \alib_alox_nl uses a similar approach: All <em>Log Statements</em> within a method might
+visible outside that method. \alib_alox_nl uses a similar approach: All <em>Log Statements</em> within a method might
 carry the same <em>Log Domain</em>. In other words, we can set a 'default value' for a <em>Log Domain</em> to be used for
 all <em>Log Statements</em> of a method.
 
@@ -538,7 +538,7 @@ is just concatenated:
 
 But in fact, this concatenation is just the "fallback" strategy of a quite powerful formatting
 system coming with \alox. In short, \alox here relies on underlying library \alib, which
-provides abstract class \ref alib::lang::format::Formatter "Formatter"
+provides abstract class \ref alib::format::Formatter "Formatter"
 allowing to format a set of arguments in accordance with a given format string that contains placeholder symbols.
 
 Now there are two tricks implemented: First, if no format string is recognized, a simple
@@ -546,11 +546,11 @@ concatenation is performed. This is what we already saw. But secondly, if one fo
 recognize a format string, a next formatter can be asked.
 
 Two formatters are provided by \alib and \alox (by default) installs both in parallel:
-1. \ref alib::lang::format::FormatterPythonStyle "FormatterPythonStyle"<br>
+1. \ref alib::format::FormatterPythonStyle "FormatterPythonStyle"<br>
    Implements an extended version of
    [Python String Fromat Syntax](https://docs.python.org/3.5/library/string.html#format-string-syntax),
    which is also similar to what C# offers.
-2. \ref alib::lang::format::FormatterJavaStyle "FormatterJavaStyle"<br>
+2. \ref alib::format::FormatterJavaStyle "FormatterJavaStyle"<br>
    Implements the
    [formatting standards of the Java language](http://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html),
    which in turn are a little like good old \c printf, but of course much more powerful and also type-safe.
@@ -587,24 +587,24 @@ string!
 In general, we are recommending to use Python style syntax with \alib_alox_nl, because it is more powerful and
 probably also better readable. The full documentation of the formats and how this is adopted
 within the C++ version of <b>%ALib/%ALox</b> is found with documentation of classes
-\ref alib::lang::format::FormatterPythonStyle "FormatterPythonStyle" and
-\ref alib::lang::format::FormatterJavaStyle   "FormatterJavaStyle".
+\ref alib::format::FormatterPythonStyle "FormatterPythonStyle" and
+\ref alib::format::FormatterJavaStyle   "FormatterJavaStyle".
 
 Here are a few more samples:
 
 \snippet ut_alox_dox.cpp        ALoxTut_Format_Sample_1
 \verbinclude pages/generated/ALoxTut_Format_Sample_1.txt
 
-The formatting system found with \alib module \alib_basecamp provide a concept which is similar
+The formatting system found with \alib module \alib_format provides a concept which is similar
 to method <c>ToString()</c> in the Java language or similar concepts in other languages: It allows
-to define a textual representation for just any C++ Type.
-It needs a little effort, but once in place you can drop just any of your objects into a
-log statement. This relieves you of getting the single attributes out of an object and write
-complicated long format strings, again and again.
+defining a textual representation for just any C++ Type.
+It needs a little effort, but once in place, just any type of object can be dropped into a
+log statement. This relieves you of getting the single attributes out of an object and writing 
+complicated format-strings, again and again.
 
-Next, it is even possible to define new placeholder "languages" for the formatters. As a sample, for
-class \alib{time;DateTime} such custom extension exists with the inclusion of
-\alibheader{lang/system/calendar.hpp}:
+Next, it is even possible to define new placeholder "languages" for the formatters. 
+As a sample, for class \alib{time;DateTime}, such custom extension exists with the inclusion of
+module \alib_format:
 
 \snippet ut_alox_dox.cpp        ALoxTut_Format_Sample_2
 
@@ -612,8 +612,8 @@ The result is:
 
 \verbinclude pages/generated/ALoxTut_Format_Sample_2.txt
 
-Details on how to do this are given in chapter \ref alib_basecamp_format_custom_types
-of the Programmer's Manual of module \alib_basecamp.
+Details on how to do this are given in chapter \ref alib_format_custom_types
+of the Programmer's Manual of module \alib_format_nl.
 
 
 \I{################################################################################################}
@@ -792,7 +792,7 @@ every attribute. In contrast, you should collect the whole dump within an \alib{
 (or any string-type you like) and then log this String as a whole.
 
 So, currently class \alox{LogTools} just provides one static method for logging an
-\alib{lang;Exception}.
+\alib{exceptions;Exception}.
 
 For future versions of \alib_alox_nl for C++, it is planned to provide:
 - Working with debug information to implement log tools for user-defined classes
@@ -972,7 +972,7 @@ important things not covered in the tutorial are:
 
 - <b>Release Logging</b><br>
   Release logging is very similar to debug logging. The differences and how to use release-logging is
-  described in a \ref alib_mod_debug_and_release_logging "dedicated chapter" of the Programmer's Manual.
+  described in a \ref alib_mod_alox_debug_and_release_logging "dedicated chapter" of the Programmer's Manual.
 - <b>External Configuration</b><br>
   Instead of setting \e Verbosities and other changeable configuration "from within the source"
   (by adding \alib_alox_nl API invocations to your software), such data can also come from INI files,
@@ -982,13 +982,13 @@ important things not covered in the tutorial are:
   \ref alib_alox_cfgvars "ALox Configuration Variables".
 - <b>Trimming Source File Paths</b><br>
   For C++ and C# users: \alib_alox_nl automatically trims paths of source code files. This can
-  be optimized, as described in chapter \ref alib_mod_trim_source_path of the Programmer's Manual.
+  be optimized, as described in chapter \ref alib_mod_alox_trim_source_path of the Programmer's Manual.
 - <b>Log Domain Substitution</b><br>
-  What this is, is described chapter \ref alib_mod_domain_substitution of the Programmer's Manual
+  What this is, is described chapter \ref alib_mod_alox_domain_substitution of the Programmer's Manual
 
 
 If however, you just want to start using \alib_alox_nl and get to know more details over time, you should
-only read \ref alib_mod_ide_setup and probably section <b>"ALox Macros For Debug Logging"</b>
+only read \ref alib_mod_alox_ide_setup and probably section <b>"ALox Macros For Debug Logging"</b>
 in \ref GrpALibPreproMacros.
 
 Finally, for the daily work, the \ref alib::lox "ALox class reference" gives a lot of help!

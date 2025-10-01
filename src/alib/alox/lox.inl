@@ -1,55 +1,12 @@
 //==================================================================================================
 /// \file
-/// This header file is part of module \alib_alox of the \aliblong.
+/// This header-file is part of module \alib_alox of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
-//==================================================================================================
-#ifndef HPP_ALIB_LOX_LOX
-#define HPP_ALIB_LOX_LOX 1
-#pragma once
-#if !defined(HPP_ALIB_ALOX)
-#   error "ALib sources with ending '.inl' must not be included from outside."
-#endif
 
-#include "alib/enums/bitwise.hpp"
-#include "alib/lang/platformincludes.hpp"
 
-namespace alib::lox::detail     { class Logger; }
-namespace alib::lox::textlogger { class TextLogger; }
-
-namespace alib::lox {
-/// Denotes flags used with methods \alib{lox;Lox::GetState} and \alib{lox;Lox::State} to select
-/// different parts of the state receive.
-enum class StateInfo
-{
-   NONE                     = 0,       ///< No state
-   Basic                    = 1 <<  0, ///< Name and number of log calls
-   Version                  = 1 <<  1, ///< Library Version and thread safeness
-   Loggers                  = 1 <<  2, ///< Loggers
-
-   Domains                  = 1 <<  3, ///< Log domains currently registered
-   InternalDomains          = 1 <<  4, ///< Internal domains
-   ScopeDomains             = 1 <<  5, ///< Scope domains
-   DSR                      = 1 <<  6, ///< Domain substitution rules
-   PrefixLogables           = 1 <<  7, ///< Prefix logables
-   Once                     = 1 <<  8, ///< Log once counters
-   LogData                  = 1 <<  9, ///< Log data objects
-   ThreadMappings           = 1 << 10, ///< Named threads
-
-   SPTR                     = 1 << 20, ///< Source path trim rules
-   CompilationFlags         = 1 << 21, ///< \alib/\alox compilation flags
-
-   All                      = ~0L,
-};
-
-} // namespace [alib::lox]
-
-ALIB_ENUMS_ASSIGN_RECORD( alib::lox::StateInfo, alib::enums::ERSerializable )
-
-#include "alib/alox/detail/loxpimpl.inl"
-
-namespace alib {  namespace lox {
+ALIB_EXPORT namespace alib {  namespace lox {
 
 //==================================================================================================
 /// This class acts as a container for \e Loggers and provides a convenient interface to logging.
@@ -82,8 +39,6 @@ class Lox
     ///   THR        | Used with method \b %Lox::MapThreadName.
     ///   LGD        | Used with storing and retrieving <em>Log Data</em> objects.
     ///
-    /// In addition, class \alox{ALoxReportWriter} logs into subdomain <c>'REPORT'</c>.
-    ///
     /// \note For internal logging an separated <em>domain tree</em> is used. This means, that
     ///       setting the root domain of a \b %Lox to a certain \e Verbosity does \e not affect
     ///       the internal domains. In other words, the \e Verbosity of the internal domain
@@ -112,18 +67,51 @@ class Lox
         ///                   \alib{lox,ALoxCamp}.
         ///                   Optional and defaults to \c true.
         //==========================================================================================
-        Lox(const NString& name, bool doRegister =true )
-        {
-            detail::LI::Construct( this, name, doRegister );
-        }
+        ALIB_DLL
+        Lox(const NString& name, bool doRegister =true );
 
         //==========================================================================================
         /// Destructs a lox
         //==========================================================================================
-        ~Lox()
-        {
-            detail::LI::Destruct(this);
-        }
+        ALIB_DLL
+        ~Lox();
+
+
+        /// Returns a \b %Lox with the given name.
+        /// A \b %Lox is only found if it was created and registered with \alox using #Register.
+        /// If not found, and parameter \p{create} is \c true (the default), a new \b Lox is created,
+        /// registered and returned.
+        ///
+        /// @param name      The name of the \b %Lox to search and optionally to create.
+        ///                  Comparison is case-insensitive.
+        /// @param create    Denotes whether a \b %Lox that was not found is created.
+        ///                  Optional and defaults to \b %CreateIfNotExists::No.
+        /// @return The \b Lox found, \c nullptr in case of failure.
+        ALIB_DLL
+        static Lox*     Get( const NString&          name,
+                             lang::CreateIfNotExists create= lang::CreateIfNotExists::No );
+
+        /// Registers or un-registers a \b %Lox object statically with \alox.
+        /// Once registered,  any code entity of the same process is enabled to retrieve
+        /// the \b %Lox using #Get.<br>
+        /// No two objects with the same name must be registered. If this is done, the latter
+        /// will not be registered and not be found by #Get. In debug-compilations, an \alib
+        /// assertion is raised if a name is registered twice.<br>
+        /// Note that name comparison is performed case <b>in</b>-sensitive.
+        ///
+        /// If debug-logging is enabled (depends on optional compiler-symbols) and used, the
+        /// singleton of type \c %Lox provided for debug-logging is registered. This uses the name
+        /// \c "Log".
+        ///
+        /// Registration is \e not mandatory but done by default by the constructor of class \b %Lox.
+        /// Therefore, to keep a \b Lox private, an optional parameter is available.
+        ///
+        /// @param lox       The \b %Lox to register.
+        /// @param operation If \b %ContainerOp::Remove, the given \p{Lox} is deregistered.
+        ///                  Defaults to \b %ContainerOp::Insert.
+        ALIB_DLL
+        static void     Register( Lox* lox, lang::ContainerOp operation );
+
 
     // #############################################################################################
     // Interface
@@ -243,7 +231,7 @@ class Lox
         ///                        or applies to all instances of class \b %Lox.
         ///                        Defaults to \b %Reach::Global.
         /// @param priority        The priority of the setting. Defaults to
-        ///                        \alib{config;Priority;Standard}.
+        ///                        \alib{variables;Priority;Standard}.
         //==========================================================================================
         void      SetSourcePathTrimRule( const NCString& path,
                                          lang::Inclusion includeString   = lang::Inclusion::Exclude,
@@ -267,7 +255,7 @@ class Lox
         /// Setting parameter \p{allowAutoRule} to \c false, allows suppressing the creation of an
         /// automatic rule based on the executables path.
         ///
-        /// \see Chapter \ref alib_mod_trim_source_path for more information.
+        /// \see Chapter \ref alib_mod_alox_trim_source_path for more information.
         ///
         /// @param reach         Denotes whether only local rules are cleared or also global ones.
         ///                      Defaults to \b %Reach::Global.
@@ -300,14 +288,14 @@ class Lox
         ///
         /// @return An instance of the chosen console type logger.
         //==========================================================================================
-        ALIB_API static
+        ALIB_DLL static
         textlogger::TextLogger*  CreateConsoleLogger( const NString& name= nullptr );
 
         //==========================================================================================
         /// Retrieves an instance of a Logger by its name. This might be useful when access to a
         /// \e %Logger is needed to change its configuration.
         ///
-        /// @param loggerName    The name of the \e Logger to search for (case insensitive).
+        /// @param loggerName    The name of the \e Logger to search for (case-insensitive).
         /// @return  The logger, nullptr if not found.
         //==========================================================================================
         detail::Logger*   GetLogger( const NString& loggerName )
@@ -337,7 +325,7 @@ class Lox
         ///  \ref SetVerbosity(detail::Logger*,Verbosity,const NString&,Priority) "SetVerbosity(logger, Verbosity::Off)"
         ///   can be used.
         ///
-        /// @param loggerName  The name of the \e Logger(s) to be removed (case insensitive).
+        /// @param loggerName  The name of the \e Logger(s) to be removed (case-insensitive).
         /// @returns The logger that was removed, \c nullptr if not found.
         //==========================================================================================
         detail::Logger*   RemoveLogger( const NString& loggerName )
@@ -360,7 +348,7 @@ class Lox
         /// \b %Verbosity::Off and \p{domain} to \c "/".
         ///
         /// Optional parameter \p{priority} defaults to
-        /// \alib{config;Priority;Standard},
+        /// \alib{variables;Priority;Standard},
         /// which is a lower priority than those of the standard plug-ins of external configuration
         /// data. Therefore, external configuration by default 'overwrite' settings made from
         /// 'within the source code', which simply means by invoking this method.<br>
@@ -396,13 +384,13 @@ class Lox
         ///   temporarily adjust a scope. But remember: \alox was designed to avoid temporary
         ///   code lines...
         ///
-        /// @param logger     The logger to be to be affected (case insensitive).
+        /// @param logger     The logger to be to be affected (case-insensitive).
         /// @param verbosity  The 'level of verboseness' to be set.
         /// @param domain     The parent (start) domain to be set. The use of absolute paths
         ///                   starting with <c> '/'</c> are recommended.
         ///                   Defaults to root domain \"/\".
         /// @param priority   The priority of the setting. Defaults to
-        ///                   \alib{config;Priority;Standard}.
+        ///                   \alib{variables;Priority;Standard}.
         //==========================================================================================
         void            SetVerbosity( detail::Logger*  logger,
                                       Verbosity        verbosity,
@@ -427,7 +415,7 @@ class Lox
         ///                   starting with <c> '/'</c> are recommended.
         ///                   Defaults to root domain \"/\".
         /// @param priority   The priority of the setting. Defaults to
-        ///                   \alib{config;Priority;Standard}.
+        ///                   \alib{variables;Priority;Standard}.
         //==========================================================================================
         void            SetVerbosity( const NString&   loggerName,
                                       Verbosity        verbosity,
@@ -544,7 +532,7 @@ class Lox
         /// be \e overwritten using further configuration variables.
         /// Any prioritized \e 'internal' setting of \e Verbosities this way could be circumvented!
         ///
-        /// For more information consult the chapter \ref alib_mod_domain_substitution of the
+        /// For more information, consult the chapter \ref alib_mod_alox_domain_substitution of the
         /// Programmer's Manual.
         ///
         /// @param domainPath  The path to search. Has to start with either <c>'/'</c> or <c>'*'</c>.
@@ -610,8 +598,8 @@ class Lox
         ///   objects got set as a <em>Prefix Logable</em>, are \b not reflected.<br>
         ///   To implement a "variable" <em>Prefix Logable</em> of string-type, an object of type
         ///   \b %AString might be passed wrapped in class \c std::reference_wrapper<AString>.<br>
-        ///   For more information consult manual chapter
-        ///   \ref alib_mod_prefix_logables_lifecycle
+        ///   For more information, consult manual chapter
+        ///   \ref alib_mod_alox_prefix_logables_lifecycle
         ///   as well as chapter \ref alib_boxing_customizing_identity of the Programmer's Manual
         ///   of module \alib_boxing.
         ///<p>
@@ -686,8 +674,8 @@ class Lox
         ///   <em>Prefix Logables</em>.
         ///   This means, different to <em>Prefix Logables</em> of type \b %AString or custom types,
         ///   the life-cycle of the object passed in parameter \p{prefix} is allowed to end
-        ///   right after the invocation of this method. For more information consult manual chapter
-        ///   \ref alib_mod_prefix_logables_lifecycle as well as chapter
+        ///   right after the invocation of this method. For more information, consult manual chapter
+        ///   \ref alib_mod_alox_prefix_logables_lifecycle as well as chapter
         ///   \ref alib_boxing_customizing_identity of the Programmer's Manual of module
         ///   \alib_boxing.
         ///
@@ -726,7 +714,7 @@ class Lox
         /// @param startTime  Optional parameter with the new start time. Defaults
         ///                   to current time if omitted.
         /// @param loggerName The name of the \e Logger(s) whose start time is to be set
-        ///                   (case insensitive).
+        ///                   (case-insensitive).
         ///                   Defaults to nullptr, which indicates that all loggers are to
         ///                   be affected.
         //==========================================================================================
@@ -736,12 +724,12 @@ class Lox
             detail::LI::SetStartTime(impl, startTime, loggerName);
         }
 
-        #if defined (__GLIBCXX__) || defined(__APPLE__)
+        #if defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__)
             //======================================================================================
             /// Converts the given \p{startTime} and invokes #SetStartTime(Ticks,const NString&).
             /// \note  GLib specific.
             ///
-            /// @param startTime  The new start time in system specific time unit.
+            /// @param startTime  The new start time in system-specific time unit.
             /// @param loggerName The name of the \e Logger whose start time is to be set (case
             ///                   insensitive).
             ///                   Defaults to empty string, which indicates that all loggers are to
@@ -760,7 +748,7 @@ class Lox
             /// Converts the given \p{startTime} and invokes#SetStartTime(Ticks,const NString&).
             /// \note  Microsoft Windows specific.
             ///
-            /// @param startTime  The new start time in system specific time unit.
+            /// @param startTime  The new start time in system-specific time unit.
             /// @param loggerName The name of the \e Logger whose start time is to be set (case
             ///                   insensitive).
             ///                   Defaults to empty string, which indicates that all loggers are to
@@ -800,7 +788,7 @@ class Lox
         /// \attention
         ///  When data objects are 'overwritten', previous objects will be deleted internally.
         ///  Hence, only pointers to heap-allocated objects (created with \c new) may be passed!<br>
-        ///  For more information, consult chapter \ref alib_mod_log_data of the
+        ///  For more information, consult chapter \ref alib_mod_alox_log_data of the
         ///  Programmer's Manual.
         ///
         /// \note <em>Log Data</em> is a feature provided by \alox to support debug-logging.
@@ -854,7 +842,7 @@ class Lox
         /// @param scope     The \e %Scope that the data is bound to.
         /// @return The data, a \e nulled box if no value was found.
         //==========================================================================================
-        ALIB_API
+        ALIB_DLL
         Box       Retrieve  ( const NString& key, Scope scope= Scope::Global )
         {
             return detail::LI::retrieve( impl, key, scope );
@@ -869,7 +857,7 @@ class Lox
         /// @param scope     The \e %Scope that the data is bound to.
         /// @return The data, a \e nulled box if no value was found.
         //==========================================================================================
-        ALIB_API
+        ALIB_DLL
         Box  Retrieve  ( Scope scope= Scope::Global )
         {
             return detail::LI::retrieve( impl, nullptr, scope );
@@ -1426,12 +1414,12 @@ class Lox
     // #############################################################################################
     // Debug methods
     // #############################################################################################
-    #if ALIB_DEBUG_MONOMEM
+    #if ALIB_DEBUG_MEMORY
         //==========================================================================================
         /// Returns the internal \b MonoAllocator used for storing permanent data.
         ///
         /// \par Availability
-        ///   This method is available only with debug-builds with \ref ALIB_DEBUG_MONOMEM set.
+        ///   This method is available only with debug-builds with \ref ALIB_DEBUG_MEMORY set.
         ///
         /// @return The monotonic allocator of this \b Lox.
         //==========================================================================================
@@ -1443,6 +1431,15 @@ class Lox
 
 }; // class Lox
 
+namespace detail {
+    /// Internal lox management.
+    /// @return The current number of loxes
+    integer dbgCountLoxes();
+
+    /// Internal lox management.
+    void    shutdownLoxes();
+}
+
 } // namespace alib[::lox]
 
 /// Type alias in namespace \b alib.
@@ -1452,5 +1449,4 @@ using     Lox=           lox::Lox;
 
 ALIB_ENUMS_MAKE_BITWISE( alib::lox::StateInfo )
 
-#endif // HPP_ALIB_LOX_LOX
 

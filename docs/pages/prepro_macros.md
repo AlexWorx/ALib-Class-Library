@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -14,7 +14,6 @@
 #define A_NCHAR(STR)
 #define A_WCHAR(STR)
 #define A_XCHAR(STR)
-#define ATMP_CHAR_COMPLEMENT( TChar )
 
 #define LOX_LOX
 
@@ -33,7 +32,7 @@ The following sections of this document lists macros that are not related to a s
 <br> &nbsp;&nbsp; \ref GrpALibMacros_langlink          "C/C++ Language And Linkage"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_warnings          "C/C++ Compiler Warning Control"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_dbgmessages       "Debug Assertions, Warnings and Errors"
-<br> &nbsp;&nbsp; \ref GrpALibMacros_tmp               "C++ Template Meta Programming"
+<br> &nbsp;&nbsp; \ref GrpALibMacros_templ_tools       "C++ Template Programming Tools"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_locksandrecursion "Resource Locking and Recursive Programming"
 
 Followed to this, module-specific macros are documented:
@@ -41,7 +40,7 @@ Followed to this, module-specific macros are documented:
 &nbsp;&nbsp;      \ref GrpALibMacros_mod_alox_debug    "Module ALox - Debug Logging"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_alox_release  "Module ALox - Release Logging"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_alox_lowlevel "Module ALox - Lowlevel Macros"
-<br> &nbsp;&nbsp; \ref GrpALibMacros_mod_camp          "Module BaseCamp"
+<br> &nbsp;&nbsp; \ref GrpALibMacros_mod_camp          "Module Basecamp"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_boxing        "Module Boxing"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_characters    "Module Characters"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_config        "Module Config"
@@ -70,14 +69,14 @@ directly clients of the library.
   The \alib version number.
   The value of this macro is stored in namespace variable \ref alib::VERSION.
 
-  \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
+  \see Programmer's manual chapter \ref alib_mod_bs_assertcomp.
 
 
 \def ALIB_REVISION
   The \alib revision number.
   The value of this macro is stored in namespace variable \ref alib::REVISION.
 
-  \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
+  \see Programmer's manual chapter \ref alib_mod_bs_assertcomp.
 
 
 \def ALIB_COMPILATION_FLAGS
@@ -86,10 +85,10 @@ directly clients of the library.
    \ref alib::Bootstrap (and overloads).
   The value of this macro is stored in namespace variable \ref alib::COMPILATION_FLAGS.
 
-  \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
+  \see Programmer's manual chapter \ref alib_mod_bs_assertcomp.
 
 \def ALIB_ASSERT_MODULE
-  Asserts if a given module is included in the \alibdist.
+  Asserts if a given module is included in the \alibbuild.
   @param modulename   The name of the module to assert as available.
 
 
@@ -193,14 +192,14 @@ specific utilities.
 
 @{
 
-\def ALIB_API
+\def ALIB_DLL
   Used to export/import C++ symbols into a dynamic link library.
   Defined under Windows/MSC when compiling or using \alib classes inside a DLL.
   Dependent on \ref ALIB_API_IS_DLL and \ref ALIB_API_NO_DLL.
-
-\def ALIB_NO_RETURN
-  Used as alias to C++ attribute <c>[[noreturn]]</c>.
-  Defined if the compiler has support for it, else empty.
+                                      
+\def ALIB_EXPORT
+  Depends on the compiler-symbol \ref ALIB_C20_MODULES. Equals to keyword \c export if 
+  compiled in module mode, and is empty otherwise.
 
 \def ALIB_ASSERT_GLOBAL_NAMESPACE
   If this macro is placed outside the global namespace, a <c>static_assert</c> is raised at
@@ -210,24 +209,13 @@ specific utilities.
   Compiler/platform-dependent value. Gives the sizeof values of type \c wchar_t in bytes.
   Possible values are \b 2 and \b 4.
 
-\def ALIB_FORCE_INLINE
-  Uses compiler-specific annotation (including keyword \c inline if necessary) to mark a method
-  or function to be compiled and linked inline.<br>
-
-  \note
-    While this symbol might be used for "manual" performance optimization, such use is recommended
-    only in seldom cases. \alib itself uses this if technical reasons impose a strict requirement
-    for inlining. This is for example the case, if template meta programming select different
-    versions depending on type traits. Such traits might be selected differently per
-    compilation unit (CPP-file). If not inlined, the selection might not be effective.
-
 \def ALIB_CALLER_FUNC
   Used by macro \ref ALIB_CALLER to retrieve the compiler-specific preprocessor variable
   of the current function name. With MSVC evaluates to \b __FUNCTION__, 
   with other compilers to \b __func__.
 
 \def ALIB_CALLER
-  This macro fills in the built-in compiler symbols that provide the current source file,
+  This macro fills in the built-in compiler-symbols that provide the current source file,
   line number and function strings.<p>
   The macro should be used anywhere where this information is passed (as a nested macro in
   debug macros)
@@ -310,10 +298,10 @@ this in a compiler agnostic way.
 \def ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
  Preprocessor macro to disable GCC warning "nonnull". Used for example with template meta
  programming below C++ 14 standard.
-
-\def ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
- Preprocessor macro to disable compiler warnings about potentially unsafe buffer usages.
- (i.e with clang this ignores "-Wunsafe-buffer-usage" )
+                                            
+\def ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
+ Preprocessor macro to disable compiler warnings about detected unreachable code.
+ (i.e with clang this ignores "-Wunreachable-code" )
 
 \def ALIB_WARNINGS_MACRO_NOT_USED_OFF
  Preprocessor macro to disable compiler warnings about unused preprocessor macros.
@@ -326,7 +314,7 @@ this in a compiler agnostic way.
  Preprocessor macro to disable compiler warnings on redefining macros without prior un-defining.
 
 \def ALIB_WARNINGS_ALLOW_UNSAFE_FUNCTION_OR_VARIABLE
- Preprocessor macro to disable compiler warnings for use of 'unsafe' (depricated) libary
+ Preprocessor macro to disable compiler warnings for use of 'unsafe' (deprecated) library
  functions. Currently used with MSVC 4996 only.
 
 \def ALIB_WARNINGS_OVERLOAD_VIRTUAL_OFF
@@ -339,7 +327,7 @@ this in a compiler agnostic way.
 
 \def ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
  Preprocessor macro to disable compiler warnings when a
- "bitwise type scoped enumeration" (see \alib{enums;T_EnumIsBitwise}) or similar types with
+ "bitwise type scoped enumeration" (see \alib{enumops;BitwiseTraits}) or similar types with
  'sparse' case coverage are used in a switch statement.
 
 \def ALIB_WARNINGS_IGNORE_DOCS
@@ -348,6 +336,10 @@ this in a compiler agnostic way.
 
 \def ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
  Preprocessor macro to disable compiler warnings concerning overflows during bit-shift operations.
+     
+\def ALIB_WARNINGS_IGNORE_DEPRECATED
+ Preprocessor macro to disable compiler warnings concerning the use of deprecated functions and
+ types.
 
 \def ALIB_WARNINGS_IGNORE_UNUSED_MACRO
  Preprocessor macro to disable compiler warnings concerning unused macro definitions.
@@ -405,68 +397,58 @@ this in a compiler agnostic way.
 \name Debug Assertions, Warnings and Errors
 
 \anchor GrpALibMacros_dbgmessages
-
-The macros listed here are defined in two different versions, depending on the \alib distribution.
-With single <b>%ALib Modules</b> that do not incorporate class
-\ref alib::lang::Report and family, namespace function
-\ref alib::lang::DbgSimpleALibMsg (and overloads) are used to write the messages.
-The default implementation of this message invokes \b %assert(false) if the message is of
-error type.<br>
-There is a very simple "plug-in" concept in place that allows redirecting this method to
-a user-defined one which may act differently.
-
-If class \b report is included in the selected \alib distribution, two things happen:
-- the aforementioned plug-in is implemented and an \alib Report is generated inside
-  the plug-in function.
-- The macros themselves are redefined to directly use the \alib Report facility.
-Such redefinition happens "in the middle" of header inclusion (as early as possible), with
-the effect that most classes of \alib are compiled using the simple version, but still use
-the mechanics of \alib Reports. Other parts of \alib classes, and of course all user code,
-will have the more sophisticated, report-based versions of the macros in place. The
-huge advantage of them is, that those accept an arbitrary list of arguments which are boxed
-and passed to a formatter. This allows easily composing detailed and formatted debug messages.
+These macros are used with debug-builds of \alib, respectively when symbol \ref ALIB_DEBUG
+is given.
+They provide shortcuts into functions of the small foundational module \ref alib_mod_assert.
 
 If also module \alib_alox is compiled into the library, then a plug-in that uses
-\alox for the message output is used. See class \alox{ALoxReportWriter} for more
-information.
+\alox for the message output is used. 
+See class \alox{ALoxAssertionPlugin} for more information.
 
 @{
 \def ALIB_ERROR
   Writes the given message objects as an error.
 
-  @param ...   The objects used to format the message string.
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
+  @param ...    The objects used to format the message string.
 
 \def ALIB_WARNING
   Writes the given message objects as an warning.
 
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
   @param ...   The objects used to format the message string.
 
 \def ALIB_MESSAGE
   Writes the given message.
 
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
   @param ...   The objects used to format the message string.
 
 \def ALIB_ASSERT
   If given condition is \c false, error message "Assertion Failed" is written.
 
   @param cond  The condition assert.
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
 
 \def ALIB_ASSERT_ERROR
   If given condition is \c false, given message objects are written as an error.
 
   @param cond  The condition assert.
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
   @param ...   The objects used to format the message string.
 
 \def ALIB_ASSERT_WARNING
   If given condition is \c false, given message objects are written as a warning.
 
   @param cond  The condition assert.
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
   @param ...   The objects used to format the message string.
 
 \def ALIB_ASSERT_MESSAGE
   If given condition is \c false, given message objects are written as a message.
 
   @param cond  The condition assert.
+  @param domain The domain of the assertion. (Usually the \alibmod_nl.)
   @param ...   The objects used to format the message string.
 
 \def ALIB_ASSERT_RESULT_EQUALS
@@ -500,256 +482,27 @@ information.
 @}
 
 
-\I{#########################     C++ Template Meta Programming      ############################  }
-\name C++ Template Meta Programming
+\I{#########################     C++ Template Programming Tools      ############################  }
+\name C++ Template Programming Tools
 
-\anchor GrpALibMacros_tmp
-Simple shortcut macros usable with template meta programming. Unlike other \alib macros,
-their prefix is \b "ATMP_". This is for reducing their size as they are frequently used in more
-complex type expressions.
+\anchor GrpALibMacros_templ_tools
+Macros for handling template types.
 
 @{
-\I{-----------------------------          Is/Eq          ------------------------------------  }
-\def ATMP_IS_ENUM
- Simple shortcut to <c>typename std::is_pointer<T>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
 
- @param T     The type to convert to plain.
+\def ALIB_TVALUE
+ Shortcut to nested type modifiers
+ <c>std::remove_cv_t</c>, <c>std::remove_pointer_t</c> and <c>std::remove_reference_t</c>.
 
-\def ATMP_IS_CONST
- Simple shortcut to <c>typename std::is_const<T>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
+ @param T     The type that is to be decayed to its plain value-type.
 
- @param T     The type to convert to plain.
-
-
-\def ATMP_IS_PTR
- Simple shortcut to <c>typename std::is_pointer<T>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to convert to plain.
-
-
-\def ATMP_IS_ARR
- Simple shortcut to <c>typename std::is_array<T>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to convert to plain.
-
-\def ATMP_IS_INT
- Simple shortcut to <c>typename std::is_integral<T>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to convert to plain.
-
-\def ATMP_IS_UINT
- Simple shortcut to
- <c>(typename std::is_integral<T>::value && typename std::is_unsigned<T>::value)</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to convert to plain.
-
-\def ATMP_IS_SINT
- Simple shortcut to
- <c>(typename std::is_integral<T>::value && typename std::is_signed<T>::value)</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to convert to plain.
-
-\def ATMP_EQ
- Simple shortcut to <c>std::is_same<T1,T2>::value</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T       The lhs type to compare.
- @param TEqual  The rhs type to compare.
-
-
-\def ATMP_ISOF
- Tests if type \p{T} is either the same or a derived type of \p{TBase}.
- (This is an alias to <c>std::is_base_of<TBase, T >::value</c>.)
-
- @param T     The type to test for being a \p{TBase}.
- @param TBase The base type.
- @return \c true if \p{T} is a (derived) \p{TBase}, \c false otherwise.
-
-
-\I{-----------------------------          Remove          ------------------------------------  }
-\def ATMP_RC
- Simple shortcut to type modifier <c>typename std::remove_const<T>::type</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to remove \c const from.
-
-\def ATMP_RR
- Simple shortcut to type modifier  <c>typename std::remove_reference<T>::type</c>.
-
- @param T     The type to convert to plain.
-
-\def ATMP_RP
- Simple shortcut to type modifier  <c>typename std::remove_pointer<T>::type</c>.
-
- @param T     The type to convert to plain.
-
-\def ATMP_RE
- Simple shortcut to type modifier  <c>typename std::remove_extent<T>::type</c>.
-
- @param T     The type to convert to plain.
-
-
-\def ATMP_RCV
- Simple shortcut to type modifier <c>typename std::remove_cv<T>::type</c>.
- While it is not so much shorter, due to syntax highlighting of macros of modern
- editors, it is still better readable.
-
- @param T     The type to remove \c const and \c valatile modifiers from.
-
-
-\def ATMP_RCVR
- Simple shortcut to nested type modifiers <c>remove_cv( remove_reference( T ) )</c>.<br>
- Note, this is less strong than \ref ATMP_RCVP as it leaves the pointer in the type.
-
- @param T     The type to convert to plain, leaving pointer.
-
-
-\def ATMP_RCVP
- Simple shortcut to nested type modifiers
- <c>std::remove_cv</c>, <c>std::remove_pointer</c> and <c>std::remove_reference</c>.
-
- @param T     The type to convert to plain.
-
-
-\def ATMP_RECVP
- Simple shortcut to nested type modifiers that removes the extent of a type as well as pointer
- and CV qualifiers.
-
- @param T     The type to convert to plain.
-
-\I{----------------------------    enable_if / conditional    -----------------------------------  }
-\def ATMP_VOID_IF
- Shortcut to <c>typename std::enable_if<Cond,void>::type</c>
- @param Cond   The condition that enables \c void.
-           
-\def ATMP_BOOL_IF
- Shortcut to <c>typename std::enable_if<Cond,bool>::type</c>
- @param Cond   The condition that enables \c void.
-           
-
-\def ATMP_T_IF
- Shortcut to <c>typename std::enable_if<T, Cond>::type</c>.
-
- @param T      The type to result in, if \p{Cond} is \c true.
- @param Cond   The condition that enables \b T.
-
-\def ATMP_IF_T_F
- Ternary conditional operator which selects type \p{T} if condition \p{Cond} is \c true and type
- \p{F} otherwise.
-
- @param Cond   The condition.
- @param T      The type select if \p{Cond} is \c true.
- @param F      The type select if \p{Cond} is \c false.
-
-\def ATMP_RESULT_TYPE
- Returns the result type of method \p{T}::\p{Method}(\p{...}).
-
- @param T      The type to test.
- @param Method The name of the method in \p{T} to test.
- @param ...    Variadic list of args of the method.
- 
-\def ATMP_HAS_METHOD
- Returns \c true if the given type \p{T} has a method called \p{Method} with the given signature.
- If not, does not return \c false, but causes SFINAE.
+\def ALIB_HAS_METHOD
+ Evaluates to \c true if the given type \p{T} has a method called \p{Method} with the given 
+ signature. Otherwise, evaluates to \c false, respectively causes \b SFINAE.
 
  @param T      The type to test a method for.
  @param Method The name of the method.
  @param ...    Variadic list of args of the method.
-
-
-
-\I{-----------------------------    Method Selection      ------------------------------------  }
-\def ATMP_IF
- Defined as <c>typename = typename std::enable_if<Cond,void >::type</c> and hence can 
- be used as the last element in the list of template parameters of methods to enable or disable
- such method.  
- @param Cond  The condition to be met if the method should be enabled.
- 
-\def ATMP_SELECT_IF_1TP
- Implements the template specification code of a class member method which has one template parameter
- \p{TParam} and is selected using \c std::enable_if for one further template parameter.
- If the condition given with the variadic argument, which needs to be a boolean expression is not
- met, the function is not offered for the currently compiled invocation.
-
- The macro is to be placed at the start of the method declaration, replacing the otherwise
- necessary statement <c>template< ></c>.<br>
- In addition to the template statement, the macro adds macro \ref ALIB_FORCE_INLINE.
- Therefore, no additional use of keyword \c inline must be made after the macro and the method's
- return type (or constructor name).
-
- @param TParam   Type and name of the template parameter of the method, for example "typename T".
- @param ...      The condition for selecting the method.
-
-
-\def ATMP_SELECT_IF_2TP
- Same as \ref ATMP_SELECT_IF_1TP but for class member methods with two template parameters
- (adding a third, anonymous one).
-
- @param TParam1  Type and name (separated by a space) of the first template parameter of the method.
- @param TParam2  Type and name (separated by a space) of the second template parameter of the method.
- @param ...      The condition for selecting the method.
-
-
-\def ATMP_SELECT_IF_3TP
- Same as \ref ATMP_SELECT_IF_1TP but for methods with three template parameters
- (adding a fourth, anonymous one).
-
- @param TParam1  Type and name (separated by a space) of the first template parameter of the method.
- @param TParam2  Type and name (separated by a space) of the second template parameter of the method.
- @param TParam3  Type and name (separated by a space) of the third template parameter of the method.
- @param ...      The condition for selecting the method.
-
-\def ATMP_SELECT_IF_4TP
- Same as \ref ATMP_SELECT_IF_1TP but for methods with four template parameters
- (adding a fifth, anonymous one).
-
- @param TParam1  Type and name (separated by a space) of the first template parameter of the method.
- @param TParam2  Type and name (separated by a space) of the second template parameter of the method.
- @param TParam3  Type and name (separated by a space) of the third template parameter of the method.
- @param TParam4  Type and name (separated by a space) of the fourth template parameter of the method.
- @param ...      The condition for selecting the method.
-
-
-\def ATMP_RETURN_IF_1TP
- Implements the template specification code of a class member method which has one template parameter
- \p{TParam} and is selected using \c std::enable_if to specify the return type \p{TResult}.
- If the condition given with the variadic argument, which needs to be a boolean expression is not
- met, the function is not offered for the currently compiled invocation.
-
- The macro is to be placed at the start of the method declaration, replacing the otherwise
- necessary statement <c>template< ></c>.<br>
- In addition to the template statement, the macro adds macro \ref ALIB_FORCE_INLINE.
- Therefore, no additional use of keyword \c inline must not made after the macro and the method's
- return type (or constructor name).
-
-
- @param TReturn  The return type of the method to declare.
- @param TParam   Type and name of the template parameter of the method, for example "typename T".
- @param ...      The condition for selecting the method.
-
-\def ATMP_RETURN_IF_2TP
- Same as \ref ATMP_RETURN_IF_1TP but for class member methods with two template parameters.
-
- @param TReturn  The return type of the method to declare.
- @param TParam1  Type and name of the first template parameter of the method.
- @param TParam2  Type and name of the second template parameter of the method.
- @param ...      The condition for selecting the method.
 
 @}
 
@@ -806,8 +559,7 @@ and with their use.
  \ref ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS_MEMBER_DECL placed in the member declaration area
  of the type.
 
- This macro is only active in debug-compilations and is available with the inclusion of
- \alibheader{lang/owner.hpp}.
+ This macro is only active in debug-compilations.
 
 
 \def ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS_MEMBER_DECL
@@ -871,211 +623,235 @@ code pieces.
 
 
 This group of simple macros either include or prune code dependent on the inclusion
-of \alibmods_nl in an \alibdist.
+of \alibmods_nl in an \alibbuild.
 
-The symbols are defined in header \alibheader{alib.hpp} which always is and has to
-be the first \alib header file included (directly or indirectly).
+The symbols are defined in the internal header \alibheader{alib.inl} which always is 
+the first \alib header-file included.
 
 \def IF_ALIB_ALOX
-  Prunes given code \p{...} if \alib_alox is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_alox is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_ALOX and sibling macro \ref IFNOT_ALIB_ALOX.
   @param ... The source to select.
 
 \def IFNOT_ALIB_ALOX
-  Prunes given code \p{...} if \alib_alox is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_alox is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_ALOX and sibling macro \ref IF_ALIB_ALOX.
   @param ... The source to select.
 
 \def IF_ALIB_BOXING
-  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_boxing is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_BOXING and sibling macro \ref IFNOT_ALIB_BOXING.
   @param ... The source to select.
 
 \def IFNOT_ALIB_BOXING
-  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_boxing is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_BOXING and sibling macro \ref IF_ALIB_BOXING.
   @param ... The source to select.
 
 \def IF_ALIB_BITBUFFER
-  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_BITBUFFER and sibling macro \ref IFNOT_ALIB_BITBUFFER.
   @param ... The source to select.
 
 \def IFNOT_ALIB_BITBUFFER
-  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_BITBUFFER and sibling macro \ref IF_ALIB_BITBUFFER.
   @param ... The source to select.
 
-\def IF_ALIB_CONFIGURATION
-  Prunes given code \p{...} if \alib_config is not included in the \alibdist.
+\def IF_ALIB_VARIABLES
+  Prunes given code \p{...} if \alib_variables is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_CONFIGURATION and sibling macro \ref IFNOT_ALIB_CONFIGURATION.
+    Symbol \ref ALIB_VARIABLES and sibling macro \ref IFNOT_ALIB_VARIABLES.
   @param ... The source to select.
 
-\def IFNOT_ALIB_CONFIGURATION
-  Prunes given code \p{...} if \alib_config is not included in the \alibdist.
+\def IFNOT_ALIB_VARIABLES
+  Prunes given code \p{...} if \alib_variables is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_CONFIGURATION and sibling macro \ref IF_ALIB_CONFIGURATION.
+    Symbol \ref ALIB_VARIABLES and sibling macro \ref IF_ALIB_VARIABLES.
   @param ... The source to select.
 
 \def IF_ALIB_CONTAINERS
-  Prunes given code \p{...} if \alib_containers is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_containers is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CONTAINERS and sibling macro \ref IFNOT_ALIB_CONTAINERS.
   @param ... The source to select.
 
 \def IFNOT_ALIB_CONTAINERS
-  Prunes given code \p{...} if \alib_containers is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_containers is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CONTAINERS and sibling macro \ref IF_ALIB_CONTAINERS.
   @param ... The source to select.
 
 \def IF_ALIB_CLI
-  Prunes given code \p{...} if \alib_cli is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_cli is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CLI and sibling macro \ref IFNOT_ALIB_CLI.
   @param ... The source to select.
 
 \def IFNOT_ALIB_CLI
-  Prunes given code \p{...} if \alib_cli is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_cli is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CLI and sibling macro \ref IF_ALIB_CLI.
   @param ... The source to select.
 
 \def IF_ALIB_CAMP
-  Prunes given code \p{...} if \alib_basecamp is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_resources is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CAMP and sibling macro \ref IFNOT_ALIB_CAMP.
   @param ... The source to select.
 
 \def IFNOT_ALIB_CAMP
-  Prunes given code \p{...} if \alib_basecamp is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_resources is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_CAMP and sibling macro \ref IF_ALIB_CAMP.
   @param ... The source to select.
 
-\def IF_ALIB_ENUMS
-  Prunes given code \p{...} if \alib_enums is not included in the \alibdist.
+\def IF_ALIB_ENUMRECORDS
+  Prunes given code \p{...} if \alib_enumrecords is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_ENUMS and sibling macro \ref IFNOT_ALIB_ENUMS.
+    Symbol \ref ALIB_ENUMRECORDS and sibling macro \ref IFNOT_ALIB_ENUMRECORDS.
   @param ... The source to select.
 
-\def IFNOT_ALIB_ENUMS
-  Prunes given code \p{...} if \alib_enums is not included in the \alibdist.
+\def IFNOT_ALIB_ENUMRECORDS
+  Prunes given code \p{...} if \alib_enumrecords is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_ENUMS and sibling macro \ref IF_ALIB_ENUMS.
+    Symbol \ref ALIB_ENUMRECORDS and sibling macro \ref IF_ALIB_ENUMRECORDS.
   @param ... The source to select.
 
 \def IF_ALIB_EXPRESSIONS
-  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_expressions is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref IFNOT_ALIB_EXPRESSIONS.
   @param ... The source to select.
 
 \def IFNOT_ALIB_EXPRESSIONS
-  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_expressions is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref IF_ALIB_EXPRESSIONS.
   @param ... The source to select.
 
 \def IF_ALIB_FILES
-  Prunes given code \p{...} if \alib_files is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_files is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_FILES and sibling macro \ref IFNOT_ALIB_FILES.
   @param ... The source to select.
 
 \def IFNOT_ALIB_FILES
-  Prunes given code \p{...} if \alib_files is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_files is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_FILES and sibling macro \ref IF_ALIB_FILES.
   @param ... The source to select.
 
 \def IF_ALIB_THREADMODEL
-  Prunes given code \p{...} if \alib_threadmodel is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_threadmodel is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_THREADMODEL and sibling macro \ref IFNOT_ALIB_THREADMODEL.
   @param ... The source to select.
 
 \def IFNOT_ALIB_THREADMODEL
-  Prunes given code \p{...} if \alib_threadmodel is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_threadmodel is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_THREADMODEL and sibling macro \ref IF_ALIB_THREADMODEL.
   @param ... The source to select.
 
 \def IF_ALIB_THREADS
-  Prunes given code \p{...} if \alib_threads is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_threads is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_THREADS and sibling macro \ref IFNOT_ALIB_THREADS.
+    Symbol \ref ALIB_SINGLE_THREADED and sibling macro \ref IFNOT_ALIB_THREADS.
   @param ... The source to select.
 
 \def IFNOT_ALIB_THREADS
-  Prunes given code \p{...} if \alib_threads is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_threads is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_THREADS and sibling macro \ref IF_ALIB_THREADS.
+    Symbol \ref ALIB_SINGLE_THREADED and sibling macro \ref IF_ALIB_THREADS.
   @param ... The source to select.
 
 \def IF_ALIB_STRINGS
-  Prunes given code \p{...} if \alib_strings is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_strings is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_STRINGS and sibling macro \ref IFNOT_ALIB_STRINGS.
   @param ... The source to select.
 
 \def IFNOT_ALIB_STRINGS
-  Prunes given code \p{...} if \alib_strings is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_strings is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_STRINGS and sibling macro \ref IF_ALIB_STRINGS.
   @param ... The source to select.
 
 \def IF_ALIB_MONOMEM
-  Prunes given code \p{...} if \alib_monomem is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_monomem is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_MONOMEM and sibling macro \ref IFNOT_ALIB_MONOMEM.
   @param ... The source to select.
 
 \def IFNOT_ALIB_MONOMEM
-  Prunes given code \p{...} if \alib_monomem is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_monomem is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_MONOMEM and sibling macro \ref IF_ALIB_MONOMEM.
   @param ... The source to select.
 
-\def IF_ALIB_CHARACTERS
-  Prunes given code \p{...} if \alib_characters is not included in the \alibdist.
+\def IF_ALIB_RESOURCES
+  Prunes given code \p{...} if \alib_resources is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_CHARACTERS and sibling macro \ref IFNOT_ALIB_CHARACTERS.
+    Symbol \ref ALIB_RESOURCES and sibling macro \ref IFNOT_ALIB_RESOURCES.
   @param ... The source to select.
 
-\def IFNOT_ALIB_CHARACTERS
-  Prunes given code \p{...} if \alib_characters is not included in the \alibdist.
+\def IFNOT_ALIB_RESOURCES
+  Prunes given code \p{...} if \alib_resources is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_CHARACTERS and sibling macro \ref IF_ALIB_CHARACTERS.
+    Symbol \ref ALIB_RESOURCES and sibling macro \ref IF_ALIB_RESOURCES.
   @param ... The source to select.
 
-\def IF_ALIB_TIME
-  Prunes given code \p{...} if \alib_time is not included in the \alibdist.
+\def IF_ALIB_EXCEPTIONS
+  Prunes given code \p{...} if \alib_exceptions is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_TIME and sibling macro \ref IFNOT_ALIB_TIME.
+    Symbol \ref ALIB_EXCEPTIONS and sibling macro \ref IFNOT_ALIB_EXCEPTIONS.
   @param ... The source to select.
 
-\def IFNOT_ALIB_TIME
-  Prunes given code \p{...} if \alib_time is not included in the \alibdist.
+\def IFNOT_ALIB_EXCEPTIONS
+  Prunes given code \p{...} if \alib_exceptions is not included in the \alibbuild.
   \see
-    Symbol \ref ALIB_TIME and sibling macro \ref IF_ALIB_TIME.
+    Symbol \ref ALIB_EXCEPTIONS and sibling macro \ref IF_ALIB_EXCEPTIONS.
+  @param ... The source to select.
+
+\def IF_ALIB_SYSTEM
+  Prunes given code \p{...} if \alib_system is not included in the \alibbuild.
+  \see
+    Symbol \ref ALIB_SYSTEM and sibling macro \ref IFNOT_ALIB_SYSTEM.
+  @param ... The source to select.
+
+\def IFNOT_ALIB_SYSTEM
+  Prunes given code \p{...} if \alib_system is not included in the \alibbuild.
+  \see
+    Symbol \ref ALIB_SYSTEM and sibling macro \ref IF_ALIB_SYSTEM.
+  @param ... The source to select.
+
+\def IF_ALIB_FORMAT
+  Prunes given code \p{...} if \alib_format is not included in the \alibbuild.
+  \see
+    Symbol \ref ALIB_FORMAT and sibling macro \ref IFNOT_ALIB_FORMAT.
+  @param ... The source to select.
+
+\def IFNOT_ALIB_FORMAT
+  Prunes given code \p{...} if \alib_format is not included in the \alibbuild.
+  \see
+    Symbol \ref ALIB_FORMAT and sibling macro \ref IF_ALIB_FORMAT.
   @param ... The source to select.
 
 \def IF_ALIB_SINGLETONS
-  Prunes given code \p{...} if \alib_singletons is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_singletons is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_SINGLETONS and sibling macro \ref IFNOT_ALIB_SINGLETONS.
   @param ... The source to select.
 
 \def IFNOT_ALIB_SINGLETONS
-  Prunes given code \p{...} if \alib_singletons is not included in the \alibdist.
+  Prunes given code \p{...} if \alib_singletons is not included in the \alibbuild.
   \see
     Symbol \ref ALIB_SINGLETONS and sibling macro \ref IF_ALIB_SINGLETONS.
   @param ... The source to select.
@@ -1270,11 +1046,11 @@ Code that is using the C++ API might be enclosed by preprocessor directives<br>
 \endverbatim
 to remove them when compiling a release version of the software unit with pruned
 release log macros. Alternatively, such code might be embedded in macro \ref Lox_Prune.
-(Pruning of release logging can be enabled by defining compiler symbol \ref ALOX_REL_LOG to \c 0
+(Pruning of release logging can be enabled by defining the compiler-symbol \ref ALOX_REL_LOG to \c 0
 and could be useful in certain situations.)
 
 Before using the macros, each code entity has to set the preprocessor macro \ref LOX_LOX
-This can be done in a general header file of the software,
+This can be done in a general header-file of the software,
 (e.g., the same that exposes the release-Lox object to that source), or, in more complex
 scenarios with more than one release-Lox object, at any other appropriate source location.
 
@@ -1339,7 +1115,7 @@ might be used instead of the macros listed here.
     See \ref alib_mod_alox for detailed information.
 
     If Scope Domains based on source-related scopes should be supported in release logging, the
-    \alibdist as well as the software entity have to be compiled with compiler symbol \ref ALOX_REL_LOG_CI.
+    \alibbuild as well as the software entity have to be compiled with the compiler-symbol \ref ALOX_REL_LOG_CI.
     Note that one effect of setting this symbol is, that information on source code paths and file names, as well as
     method names make their way into the release executable. This may not be wanted.
 
@@ -1407,8 +1183,8 @@ might be used instead of the macros listed here.
   \attention
     If \ref ALOX_REL_LOG_CI is not set, which is the default for release logging
     statements, Log Data cannot be used in conjunction with language-related \e Scopes.<br>
-    If <em>Log Data</em> should be supported in release logging, the \alibdist as well as the
-    software entity have to be compiled with compiler symbol \ref ALOX_REL_LOG_CI.
+    If <em>Log Data</em> should be supported in release logging, the \alibbuild as well as the
+    software entity have to be compiled with the compiler-symbol \ref ALOX_REL_LOG_CI.
     Note that one effect of setting this symbol is, that information on source code paths and
     file names, as well as method names make their way into the release executable.
     This may not be wanted.<br>
@@ -1465,7 +1241,7 @@ Developers that use \alox in standard use cases do not need to know and use the 
 \def LOX_LOX
   The Lox instance used by all release logging macros. This has to be set (prior or after
   including alox.hpp) to provide access to a, dedicated instance of class Lox created for
-  release logging within a software.<br>
+  release logging within software.<br>
   It is of course allowed to use different instances within different source entities.
   However, other ways to structure log output and separate log streams exists in \alox and should
   be evaluated before introducing different instances of class Lox.<p>
@@ -1514,13 +1290,12 @@ The macros in this section are introduced by module \alib_boxing.
 
 @{
 \def ALIB_BOXING_CUSTOMIZE
+  Macro used to specialize template struct \alib{boxing;BoxTraits}, which customizes boxing for given
+  boxable type \p{TSource} to be mapped to non-array type \p{TMapped}.
 
-  Macro used to specialize template struct \alib{boxing;T_Boxer}, which customizes boxing for given
-  boxable type \p{TSource} to be mapped to non-array type \p{TTarget}.
-
-  Type definition \alib{boxing;T_Boxer::Mapping} is implemented by the macro to be
-  \alib{boxing;TMappedTo;TMappedTo<TTarget>}.
-  The implementations of methods \alib{boxing;T_Boxer::Write} and \alib{boxing;T_Boxer::Read}
+  Type alias \alib{boxing;BoxTraits::Mapping} is implemented by the macro to evaluate to 
+  \p{TMapped>}.
+  The implementations of methods \alib{boxing;BoxTraits::Write} and \alib{boxing;BoxTraits::Read}
   are to be provided with the variadic macro arguments.
 
   This macro belongs to set of sibling macros. For a customization of boxing the best
@@ -1536,157 +1311,124 @@ The macros in this section are introduced by module \alib_boxing.
      For more information, consult chapter \ref alib_boxing_customizing "7. Customizing Boxing"
      of the Programmer's Manual of module \alib_boxing.
 
-     Two further macros exist:
-      - \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR
-      - \ref ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR
-
-     Details for the use of those are given in manual chapter \ref alib_boxing_more_opt_constexpr.
-
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
-  @param TTarget  The target type to map \p{TSource} to.
-  @param ...      Definition of \c static \c inline methods \alib{boxing;T_Boxer::Write} and
-                  \alib{boxing;T_Boxer::Read}.
+  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;BoxTraits} for.
+  @param TMapped  The target type to map \p{TSource} to.
+  @param ...      Definition of \c static \c inline methods \alib{boxing;BoxTraits::Write} and
+                  \alib{boxing;BoxTraits::Read}.
 
 
 \def ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING
 
-  Specializes template struct \alib{boxing;T_Boxer}.
+  Specializes template struct \alib{boxing;BoxTraits}.
   This version of \ref ALIB_BOXING_CUSTOMIZE "a set of sibling macros", is to be used when
   simple type mappings are to be performed between types that are statically castable, or
   when boxing as pointer should be enforced.
 
-  The macro provides the implementations of all three entities of type traits struct \b T_Boxer:
-  - Type \alib{boxing::T_Boxer;Mapping} is using \alib{boxing;TMappedTo;TMappedTo<TTarget>}.
-  - Static method \alib{boxing::T_Boxer;Write} is defined to do static cast of the
+  The macro provides the implementations of all three entities of the type trait \b BoxTraits:
+  - Type \alib{boxing::BoxTraits;Mapping} evaluates to \p{TMapped}.
+  - Static method \alib{boxing::BoxTraits;Write} is defined to do static cast of the
     source value to the destination type and to then pass the result to
     \alib{boxing;Placeholder::Write}.
-  - Static method \alib{boxing;T_Boxer::Read} is defined to read the mapped type
-    using \alib{boxing;Placeholder::Read;Placeholder::Read<TTarget} and statically cast
+  - Static method \alib{boxing;BoxTraits::Read} is defined to read the mapped type
+    using \alib{boxing;Placeholder::Read;Placeholder::Read<TMapped>} and statically cast
     this to \p{TSource}.
 
   \see
     Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
 
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
-  @param TTarget  The target type to map \p{TSource} to.
-
-\def ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR
-
-  Alternative version of macro \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING.
-  Details for the use of this macro are given in manual chapter \ref alib_boxing_more_opt_constexpr.
-
-  \see
-    Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
-
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
-  @param TTarget  The target type to map \p{TSource} to.
-
+  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;BoxTraits} for.
+  @param TMapped  The target type to map \p{TSource} to.
 
 \def ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE
 
-  Specializes template struct \alib{boxing;T_Boxer}.
+  Specializes template struct \alib{boxing;BoxTraits}.
   This version of \ref ALIB_BOXING_CUSTOMIZE "a set of sibling macros", is to be used when
   a simple type mapping is to be performed for types \p{TSource} that are statically castable
-  to \p{TTarget}.<br>
+  to \p{TMapped}.<br>
   In contrast to macro \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING, with this macro, unboxing
-  the source type will be is denied.
+  the source type is denied.
 
-  The macro provides the implementations of all three entities of type traits struct \b T_Boxer:
-  - Type \alib{boxing::T_Boxer;Mapping} is using \alib{boxing;TMappedTo;TMappedTo<TTarget>}.
-  - Static method \alib{boxing::T_Boxer;Write} is to do a static cast of the
-    source value to the destination type and to then pass the result to
+  The macro provides the implementations of all three entities of the type trait \b BoxTraits:
+  - Type \alib{boxing::BoxTraits;Mapping} evaluates to using \p{TMapped}.
+  - Static method \alib{boxing::BoxTraits;Write} performs a static cast of the
+    source value to the destination type and then passes the result to
     \alib{boxing;Placeholder::Write}.
-  - Static method \alib{boxing;T_Boxer::Read} is declared to return \c void.
-    No implementation is given (as not needed).
+  - Static method \alib{boxing;BoxTraits::Read} is declared to return \c void, with
+    no implementation given.
 
   \see
     Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
 
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
-  @param TTarget  The target type to map \p{TSource} to.
-
-
-\def ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR
-
-  Alternative version of macro \ref ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE.
-  Details for the use of this macro are given in manual chapter \ref alib_boxing_more_opt_constexpr.
-
-  \see
-    Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
-
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
-  @param TTarget  The target type to map \p{TSource} to.
+  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;BoxTraits} for.
+  @param TMapped  The target type to map \p{TSource} to.
 
 
 \def ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE
 
-  Specializes template struct \alib{boxing;T_Boxer}, to customize boxing for given
-  boxable type \p{TSource} to be mapped to array type \p{TTarget[]}.
+  Specializes template struct \alib{boxing;BoxTraits}, to customize boxing for given
+  boxable type \p{TSource} to be mapped to array type \p{TMapped[]}.
 
-  Type definition \alib{boxing;T_Boxer::Mapping} is implemented by the macro to be
-  \alib{boxing;TMappedToArrayOf;TMappedToArrayOf<TTarget>}.
-  The implementations of methods \alib{boxing;T_Boxer::Write} and \alib{boxing;T_Boxer::Read}
+  Type definition \alib{boxing;BoxTraits::Mapping} is implemented by the macro to evaluate to
+  \p{TMapped}.
+  The implementations of methods \alib{boxing;BoxTraits::Write} and \alib{boxing;BoxTraits::Read}
   are to be provided with the variadic macro arguments.
 
   \see
     Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
 
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
+  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;BoxTraits} for.
   @param TElement The element type of the array to map \p{TSource} to.
-  @param ...      Definition of \c static \c inline methods \alib{boxing;T_Boxer::Write} and
-                  \alib{boxing;T_Boxer::Read}.
-
+  @param ...      Definition of \c static \c inline methods \alib{boxing;BoxTraits::Write} and
+                  \alib{boxing;BoxTraits::Read}.
 
 \def ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE_NON_UNBOXABLE
-  Specializes template struct \alib{boxing;T_Boxer}, to customize boxing for given
-  boxable type \p{TSource} to be mapped to array type \p{TTarget[]}.
+  Specializes template struct \alib{boxing;BoxTraits}, to customize boxing for given
+  boxable type \p{TSource} to be mapped to array type \p{TMapped[]}.
 
-  Type definition \alib{boxing;T_Boxer::Mapping} is implemented by the macro to be
-  \alib{boxing;TMappedToArrayOf;TMappedToArrayOf<TTarget>}.<br>
-  Static method \alib{boxing;T_Boxer::Read} is declared to return \c void.
-  No implementation is given (as not needed).<br>
-  The implementation of method \alib{boxing;T_Boxer::Write} are to be provided with the variadic
-  macro arguments.
+  Type definition \alib{boxing;BoxTraits::Mapping} is implemented by the macro to evaluate to
+  \p{TMapped} and \alib{boxing;BoxTraits::IsArray} evaluates to \c true.<br>
+  Static method \alib{boxing;BoxTraits::Read} is declared to return \c void, with 
+  no implementation given (as it will not be called).<br>
+  The implementation of method \alib{boxing;BoxTraits::Write} is to be provided with the variadic
+  portion of the macro arguments.
 
   \see
     Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
 
-  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;T_Boxer} for.
+  @param TSource  The C++ 'source' type to specialize struct \alib{boxing;BoxTraits} for.
   @param TElement The element type of the array to map \p{TSource} to.
-  @param ...      Definition of \c static \c inline method \alib{boxing;T_Boxer::Write}.
+  @param ...      Definition of \c static \c inline method \alib{boxing;BoxTraits::Write}.
 
 \def ALIB_BOXING_CUSTOMIZE_DENY_BOXING
-  Specializes template struct \alib{boxing;T_Boxer}, to completely forbid boxing and unboxing
+  Specializes template struct \alib{boxing;BoxTraits}, to completely forbid boxing and unboxing
   of type \p{TSource}.
 
-  For this, type definition \alib{boxing;T_Boxer::Mapping} is implemented by the macro to be
-  \alib{boxing;TMappedTo;TMappedTo<TNotBoxable>} and just declarations of static methods
-  \alib{boxing;T_Boxer::Write} and \alib{boxing;T_Boxer::Read} are given.<br>
-  The latter is declared to return \c void. Note that this in principle is not necessary, because
-  using \alib{boxing;detail::TNotBoxable} already forbids unboxing. Nevertheless, this way
-  helper-struct \alib{boxing;TT_IsLocked} is of \c std::true_type for \p{TSource} as well.
+  For this, type definition \alib{boxing;BoxTraits::Mapping} is implemented by the macro to evaluate 
+  to \p{TMapped} and just declarations of static methods
+  \alib{boxing;BoxTraits::Write} and \alib{boxing;BoxTraits::Read} are given.<br>
+  The latter is declared to return \c void. Note that this in principle is not necessary because
+  using \alib{boxing;NotBoxableTag} already forbids unboxing. Nevertheless, this way
+  concept \alib{boxing;IsLocked} is satisfied for \p{TSource} as well.
 
   \see
     Macro \ref ALIB_BOXING_CUSTOMIZE for information about the sibling macros.
 
   @param TSource  The type that should be denied to be used with \alib_boxing_nl.
-
-
+                                
 
 \def ALIB_BOXING_VTABLE_DECLARE
-  Declares an \c extern object of type \alib{boxing::detail;VTable} named \p{TMapped} in
+  Declares an \c extern object of type \alib{boxing::detail;VTable} named \p{Identifier} in
   namespace \ref alib::boxing::detail.<br>
-  Furthermore specializes template struct \alib{boxing;detail::T_VTableFactory} for type
-  \alib{boxing;TMappedTo;TMappedTo<TMapped>} to have its method \b Get return the object named
-  \p{Identifier}.
+  Furthermore specializes the type trait \alib{boxing;VTableOptimizationTraits} for
+  mapped type \p{TMapped} to have its method \b Get return the extern <em>VTable</em>-instance.
 
   This macro has to be placed in a header included by each compilation unit that
   creates or accesses boxes of type \p{TMapped}.
 
   \see
-    - Chapter \ref alib_boxing_more_opt_staticvt of the \ref alib_mod_boxing "Programmer's Manual"
-      of module \alib_boxing_nl.
-    - Symbol \ref ALIB_BOXING_VTABLE_DEFINE.
+    - Chapter \ref alib_boxing_more_opt_staticvt of the Programmer's Manual of module 
+      \alib_boxing_nl.
+    - Macros \ref ALIB_BOXING_VTABLE_DEFINE and \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
 
   @param TMapped     The mapped type to declare a \e vtable singleton for.
   @param Identifier  The identifier name of the \e vtable singleton.
@@ -1694,11 +1436,12 @@ The macros in this section are introduced by module \alib_boxing.
 
 \def ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE
   Same as \ref ALIB_BOXING_VTABLE_DECLARE, but used with mapped array types.
-  Specializes \alib{boxing;detail::T_VTableFactory} for type
-  \alib{boxing;TMappedToArrayOf;TMappedToArrayOf<TMapped>}, instead of \b TMappedTo,
+  Specializes \alib{boxing;VTableOptimizationTraits} for mapped type
+  \p{TMapped}.
 
-    \see
-        Symbols \ref ALIB_BOXING_VTABLE_DECLARE and \ref ALIB_BOXING_VTABLE_DEFINE.
+  \see
+     Macros \ref ALIB_BOXING_VTABLE_DECLARE (for plain types), \ref ALIB_BOXING_VTABLE_DEFINE,
+     \ref ALIB_BOXING_VTABLE_DEFINE and \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
     
   @param TMapped     The mapped type to declare a \e vtable singleton for.
   @param Identifier  The identifier name of the \e vtable singleton.
@@ -1726,15 +1469,14 @@ The macros in this section are introduced by module \alib_boxing.
   Registers a statically created \e vtable singleton declared with either
   \ref ALIB_BOXING_VTABLE_DECLARE or \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE.
 
-  This macro has to be placed in the \ref alib_manual_bootstrapping "bootstrap code" of the software.
+  This macro has to be placed in the \ref alib_mod_bs "bootstrap code" of software.
   In debug-compilations, this macro is empty.
   \see
     Chapter \ref alib_boxing_more_opt_staticvt of the \ref alib_mod_boxing "Programmer's Manual"
     of module \alib_boxing_nl.
 
-  @param Identifier  The identifier name of the \e vtable singleton.
-
-
+  @param Identifier  The identifier name of the \e vtable singleton as passed to macros
+                     \ref ALIB_BOXING_VTABLE_DECLARE or \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE.   
 
 \def ALIB_BOXING_DEFINE_FEQUALS_FOR_COMPARABLE_TYPE
   This macro \alib{boxing;BootstrapRegister;registers} templated box-function
@@ -1745,8 +1487,7 @@ The macros in this section are introduced by module \alib_boxing.
   is returned, if one is \e nulled, \c false.
 
   As all function registrations have to be performed at run-time, this macro is to be placed in the
-  \ref alib_manual_bootstrapping "bootstrap section" of an application.
-
+  \ref alib_mod_bs "bootstrap section" of an application.
 
   @param TComparable  The comparable type name.
 
@@ -1761,7 +1502,7 @@ The macros in this section are introduced by module \alib_boxing.
   \c false.
 
   As all function registrations have to be performed at run-time, this macro is to be placed in the
-  \ref alib_manual_bootstrapping "bootstrap section" of an application.
+  \ref alib_mod_bs "bootstrap section" of an application.
 
   @param TComparable  The comparable type name.
 
@@ -1812,6 +1553,30 @@ The macros in this section are introduced by module \alib_boxing.
   interface \b FAppend<xchar> instead of \b FAppend<character>.
 
   @param TAppendable  The appendable type.
+  
+
+\def ALIB_BOXING_VTABLE_DECLARE_NOEXPORT
+  This is an experimental version of \ref ALIB_BOXING_VTABLE_DECLARE, which has to be used, if:
+  - Symbol \ref ALIB_C20_MODULES is set with compiling \alib, and
+  - the using code does not itself compile into C++20 Modules (just consuming them).
+  The difference to the original is that symbol \ref ALIB_EXPORT is not used with this version.  
+
+  @param TMapped     The mapped type to declare a \e vtable singleton for.
+  @param Identifier  The identifier name of the \e vtable singleton.
+
+
+\def ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE_NOEXPORT
+  This is an experimental version of \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE, which has to be 
+  used, if:
+  - Symbol \ref ALIB_C20_MODULES is set with compiling \alib, and
+  - the using code does not itself compile into C++20 Modules (just consuming them).
+  The difference to the original is that symbol \ref ALIB_EXPORT is not used with this version.  
+    
+  @param TMapped     The mapped type to declare a \e vtable singleton for.
+  @param Identifier  The identifier name of the \e vtable singleton.
+
+
+
 
 @}
 
@@ -1834,7 +1599,7 @@ The macros in this section are introduced by module \alib_characters.
 
   Whenever software targets different platforms that change the underlying character width of
   the string-types, the string literals have to change as well. To be able to compile on different
-  platforms while using different compiler symbols to manipulate the character width, almost all string
+  platforms while using different compiler-symbols to manipulate the character width, almost all string
   literals in \alib sources are enclosed by this macro. The exception concerns such
   literals which are assigned to narrow string type \alib{NString}, or those where explicit
   string types \alib{WString} or \alib{XString} are used.
@@ -1853,7 +1618,7 @@ The macros in this section are introduced by module \alib_characters.
 \def A_CCHAR
   Macro used to express C++ string literals in a platform-independent way. Dependent on
   the definition of type \alib{characters;complementChar} (which is in turn dependent on the platform, the
-  compiler and optional compiler symbols), this macro defines string literals, which have either
+  compiler and optional compiler-symbols), this macro defines string literals, which have either
   a one, two or four byte character width, namely the width corresponding to the width of
   \b %complementChar.
 
@@ -1868,7 +1633,7 @@ The macros in this section are introduced by module \alib_characters.
 \def A_SCHAR
   Macro used to express C++ string literals in a platform-independent way. Dependent on
   the definition of type \alib{characters;strangeChar} (which is in turn dependent on the platform, the
-  compiler and optional compiler symbols), this macro defines string literals, which have either
+  compiler and optional compiler-symbols), this macro defines string literals, which have either
   a two or four byte character width, namely the width corresponding to the width of
   \b %complementChar.
 
@@ -1900,7 +1665,7 @@ The macros in this section are introduced by module \alib_characters.
 \def A_WCHAR
   Macro used to express C++ string literals in a platform-independent way. Dependent on
   the definition of type \alib{characters;wchar} (which is in turn dependent on the platform, the
-  compiler and optional compiler symbols), this macro defines string literals, which have an either
+  compiler and optional compiler-symbols), this macro defines string literals, which have an either
   two bytes or four byte character width, namely the width corresponding to the width of
   \b %wchar.
 
@@ -1915,7 +1680,7 @@ The macros in this section are introduced by module \alib_characters.
 \def A_XCHAR
   Macro used to express C++ string literals in a platform-independent way. Dependent on
   the definition of type \alib{characters;xchar} (which is in turn dependent on the platform, the
-  compiler and optional compiler symbols), this macro defines string literals, which have an either
+  compiler and optional compiler-symbols), this macro defines string literals, which have an either
   two bytes or four byte character width, namely the width corresponding to the width of
   \b %xchar.
 
@@ -1929,20 +1694,6 @@ The macros in this section are introduced by module \alib_characters.
        of the \ref alib_mod_characters "Programmer's Manual" of module \alib_characters_nl.
 
    @param STR The character or string literal to prefix with <c>'u'</c>, <c>'U'</c> or <c>'L'</c> .
-
-\def ATMP_CHAR_COMPLEMENT
- Gives the complementary character type to the given type. This is specific to \alib
- character definitions. Converts
- - \alib{character} to \alib{complementChar}
- - \alib{complementChar} to \alib{character}
-
-
- \see
-   For details, see TMP struct \alib{characters;TT_ComplementChar} as well as
-   chapter \ref alib_characters_chars "2. Character Types" of the
-   Programmer's Manual of module \alib_characters_nl.
-
- @param  TChar The character type to convert to its complementary character.
 
 \def ALIB_CHAR_TYPE_ID_N
   Defined as \c 1. Used in situations where code is to be selected by the preprocessor.
@@ -1972,7 +1723,7 @@ The macros in this section are introduced by module \alib_characters.
 
 ALIB_CHARACTERS_WIDE
 \def ALIB_CHARACTER_ARRAY
-  Specializes type traits struct \alib{characters;T_CharArray} for type \p{TString}.
+  Specializes the type trait \alib{characters;ArrayTraits} for type \p{T}.
 
   To implement the corresponding static methods in alignment with the specialized access and construction
   flags, macros
@@ -1984,8 +1735,8 @@ ALIB_CHARACTERS_WIDE
     For more information about character array traits, see chapter
     \ref alib_characters_arrays "4. Character Arrays" of  the Programmer's Manual of module \alib_characters.
 
-  @param TString      The type to provide array type traits for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
+  @param T            The type to provide array type-traits for.
+  @param TChar        The character type of character arrays that \p{T} represents or might be created of.
   @param Access       One of the values \b NONE, \b Implicit or \b ExplicitOnly.
                       Value \b Mutable is not permitted. Instead, macro \ref ALIB_CHARACTER_ARRAY_MUTABLE
                       is to be used for that case.
@@ -1993,7 +1744,7 @@ ALIB_CHARACTERS_WIDE
 
 
 \def ALIB_CHARACTER_ARRAY_MUTABLE
-  Specializes type traits struct \alib{characters;T_CharArray} for type \p{TString} with
+  Specializes the type trait \alib{characters;ArrayTraits} for type \p{T} with
   access modifier \b Mutable.
 
   To implement the corresponding static methods in alignment with the specialized access and construction
@@ -2006,13 +1757,13 @@ ALIB_CHARACTERS_WIDE
     For more information about character array traits, see chapter
     \ref alib_characters_arrays "4. Character Arrays" of  the Programmer's Manual of module \alib_characters.
 
-  @param TString      The type to provide array type traits for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
+  @param T            The type to provide array type-traits for.
+  @param TChar        The character type of character arrays that \p{T} represents or might be created of.
   @param Construction One of the values \b NONE, \b Implicit or \b ExplicitOnly.
 
 
 \def ALIB_CHARACTER_ZT_ARRAY
-  Specializes type traits struct \alib{characters;T_ZTCharArray} for type \p{TString}.
+  Specializes the type trait \alib{characters;ZTArrayTraits} for type \p{T}.
 
   To implement the corresponding static methods in alignment with the specialized access and construction
   flags, macros
@@ -2024,8 +1775,8 @@ ALIB_CHARACTERS_WIDE
     For more information about character array traits, see chapter
     \ref alib_characters_arrays "4. Character Arrays" of  the Programmer's Manual of module \alib_characters.
 
-  @param TString      The type to provide array type traits for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
+  @param T            The type to provide array type-traits for.
+  @param TChar        The character type of character arrays that \p{T} represents or might be created of.
   @param Access       One of the values \b NONE, \b Implicit or \b ExplicitOnly.
                       Value \b Mutable is not permitted. Instead, macro \ref ALIB_CHARACTER_ARRAY_MUTABLE
                       is to be used for that case.
@@ -2033,7 +1784,7 @@ ALIB_CHARACTERS_WIDE
 
 
 \def ALIB_CHARACTER_ZT_ARRAY_MUTABLE
-  Specializes type traits struct \alib{characters;T_ZTCharArray} for type \p{TString} with
+  Specializes the type trait \alib{characters;ZTArrayTraits} for type \p{T} with
   access modifier \b Mutable.
 
   To implement the corresponding static methods in alignment with the specialized access and construction
@@ -2046,127 +1797,127 @@ ALIB_CHARACTERS_WIDE
     For more information about character array traits, see chapter
     \ref alib_characters_arrays "4. Character Arrays" of  the Programmer's Manual of module \alib_characters.
 
-  @param TString      The type to provide array type traits for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
+  @param T            The type to provide array type-traits for.
+  @param TChar        The character type of character arrays that \p{T} represents or might be created of.
   @param Construction One of the values \b NONE, \b Implicit or \b ExplicitOnly.
 
 
 \def ALIB_CHARACTER_ARRAY_IMPL_BUFFER
-  This macro may be used to implement static method \alib{characters;T_CharArray::Buffer} of
-  specializations of \b T_CharArray that have been defined using macro \ref ALIB_CHARACTER_ARRAY.
+  This macro may be used to implement static method \alib{characters;ArrayTraits::Buffer} of
+  specializations of \b ArrayTraits that have been defined using macro \ref ALIB_CHARACTER_ARRAY.
 
   If macro \ref ALIB_CHARACTER_ARRAY_MUTABLE was used, corresponding macro
   \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE has to be used instead of this one.
 
-  The argument providing a constant reference of type \p{TString} to the method's implementation, and
+  The argument providing a constant reference of type \p{T} to the method's implementation, and
   which has to be accessed in the given implementation code, is named \p{src}.
   The implementation has to return a constant pointer to an array of character type \p{TChar}.
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER
   Same as \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER, but for zero-terminated character arrays.<br>
-  (Implements method \alib{characters;T_ZTCharArray::Buffer} instead of
-  \alib{characters;T_CharArray::Buffer}.)
+  (Implements method \alib{characters;ZTArrayTraits::Buffer} instead of
+  \alib{characters;ArrayTraits::Buffer}.)
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE
   Alternative macro version of \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER, which declares
-  method argument \p{src} as a mutual reference of type \p{TString}.
+  method argument \p{src} as a mutual reference of type \p{T}.
 
   This version is to be used if specialization was performed using
   \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE.
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER_MUTABLE
   Same as \ref ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE, but for zero-terminated character arrays.<br>
-  (Implements method \alib{characters;T_ZTCharArray::Buffer} instead of
-  \alib{characters;T_CharArray::Buffer}.)
+  (Implements method \alib{characters;ZTArrayTraits::Buffer} instead of
+  \alib{characters;ArrayTraits::Buffer}.)
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ARRAY_IMPL_LENGTH
-  This macro may be used to implement static method \alib{characters;T_CharArray::Length} of
-  specializations of \b T_CharArray that have been defined using macro \ref ALIB_CHARACTER_ARRAY.
+  This macro may be used to implement static method \alib{characters;ArrayTraits::Length} of
+  specializations of \b ArrayTraits that have been defined using macro \ref ALIB_CHARACTER_ARRAY.
 
-  The argument providing a constant reference of type \p{TString} to the method's implementation, and
+  The argument providing a constant reference of type \p{T} to the method's implementation, and
   which has to be accessed in the given implementation code, is named \p{src}.
   The implementation has to return the length of the character array as type \alib{integer}.
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH
   Same as \ref ALIB_CHARACTER_ARRAY_IMPL_LENGTH, but for zero-terminated character arrays.<br>
-  (Implements method \alib{characters;T_ZTCharArray::Length} instead of
-  \alib{characters;T_CharArray::Length}.)
+  (Implements method \alib{characters;ZTArrayTraits::Length} instead of
+  \alib{characters;ArrayTraits::Length}.)
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ARRAY_IMPL_LENGTH_MUTABLE
   Alternative macro version of \ref ALIB_CHARACTER_ARRAY_IMPL_LENGTH, which declares
-  method argument \p{src} as a mutual reference of type \p{TString}.
+  method argument \p{src} as a mutual reference of type \p{T}.
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH_MUTABLE
   Same as \ref ALIB_CHARACTER_ARRAY_IMPL_LENGTH_MUTABLE, but for zero-terminated character arrays.<br>
-  (Implements method \alib{characters;T_ZTCharArray::Length} instead of
-  \alib{characters;T_CharArray::Length}.)
+  (Implements method \alib{characters;ZTArrayTraits::Length} instead of
+  \alib{characters;ArrayTraits::Length}.)
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 \def ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT
-  This macro may be used to implement static method \alib{characters;T_CharArray::Construct} of
-  specializations of \b T_CharArray that have been defined using macro \ref ALIB_CHARACTER_ARRAY
+  This macro may be used to implement static method \alib{characters;ArrayTraits::Construct} of
+  specializations of \b ArrayTraits that have been defined using macro \ref ALIB_CHARACTER_ARRAY
   or \ref ALIB_CHARACTER_ARRAY_MUTABLE.
 
   The arguments providing the array data to the method's implementation, which is to be used to
-  create the object of type \p{TString}, are named \p{array} and \p{length}.
-  The implementation has to return a value of type \p{TString}.
+  create the object of type \p{T}, are named \p{array} and \p{length}.
+  The implementation has to return a value of type \p{T}.
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be
-                      created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be
+                created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 
 
 \def ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT
   Same as \ref ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT, but for zero-terminated character arrays.<br>
-  (Implements method \alib{characters;T_ZTCharArray::Construct} instead of
-  \alib{characters;T_CharArray::Construct}.)
+  (Implements method \alib{characters;ZTArrayTraits::Construct} instead of
+  \alib{characters;ArrayTraits::Construct}.)
 
-  @param TString      The type to provide the specialized static method for.
-  @param TChar        The character type of character arrays that \p{TString} represents or might be
-                      created of.
-  @param ...          The variadic arguments of the macro constitute the implementation code
-                      of the method.
+  @param T      The type to provide the specialized static method for.
+  @param TChar  The character type of character arrays that \p{T} represents or might be
+                created of.
+  @param ...    The variadic arguments of the macro constitute the implementation code
+                of the method.
 @}
 
 
@@ -2177,32 +1928,31 @@ ALIB_CHARACTERS_WIDE
 \name ALib Module Config
 
 \anchor GrpALibMacros_mod_config
-The macros in this section are introduced by \alibcamp \alib_config.
+The macros in this section are introduced by \alibcamp \alib_variables.
 
 @{
-\def ALIB_CONFIG_VARIABLE_DEFINE_TYPE
-  Defines a struct named <c>alib::config::detail::VMeta_<<CPPName>></c>, which
-  is derived from struct \alib{config;VMeta} and which declares all abstract virtual
+\def ALIB_VARIABLES_DEFINE_TYPE
+  Defines a struct named <c>alib::variables::detail::VMeta_<<CPPName>></c>, which
+  is derived from struct \alib{variables;VMeta} and which declares all abstract virtual
   methods and implements most of them already. The methods are:
   Method                           | Status
   ---------------------------------|--------------------
-  \alib{config::VMeta;typeName}    | defined
-  \alib{config::VMeta;dbgTypeID}   | defined (in debug-compilations only)
-  \alib{config::VMeta;construct}   | defined
-  \alib{config::VMeta;destruct}    | defined
-  \alib{config::VMeta;size}        | defined
-  \alib{config::VMeta;imPort}      | declared only
-  \alib{config::VMeta;exPort}      | declared only
+  \alib{variables::VMeta;typeName}    | defined
+  \alib{variables::VMeta;dbgTypeID}   | defined (in debug-compilations only)
+  \alib{variables::VMeta;construct}   | defined
+  \alib{variables::VMeta;destruct}    | defined
+  \alib{variables::VMeta;size}        | defined
+  \alib{variables::VMeta;imPort}      | declared only
+  \alib{variables::VMeta;exPort}      | declared only
 
-  This is the first step on the way to create an \alib configuration variable of custom storage
-  type.
+  This is the first step on the way to create an \alib variable of a custom storage type.
 
   \see
-    - Sibling macro \ref ALIB_CONFIG_VARIABLE_DEFINE_TYPE_WITH_POOL_CONSTRUCTOR.
-    - See struct \alib{config;VMeta}.
-    - See chapter \ref alib_config_types_custom of the Programmer's Manual of camp \alib_config_nl
+    - Sibling macro \ref ALIB_VARIABLES_DEFINE_TYPE_WITH_POOL_CONSTRUCTOR.
+    - See struct \alib{variables;VMeta}.
+    - See chapter \ref alib_variables_types_custom of the Programmer's Manual of camp \alib_variables_nl
       for more details.
-    - Macro \ref ALIB_CONFIG_VARIABLE_REGISTER_TYPE for how to register a variable type with
+    - Macro \ref ALIB_VARIABLES_REGISTER_TYPE for how to register a variable type with
       a configuration
     Chapter \ref alib_strings_assembly_ttostring of the Programmer's Manual of module
     \alib_strings.
@@ -2211,21 +1961,21 @@ The macros in this section are introduced by \alibcamp \alib_config.
   @param CPPName        The name of the type to enable as an \alib variable.
   @param CfgTypeString  The type string used to declare variables of this type.
 
-\def ALIB_CONFIG_VARIABLE_DEFINE_TYPE_WITH_POOL_CONSTRUCTOR
-  Same as \ref ALIB_CONFIG_VARIABLE_DEFINE_TYPE with the only difference that virtual override
-  \alib{config::;VMeta::construct} passes the pool allocator of the configuration
+\def ALIB_VARIABLES_DEFINE_TYPE_WITH_POOL_CONSTRUCTOR
+  Same as \ref ALIB_VARIABLES_DEFINE_TYPE with the only difference that virtual override
+  \alib{variables::;VMeta::construct} passes the pool allocator of the configuration
   instance to the constructor of the custom type.
   @param Namespace      The namespace of the type to enable as an \alib variable.
   @param CPPName        The name of the type to enable as an \alib variable.
   @param CfgTypeString  The type string used to declare variables of this type.
 
-\def ALIB_CONFIG_VARIABLE_REGISTER_TYPE(CPPName)
-  Registers a custom implementation of abstract class \alib{config;VMeta}, which has been
-  previously defined with macro \ref ALIB_CONFIG_VARIABLE_DEFINE_TYPE with the configuration
+\def ALIB_VARIABLES_REGISTER_TYPE(CPPName)
+  Registers a custom implementation of abstract class \alib{variables;VMeta}, which has been
+  previously defined with macro \ref ALIB_VARIABLES_DEFINE_TYPE with the configuration
   object received by a call to <c>GetConfig()</c>.
-  This macro is to be placed in \alib{lang;Camp::bootstrap} in the section of phase
+  This macro is to be placed in \alib{camp;Camp::Bootstrap} in the section of phase
   \alib{BootstrapPhases;PrepareConfig}.
-  The macro invokes method \alib{config;Configuration::RegisterType}, which has to be called
+  The macro invokes method \alib{variables;Configuration::RegisterType}, which has to be called
   'manually' if for some reason the placement of registration can't be done as proposed.
 
   @param CPPName   The name of the type to enable as an \alib variable (excluding the namespace).
@@ -2238,100 +1988,96 @@ The macros in this section are introduced by \alibcamp \alib_config.
 
 \anchor GrpALibMacros_mod_enums
 
-The macros in this section are introduced by module \alib_enums and allow to specialize
-type-traits structs
-\alib{enums;T_EnumRecords},
-\alib{enums;T_EnumIsArithmetical},
-\alib{enums;T_EnumIsBitwise} and
-\alib{enums;T_EnumIsIterable} for scoped or non-scoped enum types.
+The macros in this section are introduced by modules \alib_enumops and \alib_enumrecords.
+They allow specializing the following type traits for scoped or non-scoped enum types:
+\alib{enumrecords;RecordsTraits},
+\alib{enumops;ArithmeticalTraits},
+\alib{enumops;BitwiseTraits} and
+\alib{enumops;IterableTraits} 
 
 \attention
-- All macros (except \ref ALIB_ENUMS_UNDERLYING_TYPE) in this section have to be placed in global scope
-  (outside of namespaces and types).
+- All macros in this section have to be placed in global scope (outside namespaces and types).
 - For technical reasons, neither the macros nor the concepts behind them are applicable to
   enum types that are defined as \c private or \c protected inner types of structs or classes.
 
 @{
 
 \I{################################################################################################}
-\def ALIB_ENUMS_UNDERLYING_TYPE
-  Simple shortcut to <c>typename std::underlying_type<TEnum>::type</c>.
-
 \def ALIB_ENUMS_ASSIGN_RECORD
-  Macro used to specialize type-traits struct
-  \alib{enums;T_EnumRecords;T_EnumRecords<TEnum>} to associate C++ enumeration type \p{TEnum} with
+  Macro used to specialize the type trait
+  \alib{enumrecords;RecordsTraits;RecordsTraits<TEnum>} to associate C++ enumeration type \p{TEnum} with
   \ref alib_enums_records "ALib Enum Records" of type \p{TRecord}.
 
   @param TEnum    The enumeration type to define data records for.
   @param TRecord  The type of the data record to assign.
 
-\I{############### T_EnumIsArithmetical (has to be doxed here inside this subgroup) #########  }
+\I{############### ArithmeticalTraits (has to be doxed here inside this subgroup) #########  }
 
 \def ALIB_ENUMS_MAKE_ARITHMETICAL
-  Specializes TMP struct \alib{enums;T_EnumIsArithmetical} to inherit \c std::true_type to
+  Specializes the type trait \alib{enumops;ArithmeticalTraits} to inherit \c std::true_type to
   enable a set of arithmetic operators on the elements of \p{TEnum}.
 
-  Usually, this macro is placed in a header file, probably close to the enum type definition.
+  Usually, this macro is placed in a header-file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
   \see Chapter \ref alib_enums_arithmetic_standard of the Programmer's Manual of module
-       \alib_enums for more information.
+       \alib_enumops for more information.
 
   @param TEnum    Type of a scoped or non-scoped enumeration that is to be declared an arithmetical
                   type.
 
-\I{################## T_EnumIsBitwise (has to be doxed here inside this subgroup) ###########  }
+\I{################## BitwiseTraits (has to be doxed here inside this subgroup) ###########  }
 
 \def ALIB_ENUMS_MAKE_BITWISE
-  Specializes TMP struct \alib{enums;T_EnumIsBitwise} to inherit \c std::true_type.
+  Specializes the type trait \alib{enumops;BitwiseTraits} to inherit \c std::true_type.
 
-  Usually, this macro is placed in a header file, probably close to the enum type definition.
+  Usually, this macro is placed in a header-file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
   \see Chapter \ref alib_enums_arithmetic_bitwise of the Programmer's Manual of module
-       \alib_enums for more information.
+       \alib_enumops for more information.
 
   @param TEnum    Type of a scoped or non-scoped enumeration that is to be declared a bitwise
                   type.
 
 
-\I{################## T_EnumIsIterable (has to be doxed here inside this subgroup) #######  }
+\I{################## IterableTraits (has to be doxed here inside this subgroup) ###############  }
 
 \def ALIB_ENUMS_MAKE_ITERABLE
   Shortcut to \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END, providing <c>TEnum(0)</c> as macro
   parameter \p{StartElement}.
 
-  Usually, this macro is placed in a header file, probably close to the enum type definition.
+  Usually, this macro is placed in a header-file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
   \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END and chapter
        \ref alib_enums_iter "3. Enum Iteration" of the Programmer's Manual of module
-       \alib_enums for more information.
+       \alib_enumops for more information.
 
   @param TEnum         Type of a scoped or non-scoped enumeration that is to be declared an
                        iterable enum type.
   @param StopElement   The enum element after the last "valid" element in the enumeration.<br>
-                       Will be used as expression for constexpr \alib{enums;T_EnumIsIterable::End}.
+                       Will be used as \c constexpr \alib{enumops;IterableTraits::End}.
 
 \def ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END
-  Specializes type-traits struct \alib{enums;T_EnumIsIterable} to implement methods:
+  Specializes the type trait \alib{enumops;IterableTraits} to implement methods:
   - \b %Begin to return \p{StartElement}
   - \b %End to return \p{StopElement}
 
-  Usually, this macro is placed in a header file, probably close to the enum type definition.
+  Usually, this macro is placed in a header-file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
   \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERABLE and chapter
        \ref alib_enums_iter "3. Enum Iteration" of the Programmer's Manual of module
-       \alib_enums for more information.
+       \alib_enumops for more information.
   \see
 
   @param TEnum        Type of a scoped or non-scoped enumeration that is to be declared an
                       iterable enum type.
   @param StartElement The first element of the enumeration.<br>
-                      Will be used as expression for constexpr \alib{enums;T_EnumIsIterable::End}.
+                      Will be used as \c constexpr \alib{enumops;IterableTraits::End}.
   @param StopElement  The enum element after the last "valid" element in the enumeration.<br>
-                      Will be used as expression for constexpr \alib{enums;T_EnumIsIterable::End}.
+                      Will be used as \c constexpr \alib{enumops;IterableTraits::End}.
 
 @}
 
@@ -2395,63 +2141,63 @@ The macros in this section are introduced by module \alib_strings.
 
 @{
 \def ALIB_STRINGS_APPENDABLE_TYPE
-  Helper macro for specializing functor \alib{strings;T_Append} for type \p{TYPE}.
+  Helper macro for specializing functor \alib{strings;AppendableTraits} for type \p{TYPE}.
   This macro has to be positioned outside any namespace, and the given type has to include
   its full namespace qualification.
 
   This macro is to be used in combination with macro #ALIB_STRINGS_APPENDABLE_TYPE_DEF.<br>
   As an alternative to the two macros, #ALIB_STRINGS_APPENDABLE_TYPE_INLINE might be used, which
-  will specialize \b T_Append and define its \b operator() inline.
+  will specialize \b AppendableTraits and define its \b operator() inline.
 
   \see
     Chapter \ref alib_strings_assembly_ttostring of the Programmer's Manual of module
     \alib_strings.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_N
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref alib::nchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_W
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref alib::wchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_DEF
   Macro used in combination with \ref ALIB_STRINGS_APPENDABLE_TYPE which specializes functor
-  \alib{strings;T_Append} for type \p{TYPE} and standard character type, and with this declares its
+  \alib{strings;AppendableTraits} for type \p{TYPE} and standard character type, and with this declares its
   member \b operator().<br>
   This macro is used for the implementation of this member function.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_DEF_N
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref alib::nchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_DEF_W
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref alib::wchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_INLINE
-  Helper macro for specializing functor \alib{strings;T_Append} for a custom type \p{TYPE}.
-  This macro has to be positioned outside of any namespace and the given type has to include
+  Helper macro for specializing functor \alib{strings;AppendableTraits} for a custom type \p{TYPE}.
+  This macro has to be positioned outside any namespace, and the given type has to include
   its full namespace qualification.
 
-  With the specialization of struct, <b>T_Append<TYPE>::operator()</b> will be defined and
+  With the specialization of struct, <b>AppendableTraits<TYPE>::operator()</b> will be defined and
   implemented inline.
 
   Macros #ALIB_STRINGS_APPENDABLE_TYPE and #ALIB_STRINGS_APPENDABLE_TYPE_DEF
@@ -2461,31 +2207,31 @@ The macros in this section are introduced by module \alib_strings.
     Chapter \ref alib_strings_assembly_ttostring of the Programmer's Manual of module
     \alib_strings.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_INLINE_N
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref alib::nchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_INLINE_W
   Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref alib::wchar.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR
-  Helper macro for specializing struct
-  \alib{strings::compatibility::std;T_SuppressStdOstreamOperator} for a custom type \p{TYPE}.
-  This macro has to be positioned outside of any namespace and the given type has to include
+  Helper macro for specializing type trait
+  \alib{strings::compatibility::std;SuppressStdOStreamOpTraits} for a custom type \p{TYPE}.
+  This macro has to be positioned outside any namespace, and the given type has to include
   its full namespace qualification.
 
-  @param TYPE The type to specialize functor \b T_Append for.
+  @param TYPE The type to specialize functor \b AppendableTraits for.
 
 
 \def ALIB_STRING_DBG_CHK
@@ -2493,7 +2239,7 @@ The macros in this section are introduced by module \alib_strings.
   \alib{strings;TString;String},
   \alib{strings;TCString;CString} and
   \alib{strings;TAString;AString}.
-  It is active only when compiler symbol \ref ALIB_DEBUG_STRINGS is \c true.
+  It is active only when the compiler-symbol \ref ALIB_DEBUG_STRINGS is \c true.
   The macro is placed in almost every method.
 
 
@@ -2619,12 +2365,12 @@ The macros in this section are introduced by module \alib_strings.
 
 \anchor GrpALibMacros_mod_threads
 While macros in this section logically belong to module \alib_threads, they are available
-(but empty) also when this module is not included in the \alibdist. 
+(but empty) also when this module is not included in the \alibbuild. 
 An explanation to this is given with chapter \ref alib_threads_intro_agnostic 
 of this module's Programmer's Manual.
 
 Their definition depends on the setting of \ref ALIB_DEBUG_CRITICAL_SECTIONS, which defaults
-to \c 1, in case module \alib_threads_nl is included in the \alibdist_nl.
+to \c 1, in case module \alib_threads_nl is included in the \alibbuild_nl.
 
 If the symbol is not set, all the symbols in this section are empty.
 
@@ -2636,10 +2382,10 @@ If the symbol is not set, all the symbols in this section are empty.
  \alib{threads;RecursiveLock}.
 
  \note
-    If module \alib_threads is not available in the \alibdist, this macro is still defined with
+    If module \alib_threads is not available in the \alibbuild, this macro is still defined with
     debug-builds.
-    In this case, namespace function\alib{DbgAssertSingleThreaded} is invoked. 
-    This detects multithreaded use of a non-supporting \alibdist.
+    In this case, namespace function\alib{assert::SingleThreaded} is invoked. 
+    This detects multithreaded use of a non-supporting \alibbuild.
 
  @see Alternative macro ALIB_LOCK_WITH                                                                         
 
@@ -2675,10 +2421,10 @@ If the symbol is not set, all the symbols in this section are empty.
  Commonly used with types derived from classes \alib{lang;DbgCriticalSections}.
 
  \note
-    If compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is not set, this macro is still defined 
+    If the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is not set, this macro is still defined 
     with debug-builds.
-    In this case, namespace function\alib{DbgAssertSingleThreaded} is invoked. 
-    This detects multithreaded use of a non-supporting \alibdist.
+    In this case, namespace function\alib{assert::SingleThreaded} is invoked. 
+    This detects multithreaded use of a non-supporting \alibbuild.
 
  @see 
    - Sibling macros \ref ALIB_DCS_WITH, \ref ALIB_DCS_SHARED, \ref ALIB_DCS_ACQUIRE, etc.      
@@ -2732,38 +2478,39 @@ If the symbol is not set, all the symbols in this section are empty.
 @}
 
 \I{################################################################################################}
-\I{################################     ALib Module BaseCamp       ##############################  }
+\I{################################     ALib Module Basecamp       ##############################  }
 \I{################################################################################################}
-\name ALib Module BaseCamp
+\name ALib Module Basecamp
 
 \anchor GrpALibMacros_mod_camp
-The macros in this section are introduced by inner namespace #alib::lang::resources of
-camp \alib_basecamp.
+The macros in this section are introduced by modle \alib_resources.
 
 @{
 \def ALIB_RESOURCED
-   Macro used to specialize type-traits struct \alib{lang::resources;T_Resourced} for given type \p{T}.
+   Macro used to specialize the type trait \alib{resources;ResourcedTraits} for given type 
+   \p{T}.
 
-   @param T            The type to specialize TMP struct \b %T_Resourced for.
-   @param ResPool      Expression providing a pointer to the \alib{lang::resources;ResourcePool} object.
+   @param T            The type to specialize the type trait \b %ResourcedTraits for.
+   @param ResPool      Expression providing a pointer to the \alib{resources;ResourcePool} 
+                       object.
    @param ResCategory  Expression providing the resource category.
    @param ResName      Expression providing the resource name.
 
 \def ALIB_RESOURCED_IN_MODULE
-   Variant of macro \ref ALIB_RESOURCED, which specializes type-traits struct
-   \alib{lang::resources;T_Resourced} for type \p{T} to use the resource-backend found in the given
-   \alib{lang;Camp}, as well as its default \alib{lang::Camp;ResourceCategory}.
+   Variant of macro \ref ALIB_RESOURCED, which specializes the type trait
+   \alib{resources;ResourcedTraits} for type \p{T} to use the resource-backend found in the 
+   given \alib{camp;Camp}, as well as its default \alib{camp::Camp;ResourceCategory}.
 
    \par Availability
      This macro is available only if \ref ALIB_CAMP equals \c true.
 
-   @param T            The type to specialize TMP struct \b %T_Resourced for.
-   @param Camp   Pointer to the \alib{lang;Camp} that provides the
-                       \alib{lang::resources;ResourcePool} object.
-   @param ResName      Expression providing the resource name.
+   @param T       The type to specialize the type trait \b %ResourcedTraits for.
+   @param Camp    Pointer to the \alib{camp;Camp} that provides the
+                  \alib{resources;ResourcePool} object.
+   @param ResName Expression providing the resource name.
    
 \def A_PATH
-  Macro used to define \alib{lang::system;Path}-string literals in a platform-independent way.
+  Macro used to define \alib{system;Path}-string literals in a platform-independent way.
   Similar to macro \ref A_CHAR, but dependent on the character type defined by the C++ standard
   library with type <c>std::filesystem::path::value_type</c>.<br>
   This is usually single-byte characters, and only on Windows OS, prefix <c>'L'</c> is added.
@@ -2771,7 +2518,7 @@ camp \alib_basecamp.
   @param literal The string literal to be eventually prefix with <c>'L'</c>.
   
 \def ALIB_PATH_TO_NARROW
-  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{lang::system;PathCharType} does not 
+  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{system;PathCharType} does not 
   equal \alib{characters::nchar}, a local narrow string is created and the given path is converted.
   Otherwise, just a reference to the given path is created, which will ultimately be optimized
   out by the compiler.
@@ -2786,7 +2533,7 @@ camp \alib_basecamp.
   @param bufSize The (initial) size of the local string, which is used as the conversion buffer. 
   
 \def ALIB_PATH_TO_STRING
-  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{lang::system;PathCharType} does not 
+  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{system;PathCharType} does not 
   equal \alib{characters::character}, a local string is created and the given path is converted.
   Otherwise, just a reference to the given path is created, which will ultimately be optimized
   out by the compiler.
@@ -2801,7 +2548,7 @@ camp \alib_basecamp.
   @param bufSize The (initial) size of the local string, which is used as the conversion buffer. 
 
 \def ALIB_STRING_TO_PATH
-  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{lang::system;PathCharType} does not 
+  Similar to \ref ALIB_STRINGS_TO_NARROW. If \alib{system;PathCharType} does not 
   equal \alib{characters::character}, a local path-string is created and the given string is 
   converted.
   Otherwise, just a reference to the given string is created, which will ultimately be optimized

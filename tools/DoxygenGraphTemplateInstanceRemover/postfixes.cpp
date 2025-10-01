@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -14,14 +14,12 @@
 // #################################################################################################
 
 // to preserve the right order, we are not includable directly from outside.
-#include "alib/alox.hpp"
-#include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/lang/message/report.hpp"
-#include "alib/lang/system/path.hpp"
-#include "alib/files/fscanner.hpp"
-#include "alib/files/fileexpressions.hpp"
-#include "alib/files/textfile.hpp"
-
+#include "ALib.ALox.H"
+#include "ALib.Strings.StdIOStream.H"
+#include "ALib.System.H"
+#include "ALib.Files.H"
+#include "ALib.Files.Expressions.H"
+#include "ALib.Files.TextFile.H"
 
 using namespace alib;
 using namespace std;
@@ -30,19 +28,18 @@ using namespace std;
 // #################################################################################################
 // Globals
 // #################################################################################################
-namespace
-{
+namespace {
     MonoAllocator   ma(ALIB_DBG("DGTIR",) 64);
 }
 
 
-#include "alib/lang/callerinfo_functions.hpp"
+#include "ALib.Lang.CIFunctions.H"
 
 /**
  * Note:
  * This method does not work. Well, it works as expected, but the approach does not work
  * unfortunately. It replaces occurrences of "&lt;" and "&gt;" that are valid.
- * Therefore it is not used currently, instead, fixExternalLinkImage() is used.
+ * Therefore , it is not used currently, instead, fixExternalLinkImage() is used.
  * Let's hope there are not too many other errors?
  *
  *
@@ -168,12 +165,16 @@ int fixExternalLinkImage(TextFile& file, const String& fileNameForLoggingOnly)
         Log_Info("LINES", "Line {}: {}", cntLine, line )
         if ( line.IndexOf("&lt;img src=\"external_link.svg\" height=\"12\" width=\"10\"&gt;") )
         {
-            String2K newLine(line);
+String8K oldLine(line);
+auto     oldCntFixes= cntFixes;
+            String8K newLine(line);
             cntFixes+=
               newLine.SearchAndReplace("&lt;img src=\"external_link.svg\" height=\"12\" width=\"10\"&gt;",
                                        "<img src=\"external_link.svg\" height=\"12\" width=\"10\">"    );
             line.Allocate( file.GetAllocator(), newLine );
-        }    
+if ( cntFixes > 0 && oldCntFixes < cntFixes )
+ Log_Error("LINES", "Fixing line: {}\n         to: {}\n    in file: ", oldLine, line, fileNameForLoggingOnly )
+        }
         ALIB_DBG(++cntLine;)
     }
 
@@ -190,8 +191,6 @@ int fixExternalLinkImage(TextFile& file, const String& fileNameForLoggingOnly)
 int postProcessHTMLFiles(const String& srcDir);
 int postProcessHTMLFiles(const String& srcDir)
 {
-    alib::Bootstrap();
-
     Log_AddDebugLogger()
     Log_SetDomain( "DOXFX", Scope::Filename  )
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/ALIB/FILES/TXTF" )
@@ -200,7 +199,7 @@ int postProcessHTMLFiles(const String& srcDir)
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/DOXFX/ANCHORS/LINES" )
 
     //----------------------- scan html directory ---------------------------
-    FTree                       fileTree(ma);
+    SharedFTree                 fileTree(10);
     ScanParameters              scanParameters(srcDir);
     std::vector<ResultsPaths>   resultPaths;
     FileExpressions             fex;
@@ -211,7 +210,6 @@ int postProcessHTMLFiles(const String& srcDir)
     if( resultPaths.size() == 0 )
     {
         Log_Error( "No files found with given directory {} ", srcDir )
-        alib::Shutdown();
         return 1;
     }
     Log_Info( "Scan result paths: ", resultPaths.size() )
@@ -225,7 +223,7 @@ int postProcessHTMLFiles(const String& srcDir)
     int sumFixedAnchors= 0;
     rit.SetPathGeneration(lang::Switch::On);
     auto snapshot= ma.TakeSnapshot();
-    for( rit.Initialize(fileTree) ; rit.IsValid() ; rit.Next() )
+    for( rit.Initialize(*fileTree.Get()) ; rit.IsValid() ; rit.Next() )
     {
         if( rit.Node()->Type() != alib::files::FInfo::Types::REGULAR )
             continue;
@@ -248,7 +246,6 @@ int postProcessHTMLFiles(const String& srcDir)
 
     std::cout << sumFixedFiles << "/" << sumFiles << " files fixed. (" <<  sumFixedAnchors << " anchors)" << endl;
 
-    alib::Shutdown();
     return 0;
 }
-#include "alib/lang/callerinfo_methods.hpp"
+#include "ALib.Lang.CIMethods.H"
