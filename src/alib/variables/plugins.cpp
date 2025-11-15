@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/variables/variables.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Variables.Plugins;
     import   ALib.Lang;
@@ -31,21 +31,19 @@
 #   include "ALib.Camp.Base.H"
 #   include "ALib.Variables.Plugins.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace variables {
 
 
-// #################################################################################################
+//##################################################################################################
 // CLIVariablesPlugin
-// #################################################################################################
+//##################################################################################################
 CLIVariablesPlugin::CLIVariablesPlugin( MonoAllocator& ma, Priority pPriority )
 : ConfigurationPlugin( pPriority)
 , AlternativeArgs  (ma)
-, DefaultCategories(ma)
-{}
+, DefaultCategories(ma)                                                                           {}
 
-String CLIVariablesPlugin::Name()                                                              const
-{
+String CLIVariablesPlugin::Name()                                                            const {
    #if ALIB_CAMP
        return alib::BASECAMP.GetResource( "CFGPlgCLI" );
    #else
@@ -53,8 +51,7 @@ String CLIVariablesPlugin::Name()                                               
    #endif
 }
 
-bool  CLIVariablesPlugin::Get( const String& pName, AString& target )
-{
+bool  CLIVariablesPlugin::Get( const String& pName, AString& target ) {
     int           argC    = alib::ARG_C;
     bool          isWide;
     const void**  argV    = (isWide= (alib::ARG_VN == nullptr)) ? reinterpret_cast<const void**>(alib::ARG_VW)
@@ -65,8 +62,7 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target )
 
     // check if a default category hits
     for (auto& defaultCategory : DefaultCategories )
-        if( name.StartsWith( defaultCategory ) )
-        {
+        if( name.StartsWith( defaultCategory ) ) {
             varNameWithoutCategory= name.Substring(defaultCategory.Length());
             varNameWithoutCategory.ConsumeChar('_');
             break;
@@ -76,39 +72,29 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target )
 
 
     auto argsIt= AlternativeArgs.begin();
-    if( !AlternativeArgs.empty() )
-    {
+    if( !AlternativeArgs.empty() ) {
         argC  = int(AlternativeArgs.size());
     }
 
-    for ( int i= !AlternativeArgs.empty() ? 0 : 1 ; i < argC ; ++i )
-    {
+    for ( int i= !AlternativeArgs.empty() ? 0 : 1 ; i < argC ; ++i ) {
         // create substring on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
 
-        if( !AlternativeArgs.empty() )
-        {
+        if( !AlternativeArgs.empty() ) {
             cliArg= *argsIt;
             ++argsIt;
-        }
-        else
-        {
-            if (!isWide)
-            {
+        } else {
+            if (!isWide) {
                 ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
-                if constexpr (!std::same_as<character, char>)
-                {
+                if constexpr (!std::same_as<character, char>) {
                     stringConverter.Reset( reinterpret_cast<const char**>(argV)[i] );
                     cliArg= stringConverter;
                 }
                 else
                     cliArg= reinterpret_cast<const character**>(argV)[i];
-            }
-            else
-            {
+            } else {
                 ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
-                if constexpr (!std::same_as<character, wchar_t>)
-                {
+                if constexpr (!std::same_as<character, wchar_t>) {
                     stringConverter.Reset( reinterpret_cast<const wchar_t**>(argV)[i] );
                     cliArg= stringConverter;
                 }
@@ -137,27 +123,23 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target )
 
         if ( cliArg.Trim().IsEmpty()  ) // we return "yes, found!" even when no value is set.
             return true;
-        if ( cliArg.ConsumeChar<CHK, lang::Whitespaces::Keep>() == '='  )
-        {
+        if ( cliArg.ConsumeChar<CHK, lang::Whitespaces::Keep>() == '='  ) {
             target.Reset(cliArg.Trim());
             return true;
-        }
-    }
+    }   }
 
     return false;
 }
 
-// #################################################################################################
+//##################################################################################################
 // EnvironmentVariablesPlugin
-// #################################################################################################
+//##################################################################################################
 EnvironmentVariablesPlugin::EnvironmentVariablesPlugin( MonoAllocator&  ma,
                                                         Priority        pPriority   )
 : ConfigurationPlugin( pPriority)
-, DefaultCategories( ma )
-{}
+, DefaultCategories( ma )                                                                         {}
 
-String  EnvironmentVariablesPlugin::Name()                                                     const
-{
+String  EnvironmentVariablesPlugin::Name()                                                   const {
    #if ALIB_CAMP
        return alib::BASECAMP.GetResource( "CFGPlgEnv" );
    #else
@@ -165,8 +147,7 @@ String  EnvironmentVariablesPlugin::Name()                                      
    #endif
 }
 
-bool  EnvironmentVariablesPlugin::Get( const String& pName,  AString& target )
-{
+bool  EnvironmentVariablesPlugin::Get( const String& pName,  AString& target ) {
     String256 result;
     result.DbgDisableBufferReplacementWarning();
 
@@ -177,25 +158,21 @@ bool  EnvironmentVariablesPlugin::Get( const String& pName,  AString& target )
 
     // check for full name
     EnvironmentVariables::Get( varName, result, lang::CurrentData::Keep );
-    if ( result.IsNotEmpty() )
-    {
+    if ( result.IsNotEmpty() ) {
         target.Reset(result);
         return true;
     }
 
     // check if a default category hits
     for (auto& defaultCategory : DefaultCategories )
-        if( varName.StartsWith( defaultCategory ) )
-        {
+        if( varName.StartsWith( defaultCategory ) ) {
             varNameWithoutCategory= varName.Substring(defaultCategory.Length());
             varNameWithoutCategory.ConsumeChar('_');
             EnvironmentVariables::Get( String256(varNameWithoutCategory), result, lang::CurrentData::Keep );
-            if ( result.IsNotEmpty() )
-            {
+            if ( result.IsNotEmpty() ) {
                 target.Reset(result);
                 return true;
-            }
-        }
+        }   }
     
     // nothing found
     return false;

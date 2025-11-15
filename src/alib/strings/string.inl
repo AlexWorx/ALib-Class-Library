@@ -6,9 +6,9 @@
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
 
-// #################################################################################################
+//##################################################################################################
 // forward declarations
-// #################################################################################################
+//##################################################################################################
 ALIB_EXPORT namespace alib::strings {
 template<typename TChar>
 requires alib::characters::IsCharacter<TChar> class  TString;
@@ -60,7 +60,7 @@ inline constexpr integer  MAX_LEN = (std::numeric_limits<integer>::max)();
 /// a complete new object value.
 /// This means there is no interface to change the single two data members #buffer and #length.
 /// The immutable nature of this type is lifted by derived types. While class
-/// \alib{strings;TSubstring;Substring}  allows  changing the start and
+/// \alib{strings;TSubstring;Substring} allows changing the start and
 /// length of the string represented, class \alib{strings;TAString;AString} holds a copy of the
 /// data and consequently allows modifying the string stored.<br>
 ///
@@ -94,16 +94,16 @@ class TString
         void     dbgCheck()   const;
     #endif
 
-    // #############################################################################################
-    // protected fields
-    // #############################################################################################
+  //################################################################################################
+  // protected fields
+  //################################################################################################
   protected:
     #if !DOXYGEN
-         union
-         {
-             const TChar*   buffer;
-                   TChar*  vbuffer;
-         };
+    union
+    {
+        const TChar*   buffer;
+              TChar*  vbuffer;
+    };
     #else
         /// Pointer to an array of constant character values.
         /// This array holds the string that an instance of this type is representing.<br>
@@ -137,28 +137,28 @@ class TString
     /// Read access to this field is granted with the method #Length.
     integer         length;
 
-    //##############################################################################################
-    // Constructors
-    //##############################################################################################
+  //################################################################################################
+  // Constructors
+  //################################################################################################
   public:
 
     /// Defaulted default constructor. Leaves this instance \b uninitialized and undefined.
     /// In other words, the methods #Buffer and #Length give random results.
-    constexpr TString()                                                          noexcept = default;
+    constexpr TString()                                                           noexcept =default;
 
     /// Defaulted copy constructor
-    constexpr TString(const TString&)                                            noexcept = default;
+    constexpr TString(const TString&)                                             noexcept =default;
 
     /// Defaulted move constructor
-    constexpr TString(     TString&&)                                            noexcept = default;
+    constexpr TString(     TString&&)                                             noexcept =default;
 
     /// Defaulted copy assignment operator.
     /// @return A reference to <c>this</c> instance.
-    constexpr TString& operator=(const TString&)                                 noexcept = default;
+    constexpr TString& operator=(const TString&)                                  noexcept =default;
 
     /// Defaulted move assignment operator.
     /// @return A reference to <c>this</c> instance.
-    constexpr TString& operator=(     TString&&)                                 noexcept = default;
+    constexpr TString& operator=(     TString&&)                                  noexcept =default;
 
 
     /// Constructor accepting a pointer to a character array and a string length.
@@ -167,8 +167,7 @@ class TString
     /// @param pLength   The length of the character string to represent.
     constexpr   TString( const TChar* pBuffer, integer pLength )                            noexcept
     : buffer(pBuffer)
-    , length(pLength)
-    {}
+    , length(pLength)                                                                             {}
 
     /// Constructor accepting \c nullptr. Constructs a nulled string.
     constexpr           TString(lang::IsNullptr auto const &)                               noexcept
@@ -242,8 +241,7 @@ class TString
     /// @param  copy       The string to copy to the new memory allocated.
     template<typename TAllocator>
     requires alib::lang::IsAllocator<TAllocator>
-    TString( TAllocator& allocator, const TString<TChar>& copy )
-    {
+    TString( TAllocator& allocator, const TString<TChar>& copy ) {
         if( (length= copy.length) == 0 ) {
             buffer= copy.buffer;
             return;
@@ -254,7 +252,7 @@ class TString
         buffer= newBuf;
     }
 
-    // ##############################    casting  back    ######################################
+  //######################################### casting  back ########################################
 
     /// Templated \b implicit <c>cast operator</c> constructing an instance of type \p{T} from
     /// this string instance.
@@ -310,12 +308,12 @@ class TString
     ///
     /// @return The start of the character array comprising the string represented by this
     ///         object.
-    constexpr const TChar*  Buffer()                                     const { return buffer;    }
+    constexpr const TChar*  Buffer()                                        const { return buffer; }
 
     /// Returns the length of the string that this object represents.
     ///
     /// @return The length of the string represented by this object.
-    constexpr integer       Length()                                     const { return length;    }
+    constexpr integer       Length()                                        const { return length; }
 
     /// Returns the length of the string if represented as a wide character string.
     /// If template parameter \p{TChar} equals \c wchar, then this is identical with #Length.
@@ -334,9 +332,9 @@ class TString
     ///   This by default is done during \ref alib_mod_bs "library initialization",
     ///   if performed on class \alib{camp;Basecamp}.
     ///
-    /// @return  The length of string when it was converted to wide characters.
-    ///          If counting failed (what means that a corresponding conversion would also fail)
-    ///          the #Length is returned.
+    /// @return The length of string when it was converted to wide characters.
+    ///         If counting failed (what means that a corresponding conversion would also fail)
+    ///         the #Length is returned.
     integer                 WStringLength()                                                   const;
 
 
@@ -383,16 +381,12 @@ class TString
     ///                      Defaults to \alib{strings;MAX_LEN}.
     /// @return A string representing a region of this string.
     template <typename TCheck= CHK>
-    TString<TChar>   Substring(integer regionStart, integer regionLength =MAX_LEN )            const
-    {
+    TString<TChar>   Substring(integer regionStart, integer regionLength =MAX_LEN )          const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             AdjustRegion( regionStart, regionLength );
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs= regionStart;
                 integer rl= regionLength;
@@ -418,8 +412,7 @@ class TString
     /// @param idx      The index of the character to read.
     /// @return The character at the given index, or '\0' if index out of range.
     template <typename TCheck= CHK>
-    TChar        CharAt( integer idx )                                                         const
-    {
+    TChar        CharAt( integer idx )                                                       const {
         if constexpr ( TCheck::value )
             return  ( idx >= 0 && idx < length ) ? *(buffer + idx )
                                                  : '\0' ;
@@ -433,12 +426,11 @@ class TString
     /// In the case of an empty or \e nulled string, '\0' is returned.
     ///
     /// @tparam TCheck  Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                 If \c false is given, no check for an empty string object is performed.
+    ///                 If \alib{NC} is given, no check for an empty string object is performed.
     /// @return The first character of the %String.
     ///         If this instance's length is zero,  '\0' is returned.
     template <typename TCheck= CHK>
-    TChar        CharAtStart()                                                                 const
-    {
+    TChar        CharAtStart()                                                               const {
         if constexpr ( TCheck::value )
             return length > 0  ?  *(buffer)
                                :  '\0';
@@ -451,14 +443,13 @@ class TString
     /// Retrieves the last character. In the case of an empty string, '\0' is returned.
     ///
     /// @tparam TCheck  Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                 If \c false is given, no check for an empty or \e nulled object is
+    ///                 If \alib{NC} is given, no check for an empty or \e nulled object is
     ///                 performed.
     ///
     /// @return The last character of the %String.
     ///         If this instance's length is zero,  '\0' is returned.
     template <typename TCheck= CHK>
-    TChar        CharAtEnd()                                                                   const
-    {
+    TChar        CharAtEnd()                                                                 const {
             if constexpr ( TCheck::value )
                 return length > 0   ?  *(buffer + length - 1)
                                     : '\0';
@@ -474,7 +465,7 @@ class TString
     ///   parameter \p{idx}.
     ///   The rationale for this is that derived mutable types (e.g., class %AString),
     ///   may provide a mutable (non-<c>const</c>) version of this operator, returning a
-    ///   a reference to the character to provide write access. Such reference
+    ///   reference to the character to provide write access. Such reference
     ///   to a character could not be given if the index was out of range.
     ///   This way, a check in the derived type could likewise not be implemented.
     ///
@@ -490,8 +481,7 @@ class TString
     ///
     /// @param   idx    The index of the character within this object's buffer.
     /// @returns If the character contained at index \p{idx}.
-    TChar    operator[] (integer idx)                                                         const
-    {
+    TChar    operator[] (integer idx)                                                        const {
         ALIB_ASSERT_ERROR( idx >= 0  && idx < length, "STRINGS",
                            "Index out of bounds: 0 <= {} < {}.", idx, length )
         return buffer[idx];
@@ -508,15 +498,15 @@ class TString
     ///   is used.
     /// \see Alternative method #HashcodeIgnoreCase.
     ///
-    /// @return  A hash number which is equal for two instances with the same content.
+    /// @return A hash number which is equal for two instances with the same content.
     std::size_t Hashcode()                                                                    const;
 
     /// Computes a hash number for the contained string converted to upper case letters.
     ///
     /// \see Alternative method #Hashcode.
     ///
-    /// @return  A hash number which is equal for two instances with have the same content
-    ///          if converted to upper case letters.
+    /// @return A hash number which is equal for two instances with have the same content
+    ///         if converted to upper case letters.
     std::size_t HashcodeIgnoreCase()                                                          const;
 
     //##############################################################################################
@@ -529,21 +519,19 @@ class TString
     /// If only one is \e nulled or empty, \c false is returned.
     ///
     /// @tparam TCheck       Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                      If \c false is given, no check for a \e nulled is performed
+    ///                      If \alib{NC} is given, no check for a \e nulled is performed
     ///                      on this string as well as on \p{rhs}.
     /// @tparam TSensitivity Determines if comparison is case-sensitive (the default) or not.
     /// @param  rhs          The object to compare.
     ///
-    /// @return  \c true, if the contents of this string and the string representation of the
-    ///          given \p{rhs} are equal.
+    /// @return \c true, if the contents of this string and the string representation of the
+    ///         given \p{rhs} are equal.
     template <typename   TCheck       = CHK,
               lang::Case TSensitivity = lang::Case::Sensitive>
-    bool Equals( const TString<TChar>& rhs )                                                   const
-    {
+    bool Equals( const TString<TChar>& rhs )                                                 const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( IsNull() &&  rhs.IsNull() )
                 return true;
 
@@ -580,21 +568,20 @@ class TString
     /// \ref alib_strings_cc_construction_string "string-like object".
     ///
     /// @tparam TCheck       Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                      If \c false is given, no check for a \e nulled object (this) is
+    ///                      If \alib{NC} is given, no check for a \e nulled object (this) is
     ///                      performed and this string must not be of zero length
     ///                      (while \p{rhs} might be of zero length).
     /// @tparam TSensitivity Determines if comparison is case-sensitive (the default) or not.
     /// @param  rhs          The object to compare.
     ///
     /// @return
-    ///  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
-    ///       share the same content
-    ///  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
-    ///  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+    ///   -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+    ///        share the same content
+    ///   - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+    ///   - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
     template <typename   TCheck       = CHK,
               lang::Case TSensitivity = lang::Case::Sensitive>
-    int CompareTo( const TString<TChar>& rhs )                                                 const
-    {
+    int CompareTo( const TString<TChar>& rhs )                                               const {
         ALIB_STRING_DBG_CHK(this)
 
         // check \c nullptr arguments
@@ -621,7 +608,7 @@ class TString
     /// \ref alib_strings_cc_construction_string "string-like object".
     ///
     /// @tparam TCheck         Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                        If \c false is given, no check for a \e nulled comparison
+    ///                        If \alib{NC} is given, no check for a \e nulled comparison
     ///                        object is performed and this string must not be empty.
     ///                        Furthermore, no check is performed whether the given region
     ///                        fits to parameter \p{rhs}. This also means that the default
@@ -635,18 +622,16 @@ class TString
     ///                        Defaults to \alib{strings;MAX_LEN}.
     ///
     /// @return
-    ///  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
-    ///       share the same content
-    ///  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
-    ///  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+    ///   -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+    ///        share the same content
+    ///   - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+    ///   - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
     template < typename   TCheck       = CHK,
                lang::Case TSensitivity = lang::Case::Sensitive>
     int CompareTo(  const TString&  rhs,
                     integer         rhsRegionStart,
-                    integer         rhsRegionLength   =MAX_LEN  )                              const
-    {
-        if constexpr ( TCheck::value )
-        {
+                    integer         rhsRegionLength   =MAX_LEN  )                            const {
+        if constexpr ( TCheck::value ) {
             TString cmpSub( rhs.buffer, 0);
             rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
             cmpSub.buffer+=   rhsRegionStart;
@@ -663,7 +648,7 @@ class TString
     /// \ref alib_strings_cc_construction_string "string-like object".
     ///
     /// @tparam TCheck         Defaults to \alib{CHK}, which is the normal invocation mode.
-    ///                        If \c false is given, no check for a \e nulled comparison
+    ///                        If \alib{NC} is given, no check for a \e nulled comparison
     ///                        object is performed and this string must not be empty.
     ///                        Furthermore, no check is performed whether the given regions fit
     ///                        to this object respectively the other region to the object given
@@ -681,20 +666,18 @@ class TString
     ///                        Defaults to \alib{strings;MAX_LEN}.
     ///
     /// @return
-    ///  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
-    ///       share the same content
-    ///  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
-    ///  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+    ///   -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+    ///        share the same content
+    ///   - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+    ///   - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
     template < typename   TCheck       = CHK,
                lang::Case TSensitivity = lang::Case::Sensitive>
     int CompareTo(  const TString&  rhs,
                     integer            rhsRegionStart,
                     integer            rhsRegionLength,
                     integer            regionStart,
-                    integer            regionLength      =MAX_LEN  )                           const
-    {
-        if constexpr ( TCheck::value )
-        {
+                    integer            regionLength      =MAX_LEN  )                         const {
+        if constexpr ( TCheck::value ) {
             TString cmpSub( rhs.buffer, 0);
             rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
             cmpSub.buffer+=   rhsRegionStart;
@@ -729,19 +712,15 @@ class TString
     /// @return \c true if \p{needle} is found at the given position. False otherwise.
     template< typename    TCheck       = CHK,
               lang::Case  TSensitivity = lang::Case::Sensitive >
-    bool ContainsAt( const TString& needle, integer pos )                                      const
-    {
+    bool ContainsAt( const TString& needle, integer pos )                                    const {
         integer needleLength= needle.length;
         ALIB_STRING_DBG_CHK(this)
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( pos < 0 || pos + needleLength > length || needle.IsNull () )
                 return false;
             if ( needleLength == 0 )
                 return true;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( pos >= 0 && pos + needleLength <= length,
                                "STRINGS", "Non checking and index out of range: 0 <= {}, {} <= {}.",
                                           pos, pos + needleLength, length )
@@ -769,17 +748,13 @@ class TString
     /// @return \c true if \p{needle} is found at the start of this string, \c false otherwise.
     template<typename    TCheck       = CHK,
              lang::Case  TSensitivity =lang::Case::Sensitive>
-    bool StartsWith( const TString& needle )                                                   const
-    {
-        if constexpr ( TCheck::value )
-        {
+    bool StartsWith( const TString& needle )                                                 const {
+        if constexpr ( TCheck::value ) {
             if ( needle.length > length )
                 return false;
             if ( needle.length == 0 )
                 return true;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( needle.length <= length, "STRINGS",
                                "Non checking and needle longer than this string: {} > {}",
                                needle.length, length )
@@ -802,17 +777,13 @@ class TString
     /// @return \c true if \p{needle} is found at the end of this, \c false otherwise.
     template<typename    TCheck       = CHK,
              lang::Case  TSensitivity =lang::Case::Sensitive>
-    bool EndsWith( const TString& needle )                                                     const
-    {
-        if constexpr ( TCheck::value )
-        {
+    bool EndsWith( const TString& needle )                                                   const {
+        if constexpr ( TCheck::value ) {
             if ( needle.length > length )
                 return false;
             if ( needle.length == 0 )
                 return true;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( needle.length <= length, "STRINGS",
                                "Non checking and needle longer than this string: {} > {}",
                                needle.length, length )
@@ -838,21 +809,17 @@ class TString
     /// @param startIdx  The index in this to start searching the character.
     ///                  Defaults to \c 0.
     ///
-    /// @return  \c -1 if the character \p{needle} is not found.
-    ///          Otherwise the index of its first occurrence.
+    /// @return \c -1 if the character \p{needle} is not found.
+    ///         Otherwise the index of its first occurrence.
     template <typename TCheck= CHK>
-    integer  IndexOf( TChar needle, integer startIdx = 0 )                                     const
-    {
+    integer  IndexOf( TChar needle, integer startIdx = 0 )                                   const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
                  if ( startIdx <  0      )  startIdx= 0;
             else if ( startIdx >= length )  return -1;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startIdx, length )
         }
@@ -870,21 +837,17 @@ class TString
     /// @param needle       The character to search for.
     /// @param regionStart  The start of the region to search the character in.
     /// @param regionLength The length of the region to search the character in.
-    /// @return  \c -1 if the character \p{needle} is not found.
-    ///          Otherwise the index of its first occurrence.
+    /// @return \c -1 if the character \p{needle} is not found.
+    ///         Otherwise the index of its first occurrence.
     template <typename TCheck= CHK>
-    integer         IndexOf( TChar needle, integer regionStart, integer regionLength )         const
-    {
+    integer         IndexOf( TChar needle, integer regionStart, integer regionLength )       const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
             if ( AdjustRegion( regionStart, regionLength ) )
                 return -1;
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs= regionStart;
                 integer rl= regionLength;
@@ -907,10 +870,9 @@ class TString
     /// lead to shorter and more efficient code.
     ///
     /// @param needle  The character to search for.
-    /// @return  This string's #Length if character \p{needle} is not found.
-    ///          Otherwise the index of first occurrence.
-    integer      IndexOfOrLength( TChar needle )                                               const
-    {
+    /// @return This string's #Length if character \p{needle} is not found.
+    ///         Otherwise the index of first occurrence.
+    integer      IndexOfOrLength( TChar needle )                                             const {
         ALIB_STRING_DBG_CHK(this)
         const TChar* result=   characters::Search( buffer, length, needle );
 
@@ -927,20 +889,16 @@ class TString
     ///                  If \c false is given, no range check is performed.
     /// @param needle    The character to search for.
     /// @param startIdx  The index in this to start searching the character.
-    /// @return  This string's #Length if  character \p{needle} is not found.
-    ///          Otherwise the index of first occurrence.
+    /// @return This string's #Length if character \p{needle} is not found.
+    ///         Otherwise the index of first occurrence.
     template <typename TCheck= CHK>
-    integer      IndexOfOrLength( TChar needle, integer startIdx )                             const
-    {
+    integer      IndexOfOrLength( TChar needle, integer startIdx )                           const {
         ALIB_STRING_DBG_CHK(this)
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
                  if ( startIdx <  0      )  startIdx= 0;
             else if ( startIdx >= length )  return length;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startIdx, length )
         }
@@ -961,21 +919,17 @@ class TString
     /// @param startIndex   The index within this string to start searching the character.
     ///                     Defaults to \alib{strings;MAX_LEN}.
     ///
-    /// @return  \c -1 if the character \p{needle} is not found.
-    ///          Otherwise, the index of its last occurrence.
+    /// @return \c -1 if the character \p{needle} is not found.
+    ///         Otherwise, the index of its last occurrence.
     template <typename TCheck= CHK>
-    integer    LastIndexOf( TChar needle, integer startIndex =MAX_LEN )                        const
-    {
+    integer    LastIndexOf( TChar needle, integer startIndex =MAX_LEN )                      const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
             if ( startIndex <  0      )   return -1;
             if ( startIndex >= length )   startIndex= length-1;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIndex >= 0 && startIndex < length, "STRINGS",
                 "Non checking and index out of range: 0 <= {} < {}.", startIndex, length )
         }
@@ -995,7 +949,7 @@ class TString
     ///   respectively \c std::strspn()) is available.
     ///   So, if performance is important and repetitive calls are performed, it might be
     ///   advisable to hold this string and the needles in a zero-terminated string buffer,
-    ///   for example in an \b AString.
+    ///   for example, in an \b AString.
     ///
     /// This method searches forwards. For backwards search, see #LastIndexOf.
     ///
@@ -1016,15 +970,11 @@ class TString
     ///         If nothing is found, -1 is returned.
     template <lang::Inclusion   TInclusion,
               typename          TCheck      = CHK>
-    integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                       const
-    {
-        if constexpr ( TCheck::value )
-        {
+    integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                     const {
+        if constexpr ( TCheck::value ) {
             if ( startIdx < 0       ) startIdx= 0;
             if ( startIdx >= length ) return   -1;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length && needles.Length() != 0,
                 "STRINGS", "Non checking and illegal parameters: 0 <= {} < {}. Needles: {}",
                            startIdx, length, needles.Length() )
@@ -1060,15 +1010,11 @@ class TString
     ///         If nothing is found, -1 is returned.
     template <lang::Inclusion TInclusion,
               typename        TCheck = CHK>
-    integer LastIndexOfAny( const TString& needles, integer startIdx =MAX_LEN )                const
-    {
-        if constexpr ( TCheck::value )
-        {
+    integer LastIndexOfAny( const TString& needles, integer startIdx =MAX_LEN )              const {
+        if constexpr ( TCheck::value ) {
             if ( startIdx < 0       ) return -1;
             if ( startIdx >= length ) startIdx=  length - 1;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length && needles.Length() != 0,
                 "STRINGS", "Non checking and illegal parameters: 0 <= {} < {}. Needles: {}",
                            startIdx, length, needles.Length() )
@@ -1103,18 +1049,14 @@ class TString
              lang::Case TSensitivity  = lang::Case::Sensitive>
     integer  IndexOf( const TString&  needle,
                       integer         startIdx= 0,
-                      integer         endIdx  = strings::MAX_LEN  )                        const
-    {
-        if constexpr ( TCheck::value )
-        {
+                      integer         endIdx  = strings::MAX_LEN  )                          const {
+        if constexpr ( TCheck::value ) {
             if ( needle.IsNull()  )
                 return  -1;
             if ( startIdx < 0                        )    startIdx= 0;
             endIdx= (std::min) (endIdx, length - needle.Length() + 1 );
             if ( startIdx >= endIdx                  )    return -1;
-        }
-        else
-        {
+        } else {
             // this default parameter is still corrected. Optimized out anyhow.
             if( endIdx  == strings::MAX_LEN)
                 endIdx= length - needle.Length() + 1;
@@ -1148,18 +1090,14 @@ class TString
     template <typename TCheck= CHK>
     integer  IndexOfFirstDifference( const TString&  needle,
                                      lang::Case      sensitivity = lang::Case::Sensitive,
-                                     integer         startIdx    = 0                     )     const
-    {
+                                     integer         startIdx    = 0                     )   const {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
                  if ( startIdx <  0      )  startIdx= 0;
             else if ( startIdx >= length )  return startIdx;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startIdx, length )
         }
@@ -1201,28 +1139,23 @@ class TString
     /// @param startPos  The index to start the counting.
     ///                  Optional and defaults to \c 0.
     ///
-    /// @return  The index of the first difference in \p{needle}.
+    /// @return The index of the first difference in \p{needle}.
     template <typename TCheck= CHK>
     integer  CountChar( TChar           needle,
-                        integer         startPos        = 0   )                                const
-    {
+                        integer         startPos        = 0   )                              const {
         ALIB_STRING_DBG_CHK(this)
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
                  if ( startPos <  0      )  startPos= 0;
             else if ( startPos >= length )  return 0;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startPos, length )
         }
 
 
         int     result= 0;
-        while( startPos < length && (startPos= IndexOf<NC>( needle, startPos )) >= 0 )
-        {
+        while( startPos < length && (startPos= IndexOf<NC>( needle, startPos )) >= 0 ) {
             ++startPos;
             ++result;
         }
@@ -1242,28 +1175,23 @@ class TString
     /// @param omit      Omit occurrence if the given character follows.
     /// @param startPos  The index to start the counting.
     ///
-    /// @return  The index of the first difference in \p{needle}.
+    /// @return The index of the first difference in \p{needle}.
     template <typename TCheck= CHK>
     integer  CountChar( TChar           needle,
                         TChar           omit,
-                        integer         startPos  )                                            const
-    {
+                        integer         startPos  )                                          const {
         ALIB_STRING_DBG_CHK(this)
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             // adjust range, if empty return -1
                  if ( startPos <  0      )  startPos= 0;
             else if ( startPos >= length )  return 0;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startPos, length )
         }
 
         int     result= 0;
-        while( startPos < length && (startPos= IndexOf<NC>( needle, startPos )) >= 0 )
-        {
+        while( startPos < length && (startPos= IndexOf<NC>( needle, startPos )) >= 0 ) {
             ++startPos;
             if( startPos < Length()  &&  *(buffer + startPos) == omit  )
                 continue;
@@ -1287,30 +1215,25 @@ class TString
     /// @param startPos      The index to start the counting.
     ///                      Optional and defaults to \c 0.
     ///
-    /// @return  The index of the first difference in \p{needle}.
+    /// @return The index of the first difference in \p{needle}.
     template< typename    TCheck       = CHK,
               lang::Case  TSensitivity = lang::Case::Sensitive >
     integer Count( const TString&    needle,
-                   integer           startPos   = 0 )                                          const
-    {
+                   integer           startPos   = 0 )                                        const {
         ALIB_STRING_DBG_CHK(this)
         integer nLen= needle.Length();
         if( nLen == 0  )
             return 0;
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( startPos < 0 )                startPos= 0;
             if ( startPos + nLen > length )    return  0;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startPos, length )
         }
 
         int     result= 0;
-        while( (startPos= IndexOf<NC, TSensitivity>( needle, startPos )) >= 0 )
-        {
+        while( (startPos= IndexOf<NC, TSensitivity>( needle, startPos )) >= 0 ) {
             startPos+= needle.Length();
             ++result;
         }
@@ -1334,32 +1257,27 @@ class TString
     /// @param startPos      The index to start the counting.
     ///                      Optional and defaults to \c 0.
     ///
-    /// @return  The index of the first difference in \p{needle}.
+    /// @return The index of the first difference in \p{needle}.
     template<typename    TCheck        = CHK,
              lang::Case  TSensitivity  = lang::Case::Sensitive>
     integer  Count( const TString&   needle,
                     const TString&   omit,
-                    integer          startPos        = 0         )                             const
-    {
+                    integer          startPos        = 0         )                           const {
         ALIB_STRING_DBG_CHK(this)
         integer nLen= needle.Length();
         if ( nLen == 0  )
             return  0;
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( startPos < 0 )                startPos= 0;
             if ( startPos + nLen > length )    return  0;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length, "STRINGS",
                            "Non checking and index out of range: 0 <= {} < {}.", startPos, length )
         }
 
 
         int     result= 0;
-        while( (startPos= IndexOf<NC , TSensitivity>( needle, startPos )) >= 0 )
-        {
+        while( (startPos= IndexOf<NC , TSensitivity>( needle, startPos )) >= 0 ) {
             startPos+= nLen;
             if(    startPos + omit.Length() <= Length()
                 && (    omit.IsEmpty()
@@ -1387,10 +1305,10 @@ class TString
     ///                     If parsing fails, it will be set to the value of parameter startIdx.
     ///                     Therefore, this parameter can be used to check if a value was found.
     ///
-    /// @return  The parsed value. In addition, the parameter \p{newIdx} is set to point
-    ///          to the first character behind any found integer number.
+    /// @return The parsed value. In addition, the parameter \p{newIdx} is set to point
+    ///         to the first character behind any found integer number.
     ALIB_DLL
-    uint64_t  ParseDecDigits( integer startIdx =0, integer* newIdx= nullptr ) const;
+    uint64_t  ParseDecDigits( integer startIdx =0, integer* newIdx= nullptr )                 const;
 
 
     /// Parses an integral value in decimal, binary, hexadecimal or octal format from
@@ -1414,11 +1332,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     int64_t  ParseInt( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                       integer* newIdx= nullptr ) const;
+                       integer* newIdx= nullptr )                                             const;
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseInt(integer,TNumberFormat<TChar>*,integer*)const;ParseInt}
@@ -1428,12 +1346,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    int64_t  ParseInt( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseInt( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    int64_t  ParseInt( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )          const
+    { return ParseInt( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseInt(integer,TNumberFormat<TChar>*,integer*)const;ParseInt}
@@ -1442,12 +1358,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    int64_t  ParseInt( integer* newIdx ) const
-    {
-        return ParseInt( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    int64_t  ParseInt( integer* newIdx )            const { return ParseInt( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1459,12 +1372,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    int64_t  ParseInt( integer startIdx, integer* newIdx ) const
-    {
-        return ParseInt( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    int64_t  ParseInt( integer startIdx, integer* newIdx )                                     const
+    { return ParseInt( startIdx, nullptr, newIdx ); }
 
     /// Reads an unsigned 64-bit integer in standard decimal format at the given position
     /// from this %AString.
@@ -1491,11 +1402,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     uint64_t  ParseDec( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                        integer* newIdx= nullptr ) const;
+                        integer* newIdx= nullptr )                                            const;
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseDec(integer,TNumberFormat<TChar>*,integer*)const;ParseDec}
@@ -1505,12 +1416,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseDec( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseDec( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseDec( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )         const
+    { return ParseDec( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseDec(integer,TNumberFormat<TChar>*,integer*)const;ParseDec}
@@ -1519,12 +1428,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseDec( integer* newIdx ) const
-    {
-        return ParseDec( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseDec( integer* newIdx )           const { return ParseDec( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1536,12 +1442,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseDec( integer startIdx, integer* newIdx ) const
-    {
-        return ParseDec( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseDec( integer startIdx, integer* newIdx )                                    const
+    { return ParseDec( startIdx, nullptr, newIdx ); }
 
     /// Reads an unsigned 64-bit integer in binary format at the given position
     /// from this string.
@@ -1564,11 +1468,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     uint64_t  ParseBin( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                        integer* newIdx= nullptr ) const;
+                        integer* newIdx= nullptr )                                            const;
 
 
     /// Overloaded version of
@@ -1579,12 +1483,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseBin( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseBin( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseBin( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )         const
+    { return ParseBin( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseBin(integer,TNumberFormat<TChar>*,integer*)const;ParseBin}
@@ -1593,12 +1495,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseBin( integer* newIdx ) const
-    {
-        return ParseBin( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseBin( integer* newIdx )           const { return ParseBin( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1610,12 +1509,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseBin( integer startIdx, integer* newIdx ) const
-    {
-        return ParseBin( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseBin( integer startIdx, integer* newIdx )                                    const
+    { return ParseBin( startIdx, nullptr, newIdx ); }
 
     /// Reads an unsigned 64-bit integer in hexadecimal format at the given position
     /// from this string.
@@ -1638,11 +1535,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     uint64_t  ParseHex( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                        integer* newIdx= nullptr ) const;
+                        integer* newIdx= nullptr )                                            const;
 
 
     /// Overloaded version of
@@ -1653,12 +1550,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseHex( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseHex( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseHex( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )         const
+    { return ParseHex( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseHex(integer,TNumberFormat<TChar>*,integer*)const;ParseHex}
@@ -1667,12 +1562,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseHex( integer* newIdx ) const
-    {
-        return ParseHex( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseHex( integer* newIdx )           const { return ParseHex( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1684,12 +1576,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseHex( integer startIdx, integer* newIdx ) const
-    {
-        return ParseHex( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseHex( integer startIdx, integer* newIdx )                                    const
+    { return ParseHex( startIdx, nullptr, newIdx ); }
 
     /// Reads an unsigned 64-bit integer in octal format at the given position
     /// from this string.
@@ -1712,11 +1602,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     uint64_t  ParseOct( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                        integer* newIdx= nullptr ) const;
+                        integer* newIdx= nullptr )                                            const;
 
 
     /// Overloaded version of
@@ -1727,12 +1617,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseOct( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseOct( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseOct( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )         const
+    { return ParseOct( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseOct(integer,TNumberFormat<TChar>*,integer*)const;ParseOct}
@@ -1741,12 +1629,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseOct( integer* newIdx ) const
-    {
-        return ParseOct( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseOct( integer* newIdx )           const { return ParseOct( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1758,12 +1643,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    uint64_t  ParseOct( integer startIdx, integer* newIdx ) const
-    {
-        return ParseOct( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    uint64_t  ParseOct( integer startIdx, integer* newIdx )                                    const
+    { return ParseOct( startIdx, nullptr, newIdx ); }
 
     /// Reads a floating point number at the given position from this string.
     ///
@@ -1786,11 +1669,11 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
     ALIB_DLL
     double   ParseFloat( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
-                         integer* newIdx= nullptr ) const;
+                         integer* newIdx= nullptr )                                           const;
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseFloat(integer,TNumberFormat<TChar>*,integer*)const;ParseFloat}
@@ -1800,12 +1683,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    double  ParseFloat( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
-    {
-        return ParseFloat( 0, numberFormat, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    double  ParseFloat( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr )         const
+    { return ParseFloat( 0, numberFormat, newIdx ); }
 
     /// Overloaded version of
     /// \alib{strings;TString::ParseFloat(integer,TNumberFormat<TChar>*,integer*)const;ParseFloat}
@@ -1814,12 +1695,9 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \c 0.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    double  ParseFloat( integer* newIdx ) const
-    {
-        return ParseFloat( 0, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    double  ParseFloat( integer* newIdx )         const { return ParseFloat( 0, nullptr, newIdx ); }
 
 
     /// Overloaded version of
@@ -1831,12 +1709,10 @@ class TString
     /// @param[out] newIdx  Optional output variable that will point to the first
     ///                     character in this string after the number parsed.
     ///                     On failure, it will be set to the initial value \p{startIdx}.
-    /// @return  The parsed value. In addition, the output parameter \b newIdx is set to
-    ///          point to the first character behind the parsed number.
-    double  ParseFloat( integer startIdx, integer* newIdx ) const
-    {
-        return ParseFloat( startIdx, nullptr, newIdx );
-    }
+    /// @return The parsed value. In addition, the output parameter \b newIdx is set to
+    ///         point to the first character behind the parsed number.
+    double  ParseFloat( integer startIdx, integer* newIdx )                                    const
+    { return ParseFloat( startIdx, nullptr, newIdx ); }
 
     //##############################################################################################
     /// @name Conversion
@@ -1847,8 +1723,7 @@ class TString
     ///
     /// @param dest   The destination buffer.
     /// @return    The length of this string.
-    integer CopyTo( TChar* dest )                                                              const
-    {
+    integer CopyTo( TChar* dest )                                                            const {
         characters::Copy( buffer, length, dest );
         return length;
     }
@@ -1867,10 +1742,8 @@ class TString
     /// @param  copy       The string to copy to the new memory allocated.
     template<typename TAllocator>
     requires alib::lang::IsAllocator<TAllocator>
-    void  Allocate( TAllocator& allocator, const TString<TChar>& copy )
-    {
-        if( (length= copy.length) == 0 )
-        {
+    void  Allocate( TAllocator& allocator, const TString<TChar>& copy ) {
+        if( (length= copy.length) == 0 ) {
             buffer= copy.buffer;
             return;
         }
@@ -1896,8 +1769,7 @@ class TString
     /// @param  allocator  The allocator to use.
     template<typename TAllocator>
     requires alib::lang::IsAllocator<TAllocator>
-    void  Free( TAllocator& allocator )
-    {
+    void  Free( TAllocator& allocator ) {
         if( length == 0 || buffer == nullptr )
             return;
         allocator().FreeArray( buffer, length );
@@ -1916,26 +1788,22 @@ class TString
     ///                             range [0..length].
     ///
     /// @return   Returns \c true, if the adjusted region is empty.
-    bool AdjustRegion( integer& regionStart, integer& regionLength )                           const
-    {
+    bool AdjustRegion( integer& regionStart, integer& regionLength )                         const {
         // if start exceeds string, set to empty range at the end of the string and return true
-        if (regionStart >= length)
-        {
+        if (regionStart >= length) {
             regionStart=    length;
             regionLength=    0;
             return true; // indicate empty
         }
 
         // if negative start, cut it from the length
-        if (regionStart < 0 )
-        {
+        if (regionStart < 0 ) {
             regionLength+=  regionStart;
             regionStart=    0;
         }
 
         // adjust length
-        if ( regionLength < 0 )
-        {
+        if ( regionLength < 0 ) {
             regionLength= 0;
             return true;
         }
@@ -1948,9 +1816,9 @@ class TString
         return  regionLength == 0;
     }
 
-    //##############################################################################################
-    // std::iterator_traits
-    //##############################################################################################
+  //################################################################################################
+  // std::iterator_traits
+  //################################################################################################
 
     /// Implementation of \c std::iterator_traits for class \b %TString and its descendents.
     /// Base class \b String exposes #const_iterator which uses
@@ -1964,180 +1832,121 @@ class TString
     template<typename TCharConstOrMutable>
     class TRandomAccessIterator
     {
-        public:
-            using iterator_category = std::random_access_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
-            using value_type        = TCharConstOrMutable;              ///< Implementation of <c>std::iterator_traits</c>.
-            using difference_type   = integer;                          ///< Implementation of <c>std::iterator_traits</c>.
-            using pointer           = TCharConstOrMutable*;             ///< Implementation of <c>std::iterator_traits</c>.
-            using reference         = TCharConstOrMutable&;             ///< Implementation of <c>std::iterator_traits</c>.
+      public:
+        using iterator_category = std::random_access_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+        using value_type        = TCharConstOrMutable;              ///< Implementation of <c>std::iterator_traits</c>.
+        using difference_type   = integer;                          ///< Implementation of <c>std::iterator_traits</c>.
+        using pointer           = TCharConstOrMutable*;             ///< Implementation of <c>std::iterator_traits</c>.
+        using reference         = TCharConstOrMutable&;             ///< Implementation of <c>std::iterator_traits</c>.
 
-        protected:
-            /// The pointer into the buffer is all we store.
-            TCharConstOrMutable* p;
-        public:
-            /// Constructor.
-            /// @param start Pointer to the initial character.
-            explicit TRandomAccessIterator( TCharConstOrMutable* start = nullptr ) : p(start)
-            {}
+      protected:
+        /// The pointer into the buffer is all we store.
+        TCharConstOrMutable* p;
+      public:
+        /// Constructor.
+        /// @param start Pointer to the initial character.
+        explicit TRandomAccessIterator( TCharConstOrMutable* start = nullptr ) : p(start)         {}
 
-        //######################   To satisfy concept of  InputIterator   ######################
+      //############################ To satisfy concept of  InputIterator ##########################
 
-            /// Prefix increment operator.
-            /// @return A reference to this object.
-            TRandomAccessIterator& operator++()
-            {
-                ++p;
-                return *this;
-            }
+        /// Prefix increment operator.
+        /// @return A reference to this object.
+        TRandomAccessIterator& operator++()                                   { ++p; return *this; }
 
-             /// Postfix increment operator.
-            /// @return An iterator value that is not increased, yet.
-           TRandomAccessIterator operator++(int)
-            {
-                return TRandomAccessIterator(p++);
-            }
+        /// Postfix increment operator.
+        /// @return An iterator value that is not increased, yet.
+        TRandomAccessIterator operator++(int)                 { return TRandomAccessIterator(p++); }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and the given iterator are pointing to the same character
-            ///         in the same array, \c false otherwise.
-            bool operator==(TRandomAccessIterator other)                                       const
-            {
-                return p == other.p;
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and the given iterator are pointing to the same character
+        ///         in the same array, \c false otherwise.
+        bool operator==(TRandomAccessIterator other)                  const { return p == other.p; }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and given iterator are not equal, \c false otherwise.
-            bool operator!=(TRandomAccessIterator other)                                       const
-            {
-                return !(*this == other);
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and given iterator are not equal, \c false otherwise.
+        bool operator!=(TRandomAccessIterator other)             const { return !(*this == other); }
 
-            /// Retrieves the character that this iterator references.
-            /// @return The character value.
-            TCharConstOrMutable& operator*()                                                   const
-            {
-                return *p;
-            }
+        /// Retrieves the character that this iterator references.
+        /// @return The character value.
+        TCharConstOrMutable& operator*()                                        const { return *p; }
 
-            /// Retrieves the character that this iterator references.
-            /// @return The character value.
-            TCharConstOrMutable& operator*()
-            {
-                return *p;
-            }
+        /// Retrieves the character that this iterator references.
+        /// @return The character value.
+        TCharConstOrMutable& operator*()                                              { return *p; }
 
 
-        //##################   To satisfy concept of  BidirectionalIterator   ##################
+      //######################## To satisfy concept of  BidirectionalIterator ######################
 
-            /// Prefix decrement operator.
-            /// @return A reference to this object.
-            TRandomAccessIterator& operator--()
-            {
-                --p;
-                return *this;
-            }
+        /// Prefix decrement operator.
+        /// @return A reference to this object.
+        TRandomAccessIterator& operator--()                                   { --p; return *this; }
 
 
-            /// Postfix decrement operator.
-            /// @return The iterator value prior the decrement operation.
-            TRandomAccessIterator operator--(int)
-            {
-                return TRandomAccessIterator(p--);
-            }
+        /// Postfix decrement operator.
+        /// @return The iterator value prior the decrement operation.
+        TRandomAccessIterator operator--(int)                 { return TRandomAccessIterator(p--); }
 
 
-        //##################   To satisfy concept of  RandomAccessIterator   ###################
+      //######################## To satisfy concept of  RandomAccessIterator #######################
 
-            /// Addition assignment.
-            /// @param n The value to subtract.
-            /// @return A reference to this iterator.
-            TRandomAccessIterator& operator+=(integer n)
-            {
-                p+= n;
-                return *this;
-            }
+        /// Addition assignment.
+        /// @param n The value to subtract.
+        /// @return A reference to this iterator.
+        TRandomAccessIterator& operator+=(integer n)                        { p+= n; return *this; }
 
-            /// Subtraction assignment.
-            /// @param n The value to subtract.
-            /// @return A reference to this iterator.
-            TRandomAccessIterator& operator-=(integer n)
-            {
-                p-= n;
-                return *this;
-            }
+        /// Subtraction assignment.
+        /// @param n The value to subtract.
+        /// @return A reference to this iterator.
+        TRandomAccessIterator& operator-=(integer n)                        { p-= n; return *this; }
 
-            /// Addition.
-            /// @param n The value to subtract.
-            /// @return The resulting iterator value.
-            TRandomAccessIterator operator+(integer n)                                         const
-            {
-                return TRandomAccessIterator( p + n );
-            }
+        /// Addition.
+        /// @param n The value to subtract.
+        /// @return The resulting iterator value.
+        TRandomAccessIterator operator+(integer n)  const { return TRandomAccessIterator( p + n ); }
 
-            /// Subtraction.
-            /// @param n The value to subtract.
-            /// @return The resulting iterator value.
-            TRandomAccessIterator operator-(integer n)                                         const
-            {
-                return TRandomAccessIterator( p - n );
-            }
+        /// Subtraction.
+        /// @param n The value to subtract.
+        /// @return The resulting iterator value.
+        TRandomAccessIterator operator-(integer n)  const { return TRandomAccessIterator( p - n ); }
 
-            /// Difference (distance) from this iterator to the given one.
-            /// @param other  The iterator to subtract
-            /// @return The difference between (distance of) this and the given iterator.
-            integer operator-(TRandomAccessIterator other)                                     const
-            {
-                return p - other.p;
-            }
+        /// Difference (distance) from this iterator to the given one.
+        /// @param other  The iterator to subtract
+        /// @return The difference between (distance of) this and the given iterator.
+        integer operator-(TRandomAccessIterator other)                 const { return p - other.p; }
 
-            /// Subscript operator.
-            /// @param n  The distance to add.
-            /// @return Reference to the character referenced by this iterator plus the distance
-            ///         given.
-            TCharConstOrMutable& operator[]( integer n )                                       const
-            {
-                return *( p + n );
-            }
+        /// Subscript operator.
+        /// @param n  The distance to add.
+        /// @return Reference to the character referenced by this iterator plus the distance
+        ///         given.
+        TCharConstOrMutable& operator[]( integer n )                    const { return *( p + n ); }
 
-        //#### Comparison operators (also needed to satisfy concept of RandomAccessIterator) ###
+      //#### Comparison operators (also needed to satisfy concept of RandomAccessIterator) ###
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e smaller than \p{other},
-            ///         \c false otherwise.
-            bool operator<(TRandomAccessIterator other)                                        const
-            {
-                return p < other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e smaller than \p{other},
+        ///         \c false otherwise.
+        bool operator<(TRandomAccessIterator other)                    const { return p < other.p; }
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e smaller than or equal to \p{other},
-            ///         \c false otherwise.
-            bool operator<=(TRandomAccessIterator other)                                       const
-            {
-                return p <= other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e smaller than or equal to \p{other},
+        ///         \c false otherwise.
+        bool operator<=(TRandomAccessIterator other)                  const { return p <= other.p; }
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e greater than \p{other},
-            ///         \c false otherwise.
-            bool operator>(TRandomAccessIterator other)                                        const
-            {
-                return p > other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e greater than \p{other},
+        ///         \c false otherwise.
+        bool operator>(TRandomAccessIterator other)                    const { return p > other.p; }
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e greater than or equal to \p{other},
-            ///         \c false otherwise.
-            bool operator>=(TRandomAccessIterator other)                                       const
-            {
-                return p >= other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e greater than or equal to \p{other},
+        ///         \c false otherwise.
+        bool operator>=(TRandomAccessIterator other)                  const { return p >= other.p; }
     };
 
     /// The constant iterator exposed by this character container. A Mutable version is
@@ -2199,8 +2008,7 @@ class TString
     /// @param end   An iterator referencing the end of the string.
     TString( const_iterator& start, const_iterator& end )
     : buffer( &*start)
-    , length( end-start >= 0 ? end-start : 0 )
-    {}
+    , length( end-start >= 0 ? end-start : 0 )                                                    {}
 
   protected:
     #if !DOXYGEN
@@ -2226,9 +2034,9 @@ class TString
     #endif
 }; // class TString
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits for class TString
-// #################################################################################################
+//##################################################################################################
 } namespace alib::characters {
 
 #if !DOXYGEN
@@ -2239,7 +2047,7 @@ template<typename TChar>     struct  ArrayTraits<strings::TString<TChar>, TChar>
     static constexpr Policy       Construction                              = Policy::Implicit;
     static constexpr const TChar* Buffer   (const T& src)                   { return src.Buffer(); }
     static constexpr integer      Length   (const T& src)                   { return src.Length(); }
-    static constexpr T            Construct(const TChar* b, integer l)      { return T(b, l); }
+    static constexpr T            Construct(const TChar* b, integer l)           { return T(b, l); }
 };
 
 template<typename TChar>     struct  ZTArrayTraits<strings::TString<TChar>, TChar>
@@ -2247,16 +2055,16 @@ template<typename TChar>     struct  ZTArrayTraits<strings::TString<TChar>, TCha
     using T= strings::TString<TChar>;
     static constexpr Policy       Access                                   = Policy::ExplicitOnly;
     static constexpr Policy       Construction                             = Policy::ExplicitOnly;
-    static constexpr const TChar* Buffer(const T& src)                     { return src.Buffer(); }
-    static constexpr integer      Length(const T& src)                     { return src.Length(); }
-    static constexpr T            Construct(const TChar* b, integer l )    { return T(b, l); }
+    static constexpr const TChar* Buffer(const T& src)                      { return src.Buffer(); }
+    static constexpr integer      Length(const T& src)                      { return src.Length(); }
+    static constexpr T            Construct(const TChar* b, integer l )          { return T(b, l); }
 };
 #endif // !DOXYGEN
 
 } namespace alib::strings {
-//##############################################################################################
+//##################################################################################################
 /// @name Comparison Operators
-//##############################################################################################
+//##################################################################################################
 #if DOXYGEN
 
 //==================================================================================================
@@ -2315,12 +2123,12 @@ auto operator<=> (const TString<TChar>& lhs, const T&     rhs)
 #endif // DOXYGEN
 
 
-// #################################################################################################
+//##################################################################################################
 // Template instantiation declarations
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
-template<>      ALIB_DLL integer  TString<nchar>::WStringLength                       ()                                           const;
+template<>      ALIB_DLL integer  TString<nchar>::WStringLength                       ()      const;
 extern template ALIB_DLL integer  TString<nchar>::indexOfString<lang::Case::Sensitive>( const TString<nchar >&, integer, integer ) const;
 extern template ALIB_DLL integer  TString<nchar>::indexOfString<lang::Case::Ignore   >( const TString<nchar >&, integer, integer ) const;
 extern template ALIB_DLL integer  TString<nchar>::IndexOfSegmentEnd                   ( nchar, nchar, integer                    ) const;
@@ -2334,7 +2142,7 @@ extern template ALIB_DLL double   TString<nchar>::ParseFloat                    
 extern template ALIB_DLL size_t   TString<nchar>::Hashcode                            ()                                           const;
 extern template ALIB_DLL size_t   TString<nchar>::HashcodeIgnoreCase                  ()                                           const;
 
-template<> inline        integer  TString<wchar>::WStringLength                       () const  { return length; }
+template<> inline        integer  TString<wchar>::WStringLength                       () const { return length; }
 extern template ALIB_DLL integer  TString<wchar>::indexOfString<lang::Case::Sensitive>(const TString<wchar>&, integer, integer   ) const;
 extern template ALIB_DLL integer  TString<wchar>::indexOfString<lang::Case::Ignore   >(const TString<wchar>&, integer, integer   ) const;
 extern template ALIB_DLL integer  TString<wchar>::IndexOfSegmentEnd                   (wchar, wchar, integer                     ) const;
@@ -2348,7 +2156,7 @@ extern template ALIB_DLL double   TString<wchar>::ParseFloat                    
 extern template ALIB_DLL size_t   TString<wchar>::Hashcode                            ()                                           const;
 extern template ALIB_DLL size_t   TString<wchar>::HashcodeIgnoreCase                  ()                                           const;
 
-template<>      ALIB_DLL integer  TString<xchar>::WStringLength                       ()                                           const;
+template<>      ALIB_DLL integer  TString<xchar>::WStringLength                       ()      const;
 extern template ALIB_DLL integer  TString<xchar>::indexOfString<lang::Case::Sensitive>( const TString<xchar >&, integer, integer ) const;
 extern template ALIB_DLL integer  TString<xchar>::indexOfString<lang::Case::Ignore   >( const TString<xchar >&, integer, integer ) const;
 extern template ALIB_DLL integer  TString<xchar>::IndexOfSegmentEnd                   ( xchar, xchar, integer                    ) const;
@@ -2362,9 +2170,9 @@ extern template ALIB_DLL double   TString<xchar>::ParseFloat                    
 extern template ALIB_DLL size_t   TString<xchar>::Hashcode                            ()                                           const;
 extern template ALIB_DLL size_t   TString<xchar>::HashcodeIgnoreCase                  ()                                           const;
 
-// #################################################################################################
+//##################################################################################################
 // debug members
-// #################################################################################################
+//##################################################################################################
 #if ALIB_DEBUG_STRINGS
     extern template ALIB_DLL void    TString<nchar>::dbgCheck() const;
     extern template ALIB_DLL void    TString<wchar>::dbgCheck() const;
@@ -2373,9 +2181,9 @@ extern template ALIB_DLL size_t   TString<xchar>::HashcodeIgnoreCase            
 
 #endif //!DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // TString aliases
-// #################################################################################################
+//##################################################################################################
 } ALIB_EXPORT namespace alib {
 /// Type alias in namespace \b alib.
 using  String           =     strings::TString    <character>;
@@ -2395,9 +2203,9 @@ using  WString          =     strings::TString    <wchar>;
 /// Type alias in namespace \b alib.
 using  XString          =     strings::TString    <xchar>;
 }
-// #################################################################################################
+//##################################################################################################
 // TString Constants
-// #################################################################################################
+//##################################################################################################
 namespace alib::strings {
 #if DOXYGEN
 //==================================================================================================
@@ -2487,5 +2295,3 @@ inline constexpr XString           NULL_XSTRING(nullptr);
 
 
 } // namespace [alib]
-
-

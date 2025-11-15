@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 #include "alib/alox/alox.prepro.hpp"
 #include "ALib.Monomem.StdContainers.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.ALox;
@@ -44,7 +44,7 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if !ALIB_SINGLE_THREADED
 #   define UNDEFINED_THREAD threads::UNDEFINED
 #else
@@ -63,8 +63,8 @@ namespace alib {  namespace lox { namespace detail {
 /// Domain substitution rules.
 struct DomainSubstitutionRule
 {
-    /// Rule types.
-    public: enum class Type
+  /// Rule types.
+  public: enum class Type
     {
         Exact,       ///< Exact match.
         StartsWith,  ///< Starts with match.
@@ -80,30 +80,24 @@ struct DomainSubstitutionRule
     /// Constructor.
     /// @param s The path to search.
     /// @param r The replacement.
-    DomainSubstitutionRule( const NString& s, const NString& r )
-    {
+    DomainSubstitutionRule( const NString& s, const NString& r ) {
         Search     .DbgDisableBufferReplacementWarning();
         Replacement.DbgDisableBufferReplacementWarning();
 
         // get type and adjust given search parameter
         integer startPos=   0;
         integer length=     s.Length();
-        if ( s.CharAtStart() == '*' )
-        {
+        if ( s.CharAtStart() == '*' ) {
             ++startPos;
             --length;
-            if ( s.CharAtEnd() == '*' )
-            {
+            if ( s.CharAtEnd() == '*' ) {
                 type= Type::Substring;
                 --length;
             }
             else
                 type= Type::EndsWith;
-        }
-        else
-        {
-            if ( s.CharAtEnd() == '*' )
-            {
+        } else {
+            if ( s.CharAtEnd() == '*' ) {
                 type= Type::StartsWith;
                 --length;
             }
@@ -145,22 +139,22 @@ struct LoxImpl
     monomem::Snapshot                   beforeLox;
 
     #if !ALIB_SINGLE_THREADED
-        /// A mutex to control parallel access.
-        threads::RecursiveLock          Lock;
+    /// A mutex to control parallel access.
+    threads::RecursiveLock          Lock;
     #endif
 
     /// Counts the number of nested (recursive) acquirements.
     int                                 AcquirementsCount;
 
-    /// A counter for the quantity of calls. The count includes logs that were suppressed by
+    /// A counter for the quantity of calls. The count includes logs suppressed by
     /// disabled <em>Log Domain</em> and those suppressed by the optional log condition parameter.
     integer                             CntLogCalls                                              =0;
 
     /// A list of a list of logables used for (recursive) logging.
-    StdVectorMono<BoxesMA*>             logableContainers;
+    StdVectorMA<BoxesMA*>               logableContainers;
 
     /// A list of a list of logables used for (recursive) internal logging.
-    StdVectorMono<BoxesMA*>             internalLogables;
+    StdVectorMA<BoxesMA*>               internalLogables;
 
     /// The recursion counter for internal logging.
     integer                             internalLogRecursionCounter                             = 0;
@@ -199,8 +193,7 @@ struct LoxImpl
 
 
     /// The list of domain substitution rules.
-    List< MonoAllocator,
-          DomainSubstitutionRule>       domainSubstitutions;
+    ListMA<DomainSubstitutionRule>      domainSubstitutions;
 
     /// Flag if a warning on circular rule detection was logged.
     bool                                oneTimeWarningCircularDS                             =false;
@@ -230,11 +223,9 @@ struct LoxImpl
     }
 
     /// Destructor.
-    ~LoxImpl()
-    {
+    ~LoxImpl() {
         // unregister each logger in std domains and remove it in internals
-        for ( int i= domains->CountLoggers() - 1  ; i >= 0  ; --i )
-        {
+        for ( int i= domains->CountLoggers() - 1  ; i >= 0  ; --i ) {
             Logger* logger= domains->GetLogger( i );
             int ii= internalDomains->GetLoggerNo( logger );
             if ( ii >= 0 )
@@ -243,18 +234,16 @@ struct LoxImpl
         }
 
         // unregister remaining loggers in internal domains
-        for ( int i= internalDomains->CountLoggers() - 1  ; i >= 0  ; --i )
-        {
+        for ( int i= internalDomains->CountLoggers() - 1  ; i >= 0  ; --i ) {
             Logger* logger= internalDomains->GetLogger( i );
             logger->AcknowledgeLox( this, lang::ContainerOp::Remove );
-        }
-    }
+    }   }
 
     /// Returns the number of (recursive) acquirements of this \b Lox.
     /// If greater than \c 1, this is either recursive logging or a user has explicitly
     /// acquired this lox repeatedly (which is not recommended to do).
     ///
-    /// @return The number of acquirements. 
+    /// @return The number of acquirements.
     int CountAcquirements()                             const noexcept { return AcquirementsCount; }
 
     /// Shortcut to allocate arbitrary objects in #poolAllocator.
@@ -277,11 +266,10 @@ struct LoxImpl
 
 #define ASSERT_ACQUIRED  ALIB_ASSERT_ERROR( impl->CountAcquirements() >0,"ALOX","Lox not acquired" )
 
-// #################################################################################################
+//##################################################################################################
 // Constructors/destructor
-// #################################################################################################
-LoxImpl* LI::Construct(const NString& name)
-{
+//##################################################################################################
+LoxImpl* LI::Construct(const NString& name) {
     lang::HeapAllocator ha;
     MonoAllocator* selfContainedMA= MonoAllocator::Create( ALIB_DBG(nullptr,) ha, 8* 1024 );
     ALIB_DBG( selfContainedMA->DbgName= NCString(*selfContainedMA, NString128("Lox") << name).Buffer(); )
@@ -291,22 +279,15 @@ LoxImpl* LI::Construct(const NString& name)
     return result;
 }
 
-void LI::Destruct( LoxImpl* impl )
-{
+void LI::Destruct( LoxImpl* impl ) {
     auto& ma= impl->monoAllocator;
     impl->~LoxImpl();
     lang::Destruct(ma); // just destruct, as this is self-contained
 }
 
-const NString&  LI::GetName(LoxImpl* impl)
-{
-    return impl->scopeInfo.loxName;
-}
+const NString&  LI::GetName(LoxImpl* impl)                       { return impl->scopeInfo.loxName; }
 
-integer&        LI::GetLogCounter(LoxImpl* impl)
-{
-    return impl->CntLogCalls;
-}
+integer&        LI::GetLogCounter(LoxImpl* impl)                       { return impl->CntLogCalls; }
 
 #if !ALIB_SINGLE_THREADED
 RecursiveLock&     LI::getLock(LoxImpl* impl)
@@ -316,8 +297,7 @@ RecursiveLock&     LI::getLock(LoxImpl* impl)
 }
 #endif
 
-void            LI::Acquire(LoxImpl* impl, const lang::CallerInfo& ci  )
-{
+void            LI::Acquire(LoxImpl* impl, const lang::CallerInfo& ci  ) {
     #if !ALIB_SINGLE_THREADED
         ALIB_REL_DBG(    impl->Lock.AcquireRecursive();
                        , impl->Lock.AcquireRecursive(ci);    )
@@ -328,8 +308,7 @@ void            LI::Acquire(LoxImpl* impl, const lang::CallerInfo& ci  )
     impl->scopeInfo.Set( ci );
 }
 
-void            LI::Release(LoxImpl* impl)
-{
+void            LI::Release(LoxImpl* impl) {
     impl->scopeInfo.PopNestedScope();
     --impl->AcquirementsCount;
     #if !ALIB_SINGLE_THREADED
@@ -337,8 +316,7 @@ void            LI::Release(LoxImpl* impl)
     #endif
 }
 
-void LI::init(LoxImpl* impl)
-{
+void LI::init(LoxImpl* impl) {
     impl->logableContainers.reserve(5); // 5 equals the recursive logging warning threshold
 
     // create domain trees
@@ -363,42 +341,32 @@ void LI::init(LoxImpl* impl)
                                          #endif
                                                       );
     }
-    if ( var.IsDefined() )
-    {
-        for( int ruleNo= 0 ; ruleNo < var.Size() ; ++ruleNo )
-        {
+    if ( var.IsDefined() ) {
+        for( int ruleNo= 0 ; ruleNo < var.Size() ; ++ruleNo ) {
             Substring rule= var.GetString(ruleNo);
             if( rule.Trim().IsEmpty() )
                 continue;
 
             integer idx= rule.IndexOf( A_CHAR("->") );
-            if ( idx > 0 )
-            {
-                NString64 domainPath ( rule.Substring<NC>( 0, idx  )                          ); domainPath .Trim();
-                NString64 replacement( rule.Substring<NC>( idx + 2, rule.Length() - idx - 2 ) ); replacement.Trim();
+            if ( idx > 0 ) {
+                NString256 domainPath ( rule.Substring<NC>( 0, idx  )                          ); domainPath .Trim();
+                NString256 replacement( rule.Substring<NC>( idx + 2, rule.Length() - idx - 2 ) ); replacement.Trim();
                 SetDomainSubstitutionRule( impl, domainPath, replacement );
-            }
-            else
-            {
+            } else {
                 // using alib warning here as we can't do internal logging in the constructor
                 ALIB_WARNING( "ALOX", "Syntax error in variable \"{}\".", var )
-            }
-        }
-    }
+    }   }   }
 
 }
 
-void  LI::Reset(LoxImpl* impl)
-{
+void  LI::Reset(LoxImpl* impl) {
     #if ALOX_DBG_LOG
-        if( impl == Log::Get()->impl && Log::DebugLogger != nullptr )
-        {
+        if( impl == Log::Get()->impl && Log::DebugLogger != nullptr ) {
             LOG_ACQUIRE
             Log::RemoveDebugLogger( Log::Get() );
             LOG_RELEASE
         }
     #endif
-
 
     SetSourcePathTrimRule( impl, nullptr, lang::Inclusion::Include,
                            999999, // code for clearing
@@ -418,9 +386,7 @@ void  LI::Reset(LoxImpl* impl)
 }
 
 void LI::SetFileNameCacheCapacity( LoxImpl* impl, integer numberOfLists, integer entriesPerList )
-{
-    impl->scopeInfo.SetFileNameCacheCapacity( numberOfLists, entriesPerList );
-}
+{ impl->scopeInfo.SetFileNameCacheCapacity( numberOfLists, entriesPerList ); }
 
 #if ALIB_DEBUG_MEMORY
 MonoAllocator& LI::DbgGetMonoAllocator( LoxImpl* impl ) { return impl->monoAllocator; }
@@ -434,24 +400,22 @@ void  LI::SetSourcePathTrimRule( LoxImpl* impl,
                                  const NString&  trimReplacement,
                                  lang::Reach     reach          ,
                                  Priority        priority         )
-
 {
     impl->scopeInfo.SetSourcePathTrimRule( path, includeString, trimOffset, sensitivity,
                                            trimReplacement, reach, priority );
 }
 
-void        LI::SetDomain( LoxImpl* impl, const NString& scopeDomain, Scope scope, threads::Thread* thread )
-{
+void        LI::SetDomain( LoxImpl*         impl , const NString&   scopeDomain,
+                           Scope            scope, threads::Thread* thread       ) {
     if ( !isThreadRelatedScope( impl, scope ) )
         return;
     setDomain( impl, scopeDomain, scope, false, thread );
 }
 
-// #################################################################################################
+//##################################################################################################
 // Methods
-// #################################################################################################
-Logger* LI::GetLogger(LoxImpl* impl,  const NString& loggerName )
-{
+//##################################################################################################
+Logger* LI::GetLogger(LoxImpl* impl,  const NString& loggerName ) {
     ASSERT_ACQUIRED
 
     // search logger
@@ -469,8 +433,7 @@ Logger* LI::GetLogger(LoxImpl* impl,  const NString& loggerName )
 //! @cond NO_DOX
 namespace {
 void writeVerbVarRecursive( Domain& domain, int loggerNo, CVVerbosities& verbosities,
-                            Verbosity parentVerbosity )
-{
+                            Verbosity parentVerbosity ) {
     auto verbosity= domain.GetVerbosity( loggerNo );
     if( parentVerbosity != verbosity || verbosities.ExportAll )
         verbosities.Add(String256(domain.FullPath) << '=' << verbosity );
@@ -482,8 +445,7 @@ void writeVerbVarRecursive( Domain& domain, int loggerNo, CVVerbosities& verbosi
 } // anonymous namespace
 //! @endcond
 
-void LI::writeVerbositiesOnLoggerRemoval( LoxImpl* impl, Logger* logger )
-{
+void LI::writeVerbositiesOnLoggerRemoval( LoxImpl* impl, Logger* logger ) {
 DOX_MARKER([DOX_VARIABLES_REPLACEMENTS2])
 Variable var= variables::CampVariable(ALOX);
 {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -532,15 +494,12 @@ DOX_MARKER( [DOX_VARIABLES_REPLACEMENTS2])
         for( auto& it : cvVerb )
             logables.Add( "\n    ", it );
         logInternal( impl, Verbosity::Verbose, "VAR", logables );
-    }
-}
+}   }
 
-void LI::dumpStateOnLoggerRemoval(LoxImpl* impl)
-{
+void LI::dumpStateOnLoggerRemoval(LoxImpl* impl) {
     if( !impl->loggerAddedSinceLastDebugState )
         return;
     impl->loggerAddedSinceLastDebugState= false;
-
 
     Variable variable= variables::CampVariable(ALOX, Variables::DUMP_STATE_ON_EXIT,
                                                    #if !ALIB_CHARACTERS_WIDE
@@ -558,21 +517,17 @@ void LI::dumpStateOnLoggerRemoval(LoxImpl* impl)
     StateInfo flags= StateInfo::NONE;
     Tokenizer tknzr;
     tknzr.Set(variable, ',', true);
-    while( tknzr.HasNext() )
-    {
+    while( tknzr.HasNext() ) {
         tok=  tknzr.Next();
 
         // read log domain and verbosity
-        if( tok.IndexOf( '=' ) > 0 )
-        {
-            if( tok.ConsumePartOf<lang::Case::Ignore, lang::Whitespaces::Trim>( A_CHAR("verbosity"), 1) )
-            {
+        if( tok.IndexOf( '=' ) > 0 ) {
+            if( tok.ConsumePartOf<lang::Case::Ignore, lang::Whitespaces::Trim>( A_CHAR("verbosity"), 1) ) {
                 if( tok.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( '=' ) )
                     enumrecords::Parse<Verbosity>( tok, verbosity );
                 continue;
             }
-            if( tok.ConsumePartOf<lang::Case::Ignore, lang::Whitespaces::Trim>( A_CHAR("domain"), 1) )
-            {
+            if( tok.ConsumePartOf<lang::Case::Ignore, lang::Whitespaces::Trim>( A_CHAR("domain"), 1) ) {
                 if( tok.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( '=' ) )
                     domain= tok.Trim();
                 continue;
@@ -583,8 +538,7 @@ void LI::dumpStateOnLoggerRemoval(LoxImpl* impl)
 
         // read and add state
         StateInfo stateInfo;
-        if( !enumrecords::Parse<StateInfo>( tok, stateInfo ) )
-        {
+        if( !enumrecords::Parse<StateInfo>( tok, stateInfo ) ) {
             error= true;
             break;
         }
@@ -595,30 +549,25 @@ void LI::dumpStateOnLoggerRemoval(LoxImpl* impl)
         else
             flags|= stateInfo;
     }
-    if( error )
-    {
+    if( error ) {
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Unknown argument {!Q} in variable {} = {!Q}.",
                       tok, variable, variable.GetString() );
         logInternal( impl, Verbosity::Error, "VAR", logables);
     }
 
-    if ( flags != StateInfo::NONE )
-    {
+    if ( flags != StateInfo::NONE ) {
         State( impl, domain, verbosity, A_CHAR("Auto dump state on exit requested: "), flags );
-    }
-}
+}   }
 
 
-bool LI::RemoveLogger( LoxImpl* impl, Logger* logger )
-{
+bool LI::RemoveLogger( LoxImpl* impl, Logger* logger ) {
     ASSERT_ACQUIRED
 
     int noMainDom=  impl->domains        ->GetLoggerNo( logger );
     int noIntDom=   impl->internalDomains->GetLoggerNo( logger );
 
-    if( noMainDom >= 0 || noIntDom >= 0 )
-    {
+    if( noMainDom >= 0 || noIntDom >= 0 ) {
         dumpStateOnLoggerRemoval(impl);
         writeVerbositiesOnLoggerRemoval( impl, logger );
 
@@ -640,15 +589,13 @@ bool LI::RemoveLogger( LoxImpl* impl, Logger* logger )
     return false;
 }
 
-Logger* LI::RemoveLogger(LoxImpl* impl,  const NString& loggerName )
-{
+Logger* LI::RemoveLogger(LoxImpl* impl,  const NString& loggerName ) {
     ASSERT_ACQUIRED
 
     int noMainDom=  impl->domains        ->GetLoggerNo( loggerName );
     int noIntDom=   impl->internalDomains->GetLoggerNo( loggerName );
 
-    if( noMainDom >= 0 || noIntDom >= 0 )
-    {
+    if( noMainDom >= 0 || noIntDom >= 0 ) {
         Logger*                 logger=         impl->domains->GetLogger( noMainDom );
         if( logger == nullptr ) logger= impl->internalDomains->GetLogger( noIntDom );
 
@@ -681,8 +628,7 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
 {   ASSERT_ACQUIRED
 
     // check
-    if ( logger == nullptr )
-    {
+    if ( logger == nullptr ) {
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Given Logger is \"null\". Verbosity not set." );
         logInternal( impl, Verbosity::Error, "LGR", logables );
@@ -696,13 +642,11 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
     // search logger, insert if not found
     bool isNewLogger= false;
     int no= dom->GetLoggerNo( logger );
-    if( no < 0 )
-    {
+    if( no < 0 ) {
         no= dom->AddLogger( logger );
 
         // error, logger with same name already exists
-        if( no < 0 )
-        {
+        if( no < 0 ) {
             logInternal( impl, Verbosity::Error, "LGR", acquireInternalLogables(impl)
                        .Add( "Unable to add logger {!Q}. Logger with same name exists.", logger ) );
 
@@ -719,8 +663,8 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
             return;
         }
 
-        // We have to register with the SmartLock facility of the \e Logger.
-        // But only if we have not done this yet, via the 'other' root domain tree
+        // We have to tell the logger that it got inserted, but only if we have not done this yet,
+        // via the 'other' root domain tree.
         if ( ( dom->GetRoot() == impl->domains ?  impl->internalDomains->GetLoggerNo( logger )
                                                :  impl->domains->GetLoggerNo( logger )
              ) < 0 )
@@ -741,8 +685,7 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
     }
 
     // get verbosities from configuration
-    if( isNewLogger )
-    {
+    if( isNewLogger ) {
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Logger {!Q}.", logger );
         if( domain.StartsWith(Lox::InternalDomains) )
@@ -753,13 +696,11 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
 
         // we have to get all verbosities of already existing domains
         Box replacements[2]= { GetName( impl ), logger->GetName()  };
-        Variable varVerbosities= variables::CampVariable(ALOX, Variables::VERBOSITY, replacements ); 
-        if( varVerbosities.IsDefined() )
-        {
+        Variable varVerbosities= variables::CampVariable(ALOX, Variables::VERBOSITY, replacements );
+        if( varVerbosities.IsDefined() ) {
             getAllVerbosities( impl, varVerbosities, logger, *impl->domains         );
             getAllVerbosities( impl, varVerbosities, logger, *impl->internalDomains );
-        }
-    }
+    }   }
 
     // do
     dom->SetVerbosity( no, verbosity, priority );
@@ -781,8 +722,8 @@ void LI::SetVerbosity(LoxImpl* impl,  Logger* logger, Verbosity verbosity, const
     logInternal( impl, Verbosity::Info, "LGR", logables );
 }
 
-void LI::SetVerbosity(LoxImpl* impl,  const NString& loggerName, Verbosity verbosity, const NString& domain, Priority priority )
-{
+void LI::SetVerbosity(LoxImpl*       impl     , const NString& loggerName,
+                      Verbosity      verbosity, const NString& domain    , Priority priority ) {
     // get logger
     Logger* logger;
     {
@@ -793,14 +734,12 @@ void LI::SetVerbosity(LoxImpl* impl,  const NString& loggerName, Verbosity verbo
         int no= dom->GetLoggerNo( loggerName );
         if( no >= 0 )
             logger= dom->GetLogger( no );
-        else
-        {
+        else {
             // we have to check if the logger was added in the 'other' tree
             Domain* otherTree=  dom->GetRoot() == impl->domains ?  impl->internalDomains
                                                           :  impl->domains;
             no= otherTree->GetLoggerNo( loggerName );
-            if ( no < 0 )
-            {
+            if ( no < 0 ) {
                 // error
                 BoxesMA& logables= acquireInternalLogables(impl);
                 logables.Add( "Logger not found. Request was: SetVerbosity({!Q}, {!Q}, Verbosity::{}, {}).",
@@ -810,16 +749,14 @@ void LI::SetVerbosity(LoxImpl* impl,  const NString& loggerName, Verbosity verbo
             }
 
             logger= otherTree->GetLogger( no );
-        }
-    }
+    }   }
     // use the overloaded method
     SetVerbosity( impl, logger, verbosity, domain, priority );
 }
 
 void LI::setDomain( LoxImpl* impl,
                     const NString& scopeDomain, Scope   scope,
-                    bool           removeNTRSD, threads::Thread* thread )
-{
+                    bool           removeNTRSD, threads::Thread* thread ) {
     //note: the public class interface ensures that \p{removeNTRSD} (named thread related scope domain)
     // only evaluates true for thread related scopes
 
@@ -840,14 +777,10 @@ void LI::setDomain( LoxImpl* impl,
     NString previousScopeDomain;
 
     impl->scopeDomains.InitAccess( scope, pathLevel, threadID );
-    if ( removeNTRSD )
-    {
+    if ( removeNTRSD ) {
         previousScopeDomain= impl->scopeDomains.Remove( scopeDomain );
-    }
-    else
-    {
-        if ( scopeDomain.IsNotEmpty() )
-        {
+    } else {
+        if ( scopeDomain.IsNotEmpty() ) {
             NString128 trimmable( scopeDomain );
             previousScopeDomain= impl->scopeDomains.Store( NString(impl->poolAllocator, trimmable.Trim() ) );
         }
@@ -857,36 +790,25 @@ void LI::setDomain( LoxImpl* impl,
 
     // log info on this
     BoxesMA& logables= acquireInternalLogables(impl);
-    if ( !removeNTRSD && scopeDomain.IsNotEmpty() )
-    {
+    if ( !removeNTRSD && scopeDomain.IsNotEmpty() ) {
         logables.Add("{!Q'} set as default for {}.",  scopeDomain, (scope + pathLevel) );
 
         if ( previousScopeDomain.IsNull() )
             logInternal( impl, Verbosity::Info,    "DMN", logables );
-        else
-        {
-            if ( previousScopeDomain.Equals<NC>( scopeDomain ) )
-            {
-                logables.Add( " (Was already set.)" );
-                logInternal( impl, Verbosity::Verbose, "DMN", logables );
-            }
-            else
-            {
+        else {
+            if ( previousScopeDomain.Equals<NC>( scopeDomain ) ) {
+                logables.Add( "(Wasalreadyset.)");
+                logInternal(  impl,Verbosity::Verbose,"DMN",logables);
+            } else {
                 logables.Add( " Replacing previous default {!Q'}.", previousScopeDomain );
                 logInternal( impl, Verbosity::Warning, "DMN", logables );
-            }
-        }
+        }   }
 
-    }
-    else
-    {
-        if ( previousScopeDomain.IsNotNull() )
-        {
+    } else {
+        if ( previousScopeDomain.IsNotNull() ) {
             logables.Add("{!Q'} removed from {}.",  previousScopeDomain, (scope + pathLevel) );
             logInternal( impl, Verbosity::Info, "DMN", logables );
-        }
-        else
-        {
+        } else {
             if ( removeNTRSD )
                 logables.Add("{!Q'} not found. Nothing removed for {}.",  scopeDomain );
             else
@@ -894,22 +816,20 @@ void LI::setDomain( LoxImpl* impl,
 
             logables.Add( scope + pathLevel);
             logInternal( impl, Verbosity::Warning, "DMN", logables );
-        }
-    }
+    }   }
 
     // it is on us to delete the previous one
     if ( previousScopeDomain.IsNotNull() )
        previousScopeDomain.Free(impl->poolAllocator);
 }
 
-void LI::RemoveThreadDomain(LoxImpl* impl,  const NString& scopeDomain, Scope scope, threads::Thread* thread )
-{
+void LI::RemoveThreadDomain( LoxImpl*   impl,  const NString&   scopeDomain,
+                             Scope      scope, threads::Thread* thread )        {
     if ( !isThreadRelatedScope( impl, scope ) )
         return;
 
     // check
-    if (  scopeDomain.IsEmpty() )
-    {
+    if (  scopeDomain.IsEmpty() ) {
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Illegal parameter. No scope domain path given. Nothing removed for {}.",
                       scope );
@@ -923,11 +843,10 @@ void LI::RemoveThreadDomain(LoxImpl* impl,  const NString& scopeDomain, Scope sc
     setDomain( impl, scopeDomain, scope, true, thread);
 }
 
-void LI::SetDomainSubstitutionRule(LoxImpl* impl,  const NString& domainPath, const NString& replacement )
-{
+void LI::SetDomainSubstitutionRule(LoxImpl* impl,  const NString& domainPath,
+    const NString& replacement ) {
     // check null param: clears all rules
-    if ( domainPath.IsEmpty() )
-    {
+    if ( domainPath.IsEmpty() ) {
         impl->oneTimeWarningCircularDS= false;
         impl->domainSubstitutions.Clear();
         logInternal( impl, Verbosity::Info, "DMN", "Domain substitution rules removed.");
@@ -937,27 +856,23 @@ void LI::SetDomainSubstitutionRule(LoxImpl* impl,  const NString& domainPath, co
 
     // create rule
     DomainSubstitutionRule newRule( domainPath, replacement );
-    if ( newRule.Search.IsEmpty() )
-    {
+    if ( newRule.Search.IsEmpty() ) {
         logInternal( impl, Verbosity::Warning, "DMN", "Illegal domain substitution rule. Nothing stored." );
         return;
     }
 
     // search existing rule
-    List<MonoAllocator, DomainSubstitutionRule>::iterator  it;
-    for( it= impl->domainSubstitutions.begin(); it != impl->domainSubstitutions.end() ; ++it )
-    {
+    ListMA<DomainSubstitutionRule>::iterator  it;
+    for( it= impl->domainSubstitutions.begin(); it != impl->domainSubstitutions.end() ; ++it ) {
         if (     (*it).type == newRule.type
               && (*it).Search.Equals<NC>( newRule.Search ) )
             break;
     }
 
     // no replacement given?
-    if ( replacement.IsEmpty() )
-    {
+    if ( replacement.IsEmpty() ) {
         BoxesMA& logables= acquireInternalLogables(impl);
-        if ( it == impl->domainSubstitutions.end() )
-        {
+        if ( it == impl->domainSubstitutions.end() ) {
             logables.Add("Domain substitution rule {!Q} not found. Nothing to remove.",  domainPath );
             logInternal( impl, Verbosity::Warning, "DMN", logables );
             return;
@@ -974,8 +889,7 @@ void LI::SetDomainSubstitutionRule(LoxImpl* impl,  const NString& domainPath, co
 
     // change of rule
     NString256 msg;
-    if ( it != impl->domainSubstitutions.end() )
-    {
+    if ( it != impl->domainSubstitutions.end() ) {
         msg << " Replacing previous -> \"" << (*it).Replacement  << "\".";
         logables.Add( msg );
         (*it).Replacement.Reset( newRule.Replacement );
@@ -987,8 +901,7 @@ void LI::SetDomainSubstitutionRule(LoxImpl* impl,  const NString& domainPath, co
         logInternal( impl, Verbosity::Info, "DMN", logables );
 }
 
-void LI::setPrefix(LoxImpl* impl,  const Box& prefix, Scope scope, threads::Thread* thread  )
-{
+void LI::setPrefix(LoxImpl* impl, const Box& prefix, Scope scope, threads::Thread* thread ) {
     ASSERT_ACQUIRED
 
     // check
@@ -1015,27 +928,21 @@ void LI::setPrefix(LoxImpl* impl,  const Box& prefix, Scope scope, threads::Thre
     BoxesMA& logables= acquireInternalLogables(impl);
     logables.Add( "Object ");
     Verbosity intMsgVerbosity= Verbosity::Info;
-    if ( !isVoidOrEmpty )
-    {
+    if ( !isVoidOrEmpty ) {
         logables.Add( prefix, " added as prefix logable for {}.", (scope + pathLevel) );
 
-        if ( previousLogable  != nullptr )
-        {
-            if ( previousLogable->Call<FEquals>( prefix )  )
-            {
+        if ( previousLogable  != nullptr ) {
+            if ( previousLogable->Call<FEquals>( prefix )  ) {
                 logables.Add(" (Same as before.)");
                 intMsgVerbosity= Verbosity::Verbose;
             }
             else
                 logables.Add(" Replacing previous {}.", *previousLogable );
         }
-    }
-    else
-    {
+    } else {
         if ( previousLogable  != nullptr )
             logables.Add( "{!Q} removed from list of prefix logables for {}.", *previousLogable);
-        else
-        {
+        else {
             logables.Add( "<nullptr> given but no prefix logable to remove for {}.");
             intMsgVerbosity= Verbosity::Warning;
         }
@@ -1050,8 +957,8 @@ void LI::setPrefix(LoxImpl* impl,  const Box& prefix, Scope scope, threads::Thre
 }
 
 
-void LI::SetPrefix(LoxImpl* impl,  const Box& prefix, const NString& domain, lang::Inclusion otherPLs )
-{
+void LI::SetPrefix( LoxImpl*        impl  , const Box&      prefix,
+                    const NString&  domain, lang::Inclusion otherPLs ) {
 
     ASSERT_ACQUIRED
 
@@ -1065,29 +972,22 @@ void LI::SetPrefix(LoxImpl* impl,  const Box& prefix, const NString& domain, lan
     Verbosity intLogVerbosity= Verbosity::Info;
     PrefixLogable* removedLogable= nullptr;
 
-    if ( !isVoidOrEmpty )
-    {
+    if ( !isVoidOrEmpty ) {
         // create logable: if String* type, then copy the string. We are responsible, then.
         logables.Add( "Object {} added as prefix logable for ", prefix );
 
         dom->PrefixLogables.emplace_back( impl->newPO<PrefixLogable>( impl->poolAllocator, prefix ), otherPLs );
-    }
-    else
-    {
+    } else {
         auto cntPLs=  dom->PrefixLogables.size();
-        if ( cntPLs > 0 )
-        {
+        if ( cntPLs > 0 ) {
             removedLogable= dom->PrefixLogables.back().first;
             dom->PrefixLogables.pop_back();
             logables.Add( "Object {} removed from list of prefix logables for",
                           *static_cast<Box*>(removedLogable)  );
-        }
-        else
-        {
+        } else {
             logables.Add( "No prefix logables to remove for" );
             intLogVerbosity= Verbosity::Warning;
-        }
-    }
+    }   }
 
     logables.Add(" domain {!Q'}.", dom->FullPath);
     logInternal( impl, intLogVerbosity, "PFX", logables );
@@ -1098,11 +998,11 @@ void LI::SetPrefix(LoxImpl* impl,  const Box& prefix, const NString& domain, lan
 
 
 #if defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
-    void LI::SetStartTime(LoxImpl* impl,  time_t startTime, const NString& loggerName )
-    {
-        TickConverter converter;
-        SetStartTime( impl, converter.ToTicks( DateTime::FromEpochSeconds( startTime ) ), loggerName );
-    }
+void LI::SetStartTime(LoxImpl* impl,  time_t startTime, const NString& loggerName )
+{
+    TickConverter converter;
+    SetStartTime( impl, converter.ToTicks( DateTime::FromEpochSeconds( startTime ) ), loggerName );
+}
 
 #elif defined( _WIN32 )
     void LI::SetStartTime(LoxImpl* impl,  const FILETIME& startTime, const NString& loggerName )
@@ -1114,13 +1014,11 @@ void LI::SetPrefix(LoxImpl* impl,  const Box& prefix, const NString& domain, lan
     #pragma message "Unknown Platform in file: " __FILE__ )
 #endif
 
-void LI::SetStartTime(LoxImpl* impl,  Ticks startTime, const NString& loggerName )
-{
+void LI::SetStartTime(LoxImpl* impl,  Ticks startTime, const NString& loggerName ) {
     ASSERT_ACQUIRED
 
     bool foundOne= false;
-    for( int loggerNo= 0; loggerNo < impl->domains->CountLoggers(); ++loggerNo )
-    {
+    for( int loggerNo= 0; loggerNo < impl->domains->CountLoggers(); ++loggerNo ) {
         // request logger only from main domain tree
         Logger* logger= impl->domains->GetLogger( loggerNo );
         if( loggerName.IsNotEmpty() && !loggerName.Equals<NC, lang::Case::Ignore>( logger->GetName()) )
@@ -1130,13 +1028,10 @@ void LI::SetStartTime(LoxImpl* impl,  Ticks startTime, const NString& loggerName
         // log info on this
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Logger {!Q}: Start time set to ", logger->GetName() );
-        if ( !startTime.IsSet() )
-        {
+        if ( !startTime.IsSet() ) {
             startTime= Ticks::Now();
             logables.Add( "'now'" );
-        }
-        else
-        {
+        } else {
             DateTime asDateTime;
             TextLogger* asTextLogger= dynamic_cast<TextLogger*>(logger);
             if( asTextLogger != nullptr )
@@ -1152,26 +1047,22 @@ void LI::SetStartTime(LoxImpl* impl,  Ticks startTime, const NString& loggerName
         logInternal( impl, Verbosity::Info, "LGR", logables );
     }
 
-    if ( loggerName.IsNotEmpty() && !foundOne )
-    {
+    if ( loggerName.IsNotEmpty() && !foundOne ) {
         BoxesMA& logables= acquireInternalLogables(impl);
         logables.Add( "Logger {!Q}: not found. Start time not set.", loggerName );
         logInternal( impl, Verbosity::Error, "LGR", logables );
         return;
-    }
-}
+}   }
 
 
-void LI::MapThreadName(LoxImpl* impl,  const String& threadName, threads::ThreadID id )
-{
+void LI::MapThreadName(LoxImpl* impl,  const String& threadName, threads::ThreadID id ) {
     #if !ALIB_SINGLE_THREADED
 
         ASSERT_ACQUIRED
 
         // get current thread id
         String origThreadName;
-        if ( id == 0 )
-        {
+        if ( id == 0 ) {
             Thread*         t= Thread::GetCurrent();
             id=             t->GetID();
             origThreadName= t->GetName();
@@ -1200,8 +1091,7 @@ void LI::once(   LoxImpl* impl,
                  const Box&     logable,
                  const String&  pGroup,
                  Scope          scope,
-                 int            quantity                                                            )
-{
+                 int            quantity                        ) {
     int pathLevel= checkScopeInformation( impl, scope, "DMN" );
     if( pathLevel < 0 )
         return;
@@ -1209,28 +1099,23 @@ void LI::once(   LoxImpl* impl,
     // We need a group. If none is given, there are two options:
     NString512 group(pGroup);
     bool groupWasEmtpy= group.IsEmpty();
-    if ( groupWasEmtpy )
-    {
+    if ( groupWasEmtpy ) {
         // GLOBAL scope: exact code line match
-        if ( scope == Scope::Global )
-        {
+        if ( scope == Scope::Global ) {
             scope= Scope::Filename;
             group._('#')._( impl->scopeInfo.GetLineNumber() );
         }
 
         // not GLOBAL scope: Unique group per Scope
         else
-        {
             group._( impl->noKeyHashKey );
-        }
     }
 
     // get the store
     impl->scopeLogOnce.InitAccess( scope, pathLevel, UNDEFINED_THREAD );
 
     SSMap<int>* map= impl->scopeLogOnce.Get();
-    if( map == nullptr )
-    {
+    if( map == nullptr ) {
         map= impl->newPO<SSMap<int>>(impl->poolAllocator);
         impl->scopeLogOnce.Store( map );
     }
@@ -1241,10 +1126,8 @@ void LI::once(   LoxImpl* impl,
         it=   map->InsertUnique( std::make_pair( NString(impl->poolAllocator, group), 0) );
 
     // log Once
-    if ( quantity >= 0 )
-    {
-        if ( it->second < quantity )
-        {
+    if ( quantity >= 0 ) {
+        if ( it->second < quantity ) {
             ++it->second;
 
             // do the log
@@ -1252,16 +1135,14 @@ void LI::once(   LoxImpl* impl,
             Entry( impl, domain, verbosity );
 
             // log info if this was the last time
-            if( it->second == quantity )
-            {
+            if( it->second == quantity ) {
                 BoxesMA& logables= acquireInternalLogables(impl);
                 logables.Add( "Once() reached limit of {} logs. No further logs for ", quantity );
 
                 if ( groupWasEmtpy )
                     logables.Add( scope == Scope::Global ? Box( "this line" )
                                                          : Box(scope + pathLevel) );
-                else
-                {
+                else {
                     logables.Add( "group {!Q}", group );
                     if ( scope != Scope::Global )
                         logables.Add(" in ", (scope + pathLevel) );
@@ -1269,23 +1150,16 @@ void LI::once(   LoxImpl* impl,
                 logables.Add('.');
 
                 logInternal( impl, Verbosity::Info, "", logables );
-            }
-        }
-    }
+    }   }   }
 
     // log Nth
-    else
-    {
-        if ( it->second++ % -quantity == 0 )
-        {
+    else {
+        if ( it->second++ % -quantity == 0 ) {
             GetLogableContainer(impl) .Add( std::forward<const Box&>( logable ) );
             Entry( impl, domain, verbosity );
-        }
-    }
-}
+}   }   }
 
-void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope scope )
-{
+void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope scope ) {
     // We need a key. If none is given, we use a constant one indicating that storage is
     // associated exclusively with scope
     NString256 key(pKey);
@@ -1295,8 +1169,7 @@ void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope sco
 
     // get path level
     int pathLevel= 0;
-    if ( scope > Scope::Path )
-    {
+    if ( scope > Scope::Path ) {
         pathLevel= int( scope - Scope::Path );
         scope= Scope::Path;
     }
@@ -1304,8 +1177,7 @@ void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope sco
     // get the store
     impl->scopeLogData.InitAccess( scope, pathLevel, UNDEFINED_THREAD );
     SSMap<Box>* map= impl->scopeLogData.Get();
-    if( map == nullptr )
-    {
+    if( map == nullptr ) {
         map= impl->newPO<SSMap<Box>>(impl->poolAllocator);
         impl->scopeLogData.Store( map );
     }
@@ -1314,13 +1186,11 @@ void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope sco
 
     // create map entry (if not created yet)
     auto it=  map->Find( key );
-    if ( !data.IsType<void>() )
-    {
+    if ( !data.IsType<void>() ) {
         bool replacedPrevious= false;
         if ( it == map->end() )
             map->InsertUnique( std::make_pair( NString(impl->poolAllocator, key), data ) );
-        else
-        {
+        else {
             replacedPrevious= true;
             it->second= data;
         }
@@ -1336,14 +1206,11 @@ void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope sco
     }
 
     // delete
-    else
-    {
-        if ( it != map->end() )
-        {
+    else {
+        if ( it != map->end() ) {
             auto keyString= it->first;
             map->erase( it );
-            if ( map->Size() == 0 )
-            {
+            if ( map->Size() == 0 ) {
                 impl->deletePO(map);
                 impl->scopeLogData.Remove( nullptr );
             }
@@ -1362,8 +1229,7 @@ void LI::store( LoxImpl* impl, const Box& data,  const NString& pKey,  Scope sco
 }
 
 
-Box LI::retrieve( LoxImpl* impl, const NString& pKey, Scope scope )
-{
+Box LI::retrieve( LoxImpl* impl, const NString& pKey, Scope scope ) {
     // We need a key. If none is given, we use a constant one indicating that storage is
     // associated exclusively with scope
     NString256 key= pKey;
@@ -1372,8 +1238,7 @@ Box LI::retrieve( LoxImpl* impl, const NString& pKey, Scope scope )
         key= impl->noKeyHashKey;
 
     int pathLevel= 0;
-    if ( scope > Scope::Path )
-    {
+    if ( scope > Scope::Path ) {
         pathLevel= int( scope - Scope::Path );
         scope= Scope::Path;
     }
@@ -1382,8 +1247,7 @@ Box LI::retrieve( LoxImpl* impl, const NString& pKey, Scope scope )
     impl->scopeLogData.InitAccess( scope, pathLevel, UNDEFINED_THREAD );
     Box returnValue;
     SSMap<Box>* map= impl->scopeLogData.Get();
-    if( map != nullptr )
-    {
+    if( map != nullptr ) {
         auto it=  map->Find( key );
         if ( it != map->end() )
             returnValue= it->second;
@@ -1410,8 +1274,7 @@ void LI::State( LoxImpl* impl,
                  const NString&   domain,
                  Verbosity        verbosity,
                  const  String&   headLine,
-                 StateInfo        flags      )
-{
+                 StateInfo        flags      ) {
     ASSERT_ACQUIRED
 
     NAString buf;
@@ -1425,8 +1288,7 @@ void LI::State( LoxImpl* impl,
     Entry( impl, domain, verbosity );
 }
 
-BoxesMA&  LI::GetLogableContainer(LoxImpl* impl)
-{
+BoxesMA&  LI::GetLogableContainer(LoxImpl* impl) {
     auto cntAcquirements= impl->CountAcquirements();
     ALIB_ASSERT_ERROR(   cntAcquirements >= 1, "ALOX", "Lox not acquired." )
     ALIB_ASSERT_WARNING( cntAcquirements <  5, "ALOX", "Logging recursion depth >= 5" )
@@ -1437,8 +1299,7 @@ BoxesMA&  LI::GetLogableContainer(LoxImpl* impl)
     return logables;
 }
 
-void LI::Entry(LoxImpl* impl, const NString& domain, Verbosity verbosity )
-{
+void LI::Entry(LoxImpl* impl, const NString& domain, Verbosity verbosity ) {
     ASSERT_ACQUIRED
 
     // auto-initialization of debug loggers
@@ -1463,8 +1324,7 @@ void LI::Entry(LoxImpl* impl, const NString& domain, Verbosity verbosity )
          lang::Inclusion::Include );
 }
 
-int LI::IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain )
-{
+int LI::IsActive(LoxImpl* impl, Verbosity verbosity, const NString& domain, NAString* resultDomain){
     ASSERT_ACQUIRED
 
     // auto-initialization of debug loggers
@@ -1481,6 +1341,8 @@ int LI::IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain )
         return 0;
 
     Domain* dom= evaluateResultDomain( impl, domain );
+    if ( resultDomain != nullptr )
+        resultDomain->_( dom->FullPath );
 
     int result= 0;
     for ( int i= 0; i < dom->CountLoggers() ; ++i )
@@ -1489,16 +1351,11 @@ int LI::IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain )
     return result;
 }
 
-void LI::IncreaseLogCounter( LoxImpl* impl)
-{
-    ++impl->CntLogCalls;
-}
+void LI::IncreaseLogCounter( LoxImpl* impl)                                 { ++impl->CntLogCalls; }
 
-void LI::entryDetectDomainImpl(LoxImpl* impl,  Verbosity verbosity )
-{
+void LI::entryDetectDomainImpl(LoxImpl* impl,  Verbosity verbosity ) {
     BoxesMA& logables= *impl->logableContainers[size_t(impl->CountAcquirements() - 1)];
-    if ( logables.Size() > 1 && logables[0].IsArrayOf<nchar>() )
-    {
+    if ( logables.Size() > 1 && logables[0].IsArrayOf<nchar>() ) {
         NString firstArg= logables[0].Unbox<NString>();
 
         // accept internal domain at the start
@@ -1508,8 +1365,7 @@ void LI::entryDetectDomainImpl(LoxImpl* impl,  Verbosity verbosity )
 
         // loop over domain and check for illegal characters
         bool illegalCharacterFound= false;
-        for( ;  idx< firstArg.Length() ; ++idx )
-        {
+        for( ;  idx< firstArg.Length() ; ++idx ) {
             char c= firstArg[idx];
             if (!    (    isdigit( c )
                        || ( c >= 'A' && c <= 'Z' )
@@ -1521,11 +1377,9 @@ void LI::entryDetectDomainImpl(LoxImpl* impl,  Verbosity verbosity )
             {
                 illegalCharacterFound= true;
                 break;
-            }
-        }
+        }   }
 
-        if ( illegalCharacterFound )
-        {
+        if ( illegalCharacterFound ) {
             Entry( impl, nullptr, verbosity );
             return;
         }
@@ -1539,16 +1393,14 @@ void LI::entryDetectDomainImpl(LoxImpl* impl,  Verbosity verbosity )
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // internals
-// #################################################################################################
-Domain* LI::evaluateResultDomain(LoxImpl* impl,  const NString& domainPath )
-{
+//##################################################################################################
+Domain* LI::evaluateResultDomain(LoxImpl* impl,  const NString& domainPath ) {
     NString128 resDomain;
 
     // 0. internal domain tree?
-    if ( domainPath.StartsWith( Lox::InternalDomains ) )
-    {
+    if ( domainPath.StartsWith( Lox::InternalDomains ) ) {
         // cut "$/" from the path
         resDomain._( domainPath, Lox::InternalDomains.Length() );
         return findDomain( impl, *impl->internalDomains, resDomain );
@@ -1562,8 +1414,7 @@ Domain* LI::evaluateResultDomain(LoxImpl* impl,  const NString& domainPath )
                                                    : NULL_NSTRING
                            );
     NString nextDefault;
-    while( (nextDefault= impl->scopeDomains.Walk() ).IsNotNull() )
-    {
+    while( (nextDefault= impl->scopeDomains.Walk() ).IsNotNull() ) {
         ALIB_ASSERT( nextDefault.IsNotEmpty(), "ALOX" )
 
         if ( resDomain.IsNotEmpty() )
@@ -1577,8 +1428,7 @@ Domain* LI::evaluateResultDomain(LoxImpl* impl,  const NString& domainPath )
     return findDomain( impl, *impl->domains, resDomain );
 }
 
-void LI::getVerbosityFromConfig(LoxImpl* impl,  Variable& v, Logger*  logger, Domain&  dom )
-{
+void LI::getVerbosityFromConfig(LoxImpl* impl,  Variable& v, Logger*  logger, Domain&  dom ) {
     // get logger number. It may happen that the logger is not existent in this domain tree.
     int loggerNo= dom.GetLoggerNo( logger ) ;
     if ( loggerNo < 0 )
@@ -1586,14 +1436,12 @@ void LI::getVerbosityFromConfig(LoxImpl* impl,  Variable& v, Logger*  logger, Do
 
     auto& cvVerb  = v.Get<alib::lox::CVVerbosities>();
 
-    for (auto it : cvVerb)
-    {
+    for (auto it : cvVerb) {
         Tokenizer verbosityTknzr( it, '=' );
 
         NString256 domainStrBuf;
         Substring domainStrParser= verbosityTknzr.Next();
-        if ( domainStrParser.ConsumeString<lang::Case::Ignore>( A_CHAR("INTERNAL_DOMAINS")) )
-        {
+        if ( domainStrParser.ConsumeString<lang::Case::Ignore>( A_CHAR("INTERNAL_DOMAINS")) ) {
             while ( domainStrParser.ConsumeChar('/') )
                 ;
             domainStrBuf << Lox::InternalDomains << domainStrParser;
@@ -1630,12 +1478,9 @@ void LI::getVerbosityFromConfig(LoxImpl* impl,  Variable& v, Logger*  logger, Do
                 ._<NC>( '.' );
 
             logInternal( impl, Verbosity::Info, "LGR", msg );
-        }
-    }
-}
+}   }   }
 
-void LI::getDomainPrefixFromConfig(LoxImpl* impl,  Domain&  dom )
-{
+void LI::getDomainPrefixFromConfig(LoxImpl* impl, Domain& dom ) {
     Variable variable= variables::CampVariable(ALOX);
     {ALIB_LOCK_WITH(ALOX.GetConfig())
         const Declaration* decl= Declaration::Get( Variables::PREFIXES);
@@ -1652,14 +1497,12 @@ void LI::getDomainPrefixFromConfig(LoxImpl* impl,  Domain&  dom )
 
     Tokenizer prefixTokOuter;
     prefixTokOuter.Set(variable, ';', true);
-    while(prefixTokOuter.HasNext())
-    {
+    while(prefixTokOuter.HasNext()) {
         Tokenizer prefixTok( prefixTokOuter.Next(), '=' );
 
         NString128 domainStrBuf;
         Substring domainStrParser= prefixTok.Next();
-        if ( domainStrParser.ConsumeString<lang::Case::Ignore>( A_CHAR("INTERNAL_DOMAINS")) )
-        {
+        if ( domainStrParser.ConsumeString<lang::Case::Ignore>( A_CHAR("INTERNAL_DOMAINS")) ) {
             while ( domainStrParser.ConsumeChar('/') )
                 ;
             domainStrBuf << Lox::InternalDomains << domainStrParser;
@@ -1698,12 +1541,9 @@ void LI::getDomainPrefixFromConfig(LoxImpl* impl,  Domain&  dom )
                                ._<NC>( "\'. (Retrieved from configuration variable \'" )._<NC>(variable)._( "\'.)" );
 
             logInternal( impl, Verbosity::Info, "PFX", msg );
-        }
-    }
-}
+}   }   }
 
-void LI::getAllVerbosities(LoxImpl* impl, Variable& varVerbosities, Logger*  logger, Domain&  dom )
-{
+void LI::getAllVerbosities(LoxImpl* impl, Variable& varVerbosities, Logger*  logger, Domain&  dom) {
     // get verbosity for us
     getVerbosityFromConfig( impl, varVerbosities, logger, dom );
 
@@ -1713,20 +1553,16 @@ void LI::getAllVerbosities(LoxImpl* impl, Variable& varVerbosities, Logger*  log
 }
 
 
-Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
-{
+Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath ) {
     int maxSubstitutions= 10;
     NString128 substPath;
-    for(;;)
-    {
+    for(;;) {
         // loop for creating domains, one by one
         Domain* dom= nullptr;
-        for(;;)
-        {
+        for(;;) {
             bool wasCreated;
             dom= rootDomain.Find( domainPath, 1, &wasCreated );
-            if ( wasCreated )
-            {
+            if ( wasCreated ) {
                 // get maximum domain path length (for nicer State output only...)
                 if ( impl->maxDomainPathLength < dom->FullPath.Length() )
                      impl->maxDomainPathLength=  dom->FullPath.Length();
@@ -1742,8 +1578,7 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
             { dom->ConfigurationAlreadyRead= true;
 
                 Box replacements[2];
-                for ( int i= 0; i < dom->CountLoggers(); ++i )
-                {
+                for ( int i= 0; i < dom->CountLoggers(); ++i ) {
                     Logger* logger= dom->GetLogger(i);
                     replacements[0]= GetName( impl );
                     replacements[1]= logger->GetName();
@@ -1755,138 +1590,102 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
                 getDomainPrefixFromConfig( impl,  *dom );
             }
 
-            if ( wasCreated )
-            {
+            if ( wasCreated ) {
                 if ( dom->CountLoggers() == 0 )
                     logInternal( impl, Verbosity::Verbose, "DMN", "   No loggers set, yet." );
                 else
-                {
-                    for ( int i= 0; i < dom->CountLoggers(); ++i )
-                    {
+                    for ( int i= 0; i < dom->CountLoggers(); ++i ) {
                         NString256 msg; msg._("  \"")._( dom->GetLogger(i)->GetName() )._("\": ");
                                         msg.InsertChars( ' ', impl->maxLoggerNameLength  + 6 - msg.Length() );
                                         msg._( dom->FullPath )._(" = " )
                                         ._(boxing::MakePair(dom->GetVerbosity(i), dom->GetPriority(i)));
                         logInternal( impl, Verbosity::Verbose, "DMN", msg );
-                    }
-                }
-            }
+            }       }
             else
                 break;
         }
 
         // apply domain substitutions
-        if( !impl->domainSubstitutions.empty() )
-        {
+        if( !impl->domainSubstitutions.empty() ) {
             substPath.Reset();
             NSubstring domFullPath= dom->FullPath;
             if ( domFullPath.CharAtStart<NC>() == '$' )
                 domFullPath.ConsumeChar();
 
-            while( maxSubstitutions-- > 0  )
-            {
+            while( maxSubstitutions-- > 0  ) {
                 // loop over rules
                 bool substituted= false;
-                for( auto& rule : impl->domainSubstitutions )
-                {
-                    switch( rule.type )
-                    {
+                for( auto& rule : impl->domainSubstitutions ) {
+                    switch( rule.type ) {
                         case DomainSubstitutionRule::Type::StartsWith:
-                            if( substPath.IsEmpty() )
-                            {
-                                if ( domFullPath.StartsWith( rule.Search ) )
-                                {
+                            if( substPath.IsEmpty() ) {
+                                if ( domFullPath.StartsWith( rule.Search ) ) {
                                     substPath._( rule.Replacement )._( domFullPath, rule.Search.Length() );
                                     substituted= true;
                                     continue;
                                 }
-                            }
-                            else
-                            {
-                                if ( substPath.StartsWith( rule.Search ) )
-                                {
+                            } else {
+                                if ( substPath.StartsWith( rule.Search ) ) {
                                     substPath.ReplaceSubstring<NC>( rule.Replacement, 0, rule.Search.Length()  );
                                     substituted= true;
                                     continue;
-                                }
-                            }
+                            }   }
                         break;
 
                         case DomainSubstitutionRule::Type::EndsWith:
-                            if( substPath.IsEmpty() )
-                            {
-                                if ( domFullPath.EndsWith( rule.Search ) )
-                                {
+                            if( substPath.IsEmpty() ) {
+                                if ( domFullPath.EndsWith( rule.Search ) ) {
                                     substPath._( domFullPath, 0, domFullPath.Length() - rule.Search.Length() )._( rule.Replacement );
                                     substituted= true;
                                     continue;
                                 }
-                            }
-                            else
-                            {
-                                if ( substPath.EndsWith( rule.Search ) )
-                                {
+                            } else {
+                                if ( substPath.EndsWith( rule.Search ) ) {
                                     substPath.DeleteEnd( rule.Search.Length() )._( rule.Replacement );
                                     substituted= true;
                                     continue;
-                                }
-                            }
+                            }   }
                         break;
 
 
                         case DomainSubstitutionRule::Type::Substring:
                         {
-                            if( substPath.IsEmpty() )
-                            {
+                            if( substPath.IsEmpty() ) {
                                 integer idx= domFullPath.IndexOf( rule.Search );
-                                if ( idx >= 0 )
-                                {
+                                if ( idx >= 0 ) {
                                     substPath._( domFullPath, 0, idx )._( rule.Replacement)._( domFullPath, idx + rule.Search.Length() );
                                     substituted= true;
                                     continue; //next rule
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 integer idx= substPath.IndexOf( rule.Search, 0 );
-                                if ( idx >= 0 )
-                                {
+                                if ( idx >= 0 ) {
                                     substPath.ReplaceSubstring<NC>( rule.Replacement, idx, rule.Search.Length()  );
                                     substituted= true;
                                     continue; //next rule
-                                }
-                            }
-                        }
+                        }   }   }
                         break;
 
 
                         case DomainSubstitutionRule::Type::Exact:
                         {
-                            if( substPath.IsEmpty() )
-                            {
-                                if ( domFullPath.Equals<NC>( rule.Search ) )
-                                {
+                            if( substPath.IsEmpty() ) {
+                                if ( domFullPath.Equals<NC>( rule.Search ) ) {
                                     substPath._( rule.Replacement);
                                     substituted= true;
                                     continue; //next rule
                                 }
-                                if ( domFullPath.CharAtStart<NC>() == '$' )
-                                {
+                                if ( domFullPath.CharAtStart<NC>() == '$' ) {
                                     substPath._( rule.Replacement);
                                     substituted= true;
                                     continue; //next rule
                                 }
-                            }
-                            else
-                            {
-                                if ( substPath.Equals<NC>( rule.Search) )
-                                {
+                            } else {
+                                if ( substPath.Equals<NC>( rule.Search) ) {
                                     substPath.Reset( rule.Replacement );
                                     substituted= true;
                                     continue; //next rule
-                                }
-                            }
-                        }
+                        }   }   }
                         break;
 
                         default: ALIB_ERROR("ALOX", "Illegal switch state." ) break;
@@ -1900,8 +1699,7 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
             }
 
             // too many substitutions?
-            if ( maxSubstitutions <= 0 && !impl->oneTimeWarningCircularDS )
-            {
+            if ( maxSubstitutions <= 0 && !impl->oneTimeWarningCircularDS ) {
                 impl->oneTimeWarningCircularDS= true;
                 logInternal( impl, Verbosity::Error, "DMN",
                              "The Limit of 10 domain substitutions was reached. Circular substitution assumed!"
@@ -1909,22 +1707,17 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
             }
 
             // anything substituted?
-            if( substPath.Length() > 0 )
-            {
+            if( substPath.Length() > 0 ) {
                 domainPath= substPath;
                 continue;
-            }
-        }
+        }   }
 
         return dom;
-    }
-}
+}   }
 
-int LI::checkScopeInformation(LoxImpl* impl,  Scope& scope, const NString& internalDomain )
-{
+int LI::checkScopeInformation(LoxImpl* impl,  Scope& scope, const NString& internalDomain ) {
     int pathLevel= 0;
-    if ( scope > Scope::Path )
-    {
+    if ( scope > Scope::Path ) {
         pathLevel= int( scope - Scope::Path );
         scope= Scope::Path;
     }
@@ -1941,8 +1734,7 @@ int LI::checkScopeInformation(LoxImpl* impl,  Scope& scope, const NString& inter
     return pathLevel;
 }
 
-bool LI::isThreadRelatedScope(LoxImpl* impl,  Scope scope )
-{
+bool LI::isThreadRelatedScope(LoxImpl* impl, Scope scope ) {
     // check
     if (    scope == Scope::ThreadOuter
          || scope == Scope::ThreadInner )
@@ -1971,48 +1763,40 @@ bool LI::isThreadRelatedScope(LoxImpl* impl,  Scope scope )
     return false;
 }
 
-void LI::log(LoxImpl* impl,  Domain* dom, Verbosity verbosity, BoxesMA& logables, lang::Inclusion includePrefixes )
-{
+void LI::log( LoxImpl*  impl     , Domain*  dom,
+              Verbosity verbosity, BoxesMA& logables, lang::Inclusion includePrefixes ) {
     ++dom->CntLogCalls;
     bool logablesCollected= false;
     PrefixLogable marker(impl->poolAllocator, nullptr);
     for ( int i= 0; i < dom->CountLoggers() ; ++i )
-        if( dom->IsActive( i, verbosity ) )
-        {
+        if( dom->IsActive( i, verbosity ) ) {
             // lazily collect objects once an active logger is found
-            if ( !logablesCollected )
-            {
+            if ( !logablesCollected ) {
                 logablesCollected= true;
                 impl->scopePrefixes.InitWalk( Scope::ThreadInner, &marker );
                 const Box* next;
                 int userLogablesSize= int( logables.Size() );
                 int threadInnersSize= -1;
 
-                while( (next= impl->scopePrefixes.Walk() ) != nullptr )
-                {
-                    if( next != &marker )
-                    {
+                while( (next= impl->scopePrefixes.Walk() ) != nullptr ) {
+                    if( next != &marker ) {
                         // this is false for internal domains (only domain specific logables are added there)
-                        if ( includePrefixes == lang::Inclusion::Include )
-                        {
+                        if ( includePrefixes == lang::Inclusion::Include ) {
                             // after marker is read, logables need to be prepended. This is checked below
                             // using "qtyThreadInners < 0"
-                            if ( next->IsType<BoxesMA*>() )
-                            {
+                            if ( next->IsType<BoxesMA*>() ) {
                                 auto* boxes= next->Unbox<BoxesMA*>();
                                 for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                     logables.emplace( logables.begin() + ( threadInnersSize < 0 ? userLogablesSize : 0 ),
                                                     (*boxes)[size_t(pfxI)] );
                             }
-                            else if ( next->IsType<BoxesHA*>() )
-                            {
-                                auto* boxes= next->Unbox<BoxesHA*>();
+                            else if ( next->IsType<Boxes*>() ) {
+                                auto* boxes= next->Unbox<Boxes*>();
                                 for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                     logables.emplace( logables.begin() + ( threadInnersSize < 0 ? userLogablesSize : 0 ),
                                                     (*boxes)[size_t(pfxI)] );
                             }
-                            else if ( next->IsType<BoxesPA*>() )
-                            {
+                            else if ( next->IsType<BoxesPA*>() ) {
                                 auto* boxes= next->Unbox<BoxesPA*>();
                                 for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                     logables.emplace( logables.begin() + ( threadInnersSize < 0 ? userLogablesSize : 0 ),
@@ -2020,37 +1804,30 @@ void LI::log(LoxImpl* impl,  Domain* dom, Verbosity verbosity, BoxesMA& logables
                             }
                             else
                                 logables.emplace( logables.begin() + ( threadInnersSize < 0 ? userLogablesSize : 0 ), *next );
-                        }
-                    }
+                    }   }
 
                     // was this the actual? then insert domain-associated logables now
-                    else
-                    {
+                    else {
                         bool excludeOthers= false;
                         threadInnersSize= int( logables.Size() ) - userLogablesSize;
                         Domain* pflDom= dom;
-                        while ( pflDom != nullptr )
-                        {
-                            for( auto it= pflDom->PrefixLogables.rbegin() ; it != pflDom->PrefixLogables.rend() ; ++it )
-                            {
+                        while ( pflDom != nullptr ) {
+                            for( auto it= pflDom->PrefixLogables.rbegin() ; it != pflDom->PrefixLogables.rend() ; ++it ) {
                                 // a list of logables? Copy them
                                 PrefixLogable& prefix= *it->first;
-                                if ( prefix.IsType<BoxesHA*>() )
-                                {
-                                    auto* boxes= prefix.Unbox<BoxesHA*>();
+                                if ( prefix.IsType<Boxes*>() ) {
+                                    auto* boxes= prefix.Unbox<Boxes*>();
                                     for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                         logables.emplace( logables.begin(),
                                                           (*boxes)[size_t(pfxI)] );
                                 }
-                                else if ( prefix.IsType<BoxesMA*>() )
-                                {
+                                else if ( prefix.IsType<BoxesMA*>() ) {
                                     auto* boxes= prefix.Unbox<BoxesMA*>();
                                     for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                         logables.emplace( logables.begin(),
                                                           (*boxes)[size_t(pfxI)] );
                                 }
-                                else if ( prefix.IsType<BoxesPA*>() )
-                                {
+                                else if ( prefix.IsType<BoxesPA*>() ) {
                                     auto* boxes= prefix.Unbox<BoxesPA*>();
                                     for (auto pfxI= boxes->Size() - 1 ; pfxI >= 0 ; --pfxI )
                                         logables.emplace( logables.begin(),
@@ -2060,25 +1837,20 @@ void LI::log(LoxImpl* impl,  Domain* dom, Verbosity verbosity, BoxesMA& logables
                                     logables.emplace( logables.begin(), prefix );
 
 
-                                if ( it->second == lang::Inclusion::Exclude )
-                                {
+                                if ( it->second == lang::Inclusion::Exclude ) {
                                     excludeOthers= true;
                                     break;
-                                }
-                            }
+                            }   }
 
                             pflDom= excludeOthers ? nullptr :  pflDom->Parent;
                         }
 
                         // found a stoppable one? remove those from thread inner and break
-                        if (excludeOthers)
-                        {
+                        if (excludeOthers) {
                             for ( int ii= 0; ii < threadInnersSize ; ++ii )
                                 logables.pop_back();
                             break;
-                        }
-                    }
-                }
+                }   }   }
             } // end of collection
 
             Logger* logger= dom->GetLogger(i);
@@ -2086,14 +1858,10 @@ void LI::log(LoxImpl* impl,  Domain* dom, Verbosity verbosity, BoxesMA& logables
                 ++logger->CntLogs;
                 logger->Log( *dom, verbosity, logables, impl->scopeInfo );
                 logger->TimeOfLastLog= Ticks::Now();
-            }
-        }
-}
+}       }   }
 
-BoxesMA&  LI::acquireInternalLogables(LoxImpl* impl)
-{
-    if( integer(impl->internalLogables.size()) == impl->internalLogRecursionCounter )
-    {
+BoxesMA&  LI::acquireInternalLogables(LoxImpl* impl) {
+    if( integer(impl->internalLogables.size()) == impl->internalLogRecursionCounter ) {
         BoxesMA* newLogables= impl->monoAllocator().New<BoxesMA>(impl->monoAllocator);
         impl->internalLogables.emplace_back( newLogables );
     }
@@ -2101,16 +1869,15 @@ BoxesMA&  LI::acquireInternalLogables(LoxImpl* impl)
     return *impl->internalLogables[size_t(impl->internalLogRecursionCounter++)];
 }
 
-void LI::logInternal(LoxImpl* impl,  Verbosity verbosity, const NString& subDomain, BoxesMA& msg )
-{
+void LI::logInternal(LoxImpl* impl,  Verbosity verbosity, const NString& subDomain, BoxesMA& msg ) {
     ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALOX", "ALox (ALib) was not properly bootstrapped." )
     log( impl, findDomain( impl, *impl->internalDomains, subDomain ), verbosity, msg, lang::Inclusion::Exclude );
 
     impl->internalLogables[size_t(--impl->internalLogRecursionCounter)]->clear();
 }
 
-void LI::logInternal(LoxImpl* impl,  Verbosity verbosity, const NString& subDomain, const NString& msg )
-{
+void LI::logInternal( LoxImpl*       impl     , Verbosity      verbosity,
+                      const NString& subDomain, const NString& msg        ) {
     BoxesMA& logables= acquireInternalLogables(impl);
     logables.Add( msg );
     logInternal( impl, verbosity, subDomain, logables );
@@ -2120,8 +1887,7 @@ void LI::logInternal(LoxImpl* impl,  Verbosity verbosity, const NString& subDoma
 
 namespace {
 void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAString& buf );
-void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAString& buf )
-{
+void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAString& buf ) {
     integer reference= buf.Length();
     buf._("  "); domain.ToString( buf );
     integer idx= buf.IndexOf( '[', reference );
@@ -2134,8 +1900,7 @@ void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAStr
 }
 
 void getStateDomainsWithDiffVerb( Domain& dom, int loggerNo, std::vector<Domain*>& results );
-void getStateDomainsWithDiffVerb( Domain& dom, int loggerNo, std::vector<Domain*>& results )
-{
+void getStateDomainsWithDiffVerb( Domain& dom, int loggerNo, std::vector<Domain*>& results ) {
     if (    dom.Parent == nullptr
         ||  dom.Parent->GetVerbosity(loggerNo) != dom.GetVerbosity(loggerNo) )
         results.emplace_back( &dom );
@@ -2145,11 +1910,9 @@ void getStateDomainsWithDiffVerb( Domain& dom, int loggerNo, std::vector<Domain*
 }
 
 void getStateCollectPrefixes( Domain& dom, integer indentSpaces, NAString& target );
-void getStateCollectPrefixes( Domain& dom, integer indentSpaces, NAString& target )
-{
+void getStateCollectPrefixes( Domain& dom, integer indentSpaces, NAString& target ) {
     AString buffer;
-    for ( auto& pfl : dom.PrefixLogables )
-    {
+    for ( auto& pfl : dom.PrefixLogables ) {
         buffer.InsertChars( ' ', indentSpaces );
         buffer << '"';
         integer actLen= buffer.Length();
@@ -2173,21 +1936,18 @@ void getStateCollectPrefixes( Domain& dom, integer indentSpaces, NAString& targe
 #endif // !DOXYGEN
 
 
-void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
-{
+void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags ) {
     ASSERT_ACQUIRED
 
     ScopeDump scopeDump( IF_ALIB_THREADS( impl->scopeInfo.threadDictionary, )
                          impl->noKeyHashKey, buf );
 
-    if ( HasBits( flags, StateInfo::CompilationFlags ) )
-    {
+    if ( HasBits( flags, StateInfo::CompilationFlags ) ) {
         buf._<NC>( "ALib Version:      "    )._<NC>( alib::VERSION)
            ._<NC>(" (Rev. ")                 ._       ( alib::REVISION)._(')').NewLine();
         buf._<NC>( "ALib Compiler Symbols:" ).NewLine();
         {
-            for( auto& p : alib::COMPILATION_FLAG_MEANINGS )
-            {
+            for( auto& p : alib::COMPILATION_FLAG_MEANINGS ) {
                 buf << "  " << NField( p.Name, 41, lang::Alignment::Left ) << ':'
                     << (alib::COMPILATION_FLAGS.bits[p.Flag/8] & (1 << p.Flag % 8)  ? " On" : " Off")
                     << NEW_LINE;
@@ -2202,8 +1962,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     if( alib::HasBits( flags,  StateInfo::Basic ) )
         buf._<NC>( "Name:            \"" )._( impl->scopeInfo.GetLoxName() )._('\"').NewLine();
 
-    if( HasBits( flags,  StateInfo::Version ) )
-    {
+    if( HasBits( flags,  StateInfo::Version ) ) {
         buf._<NC>( "Version:         " )._<NC>( alib::VERSION)
            ._<NC>(" (Rev. "            )._(        alib::REVISION)._(')').NewLine();
     }
@@ -2216,14 +1975,12 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
         buf.NewLine();
 
     //  source path trim info
-    if( HasBits( flags,  StateInfo::SPTR ) )
-    {
+    if( HasBits( flags,  StateInfo::SPTR ) ) {
         buf._<NC>( "Source Path Trimming Rules: " ).NewLine();
 
         int cnt= 0;
         // do 2 times, 0== global list, 1 == local list
-        for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
-        {
+        for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo ) {
             // choose local or global list
             std::vector<ScopeInfo::SourcePathTrimRule>* trimInfoList=
                        trimInfoNo == 0   ? &ScopeInfo::GlobalSPTRs
@@ -2231,8 +1988,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
 
             // loop over trimInfo
-            for ( auto& ti : *trimInfoList )
-            {
+            for ( auto& ti : *trimInfoList ) {
                 ++cnt;
                 buf._<NC>( trimInfoNo == 0 ? "  Global: "
                                          : "  Local:  " );
@@ -2243,8 +1999,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
                     buf._<NC>( ti.Path )._<NC>( "\", Offset: " )._<NC>( ti.TrimOffset );
                 buf._<NC>( ", Priority: " )._( ti.Priority );
                 buf.NewLine();
-            }
-        }
+        }   }
 
 
         if ( cnt == 0 )
@@ -2253,11 +2008,9 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     //  domain substitutions
-    if( HasBits( flags,  StateInfo::DSR ) )
-    {
+    if( HasBits( flags,  StateInfo::DSR ) ) {
         buf._<NC>( "Domain Substitution Rules: " ).NewLine();
-        if( !impl->domainSubstitutions.empty() )
-        {
+        if( !impl->domainSubstitutions.empty() ) {
             // get size
             integer maxWidth= 0;
             for ( auto& it : impl->domainSubstitutions )
@@ -2266,8 +2019,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
             maxWidth+= 2;
 
             // write
-            for ( auto& it : impl->domainSubstitutions )
-            {
+            for ( auto& it : impl->domainSubstitutions ) {
                 buf._<NC>( "  " );
                 if (    it.type == DomainSubstitutionRule::Type::EndsWith
                      || it.type == DomainSubstitutionRule::Type::Substring )
@@ -2282,16 +2034,14 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
                    ._<NC>( " -> " )
                    ._<NC>( it.Replacement );
                 buf.NewLine();
-            }
-        }
+        }   }
         else
             buf._<NC>("  <no rules set>" ).NewLine();
         buf.NewLine();
     }
 
     // Log Once Counters
-    if( HasBits( flags,  StateInfo::Once ) )
-    {
+    if( HasBits( flags,  StateInfo::Once ) ) {
         buf._<NC>( "Once() Counters: " ).NewLine();
         if ( scopeDump.writeStoreMap( &impl->scopeLogOnce ) == 0 )
             buf._<NC>("  <no Once() counters set>" ).NewLine();
@@ -2299,8 +2049,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     // Log Data
-    if( HasBits( flags,  StateInfo::LogData ) )
-    {
+    if( HasBits( flags,  StateInfo::LogData ) ) {
         buf._<NC>( "Log Data: " ).NewLine();
         if ( scopeDump.writeStoreMap( &impl->scopeLogData ) == 0 )
             buf._<NC>("  <no data objects stored>" ).NewLine();
@@ -2308,8 +2057,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     // Prefix Logables
-    if( HasBits( flags,  StateInfo::PrefixLogables ) )
-    {
+    if( HasBits( flags,  StateInfo::PrefixLogables ) ) {
         buf._<NC>( "Prefix Logables: " ).NewLine();
         integer oldLength= buf.Length();
         scopeDump.writeStore( &impl->scopePrefixes, 2 );
@@ -2320,15 +2068,13 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     // thread mappings
-    if( HasBits( flags,  StateInfo::ThreadMappings ) )
-    {
+    if( HasBits( flags,  StateInfo::ThreadMappings ) ) {
         #if !ALIB_SINGLE_THREADED
             buf._<NC>( "Named Threads:   " ).NewLine();
             if ( impl->scopeInfo.threadDictionary.Size() == 0 )
                 buf._<NC>("  <no thread name mappings set>" ).NewLine();
             else
-                for ( auto& pair : impl->scopeInfo.threadDictionary )
-                {
+                for ( auto& pair : impl->scopeInfo.threadDictionary ) {
                     buf._<NC>( "  " ) << NField( String32() << '(' << pair.first << "):", 7, lang::Alignment::Left )
                                     << '\"' << pair.second << '\"';
                     buf.NewLine();
@@ -2338,8 +2084,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     // Scope Domains
-    if( HasBits( flags,  StateInfo::ScopeDomains ) )
-    {
+    if( HasBits( flags,  StateInfo::ScopeDomains ) ) {
         buf._<NC>( "Scope Domains: " ).NewLine();
         if ( scopeDump.writeStore( &impl->scopeDomains, 2 ) == 0 )
             buf._<NC>("  <no scope domains set>" ).NewLine();
@@ -2347,27 +2092,21 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     }
 
     // Loggers
-    if( HasBits( flags,  StateInfo::Loggers ) )
-    {
+    if( HasBits( flags,  StateInfo::Loggers ) ) {
         TickConverter dateTimeConverter;
         std::vector<Domain*> domainsWithDiffVerb;
-        for (int treeNo= 0; treeNo < 2; ++treeNo )
-        {
+        for (int treeNo= 0; treeNo < 2; ++treeNo ) {
             int cnt= 0;
             Domain* domTree;
-            if( treeNo==0 )
-            {
+            if( treeNo==0 ) {
                  domTree= impl->domains;
                  buf._<NC>( "Loggers:" ).NewLine();
-            }
-            else
-            {
+            } else {
                  domTree= impl->internalDomains;
                  buf._<NC>( "Loggers on Internal Domains:" ).NewLine();
             }
 
-            for ( int loggerNo= 0; loggerNo< domTree->CountLoggers(); ++loggerNo )
-            {
+            for ( int loggerNo= 0; loggerNo< domTree->CountLoggers(); ++loggerNo ) {
                 ++cnt;
                 String64 as64;
                 CalendarDateTime ct(lang::Initialization::Suppress);
@@ -2384,8 +2123,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
                 domainsWithDiffVerb.clear();
                 getStateDomainsWithDiffVerb( *domTree, loggerNo, domainsWithDiffVerb);
-                for ( Domain* dom : domainsWithDiffVerb )
-                {
+                for ( Domain* dom : domainsWithDiffVerb ) {
                     buf._<NC>("    ")
                        ._(  dom == *domainsWithDiffVerb.begin() ? "Verbosities:   "
                                                                 : "               " );
@@ -2395,30 +2133,25 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
                     buf << "= " << boxing::MakePair(dom->GetVerbosity( loggerNo ), dom->GetPriority(loggerNo) )
                         << NEW_LINE;
-                }
-            }
+            }   }
             if ( cnt == 0 )
                 buf._<NC>("  <no loggers attached>" ).NewLine();
             buf.NewLine();
-        }
-    }
+    }   }
 
     // Internal Domains
-    if( HasBits( flags,  StateInfo::InternalDomains ) )
-    {
+    if( HasBits( flags,  StateInfo::InternalDomains ) ) {
         buf._<NC>( "Internal Domains:" ).NewLine();
         getStateDomainRecursive( *impl->internalDomains, impl->maxDomainPathLength, buf );
         buf.NewLine();
     }
 
     // Domains
-    if( HasBits( flags,  StateInfo::Domains ) )
-    {
+    if( HasBits( flags,  StateInfo::Domains ) ) {
         buf._<NC>( "Domains:" ).NewLine();
         getStateDomainRecursive( *impl->domains        , impl->maxDomainPathLength, buf );
         buf.NewLine();
-    }
-}
+}   }
 
 } // namespace alib::lox[::detail]
 
@@ -2429,4 +2162,3 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
 #undef UNDEFINED_THREAD
 #undef ASSERT_ACQUIRED
-

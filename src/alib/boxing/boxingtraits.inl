@@ -159,23 +159,21 @@ struct BoxTraits
     /// Used for boxing a value, precisely writing the boxable portion of a type into
     /// field \alib{boxing;Box::data}, which is given with parameter \p{box}.<br>
     /// The default implementation of this struct implements this method as follows:
-    /// \snippet "boxing/boxingtraits.inl"  DOX_BOXING_T_BOXER_WRITE
+    /// \snippet "boxing/boxingtraits.inl"    DOX_BOXING_T_BOXER_WRITE
     ///
     /// This implementation leverages the overloads \alib{boxing;Placeholder::Write}
     /// and is often all that is needed with custom specializations.
     /// @param box The placeholder of the destination box.
     /// @param value  The value to that is to be boxed.
     DOX_MARKER([DOX_BOXING_T_BOXER_WRITE])
-    static constexpr void  Write( Placeholder& box, const TBoxable& value ) {
-        box.Write( value );
-    }
+    static constexpr void  Write( Placeholder& box, const TBoxable& value )  { box.Write( value ); }
     DOX_MARKER([DOX_BOXING_T_BOXER_WRITE])
 
     /// Used for unboxing a value, precisely reading the contents of field \alib{boxing;Box::data},
     /// which is given with output parameter \p{box} and creating a value of type \p{TBoxable} from
     /// that.<br>
     /// The default implementation of this struct implements this method as follows:
-    /// \snippet "boxing/boxingtraits.inl"  DOX_BOXING_T_BOXER_READ
+    /// \snippet "boxing/boxingtraits.inl"    DOX_BOXING_T_BOXER_READ
     ///
     /// This implementation leverages the overloaded method \alib{boxing;Placeholder::Read}
     /// and is often all that is needed with custom specializations.
@@ -192,8 +190,7 @@ struct BoxTraits
     /// @return \c The unboxed object.
     static
     std::conditional_t<!std::is_abstract<TBoxable>::value, TBoxable, TBoxable&>
-    Read( const Placeholder& box)
-    {
+    Read( const Placeholder& box) {
 DOX_MARKER([DOX_BOXING_T_BOXER_READ])
 return box.Read<TBoxable>();
 DOX_MARKER([DOX_BOXING_T_BOXER_READ])
@@ -201,7 +198,7 @@ DOX_MARKER([DOX_BOXING_T_BOXER_READ])
 
 }; // BoxTraits
 
-// #######################      critical specializations of BoxTraits      ###########################
+//############################## critical specializations of BoxTraits #############################
 #if !DOXYGEN
 
 // This is necessary for types that can't be used as return type in any way, for example
@@ -264,14 +261,14 @@ struct BoxTraits<void>
 ///                      and \b FEquals implementation.
 //==================================================================================================
 template<typename TMappedPlain>
-inline constexpr unsigned int SizeTraits= sizeof(TMappedPlain);
+inline constexpr unsigned SizeTraits= sizeof(TMappedPlain);
 
 /// Specialization of traits-expression for type <c>long double</c>.
 /// The implementation of this type is platform-dependent and may be adopted to a certain
 /// compiler/processor combination by passing the compiler-symbol
 /// \ref ALIB_SIZEOF_LONGDOUBLE_WRITTEN.
 template<>
-inline constexpr unsigned int SizeTraits<long double> = ALIB_SIZEOF_LONGDOUBLE_WRITTEN;
+inline constexpr unsigned SizeTraits<long double> = ALIB_SIZEOF_LONGDOUBLE_WRITTEN;
 
 ALIB_WARNINGS_IGNORE_DOCS
 //==================================================================================================
@@ -435,7 +432,3 @@ ALIB_WARNINGS_RESTORE
 
 
 }} // namespace [alib::boxing]
-
-
-
-

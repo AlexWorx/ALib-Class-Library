@@ -12,8 +12,7 @@ ALIB_EXPORT namespace alib {  namespace bitbuffer { namespace ac_v1 {
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
-{
+void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
     if( !data.length() )
         return;
@@ -21,8 +20,7 @@ void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
     HuffmanEncoder he( bw );
 
     // count all occurrences of bytes
-    for(size_t i= 0; i < data.length(); ++i)
-    {
+    for(size_t i= 0; i < data.length(); ++i) {
         TUI val= data.get( i );
         int bytes= sizeof(TUI);
 
@@ -30,61 +28,51 @@ void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
         // (two times something similar below)
         COUNTNEXT:
         he.CountSymbol(uint8_t (val) );
-        if( --bytes )
-        {
+        if( --bytes ) {
             ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
             val>>= 8;
             ALIB_WARNINGS_RESTORE
             goto COUNTNEXT;
-        }
-    }
+    }   }
     // build huffman code
     he.Generate();
 
     // write out
-    for(size_t i= 0; i < data.length(); ++i)
-    {
+    for(size_t i= 0; i < data.length(); ++i) {
         TUI val= data.get( i );
         ShiftOpRHS bits= bitsof(TUI) - 8;
-        while( bits >= 0 )
-        {
+        while( bits >= 0 ) {
             ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
             he.Write(uint8_t (val >> bits ) );
             ALIB_WARNINGS_RESTORE
 
             bits-= 8;
-        }
-    }
-}
+}   }   }
 
 /// Reads data compressed using class \alib{bitbuffer::ac_v1;HuffmanDecoder}.
 /// @tparam TI   The integral type of the array to read back.
 /// @param  br   The bit reader to use.
 /// @param  data The array to read the data to.
 template<typename TI>
-void readHuffman( BitReader& br, ArrayCompressor::Array<TI>& data )
-{
+void readHuffman( BitReader& br, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
     if( !data.length() )
         return;
     HuffmanDecoder hd( br );
     hd.ReadTree();
-    for(size_t i= 0; i < data.length(); ++i)
-    {
+    for(size_t i= 0; i < data.length(); ++i) {
         TUI val= 0;
         int bytes= sizeof(TUI);
         READNEXT:
         val|= hd.Read();
-        if( --bytes )
-        {
+        if( --bytes ) {
             ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
             val<<= 8;
             ALIB_WARNINGS_RESTORE
             goto READNEXT;
         }
         data.set(i, val);
-    }
-}
+}   }
 
 
 /// Writes array data by simply using the mechanics provided with class \alib{bitbuffer;BitWriter},
@@ -93,13 +81,10 @@ void readHuffman( BitReader& br, ArrayCompressor::Array<TI>& data )
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeUncompressed( BitWriter& bw, ArrayCompressor::Array<TI>& data )
-{
-    for(size_t i= 0; i < data.length(); ++i)
-    {
+void writeUncompressed( BitWriter& bw, ArrayCompressor::Array<TI>& data ) {
+    for(size_t i= 0; i < data.length(); ++i) {
         bw.Write( data.get( i ) );
-    }
-}
+}   }
 
 /// Reads data compressed using simply the mechanics provided with class \alib{bitbuffer;BitWriter}
 /// which tries to shorten integrals on writing.
@@ -107,8 +92,7 @@ void writeUncompressed( BitWriter& bw, ArrayCompressor::Array<TI>& data )
 /// @param br    The bit reader to use.
 /// @param data  The array to read the data to.
 template<typename TI>
-void readUncompressed( BitReader& br, ArrayCompressor::Array<TI>& data )
-{
+void readUncompressed( BitReader& br, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
     for(size_t i= 0; i < data.length(); ++i)
         data.set(i, br.Read<TUI>() );
@@ -119,8 +103,7 @@ void readUncompressed( BitReader& br, ArrayCompressor::Array<TI>& data )
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data )
-{
+void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
 
     // calc min/max
@@ -144,14 +127,12 @@ void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 /// @param br    The bit reader to use.
 /// @param data  The array to read the data to.
 template<typename TI>
-void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data )
-{
+void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
     auto bitCnt=  br.Read<lang::Log2OfSize<TUI>() + 1>();
     TUI  min   =  br.Read<TUI>();
 
-    if( !bitCnt )
-    {
+    if( !bitCnt ) {
         for(size_t i= 0; i < data.length(); ++i)
             data.set(i, min );
         return;
@@ -165,34 +146,29 @@ void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data )
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeSparse(BitWriter& bw, ArrayCompressor::Array<TI>& data)
-{
+void writeSparse(BitWriter& bw, ArrayCompressor::Array<TI>& data) {
     if( !data.length() )
         return;
     using TUI= typename std::make_unsigned<TI>::type;
     TUI first= data.get(0);
     bw.Write(first);
-    for(size_t i= 1; i < data.length(); ++i)
-    {
+    for(size_t i= 1; i < data.length(); ++i) {
         TUI second= data.get(i);
         if( second==first)
             bw.Write<1>( 1) ;
-        else
-        {
+        else {
             bw.Write<1>( 0 );
             bw.Write(second);
         }
         first= second;
-    }
-}
+}   }
 
 /// Reads data compressed with method \alib{bitbuffer::ac_v1;writeSparse}.
 /// @tparam TI   The integral type of the array to read back.
 /// @param br    The bit reader to use.
 /// @param data  The array to read the data to.
 template<typename TI>
-void readSparse( BitReader& br, ArrayCompressor::Array<TI>& data  )
-{
+void readSparse( BitReader& br, ArrayCompressor::Array<TI>& data  ) {
     if( !data.length() )
         return;
     using TUI= typename std::make_unsigned<TI>::type;
@@ -208,8 +184,7 @@ void readSparse( BitReader& br, ArrayCompressor::Array<TI>& data  )
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
-{
+void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
    if( !data.length() )
         return;
@@ -223,8 +198,7 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
     auto  maxSegLen = (std::numeric_limits<size_t>::min)();
     auto  bitCntVal = 0;
     auto  bitCntRep = 0;
-    for( int pass= 0 ; pass < 2 ; ++ pass )
-    {
+    for( int pass= 0 ; pass < 2 ; ++ pass ) {
         size_t segStart= 0;
         TUI val    = data.get(0);
         TUI prevVal;
@@ -236,12 +210,9 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
             prevVal= val;
 
             // only one value left?
-            if( segEnd == data.length() )
-            {
+            if( segEnd == data.length() ) {
                 sparse= false; // could also be set to true
-            }
-            else
-            {
+            } else {
                 val= data.get(segEnd);
 
                 sparse= (prevVal == val);
@@ -261,8 +232,7 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
             if( pass== 0)
                 maxSegLen= (std::max)( maxSegLen, segEnd - segStart );
             // Pass 1: write segment
-            else
-            {
+            else {
                 // write
                 if( sparse )
                 {                                  // write an extra 0 to indicate sparse mode
@@ -274,8 +244,7 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
                     bw.Write( bitCntRep +1, ((segEnd - segStart) << 1) | 1 );
                     for( size_t j= segStart; j < segEnd; ++j)
                         bw.Write( bitCntVal, TUI(data.get(j) - data.min ) );
-                }
-            }
+            }   }
 
             // next segment
             segStart= segEnd;
@@ -283,8 +252,7 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
         while( segStart < data.length() );
 
         // pass 0 done: calc and write bits needed for value and repetition
-        if( pass == 0)
-        {
+        if( pass == 0) {
             bitCntVal= lang::MSB0( TUI(data.max - data.min) );
             bitCntRep= lang::MSB (maxSegLen);
 
@@ -301,8 +269,7 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 /// @param br    The bit reader to use.
 /// @param data  The array to read the data to.
 template<typename TI>
-void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data )
-{
+void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data ) {
     using TUI= typename std::make_unsigned<TI>::type;
     if( !data.length() )                                       return;
 
@@ -313,39 +280,33 @@ void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data )
     TUI  minVal   = br.Read<TUI>();
 
     size_t segStart= 0;
-    while( segStart < data.length() )
-    {
+    while( segStart < data.length() ) {
         size_t cntRep= br.Read<size_t>( bitCntRep + 1 );
         size_t segEnd= segStart + (cntRep >> 1);
-        if( (cntRep & 1) == 0 ) // sparse
-        {
+        if( (cntRep & 1) == 0 )  { // sparse
             TUI val = br.Read<TUI>( bitCntVal ) + minVal;
             for( size_t i= segStart ; i < segEnd ; ++i )
                 data.set(i, val);
         }
-        else                    // different values
-        {
+        else { // different values
             for( size_t i= segStart ; i < segEnd ; ++i )
                 data.set(i, br.Read<TUI>( bitCntVal ) + minVal);
         }
         segStart= segEnd;
-    }
-}
+}   }
 
 /// Writes array data incrementally.
 /// @tparam TI    The integral type of the array to write.
 /// @param  bw    The bit writer to use.
 /// @param  data  The array to read the data from.
 template<typename TI>
-void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
-{
+void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data ) {
     if( !data.length() )
         return;
 
     using TUI= typename std::make_unsigned<TI>::type;
 
-    if( data.length() == 1 )
-    {
+    if( data.length() == 1 ) {
         bw.Write(data.get(0));
         return;
     }
@@ -363,15 +324,13 @@ void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
     bw.Write( data.minDec );
     TUI first= data.get(0);
     bw.Write(first);
-    for(size_t i= 1; i < data.length(); ++i)
-    {
+    for(size_t i= 1; i < data.length(); ++i) {
         // send one bit indicating a positive (1) or negative (0) difference
         // and then the difference as an unsigned value
         TUI second= data.get(i);
         if( second==first)
             bw.Write( true );
-        else
-        {
+        else {
             bw.Write( false );
             bool posNeg= second >= first;
             bw.Write( posNeg );
@@ -380,22 +339,19 @@ void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
                             : TUI( first - second - data.minDec )   );
         }
         first= second;
-    }
-}
+}   }
 
 /// Reads data compressed with \alib{bitbuffer::ac_v1;writeIncremental}.
 /// @tparam TI   The integral type of the array to read back.
 /// @param  br   The bit reader to use.
 /// @param  data The array to read the data to.
 template<typename TI>
-void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
-{
+void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data) {
     if( !data.length() )
         return;
 
     using TUI= typename std::make_unsigned<TI>::type;
-    if( data.length() == 1 )
-    {
+    if( data.length() == 1 ) {
         data.set(0, br.Read<TUI>() );
         return;
     }
@@ -407,24 +363,19 @@ void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
     auto minDiffNeg=  br.Read<TUI>();
     auto prevVal   =  br.Read<TUI>();
     data.set(0, prevVal);
-    for(size_t i= 1; i < data.length(); ++i)
-    {
+    for(size_t i= 1; i < data.length(); ++i) {
         TUI    val;
         if( br.Read<1>() )
             val= prevVal;
-        else
-        {
+        else {
             bool   posNeg= br.Read<1>();
             TUI    diff  = br.Read<TUI>( posNeg ? bitCntPos : bitCntNeg );
                       val   = posNeg ? TUI( prevVal + minDiffPos + diff )
                                      : TUI( prevVal - minDiffNeg - diff );
         }
         data.set(i, prevVal= val);
-    }
-}
+}   }
 
 
 
 }}} // namespace [alib::bitbuffer::ac_v1]
-
-

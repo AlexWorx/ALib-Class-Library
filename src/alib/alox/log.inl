@@ -1,7 +1,7 @@
 //==================================================================================================
 /// \file
 /// This header-file is part of module \alib_alox of the \aliblong.
-/// 
+///
 /// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
@@ -44,7 +44,7 @@ class Log
 
     /// Returns the default singleton of class \b %Lox used for debug logging.
     /// @return The debug-logging Lox of \alox
-    static Lox*     Get()                                                    { return DEBUG_LOX; }
+    static Lox*     Get()                                                      { return DEBUG_LOX; }
 
     /// This method creates an adequate/default debug logger.
     /// It is used by macro \ref Log_AddDebugLogger also automatically invoked
@@ -81,30 +81,30 @@ class Log
     /// @param lox  The lox to add the debug logger(s) to.
     ALIB_DLL static void      AddDebugLogger( Lox* lox );
 
-    ///  Removes the \e Logger(s) and which was (were) created by \ref AddDebugLogger.
-    ///  This method also invokes #SetALibAssertionPlugin, passing \c nullptr to unregister
-    ///  the plug-in.
-    ///  @param lox The lox to remove the debug logger(s) from.
+    /// Removes the \e Logger(s) and which was (were) created by \ref AddDebugLogger.
+    /// This method also invokes #SetALibAssertionPlugin, passing \c nullptr to unregister
+    /// the plug-in.
+    /// @param lox The lox to remove the debug logger(s) from.
     ALIB_DLL static void      RemoveDebugLogger( Lox* lox );
 
     #if ALIB_DEBUG
-        /// Sets the global pointer \alib{assert::PLUGIN} to function
-        /// \alib{lox;ALoxAssertionPlugin} which then redirects the output of
-        /// \ref #alib::assert::Raise "ALib assertions" to the given \alib{lox;Lox}.
-        ///
-        /// \note
-        ///   This method is effective only with debug-builds. Usually it is invoked indirectly by
-        ///   using the method #AddDebugLogger.
-        ///   Applications that do not use that method (e.g., because they are using release
-        ///   logging exclusively) should invoke this method on bootstrap providing their
-        ///   (release) lox.
-        ///   In this case, the \e Verbosity of the internal domain used by function
-        ///   \alib{lox;ALoxAssertionPlugin} has to be set for the logger(s) in the given
-        ///   \p{lox} in question.
-        ///
-        /// @param lox  The lox that the \alib{lox;ALoxAssertionPlugin} will be using.
-        ///             If \c nullptr is given, the plug-in will be removed.
-        ALIB_DLL static void      SetALibAssertionPlugin( Lox* lox );
+    /// Sets the global pointer \alib{assert::PLUGIN} to function
+    /// \alib{lox;ALoxAssertionPlugin} which then redirects the output of
+    /// \ref #alib::assert::Raise "ALib assertions" to the given \alib{lox;Lox}.
+    ///
+    /// \note
+    ///   This method is effective only with debug-builds. Usually it is invoked indirectly by
+    ///   using the method #AddDebugLogger.
+    ///   Applications that do not use that method (e.g., because they are using release
+    ///   logging exclusively) should invoke this method on bootstrap providing their
+    ///   (release) lox.
+    ///   In this case, the \e Verbosity of the internal domain used by function
+    ///   \alib{lox;ALoxAssertionPlugin} has to be set for the logger(s) in the given
+    ///   \p{lox} in question.
+    ///
+    /// @param lox  The lox that the \alib{lox;ALoxAssertionPlugin} will be using.
+    ///             If \c nullptr is given, the plug-in will be removed.
+    ALIB_DLL static void      SetALibAssertionPlugin( Lox* lox );
     #else
                  static void      SetALibAssertionPlugin( Lox*     )                              {}
     #endif
@@ -118,5 +118,3 @@ class Log
 using     Log=           lox::Log;
 
 }  // namespace [alib]
-
-

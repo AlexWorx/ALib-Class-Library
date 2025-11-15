@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,13 +11,13 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 #include "alib/alox/alox.prepro.hpp"
 #include "ALib.Compatibility.StdStrings.H"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox;
     import   ALib.Lang;
@@ -43,13 +43,11 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if !DOXYGEN
 namespace alib::lox::detail {
-namespace { List<MonoAllocator, Lox*>      loxes(monomem::GLOBAL_ALLOCATOR); }
-integer dbgCountLoxes() {
-    return loxes.size();
-}
+namespace { ListMA<Lox*>      loxes(monomem::GLOBAL_ALLOCATOR); }
+integer dbgCountLoxes()                                                     { return loxes.size(); }
 void    shutdownLoxes() {
     while ( loxes.IsNotEmpty() )
         loxes.back()->~Lox();
@@ -63,9 +61,9 @@ namespace alib::lox {
 
 #   include "ALib.Lang.CIFunctions.H"
 
-// #################################################################################################
+//##################################################################################################
 // Lox management
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
 #if ALOX_DBG_LOG
@@ -76,8 +74,7 @@ namespace alib::lox {
 
 
 // The lox singletons for debug and release logging
-Lox*     Lox::Get( const NString& name, lang::CreateIfNotExists create )
-{
+Lox*     Lox::Get( const NString& name, lang::CreateIfNotExists create ) {
     ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
 
     // search
@@ -87,8 +84,7 @@ Lox*     Lox::Get( const NString& name, lang::CreateIfNotExists create )
 
 
     // create?
-    if ( create == lang::CreateIfNotExists::Yes )
-    {
+    if ( create == lang::CreateIfNotExists::Yes ) {
         Lox* newLox= new Lox ( name, false );
         detail::loxes.emplace_back( newLox );
         return newLox;
@@ -98,23 +94,19 @@ Lox*     Lox::Get( const NString& name, lang::CreateIfNotExists create )
     return nullptr;
 }
 
-void     Lox::Register( Lox* lox, lang::ContainerOp operation )
-{
+void     Lox::Register( Lox* lox, lang::ContainerOp operation ) {
     ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
 
     // check
-    if ( lox == nullptr )
-    {
+    if ( lox == nullptr ) {
         ALIB_ERROR( "ALOX", "Nullptr given" )
         return;
     }
 
     // remove
-    if( operation == lang::ContainerOp::Remove )
-    {
+    if( operation == lang::ContainerOp::Remove ) {
         for( auto search= detail::loxes.begin() ; search != detail::loxes.end() ; ++search )
-            if ( *search == lox )
-            {
+            if ( *search == lox ) {
                 (void) detail::loxes.erase( search );
                 return;
             }
@@ -123,30 +115,25 @@ void     Lox::Register( Lox* lox, lang::ContainerOp operation )
     }
 
     // insert
-    else
-    {
+    else {
         for( auto* it : detail::loxes )
-            if( it->GetName().Equals<NC>( lox->GetName() ) )
-            {
+            if( it->GetName().Equals<NC>( lox->GetName() ) ) {
                 ALIB_ERROR( "ALOX", "Given lox named \"{}\" was already registered. "
                                     "Registration ignored.", lox->GetName() )
                 return;
             }
         detail::loxes.emplace_back( lox );
-   }
-}
+}}
 
 
-Lox::Lox(const NString& name, bool doRegister )
-{
+Lox::Lox(const NString& name, bool doRegister ) {
     impl= detail::LI::Construct( name );
 
     if( doRegister )
         Register( this, lang::ContainerOp::Insert );
 }
 
-Lox::~Lox()
-{
+Lox::~Lox() {
     if( Get( GetName(), lang::CreateIfNotExists::No  ) == this )
         Register( this, lang::ContainerOp::Remove );
 
@@ -154,11 +141,10 @@ Lox::~Lox()
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // Static methods of Lox
-// #################################################################################################
-TextLogger* Lox::CreateConsoleLogger(const NString& name)
-{
+//##################################################################################################
+TextLogger* Lox::CreateConsoleLogger(const NString& name) {
     //--- check configuration setting "CONSOLE_TYPE"  ---
     Variable variable= variables::CampVariable(ALOX, Variables::CONSOLE_TYPE );
     if(variable.Define())
@@ -198,22 +184,20 @@ TextLogger* Lox::CreateConsoleLogger(const NString& name)
 
 
 #if ALOX_DBG_LOG
-// #################################################################################################
+//##################################################################################################
 // Auto detection of DEBUG environment
-// #################################################################################################
+//##################################################################################################
 TextLogger*   Log::DebugLogger= nullptr;
 TextLogger*   Log::IDELogger  = nullptr;
 
-void Log::AddDebugLogger( Lox* lox )
-{
+void Log::AddDebugLogger( Lox* lox ) {
     static bool recursion= false;
     if( recursion )
         return;
     recursion= true;
 
     // block recursion caused by log operations in this code
-    if ( DebugLogger != nullptr )
-    {
+    if ( DebugLogger != nullptr ) {
         ALIB_WARNING( "ALOX", "Log::AddDebugLogger(): called twice." )
         recursion= false;
         return;
@@ -222,20 +206,17 @@ void Log::AddDebugLogger( Lox* lox )
 
     // add a VStudio logger if this is a VStudio debug session
     #if defined(_MSC_VER) && ALIB_DEBUG
-        if( BASECAMP.IsDebuggerPresent() )
-        {
+        if( BASECAMP.IsDebuggerPresent() ) {
             Variable variable= variables::CampVariable( ALOX, Variables::NO_IDE_LOGGER );
             bool createIDELogger= variable.IsNotDefined() || (variable.GetBool() == false);
 
-            if(createIDELogger)
-            {
+            if(createIDELogger) {
                 IDELogger= new VStudioLogger("IDE_LOGGER");
 
                 // add logger
                 lox->SetVerbosity( IDELogger, Verbosity::Verbose, "/"  );
                 lox->SetVerbosity( IDELogger, Verbosity::Warning, Lox::InternalDomains );
-            }
-       }
+    }       }
     #endif
 
     // add a default console logger
@@ -252,8 +233,7 @@ void Log::AddDebugLogger( Lox* lox )
         Variable variable= variables::CampVariable( ALOX );
         Box replacements[2]= { "LOG",  "DEBUG_LOGGER"  };
         variable.Declare( Variables::VERBOSITY, replacements );
-        if( variable.IsNotDefined() )
-        {
+        if( variable.IsNotDefined() ) {
             (void) variable.Define();
             variable.Get<CVVerbosities>().ExportAll= true;
         }
@@ -272,8 +252,7 @@ void Log::AddDebugLogger( Lox* lox )
     recursion= false;
 }
 
-void Log::RemoveDebugLogger( Lox* lox )
-{
+void Log::RemoveDebugLogger( Lox* lox ) {
     // remove ALox specific assertion plugin of ALib
     SetALibAssertionPlugin( nullptr );
 
@@ -281,8 +260,7 @@ void Log::RemoveDebugLogger( Lox* lox )
     ALIB_ASSERT_WARNING( DebugLogger != nullptr, "ALOX",
                          "Log::RemoveDebugLogger(): no debug logger to remove." )
 
-    if ( DebugLogger != nullptr )
-    {
+    if ( DebugLogger != nullptr ) {
         lox->RemoveLogger( DebugLogger );
 
         delete DebugLogger;
@@ -290,8 +268,7 @@ void Log::RemoveDebugLogger( Lox* lox )
     }
 
     #if defined(_WIN32) && ALIB_DEBUG
-        if ( IDELogger != nullptr )
-        {
+        if ( IDELogger != nullptr ) {
             lox->RemoveLogger( IDELogger );
 
             delete IDELogger;
@@ -302,9 +279,9 @@ void Log::RemoveDebugLogger( Lox* lox )
 #endif // ALOX_DBG_LOG
 
 
-// #################################################################################################
+//##################################################################################################
 // ALoxAssertionPlugin
-// #################################################################################################
+//##################################################################################################
 #if ALIB_DEBUG
 
 //==================================================================================================
@@ -336,8 +313,7 @@ namespace { Lox* assertionLox= nullptr; }
 void Log::SetALibAssertionPlugin ( Lox* pLox ) {
 
     // remove plugin
-    if ( pLox == nullptr )
-    {
+    if ( pLox == nullptr ) {
         if ( assertionLox == nullptr )
             return;
 
@@ -369,8 +345,7 @@ void Log::SetALibAssertionPlugin ( Lox* pLox ) {
 void ALoxAssertionPlugin( const lang::CallerInfo&  ci,
                            int                     type,
                            std::string_view        domain,
-                           std::string_view        msg      )
-{
+                           std::string_view        msg      ) {
     assertionLox->Acquire( ci );
 
         auto& logables= assertionLox->GetLogableContainer();
@@ -392,4 +367,3 @@ void ALoxAssertionPlugin( const lang::CallerInfo&  ci,
 
 #   include "ALib.Lang.CIMethods.H"
 }// namespace [alib::lox]
-

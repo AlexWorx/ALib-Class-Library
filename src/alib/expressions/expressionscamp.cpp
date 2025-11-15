@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,13 +11,13 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/resources/resources.prepro.hpp"
 #include "alib/camp/camp.prepro.hpp"
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions;
     import   ALib.Expressions.Impl;
@@ -31,7 +31,7 @@
 #else
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 ALIB_BOXING_VTABLE_DEFINE( alib::expressions::Exceptions                              , vt_expressions_exceptions )
 
@@ -48,9 +48,9 @@ expressions::ExpressionsCamp EXPRESSIONS;
 //==================================================================================================
 namespace expressions {
 
-// ##########################################################################################
+//##################################################################################################
 // ### Static sample objects and signatures
-// ##########################################################################################
+//##################################################################################################
 Box Types::Void    = nullptr;
 Box Types::Boolean = false;
 Box Types::Integer = integer(0);
@@ -88,13 +88,12 @@ Box* Signatures::DDur[2]  = { &Types::DateTime   ,  &Types::Duration            
 #   define EOS ,
 #endif
 
-// ##########################################################################################
+//##################################################################################################
 // ### Module class implementation
-// ##########################################################################################
+//##################################################################################################
 
 ExpressionsCamp::ExpressionsCamp()
-: Camp( "EXPR" )
-{
+: Camp( "EXPR" ) {
     #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
       ALIB_ASSERT_ERROR( this == &EXPRESSIONS, "EXPR",
          "Instances of class Expressions must not be created. Use singleton alib::EXPRESSIONS" )
@@ -102,10 +101,8 @@ ExpressionsCamp::ExpressionsCamp()
 }
 
 
-void ExpressionsCamp::Bootstrap()
-{
-    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
-    {
+void ExpressionsCamp::Bootstrap() {
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources ) {
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_vmopcodes  )
         ALIB_DBG(
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::detail::VirtualMachine::Command::OpCodes ) )
@@ -473,9 +470,9 @@ void ExpressionsCamp::Bootstrap()
 
 
 
-// #################################################################################################
+//##################################################################################################
 // Implementation of parsing methods of built-in record types.
-// #################################################################################################
+//##################################################################################################
 void ERBinaryOperator::Parse()
 {
     enumrecords::bootstrap::EnumRecordParser::Get( Symbol      );
@@ -493,4 +490,3 @@ void EROperatorAlias::Parse()
 
 
 #undef EOS
-

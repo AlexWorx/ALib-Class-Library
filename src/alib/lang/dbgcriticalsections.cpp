@@ -12,20 +12,20 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Lang;
 #else
 #   include "ALib.Lang.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 #if ALIB_DEBUG_CRITICAL_SECTIONS
 namespace alib::lang {
 
-unsigned int DBG_CRITICAL_SECTION_YIELD_OR_SLEEP_TIME_IN_NS;
+unsigned DBG_CRITICAL_SECTION_YIELD_OR_SLEEP_TIME_IN_NS;
 
 
 const char* DbgCriticalSections::ASSERTION_FORMAT=
@@ -55,8 +55,7 @@ const char* DbgCriticalSections::ASSERTION_FORMAT=
 ;
 
 void DbgCriticalSections::doAssert( bool cond, const CallerInfo& ciAssert, const CallerInfo& ci,
-                                    const char* headline )    const
-{
+                                    const char* headline )                                   const {
     if (cond) return;
 
     assert::Raise( ciAssert, 0, "THREADS", ASSERTION_FORMAT,
@@ -70,8 +69,7 @@ void DbgCriticalSections::doAssert( bool cond, const CallerInfo& ciAssert, const
                   DCSSRel.TypeInfo,DCSSRel.Func,DCSSRel.File,DCSSRel.Line,DCSSRel.ThreadID   );
 }
 
-void DbgCriticalSections::Acquire( const CallerInfo& ci )                                   const
-{
+void DbgCriticalSections::Acquire( const CallerInfo& ci )                                    const {
     doAssert( !DCSLock || DCSLock->DCSIsAcquired(), ALIB_CALLER, ci, "Acquire: Associated Lock not acquired." );
     doAssert(   DCSWriterCnt.load()  == 0
              || DCSAcq.ThreadID == std::this_thread::get_id(), ALIB_CALLER, ci, "Acquired by other thread.");
@@ -82,8 +80,7 @@ void DbgCriticalSections::Acquire( const CallerInfo& ci )                       
     yieldOrSleep();
 }
 
-void  DbgCriticalSections::Release( const CallerInfo& ci )                                  const
-{
+void  DbgCriticalSections::Release( const CallerInfo& ci )                                   const {
     doAssert(!DCSLock || DCSLock->DCSIsAcquired()         , ALIB_CALLER, ci, "Release: Associated lock not acquired." );
     doAssert(DCSAcq.ThreadID == std::this_thread::get_id(), ALIB_CALLER, ci, "Release: Acquired by other thread.");
     yieldOrSleep();
@@ -91,8 +88,7 @@ void  DbgCriticalSections::Release( const CallerInfo& ci )                      
     DCSWriterCnt.fetch_sub(1);
 }
 
-void DbgCriticalSections::AcquireShared( const CallerInfo& ci )      const
-{
+void DbgCriticalSections::AcquireShared( const CallerInfo& ci )                              const {
     doAssert( !DCSLock || DCSLock->DCSIsSharedAcquired(), ALIB_CALLER, ci,
         "AcquireShared: Associated lock not shared-acquired." );
 
@@ -104,8 +100,7 @@ void DbgCriticalSections::AcquireShared( const CallerInfo& ci )      const
     DCSSAcq= ci;
 }
 
-void DbgCriticalSections::ReleaseShared( const CallerInfo& ci )      const
-{
+void DbgCriticalSections::ReleaseShared( const CallerInfo& ci )                              const {
     yieldOrSleep();
     doAssert( !DCSLock || DCSLock->DCSIsSharedAcquired(), ALIB_CALLER, ci,
         "ReleaseShared: Associated lock not shared-acquired." );
@@ -120,4 +115,3 @@ void DbgCriticalSections::ReleaseShared( const CallerInfo& ci )      const
 } // namespace [alib::lang]
 
 #endif // ALIB_DEBUG_CRITICAL_SECTIONS
-

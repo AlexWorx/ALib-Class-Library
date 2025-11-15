@@ -8,9 +8,9 @@
 ALIB_EXPORT namespace alib {  namespace enumrecords {
 
 #include "ALib.Lang.CIFunctions.H"
-// #################################################################################################
+//##################################################################################################
 // Parsing (Consume)
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// Consumes an element value of a C++ enumeration that is equipped with
@@ -53,8 +53,7 @@ template<typename          TEnum,
          lang::Case        TSensitivity        = lang::Case::Ignore,
          lang::Whitespaces TTrimBeforeConsume  = lang::Whitespaces::Trim >
 requires alib::enumrecords::IsSerializable<TEnum>
-bool Parse( strings::TSubstring<TChar>& input,  TEnum&  result )
-{
+bool Parse( strings::TSubstring<TChar>& input,  TEnum&  result ) {
     ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                           "No Enum Records for type <{}> found.", &typeid(TEnum) )
     if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
@@ -117,20 +116,17 @@ template<typename          TEnum,
          bool              keepLastDelim      = true                  >
 requires (     alib::enumrecords::IsSerializable<TEnum>
             && alib::enumops::IsBitwise     <TEnum> )
-bool ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
-{
+bool ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result ) {
     bool mResult= false;
     result= TEnum(0);
     strings::TSubstring<TChar> restoreBeforeDelim;
     if constexpr ( keepLastDelim )
         restoreBeforeDelim= input;
-    for(;;)
-    {
+    for(;;) {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             input.TrimStart();
         TEnum actEnum;
-        if ( !Parse<TEnum, TChar, TSensitivity, TTrimBeforeConsume>( input, actEnum ) )
-        {
+        if ( !Parse<TEnum, TChar, TSensitivity, TTrimBeforeConsume>( input, actEnum ) ) {
             if constexpr ( keepLastDelim )
                 input= restoreBeforeDelim;
             return mResult;
@@ -145,8 +141,7 @@ bool ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
         if( !input.template ConsumeChar<TSensitivity, TTrimBeforeConsume>( delimiter ) )
             return mResult;
 
-    }
-}
+}   }
 
 //==================================================================================================
 /// Convenience method that first uses \alib{enumrecords;Parse} to try and read an element of a C++
@@ -188,16 +183,14 @@ requires alib::enumrecords::IsSerializable<TEnum>
 bool ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
                           TEnum&                        result,
                           TEnum                         falseValue,
-                          TEnum                         trueValue         )
-{
+                          TEnum                         trueValue         ) {
     // first try to read a TEnum
     if( Parse<TEnum, TChar, TSensitivity, TTrimBeforeConsume>( input, result ) )
         return true;
 
     // if failed, read boolean
     lang::Bool boolEnum;
-    if( enumrecords::Parse<lang::Bool, TChar, TSensitivity, lang::Whitespaces::Keep>( input, boolEnum ) )
-    {
+    if( enumrecords::Parse<lang::Bool, TChar, TSensitivity, lang::Whitespaces::Keep>( input, boolEnum ) ) {
         result= (boolEnum == lang::Bool::True) ? trueValue : falseValue;
         return true;
     }
@@ -210,9 +203,9 @@ bool ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
 
 
 
-// #################################################################################################
+//##################################################################################################
 // Writing (AppendableTraits<Enum>)
-// #################################################################################################
+//##################################################################################################
 
 namespace alib {  namespace strings {
 
@@ -437,6 +430,3 @@ struct  AppendableTraits<TBitwiseEnum, TChar,TAllocator> {
 #include "ALib.Lang.CIMethods.H"
 
 }} // namespace [alib::strings]
-
-
-

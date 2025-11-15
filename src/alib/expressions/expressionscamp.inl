@@ -24,7 +24,7 @@ enum class Exceptions
     /// in a first line and a marker of the syntax error position in a second.
     ExpressionInfo                          = -1,
 
-    /// This is added to exceptions when when a \c std::exception is wrapped.
+    /// This is added to exceptions when a \c std::exception is wrapped.
     /// The 'what()' string is included as entry parameter.
     /// (This is a detail entry with negative element value).
     StdExceptionInfo                        =-2,
@@ -91,7 +91,7 @@ enum class Exceptions
     /// is not set.
     ExceptionInCallback                     =40,
 
-    // ############################       Nested expressions      ##################################
+  //####################################### Nested expressions #####################################
 
     /// Compile-time exception thrown when unary expression operator is used with a non-constant
     /// nested expression name.
@@ -107,7 +107,7 @@ enum class Exceptions
     /// \see Manual chapter \ref alib_expressions_nested "10. Nested Expressions".
     NestedExpressionNotFoundCT              =52,
 
-    /// Compile-time exception thrown when when wrong arguments were passed to function
+    /// Compile-time exception thrown when wrong arguments were passed to function
     /// \alib{expressions;Compiler::CfgNestedExpressionFunction}.
     ///
     /// \see Manual chapter \ref alib_expressions_nested "10. Nested Expressions".
@@ -352,7 +352,7 @@ struct ERBinaryOperator
 
     /// Required default constructor leaving the record undefined.
     /// (Requirement is documented with\alib{enumrecords::EnumRecordPrototype}.)
-    ERBinaryOperator()                                                          noexcept  = default;
+    ERBinaryOperator()                                                            noexcept =default;
 
     /// Required initializing constructor.
     /// (Requirement is documented with\alib{enumrecords::EnumRecordPrototype}.)
@@ -361,8 +361,7 @@ struct ERBinaryOperator
     /// @param precedence  The operator's precedence.
     ERBinaryOperator( const String& symbol, int precedence )
     : Symbol    (symbol)
-    , Precedence(precedence)
-    {}
+    , Precedence(precedence)                                                                      {}
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
@@ -425,7 +424,7 @@ struct EROperatorAlias
 
     /// Required default constructor leaving the record undefined.
     /// (Requirement is documented with\alib{enumrecords::EnumRecordPrototype}.)
-    EROperatorAlias()                                                           noexcept  = default;
+    EROperatorAlias()                                                             noexcept =default;
 
     /// Required initializing constructor.
     /// (Requirement is documented with\alib{enumrecords::EnumRecordPrototype}.)
@@ -434,8 +433,7 @@ struct EROperatorAlias
     /// @param replacement The symbol of the aliased operator.
     EROperatorAlias( const String& symbol, const String& replacement )
     : Symbol     (symbol)
-    , Replacement(replacement)
-    {}
+    , Replacement(replacement)                                                                    {}
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
@@ -510,8 +508,8 @@ enum class Compilation
     AllowSubscriptOperator                              = (1 <<  5),
 
     /// Used with constructor of compiler plug-ins
-    ///  \alib{expressions;plugins::Arithmetics} and
-    ///  \alib{expressions;plugins::Strings}.
+    /// \alib{expressions;plugins::Arithmetics} and
+    /// \alib{expressions;plugins::Strings}.
     /// (If they are activated in \alib{expressions;Compiler::CfgBuiltInPlugins} or "manually"
     /// added.)
     ///
@@ -535,7 +533,7 @@ enum class Compilation
     /// <c>&</c>, <c>|</c> and <c>^</c> should be allowed for boolean values.
     /// If set to \c false, the use of the bitwise operators with boolean arguments, throws
     /// a compilation exception, unless the bitwise operators are compiled by a custom plug-in.
-     AllowBitwiseBooleanOperators                       = (1 <<  7),
+    AllowBitwiseBooleanOperators                       = (1 <<  7),
 
 
     /// If \c false, compile-time exception
@@ -954,7 +952,7 @@ using Type= const alib::boxing::Box&;
 ///
 /// \see For more information, see
 ///      \ref alib_expressions_prereq_sb "3.2 Type definitions With Sample Boxes".
-using ArgIterator= StdVectorMono<Box>::iterator;
+using ArgIterator= StdVectorMA<Box>::iterator;
 
 /// Function pointer implementing native callback functions, for expression functions and
 /// operators. The implementations are defined and selected by the compiler plugins.
@@ -1004,10 +1002,10 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
 /// this box-function declaration.
 ///
 /// %Compiler plug-in \alib{expressions::plugins;DateAndTime} introduces \alib class
-/// \alib{time;TimePointBase::Duration} to expressions. This is for example done by defining
+/// \alib{time;TimePointBase::Duration} to expressions. This is, for example, done by defining
 /// identifiers as follows:
 ///
-/// \snippet "plugins/dateandtime.cpp"  DOX_EXPR_FToLiteral_1
+/// \snippet "plugins/dateandtime.cpp"   DOX_EXPR_FToLiteral_1
 ///
 /// The "constructor functions" are declared to be
 /// \alib{expressions::plugins;Calculus::CTI;compile-time invokable}
@@ -1024,16 +1022,16 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
 /// The function name that is used for the implementation is \b %FToLiteral_Duration. Here is
 /// the line of code that registers the function with the boxed type:
 ///
-/// \snippet "expressions/plugins/dateandtime.cpp"  DOX_EXPR_FToLiteral_2
+/// \snippet "expressions/plugins/dateandtime.cpp"   DOX_EXPR_FToLiteral_2
 ///
 /// The implementation is given in an anonymous namespace of the compilation unit of compiler plug-in
-/// \b %DateAndTime.  The function's signature has to meet the one given with type definition #Signature
+/// \b %DateAndTime. The function's signature has to meet the one given with type definition #Signature
 /// of this struct. Besides the first parameter that passes the box that the function is invoked
 /// on (the one containing the constant value of custom type), second parameter \p{expressionString}
 /// provides the \b AString that the function is requested to write the "generation expression" to.<br>
 /// The implementation code looks as follows:
 ///
-/// \snippet "expressions/plugins/dateandtime.cpp"  DOX_EXPR_FToLiteral_3
+/// \snippet "expressions/plugins/dateandtime.cpp"   DOX_EXPR_FToLiteral_3
 ///
 /// As it can be understood from the code, the interface implementation tries to find the best
 /// matching "constructor function" for the time span given, writes its name and the constant parameter
@@ -1043,9 +1041,9 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
 /// library is able to create <b>parsable, normalized, optimized expression strings</b>.
 /// To finalize this example, we check what the result for three sample expressions looks like:
 ///
-///  \snippet "DOX_EXPRESSIONS_TUT_WONO-100.txt"     OUTPUT
-///  \snippet "DOX_EXPRESSIONS_TUT_WONO-101.txt"     OUTPUT
-///  \snippet "DOX_EXPRESSIONS_TUT_WONO-102.txt"     OUTPUT
+/// \snippet "DOX_EXPRESSIONS_TUT_WONO-100.txt"     OUTPUT
+/// \snippet "DOX_EXPRESSIONS_TUT_WONO-101.txt"     OUTPUT
+/// \snippet "DOX_EXPRESSIONS_TUT_WONO-102.txt"     OUTPUT
 ///
 /// \note
 ///   When integrating module \alib_expressions_nl into software, a decision has to be
@@ -1091,25 +1089,19 @@ struct FToLiteral
 //==================================================================================================
 class ExpressionsCamp  : public camp::Camp
 {
-    public:
-        //==========================================================================================
-        /// Constructor.<br>
-        /// While this is public, it must not be invoked as this is a strict singleton type.
-        /// (See notes in \ref alib_camp_camp).
-        //==========================================================================================
-        ExpressionsCamp();
+  public:
+    /// Constructor.<br>
+    /// While this is public, it must not be invoked as this is a strict singleton type.
+    /// (See notes in \ref alib_camp_camp).
+    ExpressionsCamp();
 
-    protected:
-        //==========================================================================================
-        /// Initializes this camp.
-        //==========================================================================================
-        virtual void    Bootstrap()                                                        override;
+  protected:
+    /// Initializes this camp.
+    virtual void    Bootstrap()                                                            override;
 
-        //==========================================================================================
-        /// Terminates this camp. (Nothing to do.)
-        /// @param phase  The shutdown phase to perform.
-        //==========================================================================================
-        virtual void    Shutdown( ShutdownPhases phase )               override   { (void) phase; }
+    /// Terminates this camp. (Nothing to do.)
+    /// @param phase  The shutdown phase to perform.
+    virtual void    Shutdown( ShutdownPhases phase )                      override { (void) phase; }
 
 }; // class ExpressionsCamp
 
@@ -1136,5 +1128,3 @@ ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::DefaultAlphabeticBinaryOperatorA
 
 ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::Exceptions, alib::exceptions::ERException )
 ALIB_RESOURCED_IN_MODULE(    alib::expressions::Exceptions, alib::EXPRESSIONS, "E" )
-
-

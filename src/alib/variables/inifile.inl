@@ -110,55 +110,54 @@ ALIB_EXPORT namespace alib {  namespace variables {
 /// @see Chapter \ref alib_variables_external_ini of the Programmer's Manual of \alibcamp \alib_variables
 ///      for how to use INI-files with \alib.
 ///\I{=============================================================================================}
-///  # Reference Documentation #
-///  @throws alib::variables::Exceptions::ErrorOpeningFile  \I{CLANGDUMMY}
-///  @throws alib::variables::Exceptions::ErrorWritingFile  \I{CLANGDUMMY}
+/// # Reference Documentation #
+/// @throws alib::variables::Exceptions::ErrorOpeningFile \I{CLANGDUMMY}
+/// @throws alib::variables::Exceptions::ErrorWritingFile \I{CLANGDUMMY}
 //==================================================================================================
 class IniFile
 {
-  //====================================    Public Allocator    ====================================
+  //======================================== Public Allocator ======================================
   public:
     /// A monotonic allocator used for allocating sections and entries.
     MonoAllocator           Allocator;
 
-  //====================================   Entry and Section   =====================================
+  //======================================= Entry and Section ======================================
   public:
     /// An entry in a \alib{variables::IniFile;Section}.
     struct Entry
     {
-         String Name     = NULL_STRING; ///< The entry's name.
-         String Comments = NULL_STRING; ///< The entry's comments.
-         String RawValue = NULL_STRING; ///< The 'raw' value, which is everything after the
-                                        ///< variable name, including the equal sign <c>'='</c>.
-         String Value    = NULL_STRING; ///< The trimmed value. Multiline values are likewise trimmed
-                                        ///< and backslashes and line feeds are removed <c>'\\</c>.
-                                        ///< This value is to be used used for reading a variable's content.
-         String NewValue = NULL_STRING; ///< If this value is set, #RawValue will ignored on writing.
-         bool   WriteBack= false;       ///< If given, a write back indicator was found for this entry.
-         void*  Custom   = nullptr;     ///< May be used by freely by customers of this class.
-                                        ///< Initialized with \c nullptr, but otherwise not touched.
-
+        String Name     = NULL_STRING; ///< The entry's name.
+        String Comments = NULL_STRING; ///< The entry's comments.
+        String RawValue = NULL_STRING; ///< The 'raw' value, which is everything after the
+                                       ///< variable name, including the equal sign <c>'='</c>.
+        String Value    = NULL_STRING; ///< The trimmed value. Multiline values are likewise trimmed
+                                       ///< and backslashes and line feeds are removed <c>'\\</c>.
+                                       ///< This value is to be used for reading a variable's content.
+        String NewValue = NULL_STRING; ///< If this value is set, #RawValue will ignored on writing.
+        bool   WriteBack= false;       ///< If given, a write back indicator was found for this entry.
+        void*  Custom   = nullptr;     ///< May be used by freely by customers of this class.
+                                       ///< Initialized with \c nullptr, but otherwise not touched.
     };
 
     /// A section of the INI-file.
     struct Section
     {
-      friend class containers::List<MonoAllocator, Section>;
+        friend class containers::List<Section, MonoAllocator>;
       protected:
         /// Constructor. Protected and thus to be used only by friend class
         /// \alib{containers;List}.
         /// @param monoAllocator The allocator of the \b IniFile.
         Section( MonoAllocator& monoAllocator )
-        : Entries(monoAllocator)                                                             {}
+        : Entries(monoAllocator)                                                                  {}
 
       public:
         String                                        Name    = NULL_STRING; ///< The name of the section.
         String                                        Comments= NULL_STRING; ///< The comment lines of the section.
-        List<MonoAllocator, Entry, Recycling::None>   Entries;               ///< The list of variables of the section.
+        ListMA<Entry, Recycling::None>   Entries;               ///< The list of variables of the section.
         bool                                          WriteBack= false;      ///< If given, a write back indicator was found for this entry.
     };
 
-  //=====================   Subtypes for Sections, Entries and the Hashtable   =====================
+  //======================== Subtypes for Sections, Entries and the Hashtable ======================
   protected:
     /// Hash functor for nodes hashed in field #entryTable. Ignores letter case.
     struct EntryKey
@@ -171,8 +170,7 @@ class IniFile
         /// @param entryName   The name of an entry.
         EntryKey( const String& sectionName, const String& entryName )
         : SectionName( sectionName)
-        , EntryName  ( entryName   )
-        {}
+        , EntryName  ( entryName   )                                                              {}
 
         /// Hash functor for nodes hashed in field #entryTable.
         struct Hash
@@ -180,8 +178,7 @@ class IniFile
             /// Calculates a hash code for \b NodeKey objects.
             /// @param key The key to hash.
             /// @return The hash code.
-            std::size_t operator()(const EntryKey& key)                                    const
-            {
+            std::size_t operator()(const EntryKey& key)                                      const {
                 return    key.SectionName.HashcodeIgnoreCase()
                         ^ key.EntryName  .HashcodeIgnoreCase();
             }
@@ -195,8 +192,7 @@ class IniFile
             /// @param lhs The first string object.
             /// @param rhs The second string object.
             /// @return The result of the string comparison.
-            bool operator()(const EntryKey& lhs,  const EntryKey& rhs )                    const
-            {
+            bool operator()(const EntryKey& lhs,  const EntryKey& rhs )                      const {
                 return     (     (lhs.SectionName.IsEmpty() && rhs.SectionName.IsEmpty() )
                               ||  lhs.SectionName.Equals<NC, lang::Case::Ignore>( rhs.SectionName ) )
                         && (     (lhs.EntryName  .IsEmpty() && rhs.EntryName  .IsEmpty() )
@@ -205,7 +201,7 @@ class IniFile
         };
     };
 
-  //=====================================   Other internals    =====================================
+  //======================================== Other internals =======================================
   protected:
     /// The entry hash set.
     /// This is used to find entries by section name and entry name.
@@ -223,10 +219,10 @@ class IniFile
     bool    startsWithCommentSymbol( String& subs );
 
 
-  //====================================  Other Public fields    ===================================
+  //====================================== Other Public fields =====================================
   public:
     /// The list of sections.
-    List<MonoAllocator, Section>    Sections;
+    ListMA<Section>    Sections;
 
     /// The file name.
     system::PathString              FileName                                              = nullptr;
@@ -236,10 +232,10 @@ class IniFile
 
     /// Filled with faulty line numbers when reading the file. (E.g., when a line is no section,
     /// no comment and not the attribute "writeback", but still has no equal sign ('=').
-    List<MonoAllocator, integer>    LinesWithReadErrors;
+    ListMA<integer>    LinesWithReadErrors;
 
 
-  //=================================   Constructor/Destructor    ==================================
+  //===================================== Constructor/Destructor ===================================
   public:
     /// Default constructor.
     ALIB_DLL            IniFile();
@@ -250,8 +246,7 @@ class IniFile
     : IniFile()                                                                    { Read( path ); }
 
     /// Destructor.
-                       ~IniFile()
-    {
+    ~IniFile() {
         #if ALIB_DEBUG
         for( auto& section : Sections )
             if( section.Name.IsNotEmpty() && section.Comments.IsNull() )
@@ -263,7 +258,7 @@ class IniFile
     }
 
 
-  //========================================   Interface    ========================================
+  //=========================================== Interface ==========================================
 
     /// Clears all data, resets the internal mono allocator.
     ALIB_DLL void       Reset();
@@ -315,8 +310,7 @@ class IniFile
     /// @param  name         The name of the entry to be deleted.
     /// @return The entry deleted. If not found, \c nullptr is returned. The entry will
     ///         still be a valid and accessible object within the monotonic allocator.
-    inline   Entry*     DeleteEntry ( const String& sectionName, const String& name )
-    {
+    inline   Entry*     DeleteEntry ( const String& sectionName, const String& name ) {
         auto* section= SearchSection( sectionName );
         if( section == nullptr )
             return nullptr;
@@ -340,9 +334,8 @@ class IniFile
     ALIB_DLL void       AddComments ( String& dest, const String& comments,
                                       const String& prefix= A_CHAR("# ") );
 
-    //======================================   Read/Write    =======================================
+  //=========================================== Read/Write =========================================
   public:
-    //==============================================================================================
     /// Reads an INI-File and adds its contents to the existing data.
     /// In case only the new entries should be contained, use method #Reset to delete existing
     /// data before invoking this function.
@@ -359,18 +352,15 @@ class IniFile
     /// @throws Exception( \alib{variables;Exceptions;variables::Exceptions::ErrorOpeningFile} ).
     ///         In the case the module \alib_camp is not included in the \alibbuild, then a
     ///         <c>std::runtime_error("ErrorOpeningFile")</c> may be thrown.
-    //==============================================================================================
     ALIB_DLL
     integer     Read( const system::CPathString&  path );
 
-    //==============================================================================================
     /// Writes the data into the file.
-    /// @param path The file to to write. If this is nulled, the default, then the
+    /// @param path The file to write. If this is nulled, the default, then the
     ///             same file name as with the last #Read is used.
     /// @throws Exception( \alib{variables;Exceptions;variables::Exceptions::ErrorOpeningFile} ).
     ///         In the case the module \alib_camp is not included in the \alibbuild, then a
     ///         <c>std::runtime_error("ErrorWritingFile")</c> may be thrown.
-    //==============================================================================================
     ALIB_DLL
     void        Write(const system::PathString&  path= system::NULL_PATH );
 };
@@ -399,5 +389,3 @@ enum class Exceptions
   ALIB_BOXING_VTABLE_DECLARE( alib::variables::Exceptions, vt_config_exceptions )
   ALIB_ENUMS_ASSIGN_RECORD(   alib::variables::Exceptions, alib::exceptions::ERException  )
 #endif
-
-

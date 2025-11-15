@@ -136,24 +136,17 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 //==================================================================================================
 struct DateAndTime   : public plugins::Calculus
 {
-    //==============================================================================================
     /// Constructor. Creates the hash maps.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
     ALIB_DLL    DateAndTime( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor
-    //==============================================================================================
-    virtual    ~DateAndTime()                                                           override  {}
+    virtual    ~DateAndTime()                                                            override {}
 
-    //==============================================================================================
     /// Static initialization function.
     /// Called once during \ref alib_mod_bs "library initialization".
-    //==============================================================================================
     static ALIB_DLL
     void        Bootstrap();
 };
 
 }}} // namespace [alib::expressions::detail]
-

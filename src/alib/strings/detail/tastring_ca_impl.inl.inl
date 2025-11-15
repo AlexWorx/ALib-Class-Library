@@ -1,17 +1,17 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
 #if !defined(ALIB_STRINGS_TASTRING_INSTANTIATION)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 // This inlined compilation unit is to be included by compilation that specialize template
 // type "strings::TAString" in respect to its two template parameters TChar and TAllocator.
 // For this, before inclusion two preprocessor symbols have to be specified:
@@ -21,8 +21,8 @@
 // with new symbols (and to enforce the right usage).
 //
 // With "tastring_ca_decl.inl", the corresponding declarations are to be made.
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 #if !defined(ASTR_TCHAR_SPEC)
 #  error "Preprocessor symbol ASTR_TCHAR_SPEC has to be given as ALIB_CHAR_TYPE_ID_XYZ before invoking this .INL"
 #endif
@@ -90,4 +90,3 @@ template void AppendableTraits<TFill  <TCHARNAME>, TCHARNAME, ASTR_TALLOC_SPEC>:
 #undef  ASTR_TCHAR_SPEC
 
 #endif //if !DOXYGEN
-

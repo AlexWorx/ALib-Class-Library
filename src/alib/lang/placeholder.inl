@@ -22,11 +22,14 @@ struct  alignas(alignof(T))  Placeholder
     /// the placeholder space.
     char bytes[sizeof(T)];
 
+    /// Constructor. Initializes the occupied memory with 0-bytes.
+    Placeholder()                                                                                 {}
+
     /// Constructs the custom type \p{T} represented by this placeholder.
     /// @tparam TArgs  The argument types used for constructing \p{T}.
     /// @param  args   The arguments to construct the instance of \p{T}.
     template<typename... TArgs>
-    void     Construct( TArgs&&... args )         { new (this)  T(std::forward<TArgs>(args)... ); }
+    void     Construct( TArgs&&... args )          { new (this)  T(std::forward<TArgs>(args)... ); }
 
     /// Destructs the custom type \p{T} represented by this placeholder.
     void     Destruct()                                                { lang::Destruct( *Get() ); }
@@ -57,7 +60,3 @@ struct  alignas(alignof(T))  Placeholder
 }; // struct Placeholder
 
 } // namespace alib[::lang]
-
-
-
-

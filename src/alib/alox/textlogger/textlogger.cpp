@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::detail - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alox/alox.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -41,14 +41,13 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib::lox::textlogger {
 
-// #################################################################################################
+//##################################################################################################
 // StandardConverter
-// #################################################################################################
-StandardConverter::StandardConverter()
-{
+//##################################################################################################
+StandardConverter::StandardConverter() {
     auto* firstLevelFormatter= new FormatterPythonStyle();
     firstLevelFormatter->Next.InsertDerived<FormatterJavaStyle>();
 
@@ -56,8 +55,7 @@ StandardConverter::StandardConverter()
     cntRecursion= -1;
 }
 
-StandardConverter::~StandardConverter()
-{
+StandardConverter::~StandardConverter() {
     ALIB_ASSERT_ERROR( cntRecursion == -1, "ALOX",
         "ALox object converter recursion counter > 0.\n"
         "Note: This error indicates, that a previous format operation (log statement) contained\n"
@@ -67,16 +65,14 @@ StandardConverter::~StandardConverter()
         delete elem;
 }
 
-void StandardConverter::ConvertObjects( AString& target, BoxesMA& logables  )
-{
+void StandardConverter::ConvertObjects( AString& target, BoxesMA& logables  ) {
     ++cntRecursion;
 
         ALIB_ASSERT_WARNING( cntRecursion < 5, "ALOX", "Logging recursion depth >= 5" )
 
         // get a formatter. We use a clone per recursion depth!
         // So, did we have this depth already before? If not, create a new set of formatters formatter
-        if( size_t( cntRecursion ) >= Formatters.size()  )
-        {
+        if( size_t( cntRecursion ) >= Formatters.size()  ) {
             // create a pair of recursion formatters
             Formatter* recursionFormatter= new FormatterPythonStyle();
             recursionFormatter->Next.InsertDerived<FormatterJavaStyle>();
@@ -100,35 +96,31 @@ void StandardConverter::ConvertObjects( AString& target, BoxesMA& logables  )
     --cntRecursion;
 }
 
-void StandardConverter::SetAutoSizes( AutoSizes* autoSizes )
-{
+void StandardConverter::SetAutoSizes( AutoSizes* autoSizes ) {
     FormatterPythonStyle* fmtPS= dynamic_cast<FormatterPythonStyle*>( Formatters[0] );
     if (fmtPS != nullptr )
         fmtPS->Sizes= autoSizes;
 }
     
-AutoSizes* StandardConverter::GetAutoSizes()
-{
+AutoSizes* StandardConverter::GetAutoSizes() {
     FormatterPythonStyle* fmtPS= dynamic_cast<FormatterPythonStyle*>( Formatters[0] );
     if (fmtPS != nullptr )
         return fmtPS->Sizes;
     return nullptr;
 }
 
-void StandardConverter::ResetAutoSizes()
-{
+void StandardConverter::ResetAutoSizes() {
     FormatterPythonStyle* fmtPS;
     for( auto* elem : Formatters )
         if ( (fmtPS= dynamic_cast<FormatterPythonStyle*>( elem )) != nullptr )
             fmtPS->Sizes->Reset();
 }
 
-// #################################################################################################
+//##################################################################################################
 // MetaInfo
-// #################################################################################################
+//##################################################################################################
 void TextLogger::writeMetaInfo( AString& buf, detail::Domain& domain, Verbosity verbosity,
-                                detail::ScopeInfo& scope )
-{
+                                detail::ScopeInfo& scope ) {
     // check
     auto& fmt= varFormatMetaInfo.Get<FormatMetaInfo>();
     if ( fmt.Format.IsEmpty() )
@@ -138,43 +130,33 @@ void TextLogger::writeMetaInfo( AString& buf, detail::Domain& domain, Verbosity 
     callerDateTime.Year= (std::numeric_limits<int>::min)();
 
     Substring format( fmt.Format );
-    for(;;)
-    {
+    for(;;) {
         // get next and log substring between commands
         integer idx= format.IndexOf( '%' );
-        if ( idx >= 0 )
-        {
+        if ( idx >= 0 ) {
             format.ConsumeChars<NC, lang::CurrentData::Keep>( idx, buf, 1 );
             processVariable( domain.FullPath, verbosity, scope, buf, format );
-        }
-        else
-        {
+        } else {
             buf._<NC>( format );
             break;
-        }
-    }
-}
+}   }   }
 
 void TextLogger::processVariable( const NString&     domainPath,
                                   Verbosity          verbosity,
                                   detail::ScopeInfo& scope,
                                   AString&           dest,
-                                  Substring&         variable       )
-
-{
+                                  Substring&         variable       ) {
     // process commands
     auto& fmt=          varFormatMetaInfo .Get<FormatMetaInfo>();
     auto& autoSizes=    varFormatAutoSizes.Get<FormatAutoSizes>();
     character c2;
-    switch ( variable.ConsumeChar() )
-    {
+    switch ( variable.ConsumeChar() ) {
         // scope info
         case 'S':
         {
             // read sub command
             NString val;
-            switch( c2= variable.ConsumeChar() )
-            {
+            switch( c2= variable.ConsumeChar() ) {
                 case 'P':   // SP: full path
                 {
                     val= scope.GetFullPath();
@@ -237,15 +219,13 @@ void TextLogger::processVariable( const NString&     domainPath,
             c2= variable.ConsumeChar();
 
             // %TD: Date
-            if ( c2 == 'D' )
-            {
+            if ( c2 == 'D' ) {
                 // get time stamp as CalendarDateTime once
                 if ( callerDateTime.Year == (std::numeric_limits<int>::min)() )
                     callerDateTime.Set( DateConverter.ToDateTime( scope.GetTimeStamp() ) );
 
                 // if standard format, just write it out
-                if ( GetFormatDate().Date.Equals<NC>( A_CHAR("yyyy-MM-dd") ) )
-                {
+                if ( GetFormatDate().Date.Equals<NC>( A_CHAR("yyyy-MM-dd") ) ) {
                     dest._<NC>( alib::Dec( callerDateTime.Year,     4 ) )._<NC>( '-' )
                         ._<NC>( alib::Dec( callerDateTime.Month,    2 ) )._<NC>( '-' )
                         ._<NC>( alib::Dec( callerDateTime.Day,      2 ) );
@@ -259,16 +239,14 @@ void TextLogger::processVariable( const NString&     domainPath,
 
 
             // %TT: Time of Day
-            if ( c2 == 'T' )
-            {
+            if ( c2 == 'T' ) {
                 // get time stamp as CalendarDateTime once
                 if ( callerDateTime.Year == (std::numeric_limits<int>::min)() )
                     callerDateTime.Set( DateConverter.ToDateTime( scope.GetTimeStamp() ) );
 
                 // avoid the allocation of a) a StringBuilder (yes, a string builder is allocated inside StringBuilder.AppendFormat!)
                 // and b) a DateTime object, if the format is the unchanged standard. And it is faster anyhow.
-                if ( GetFormatDate().TimeOfDay.Equals<NC>( A_CHAR("HH:mm:ss") ) )
-                {
+                if ( GetFormatDate().TimeOfDay.Equals<NC>( A_CHAR("HH:mm:ss") ) ) {
                     dest._<NC>( alib::Dec(callerDateTime.Hour,    2) )._<NC>( ':' )
                         ._<NC>( alib::Dec(callerDateTime.Minute,  2) )._<NC>( ':' )
                         ._<NC>( alib::Dec(callerDateTime.Second,  2) );
@@ -280,8 +258,7 @@ void TextLogger::processVariable( const NString&     domainPath,
             }
 
             // %TC: Time elapsed since created
-            else if ( c2 == 'C' )
-            {
+            else if ( c2 == 'C' ) {
                 auto elapsedTime= scope.GetTimeStamp() - TimeOfCreation;
                 auto elapsedSecs= elapsedTime.InAbsoluteSeconds();
                 CalendarDuration  elapsed( elapsedTime );
@@ -308,8 +285,7 @@ void TextLogger::processVariable( const NString&     domainPath,
             else if ( c2 == 'L' )
                 writeTimeDiff( dest, scope.GetTimeStamp().Since( TimeOfLastLog ).InNanoseconds() );
 
-            else
-            {
+            else {
                 ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%T{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
@@ -323,8 +299,7 @@ void TextLogger::processVariable( const NString&     domainPath,
         {
             c2= variable.ConsumeChar();
 
-            if ( c2 == 'N' )        // %tN: thread name
-            {
+            if ( c2 == 'N' ) { // %tN: thread name
                 #if !ALIB_SINGLE_THREADED
                     const String& threadName= scope.GetThreadNameAndID(nullptr);
                 #else
@@ -336,8 +311,7 @@ void TextLogger::processVariable( const NString&     domainPath,
                                        AutoSizes::Types::Field, threadName.Length(), 0),
                                    lang::Alignment::Center ) );
             }
-            else if ( c2 == 'I' )   // %tI: thread ID
-            {
+            else if ( c2 == 'I' ) { // %tI: thread ID
                 String32 threadID;
                 #if !ALIB_SINGLE_THREADED
                     threadID._( scope.GetThreadID() );
@@ -348,9 +322,7 @@ void TextLogger::processVariable( const NString&     domainPath,
                                               autoSizes.Main.Next(
                                                   AutoSizes::Types::Field, threadID  .Length(), 0),
                                               lang::Alignment::Center ) );
-            }
-            else
-            {
+            } else {
                 ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%t{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
@@ -363,8 +335,7 @@ void TextLogger::processVariable( const NString&     domainPath,
             c2= variable.ConsumeChar();
                  if ( c2 == 'G' )     dest._<NC>( GetName() );
             else if ( c2 == 'X' )     dest._<NC>( scope.GetLoxName() );
-            else
-            {
+            else {
                 ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%L{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
@@ -425,19 +396,16 @@ void TextLogger::processVariable( const NString&     domainPath,
    }// switch
 }
 
-void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
-{
+void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos ) {
     auto& td= GetFormatTimeDiff();
 
     // unmeasurable?
-    if ( diffNanos < td.Minimum )
-    {
+    if ( diffNanos < td.Minimum ) {
         buf._<NC>( td.None );
         return;
     }
 
-    if ( diffNanos < 1000 )
-    {
+    if ( diffNanos < 1000 ) {
         buf._<NC>( alib::Dec( diffNanos, 3 ) )._<NC>( td.Nanos );
         return;
     }
@@ -446,24 +414,21 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     int64_t diffMicros= diffNanos / 1000L;
 
     // below 1000 microseconds?
-    if ( diffMicros < 1000 )
-    {
+    if ( diffMicros < 1000 ) {
         buf._<NC>( alib::Dec( diffMicros, 3 ) );
         buf._<NC>( td.Micros );
         return;
     }
 
     // below 1000 ms?
-    if ( diffMicros < 1000000 )
-    {
+    if ( diffMicros < 1000000 ) {
         buf._<NC>( alib::Dec( (diffMicros / 1000), 3 ) )._<NC>( td.Millis );
         return;
     }
 
 
     // below 10 secs (rounded) ?
-    if ( diffMicros < 9995000 )
-    {
+    if ( diffMicros < 9995000 ) {
         // convert to hundredth of secs
         int64_t hundredthSecs=  ((diffMicros / 1000) + 5) / 10;
 
@@ -479,8 +444,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     int64_t tenthSecs=  ((diffMicros / 10000) + 5) / 10 ;
 
     // below 100 secs ?
-    if ( tenthSecs < 1000 )
-    {
+    if ( tenthSecs < 1000 ) {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
         buf._<NC>( alib::Dec( ( tenthSecs / 10 ), 2 ) )
            ._<NC>( '.' )
@@ -490,8 +454,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     }
 
     //     below 10 mins ?
-    if ( tenthSecs < 6000 )
-    {
+    if ( tenthSecs < 6000 ) {
         // convert to hundredth of minutes
         int64_t hundredthMins=  tenthSecs / 6;
 
@@ -507,8 +470,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     int64_t tenthMins=  tenthSecs / 60;
 
     // below 100 mins ?
-    if ( tenthMins < 1000 )
-    {
+    if ( tenthMins < 1000 ) {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
         buf._<NC>( alib::Dec( (tenthMins / 10), 2 ) )
            ._<NC>( '.' )
@@ -518,8 +480,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     }
 
     // below ten hours?
-    if ( tenthMins < 6000 )
-    {
+    if ( tenthMins < 6000 ) {
         // convert to hundredth of hours
         int64_t hundredthHours=  tenthMins / 6;
 
@@ -535,8 +496,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     int64_t tenthHours=  tenthMins / 60;
 
     // below 10 hours ?
-    if ( tenthHours < 1000 )
-    {
+    if ( tenthHours < 1000 ) {
         // print two digits after dot x.xx
         buf._<NC>( alib::Dec( (tenthHours / 10), 2 ) )
            ._<NC>( '.' )
@@ -546,8 +506,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     }
 
     // below 100 hours ?
-    if ( tenthHours < 1000 )
-    {
+    if ( tenthHours < 1000 ) {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
         buf._<NC>( alib::Dec( (tenthHours / 10), 2 ) )
            ._<NC>( '.' )
@@ -560,8 +519,7 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
     int64_t hundredthDays=  tenthHours * 10 / 24;
 
     // below 10 days ?
-    if ( hundredthDays < 1000 )
-    {
+    if ( hundredthDays < 1000 ) {
         // print two digits after dot x.xx
         buf._<NC>( alib::Dec( (hundredthDays / 100), 1 ) )
            ._<NC>( '.' )
@@ -579,12 +537,11 @@ void TextLogger::writeTimeDiff( AString& buf, int64_t diffNanos )
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // TextLogger
-// #################################################################################################
-TextLogger::TextLogger( const NString& pName, const NString& typeName, bool  pUsesStdStreams  )
+//##################################################################################################
+TextLogger::TextLogger( const NString& pName, const NString& typeName  )
 : Logger( pName, typeName )
-, usesStdStreams( pUsesStdStreams )
 , varFormatMetaInfo (variables::CampVariable(alib::ALOX))
 , varFormatDateTime (variables::CampVariable(alib::ALOX))
 , varFormatTimeDiff (variables::CampVariable(alib::ALOX))
@@ -597,18 +554,15 @@ TextLogger::TextLogger( const NString& pName, const NString& typeName, bool  pUs
     msgBuf.SetBuffer( 256 );
 }
 
-TextLogger::~TextLogger()
-{
+TextLogger::~TextLogger() {
     if (Converter)
         delete Converter;
     ALIB_ASSERT( msgBuf.IsEmpty(), "ALOX" )
 }
 
-void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
-{
-    // ---------------  insert ------------------
-    if( op == lang::ContainerOp::Insert )
-    {
+void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op ) {
+  //--------------------------------------------- insert -------------------------------------------
+    if( op == lang::ContainerOp::Insert ) {
         if ( Converter == nullptr )
             Converter= new textlogger::StandardConverter();
 
@@ -631,8 +585,7 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
                 ALIB_ASSERT_ERROR(varFormatMetaInfo.IsDefined(), "ALOX",
                     "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                     &varFormatMetaInfo)
-            }
-        }
+        }   }
 
         // Variable  <name>_FORMAT_DATE_TIME / <typeName>_FORMAT_DATE_TIME:
         {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -646,8 +599,7 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
                 ALIB_ASSERT_ERROR(varFormatDateTime.IsDefined(), "ALOX",
                    "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                    varFormatDateTime)
-            }
-        }
+        }   }
 
         // Variable  <name>FORMAT_TIME_DIFF / <typeName>FORMAT_TIME_DIFF:
         {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -660,8 +612,7 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
                 ALIB_ASSERT_ERROR(varFormatTimeDiff.IsDefined(), "ALOX",
                   "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                   varFormatTimeDiff)
-            }
-        }
+        }   }
 
         // Variable  <name>FORMAT_MULTILINE / <typeName>FORMAT_MULTILINE:
         {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -674,8 +625,7 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
                 ALIB_ASSERT_ERROR(varFormatMultiLine.IsDefined(), "ALOX",
                   "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                   varFormatMultiLine)
-            }
-        }
+        }   }
 
         // Variable  <name>FORMAT_OTHER / <typeName>FORMAT_OTHER:
         {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -688,8 +638,7 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
                 ALIB_ASSERT_ERROR(varFormatOther.IsDefined(), "ALOX",
                    "Mandatory (usually resourced) default value is missing for variable \"{}\".",
                    varFormatOther )
-            }
-        }
+        }   }
 
         // Variable  <name>FORMAT_REPLACEMENTS / <typeName>FORMAT_REPLACEMENTS:
         {ALIB_LOCK_WITH(ALOX.GetConfig())
@@ -705,20 +654,15 @@ void   TextLogger::AcknowledgeLox( detail::LoxImpl* , lang::ContainerOp op )
             // checked before access, and furthermore this allows it to appear in config files.
             if( !varReplacements.IsDefined() )
                 (void) varReplacements.Define(Priority::DefaultValues - 1);
-        }
-    }
-}
+}   }   }
 
 
-void TextLogger::SetReplacement( const String& searched, const String& replacement )
-{
+void TextLogger::SetReplacement( const String& searched, const String& replacement ) {
     auto& replacements= GetReplacements().Pairs;
     // if exists, replace replacement
     for( auto it= replacements.begin(); it < replacements.end(); it+= 2)
-        if ( it->Equals<NC>( searched ) )
-        {
-            if ( replacement.IsNotNull() )
-            {
+        if ( it->Equals<NC>( searched ) ) {
+            if ( replacement.IsNotNull() ) {
                 ++it;
                 (*it).Reset( replacement );
                 return;
@@ -730,33 +674,25 @@ void TextLogger::SetReplacement( const String& searched, const String& replaceme
         }
 
     // append at the end
-    if ( replacement.IsNotNull() )
-    {
+    if ( replacement.IsNotNull() ) {
         replacements.insert( replacements.end(), AStringPA(replacements.get_allocator().GetAllocator()) );
         replacements.back() << searched;
         replacements.insert( replacements.end(), AStringPA(replacements.get_allocator().GetAllocator()) );
         replacements.back() << replacement;
-    }
-}
+}   }
 
-void TextLogger::ClearReplacements()
-{
-    GetReplacements().Pairs.clear();
-}
+void TextLogger::ClearReplacements()                            { GetReplacements().Pairs.clear(); }
 
-void TextLogger::ResetAutoSizes()
-{
-    Converter->ResetAutoSizes();
-}
+void TextLogger::ResetAutoSizes()                                   { Converter->ResetAutoSizes(); }
 
 
 void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& logables,
-                      detail::ScopeInfo& scope )
-{
+                      detail::ScopeInfo& scope ) {
     // we store the current msgBuf length and reset the buffer to this length when exiting.
     // This allows recursive calls! Recursion might happen with the evaluation of the
     // logables (in the next line).
     StringLengthResetter msgBufResetter(msgBuf);
+    bool isRecursion= (msgBufResetter.OriginalLength() > 0);
     Converter->ConvertObjects( msgBuf, logables );
 
     // replace strings in message
@@ -776,46 +712,36 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
     logBuf.Reset();
     autoSizes.Main.Restart();
     writeMetaInfo( logBuf, domain, verbosity, scope );
-    logBuf._<NC>( ESC::EOMETA );
+    if (logBuf.IsNotEmpty())
+        logBuf._<NC>( ESC::EOMETA );
 
     // check for empty messages
     auto& fmt=       varFormatMetaInfo.Get<FormatMetaInfo>();
-    if ( msgBuf.Length() == msgBufResetter.OriginalLength() )
-    {
+    if ( msgBuf.Length() == msgBufResetter.OriginalLength() ) {
         // log empty msg and quit
         logBuf._<NC>( fmt.MsgSuffix );
-        if ( usesStdStreams )
-        {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
-            logText( domain, verbosity, logBuf, scope, -1 );
-        }
-        else
-            logText( domain, verbosity, logBuf, scope, -1 );
+        logText( domain, verbosity, logBuf, scope, -1, isRecursion );
         return;
     }
     
     // single line output
     auto& multiLine= varFormatMultiLine.Get<FormatMultiLine>();
-    if ( multiLine.Mode == 0 )
-    {
+    if ( multiLine.Mode == 0 ) {
         // replace line separators
         integer cntReplacements=0;
+        String replacement= multiLine.DelimiterReplacement;
         if ( multiLine.Delimiter.IsNotNull() )
-            cntReplacements+=    msgBuf.SearchAndReplace( multiLine.Delimiter, multiLine.DelimiterReplacement, msgBufResetter.OriginalLength() );
-        else
-        {
-            String replacement= multiLine.DelimiterReplacement;
+            cntReplacements+=    msgBuf.SearchAndReplace( multiLine.Delimiter, replacement, msgBufResetter.OriginalLength() );
+        else {
             cntReplacements+=    msgBuf.SearchAndReplace( A_CHAR("\r\n"), replacement, msgBufResetter.OriginalLength() );
             cntReplacements+=    msgBuf.SearchAndReplace( A_CHAR("\r"),   replacement, msgBufResetter.OriginalLength() );
             cntReplacements+=    msgBuf.SearchAndReplace( A_CHAR("\n"),   replacement, msgBufResetter.OriginalLength() );
         }
 
         // append msg to logBuf
-        if ( cntReplacements == 0 )
-        {
+        if ( cntReplacements == 0 ) {
             logBuf._<NC>( msgBuf, msgBufResetter.OriginalLength(), msgBuf.Length() - msgBufResetter.OriginalLength() );
-        }
-        else
-        {
+        } else {
             logBuf._<NC>( multiLine.Prefix );
             logBuf._<NC>( msgBuf, msgBufResetter.OriginalLength(), msgBuf.Length() - msgBufResetter.OriginalLength() );
             logBuf._<NC>( multiLine.Suffix );
@@ -823,12 +749,7 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
         logBuf._<NC>( fmt.MsgSuffix );
 
         // now do the logging by calling our derived class's logText
-        if ( usesStdStreams )
-        {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
-            logText( domain, verbosity, logBuf, scope, -1 );
-        }
-        else
-            logText( domain, verbosity, logBuf, scope, -1 );
+        logText( domain, verbosity, logBuf, scope, -1, isRecursion );
     }
 
     // multiple line output
@@ -838,48 +759,34 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
     integer  lbLenBeforeMsgPart= logBuf.Length();
 
     // loop over lines in msg
-    while ( actStart < msgBuf.Length() )
-    {
+    while ( actStart < msgBuf.Length() ) {
         // find next end
         integer delimLen;
         integer actEnd;
 
         // no delimiter given: search '\n' and then see if it is "\r\n" in fact
-        if (multiLine.Delimiter.IsEmpty() )
-        {
+        if (multiLine.Delimiter.IsEmpty() ) {
             delimLen= 1;
 
             actEnd= msgBuf.IndexOf<NC>( '\n', actStart );
-            if( actEnd > actStart )
-            {
-                if( msgBuf.CharAt<NC>(actEnd - 1) == '\r' )
-                {
+            if( actEnd > actStart ) {
+                if( msgBuf.CharAt<NC>(actEnd - 1) == '\r' ) {
                     --actEnd;
                     delimLen= 2;
-                }
-            }
-        }
-        else
-        {
+            }   }
+        } else {
             delimLen=  multiLine.Delimiter.Length();
             actEnd=    msgBuf.IndexOf<NC>( multiLine.Delimiter, actStart );
         }
 
         // not found a delimiter? - log the rest
-        if ( actEnd < 0 )
-        {
+        if ( actEnd < 0 ) {
             // single line?
-            if ( lineNo == 0 )
-            {
+            if ( lineNo == 0 ) {
                 logBuf._<NC>( msgBuf, msgBufResetter.OriginalLength(), msgBuf.Length() - msgBufResetter.OriginalLength() );
                 logBuf._<NC>( fmt.MsgSuffix );
 
-                if ( usesStdStreams )
-                {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
-                    logText( domain, verbosity, logBuf, scope, -1 );
-                }
-                else
-                    logText( domain, verbosity, logBuf, scope, -1 );
+                logText( domain, verbosity, logBuf, scope, -1, isRecursion );
 
                 // stop here
                 goto LOG_END;
@@ -891,44 +798,31 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
 
         // found a delimiter
 
-        // signal start of multi line log
+        // signal start of multi-line log
         if ( lineNo == 0 )
-        {
-            if ( usesStdStreams)
-                {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
-                    notifyMultiLineOp( lang::Phase::Begin );
-                }
-                else
-                    notifyMultiLineOp( lang::Phase::Begin );
-        }
+            notifyMultiLineOp( lang::Phase::Begin );
 
         // in mode 3, 4, meta info is deleted
-        if ( lineNo == 0 && ( multiLine.Mode == 3 || multiLine.Mode == 4 ) )
-        {
+        if ( lineNo == 0 && ( multiLine.Mode == 3 || multiLine.Mode == 4 ) ) {
             // log headline in mode 3
-            if ( multiLine.Mode == 3 )
-            {
+            if ( multiLine.Mode == 3 ) {
                 logBuf._<NC>( multiLine.Headline );
                 autoSizes.Main.ActualIndex=  prevIndex;
-                logText( domain, verbosity, logBuf, scope, 0 );
+                logText( domain, verbosity, logBuf, scope, 0, isRecursion );
             }
 
-            // remember zero as offset
+            // set offset to 0
             lbLenBeforeMsgPart= 0;
         }
 
         // clear meta-information?
-        if ( multiLine.Mode == 2 )
-        {
-            if (lineNo != 0 )
-            {
+        if ( multiLine.Mode == 2 ) {
+            if (lineNo != 0 ) {
                 logBuf.Reset(ESC::EOMETA);
                 autoSizes.Main.ActualIndex=  prevIndex;
-            }
-        }
+        }   }
         // reset logBuf length to marked position
-        else
-        {
+        else {
             logBuf.ShortenTo( lbLenBeforeMsgPart );
             autoSizes.Main.ActualIndex=  prevIndex;
         }
@@ -940,22 +834,16 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
         actStart= actEnd + delimLen;
         if ( actStart >= msgBuf.Length() )
             logBuf._<NC>( fmt.MsgSuffix );
-        logText( domain, verbosity, logBuf, scope, lineNo );
+        logText( domain, verbosity, logBuf, scope, lineNo, isRecursion );
 
         // next
         ++lineNo;
     }
 
-    // signal end of multi line log
+    // signal end of multi-line log
     if ( lineNo > 0 )
-    {
-        if ( usesStdStreams)
-            {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
-                notifyMultiLineOp( lang::Phase::End );
-            }
-            else
-                notifyMultiLineOp( lang::Phase::End );
-    }
+        notifyMultiLineOp( lang::Phase::End );
+
 
     LOG_END:
     // In case of changes, re-define the auto-sizes variable.
@@ -966,5 +854,3 @@ void TextLogger::Log( detail::Domain& domain, Verbosity verbosity, BoxesMA& loga
 } // TextLogger::Log()
 
 } // namespace [alib::lox::textlogger]
-
-

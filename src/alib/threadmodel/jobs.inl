@@ -5,19 +5,17 @@
 /// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
-ALIB_EXPORT namespace alib { namespace threadmodel
-{
+ALIB_EXPORT namespace alib { namespace threadmodel {
+
 class DedicatedWorker;
 class ThreadPool;
 class DWManager;
 
-
-
-//==============================================================================================
-/// \attention This class belongs to module \alib_threadmodel, which is not in a stable and
+//==================================================================================================
+/// \attention This class belongs to the module \alib_threadmodel, which is not in a stable and
 ///            consistent state, yet.
-///            Also this type is considered experimental.
-///            
+///            Also, this type is considered experimental.
+///
 /// Defines jobs which are scheduled with instances of types \alib{threadmodel;ThreadPool} and
 /// \alib{threadmodel;DedicatedWorker}.<br>
 ///
@@ -25,34 +23,34 @@ class DWManager;
 /// It holds a job-ID of type <c>std::type_info</c> which is used to identify the job type with
 /// processing.
 /// This ID usually represents - but does not need to! - the derived type.
-/// By including the ID into the job, one derived job-type object can be used with different
+/// By including the ID in the job, one derived job-type object can be used with different
 /// job definitions.
 /// For example, built-in derived type \alib{threadmodel;JPromise} may be used as the "shared data"
 /// between the sender and the processing thread.
 /// The constructor of \b %JPromise accepts a type ID to store.
 ///
-/// This explains that class Job has two main aspects:
-/// - Provide information to a worker thread about what is to be done.
-/// - Provide shared data between the sender and the worker.
+/// This explains that class Job has two main aspects. It
+/// - provides information to a worker thread about what is to be done.
+/// - provides shared data between the sender and the worker.
 ///
 /// Instances of this class are always \alib{monomem;TPoolAllocator;pool-allocated}.
 /// Allocation, construction, destruction and deletion are always under the control of either
 /// type \alib{threadmodel;ThreadPool} or \alib{threadmodel;DedicatedWorker}.
-/// Pool allocation requires passing the object size with deletion
-/// (all details on this topic is  \ref alib_contmono_poolallocator_allocinfo "found here").
+/// Pool allocation requires passing the object size with deletion.
 /// For this, derived types that add new field members have to override method #SizeOf in a way
 /// described with the documentation of that virtual method, to return the correct size of the
-/// derived type.
+/// derived type. (All details on this topic are
+/// \ref alib_contmono_poolallocator_allocinfo "found here").
 ///
-/// Virtual method #Do has to be overridden in case a job is to be scheduled with class
+/// Virtual method #Do has to be overridden in case a job is to be scheduled with the class
 /// \alib{threadmodel;ThreadPool}.
 /// In case a derived type is (exclusively) used with type \alib{threadmodel;DedicatedWorker},
 /// it is up to the user of this module whether method #Do is implemented or not.
-/// If not, then a custom type derived from \b DedicatedWorker has to override method
+/// If not, then a custom type derived from \b DedicatedWorker has to override the method
 /// \alib{threadmodel::DedicatedWorker;process} and handle the job type there.
 ///
 /// @see The Programmer's Manual of this module \alib_threadmodel for detailed information.
-//==============================================================================================
+//==================================================================================================
 struct Job
 {
     /// The identifier of the job. Any custom type can be given. Jobs with complex
@@ -66,7 +64,7 @@ struct Job
     : ID        (id)                                                                              {}
 
     /// Protected destructor.
-    virtual ~Job()                                                                        = default;
+    virtual ~Job()                                                                         =default;
 
     /// This method is called by the worker thread in the case this job was scheduled
     /// for deferred deletion using \alib{threadmodel;ThreadPool::DeleteJobDeferred}
@@ -116,16 +114,15 @@ struct Job
     /// @tparam TJob The true type <c>this</c> points to.
     /// @return A reference to the shared data stored with this job.
     template<typename TJob>
-    TJob&           Cast()
-    {
-        ALIB_ASSERT_ERROR( typeid(TJob) == ID, "MGTHR",
+    TJob&           Cast() {
+        ALIB_ASSERT_ERROR( typeid(TJob) == ID, "TMOD",
             "Bad job casting.\n"
             "         Job type: <{}>\n"
             "   Requested type: <{}>",  &ID, &typeid(TJob) )
 
         auto* result= dynamic_cast<TJob*>(this);
 
-        ALIB_ASSERT_ERROR( result != nullptr, "MGTHR",
+        ALIB_ASSERT_ERROR( result != nullptr, "TMOD",
             "Job casting failed.\n"
             "         Job type: <{}>\n"
             "   Requested type: <{}>",  &ID, &typeid(TJob) )
@@ -149,19 +146,19 @@ struct JPromise : public  Job
 {
     /// Constructor.
     /// @param id     The type-info of the derived type. Passed to parent class \b %Job.
-                        JPromise(const std::type_info& id )                          : Job(id)    {}
+    JPromise(const std::type_info& id )                          : Job(id)                        {}
 
     /// Virtual destructor.
-    virtual             ~JPromise()                                               override= default;
+    virtual             ~JPromise()                                               override =default;
 
     /// Overrides the parent function as necessary.
     /// @return The sizeof this derived type.
     virtual size_t      SizeOf()                               override { return sizeof(JPromise); }
 
     #if ALIB_DEBUG
-        /// Overrides the parent function only with debug-compilations.
-        /// Avoids warnings about destroying unused promise
-        virtual void    PrepareDeferredDeletion()          override { DbgOmitDestructionWarning(); }
+    /// Overrides the parent function only with debug-compilations.
+    /// Avoids warnings about destroying unused promise
+    virtual void    PrepareDeferredDeletion()              override { DbgOmitDestructionWarning(); }
     #endif
 };
 
@@ -186,6 +183,3 @@ using      Job          = threadmodel::Job;
 using      JPromise    = threadmodel::JPromise;
 
 }  // namespace [alib]
-
-
-

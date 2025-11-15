@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions;
     import   ALib.Expressions.Impl;
@@ -28,32 +28,27 @@
 #   include "ALib.Expressions.H"
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace expressions {
 
 
 ExpressionVal::ExpressionVal( MonoAllocator&  ma,
-                        const String&   sourceString,
-                        Scope*          pCTScope           )
+                              const String&   sourceString,
+                              Scope*          pCTScope           )
 : allocator     ( ma )
 , ctScope       ( pCTScope )
 , name          ( nullptr )
 , program       ( nullptr )
-, originalString( ma, sourceString )
-{
-    normalizedString.SetBuffer(sourceString.Length());
-}
+, originalString( ma, sourceString )          { normalizedString.SetBuffer(sourceString.Length()); }
 
-ExpressionVal::~ExpressionVal()
-{
+ExpressionVal::~ExpressionVal() {
     allocator.DbgLock(false);
     if(program)
        delete static_cast<detail::Program*>(program);
     lang::Destruct(*ctScope);
 }
 
-String   ExpressionVal::Name()
-{
+String   ExpressionVal::Name() {
     if( name.IsNull() )
         name= EXPRESSIONS.GetResource("ANON_EXPR_NAME");
     return name;
@@ -65,8 +60,7 @@ alib::Box  ExpressionVal::ResultType()
         return static_cast<detail::Program*>(program)->ResultType();
 }
 
-alib::Box  ExpressionVal::Evaluate( Scope& scope )
-{
+alib::Box  ExpressionVal::Evaluate( Scope& scope ) {
     ALIB_ASSERT_ERROR( program, "EXPR","Internal error: Expression without program" )
     ALIB_DBG( Ticks startTime; )
 
@@ -79,8 +73,7 @@ alib::Box  ExpressionVal::Evaluate( Scope& scope )
 }
 
 
-String     ExpressionVal::GetOptimizedString()
-{
+String     ExpressionVal::GetOptimizedString() {
     if( optimizedString.IsNull() )
         static_cast<detail::Program*>(program)->compiler.getOptimizedExpressionString(*this);
     return optimizedString;
@@ -94,7 +87,7 @@ int       ExpressionVal::CtdOptimizations()
 
 #if ALIB_DEBUG
 AString  DbgList(Expression expression)
-{ return detail::VirtualMachine::DbgList( *static_cast<detail::Program*>(expression->GetProgram()) ); }
+{ return detail::VirtualMachine::DbgList(*static_cast<detail::Program*>(expression->GetProgram()));}
 #endif
 
 }} // namespace [alib::expressions]

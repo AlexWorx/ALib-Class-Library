@@ -6,6 +6,7 @@ docs/pages/generated/
 docs/doxygen/dot
 docs/doxygenDotFixer.cfg
 tools/SourceCleaner
+.scignore
 
 .private
 *.zip
@@ -25,6 +26,7 @@ build/ide.clion_win
 **/.idea/vcs.xml
 **/.idea/GrepConsole.xml
 **/.idea/sonarlint/
+**/.idea/editor.xml
 **/.idea/material_theme_project.xml
 **/.idea/material_theme_project_new.xml
 **/.junie

@@ -12,7 +12,7 @@ ALIB_EXPORT namespace alib::lang {
 /// container types like hash tables and sets. For this, this struct provides inner
 /// functors \b hash, \b equal_to and \b less.
 ///
-/// If for example a <c>std::unordered_map</c> should be instantiated with run-time type
+/// If, for example, a <c>std::unordered_map</c> should be instantiated with run-time type
 /// information as the hash key, a definition looks as follows:
 ///
 ///      std::unordered_map<TypeFunctors::Key,      MyMappedType,
@@ -27,38 +27,26 @@ struct TypeFunctors
     /// The key type
     using Key= const ::std::type_info*;
 
-    //==============================================================================================
     /// Hash code functor for type <c>const std::type_info*</c>.
-    //==============================================================================================
     struct Hash
     {
         /// Invokes <c>std::type_info::hash_code</c> on the wrapped type.
         /// @param typeinfo  Pointer to the run-time type information struct.
         /// @return The hash code
-        size_t operator()( Key typeinfo ) const
-        {
-            return typeinfo->hash_code();
-        }
+        size_t operator()( Key typeinfo )                    const { return typeinfo->hash_code(); }
     };
 
-    //==============================================================================================
     /// Comparison functor for type <c>const std::type_info*</c>.
-    //==============================================================================================
     struct EqualTo
     {
         /// Invokes <c>operator ==</c> with \p{lhs} and \p{rhs}.
         /// @param lhs  The left-hand side value.
         /// @param rhs  The right-hand side value.
         /// @return \c true if the objects represent the same type, \c false otherwise.
-        bool operator()( Key lhs, Key rhs ) const
-        {
-            return *lhs == *rhs;
-        }
+        bool operator()( Key lhs, Key rhs )                           const { return *lhs == *rhs; }
     };
 
-    //==============================================================================================
     /// Comparison functor for type <c>const std::type_info*</c>.
-    //==============================================================================================
     struct Less
     {
         /// Invokes <c>std::type_index::operator\<</c> on corresponding temporaries created from
@@ -66,10 +54,8 @@ struct TypeFunctors
         /// @param lhs  The left-hand side value.
         /// @param rhs  The right-hand side value.
         /// @return \c true if \p{lhs} is "less" than \p{rhs}, \c false otherwise.
-        bool operator()( Key lhs, Key rhs ) const
-        {
-            return ::std::type_index( *lhs ) < ::std::type_index( *rhs );
-        }
+        bool operator()( Key lhs, Key rhs )                                                    const
+        { return ::std::type_index( *lhs ) < ::std::type_index( *rhs ); }
     };
 }; // struct TypeFunctors
 

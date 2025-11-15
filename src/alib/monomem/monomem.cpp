@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/monomem/monomem.prepro.hpp"
 #if ALIB_DEBUG_MEMORY
 #   include <atomic>
@@ -21,13 +21,13 @@
 #endif
 
 #include <cstring>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Monomem;
 #else
 #   include "ALib.Monomem.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 namespace alib {
 /// This \alibmod implements the concept of <em>"monotonic allocation"</em> by providing the central
@@ -47,9 +47,9 @@ namespace monomem {
 
 #if !DOXYGEN
 DOX_MARKER( [ALIB_MANUAL_T_HPP_FILE_USAGE] )
-// #################################################################################################
+//##################################################################################################
 // Instantiation of MonoAllocator, which is TMonoAllocator<lang::HeapAllocator>.
-// #################################################################################################
+//##################################################################################################
 #include "alib/monomem/monoallocator.t.inl"
 
 namespace alib::monomem {  template ALIB_DLL class TMonoAllocator<lang::HeapAllocator>;  }

@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/singletons/singletons.prepro.hpp"
 #if !ALIB_MONOMEM || !ALIB_CONTAINERS
 #    include <unordered_map>
@@ -20,7 +20,7 @@
 #    include <mutex>
 #endif
 #include <cstring>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Singletons;
     import   ALib.Lang;
@@ -32,7 +32,7 @@
 #   include "ALib.Monomem.H"
 #   include "ALib.Singletons.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {
 /// This is the namespace of \alibmod <b>"Singletons"</b>. Please refer to the
 /// \ref alib_mod_singletons "Programmer's Manual Of ALib Singletons" for information about
@@ -120,12 +120,10 @@ void* getSingleton  ( const std::type_info& type )
 
 #endif  //ALIB_FEAT_SINGLETON_MAPPED
 
-void shutdown()
-{
+void shutdown() {
     #if ALIB_FEAT_SINGLETON_MAPPED
         inShutdown= true;
-        for( auto& mapPair : hidden::singletonMap)
-        {
+        for( auto& mapPair : hidden::singletonMap) {
             Singleton<void*>* theSingleton;
             memcpy( &theSingleton, &mapPair.second, sizeof(void*) );
             delete theSingleton;
@@ -184,4 +182,3 @@ namespace alib::singletons {
 
 } // namespace [alib::singletons]
 #endif // ALIB_DEBUG && ALIB_FEAT_SINGLETON_MAPPED
-

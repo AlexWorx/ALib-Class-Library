@@ -24,54 +24,43 @@ ALIB_EXPORT namespace alib {  namespace strings { namespace util  {
 template<typename TChar, lang::Case TSensitivity= lang::Case::Sensitive>
 class TStringSearch
 {
-    protected:
-        /// The needle set Knuth-Morris-Pratt prefix length table.
-        TAString<TChar, lang::HeapAllocator>  needle;
+  protected:
+    /// The needle set Knuth-Morris-Pratt prefix length table.
+    TAString<TChar, lang::HeapAllocator>  needle;
 
-        /// The Knuth-Morris-Pratt prefix length table.
-        integer*                    kmpTable                                              = nullptr;
+    /// The Knuth-Morris-Pratt prefix length table.
+    integer*                    kmpTable                                                   =nullptr;
 
-        /// Length of #kmpTable.
-        integer                     kmpTableLength                                              = 0;
+    /// Length of #kmpTable.
+    integer                     kmpTableLength                                                   =0;
 
-    public:
-        //==========================================================================================
-        /// Constructor. Passes the optional parameters to method #Compile.
-        ///
-        /// @param pNeedle The string to search.
-        ///                Defaults to \b NULL_STRING to allow parameterless construction with later
-        ///                invocation of #Compile.
-        //==========================================================================================
-        TStringSearch( const TString<TChar>& pNeedle= nullptr )
-        {
-            Compile( pNeedle );
-        }
+  public:
+    /// Constructor. Passes the optional parameters to method #Compile.
+    ///
+    /// @param pNeedle The string to search.
+    ///                Defaults to \b NULL_STRING to allow parameterless construction with later
+    ///                invocation of #Compile.
+    TStringSearch( const TString<TChar>& pNeedle= nullptr )                  { Compile( pNeedle ); }
 
-        //==========================================================================================
-        /// Destructor.
-        //==========================================================================================
-        ALIB_DLL
-        ~TStringSearch();
+    /// Destructor.
+    ALIB_DLL
+    ~TStringSearch();
 
-    public:
-        //==========================================================================================
-        /// Resets this object to use the given string as the needle to search.
-        /// @param  needle   The needle to search.
-        //==========================================================================================
-        ALIB_DLL
-        void Compile( const TString<TChar>& needle );
+  public:
+    /// Resets this object to use the given string as the needle to search.
+    /// @param  needle   The needle to search.
+    ALIB_DLL
+    void Compile( const TString<TChar>& needle );
 
-        //==========================================================================================
-        /// Searches for the needle in \p{haystack} starting at \p{startIdx}.
-        ///
-        /// @param haystack  The string to search in.
-        /// @param startIdx  The start of the search.
-        ///                  Defaults to \c 0.
-        /// @return The index of the next occurrence of the needle in given \p{haystack}.
-        ///         \c -1 if not found.
-        //==========================================================================================
-        ALIB_DLL
-        integer   Search( const TString<TChar>& haystack, integer startIdx= 0 );
+    /// Searches for the needle in \p{haystack} starting at \p{startIdx}.
+    ///
+    /// @param haystack  The string to search in.
+    /// @param startIdx  The start of the search.
+    ///                  Defaults to \c 0.
+    /// @return The index of the next occurrence of the needle in given \p{haystack}.
+    ///         \c -1 if not found.
+    ALIB_DLL
+    integer   Search( const TString<TChar>& haystack, integer startIdx= 0 );
 
 }; // class TStringSearch
 
@@ -109,4 +98,3 @@ using  WSubstringSearch =  strings::util::TStringSearch<wchar>;
 
 
 } // namespace alib
-

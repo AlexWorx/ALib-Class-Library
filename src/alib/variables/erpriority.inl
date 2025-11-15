@@ -17,7 +17,7 @@ struct ERPriority : enumrecords::ERSerializable
 
     /// Required default constructor leaving the record undefined
     /// (Requirement is documented with\alib{enumrecords::EnumRecordPrototype}.)
-    ERPriority()                                                                noexcept  = default;
+    ERPriority()                                                                  noexcept =default;
 
     using ERSerializable::ERSerializable;
 
@@ -33,10 +33,9 @@ using     Priority=       alib::variables::Priority;
 
 } // namespace [alib]
 
-// #################################################################################################
+//##################################################################################################
 // Macros
-// #################################################################################################
+//##################################################################################################
 ALIB_BOXING_VTABLE_DECLARE(   alib::variables::Priority, vt_config_priorities )
 ALIB_ENUMS_MAKE_ARITHMETICAL( alib::variables::Priority  )
 ALIB_ENUMS_ASSIGN_RECORD(     alib::variables::Priority, alib::variables::ERPriority  )
-

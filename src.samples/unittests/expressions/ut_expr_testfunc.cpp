@@ -691,7 +691,7 @@ Expression testExpression( const CallerInfo&    ci,
               "      Norm: {}\n"
               "       Opt: {}\n"
               "    result: {}"
-              "       {!ATab} {:03}/{:03} ET: {:03}/{:03} Len: {:2>}/{:2>} #Opt: {}"  ,
+              "       {!ATab} {:03}/{:03} ET: {:03}/{:03} Len: {:>2}/{:>2} #Opt: {}"  ,
               expressionString,
               expression->GetNormalizedString(),
               expression->GetOptimizedString(),

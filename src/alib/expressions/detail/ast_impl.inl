@@ -18,25 +18,24 @@ struct AST : public ASTBase
     integer Position;
 
     /// Deleted default constructor.
-    AST() = delete;
+    AST()                                                                                   =delete;
 
     /// Constructor
     /// @param type      The node type.
     /// @param position  The index of this AST in the expression string.
     AST( Types type, integer position )
     : ASTBase(type)
-    , Position(position)
-    {}
+    , Position(position)                                                                          {}
 
     /// Virtual destructor.
-    virtual ~AST() {}
+    virtual ~AST()                                                                                {}
 
     /// Recursively compiles nested nodes and invokes one of the add-methods of program for itself.
     /// @param program   The program to be compiled.
     /// @param allocator An allocator usable for temporary objects.
     ///                  Its memory is invalid after the compilation process.
     /// @param[out] normalized The normalized string, built during recursive compilation of the AST.
-    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized )  = 0;
+    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized )    =0;
 
     /// Recursively walks through the tree and performs optimizations, dependent on given flags.
     ///
@@ -44,7 +43,7 @@ struct AST : public ASTBase
     /// '+' and '-' operators on literals.
     /// @param normalization The compiler flags denoting the normalization settings.
     /// @return A potentially replaced AST or itself.
-    virtual AST* Optimize( Normalization normalization )                                        = 0;
+    virtual AST* Optimize( Normalization normalization )                                         =0;
 };
 
 
@@ -72,9 +71,7 @@ struct ASTLiteral       : public AST
     ASTLiteral( const String& string, integer position )
     : AST(Types::Literal, position)
     , Value( string )
-    , Format(NFHint::NONE)
-    {
-    }
+    , Format(NFHint::NONE)                                                                        {}
 
     /// Constructs an integer literal.
     /// @param value     The value of the literal.
@@ -82,10 +79,7 @@ struct ASTLiteral       : public AST
     /// @param hint      A hint about the format that expression string used to express the literal.
     ASTLiteral( integer value, integer position, NFHint hint= NFHint::NONE )
     : AST(Types::Literal, position)
-    , Format(hint)
-    {
-        Value= value;
-    }
+    , Format(hint)                                                                 { Value= value; }
 
     /// Constructs a floating point literal.
     /// @param value    The value of the literal.
@@ -93,10 +87,7 @@ struct ASTLiteral       : public AST
     /// @param hint     Optional information about the number format that was detected while parsing.
     ASTLiteral( double value, integer position, NFHint hint= NFHint::NONE )
     : AST(Types::Literal, position)
-    , Format(hint)
-    {
-        Value= value;
-    }
+    , Format(hint)                                                                 { Value= value; }
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
@@ -123,8 +114,7 @@ struct ASTIdentifier    : public AST
     explicit
     ASTIdentifier( const String& name, integer position )
     : AST(Types::Identifier, position)
-    , Name(name)
-    {}
+    , Name(name)                                                                                  {}
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
@@ -143,7 +133,7 @@ struct ASTIdentifier    : public AST
 struct ASTFunction      : public AST
 {
     String                      Name;      ///< The function name as parsed.
-    List<MonoAllocator, AST*>   Arguments; ///< The argument nodes.
+    ListMA<AST*>   Arguments; ///< The argument nodes.
 
     /// Constructor providing name, but not arguments, yet.
     /// @param name       The name of the function
@@ -153,12 +143,10 @@ struct ASTFunction      : public AST
     ASTFunction(const String name, integer position, MonoAllocator& pAllocator )
     : AST(Types::Function, position)
     , Name     (pAllocator, name )
-    , Arguments(pAllocator )
-    {}
+    , Arguments(pAllocator )                                                                      {}
 
     /// Virtual destructor.
-    virtual ~ASTFunction()                                                                  override
-    {}
+    virtual ~ASTFunction()                                                               override {}
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
@@ -187,12 +175,10 @@ struct ASTUnaryOp       : public AST
     explicit
     ASTUnaryOp(const String& op, AST* argument, integer position )
     : AST(Types::UnaryOp, position)
-    , Operator(op), Argument(argument)
-    {}
+    , Operator(op), Argument(argument)                                                            {}
 
     /// Virtual destructor.
-    virtual ~ASTUnaryOp()                                                                   override
-    {}
+    virtual ~ASTUnaryOp()                                                                override {}
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
@@ -220,12 +206,10 @@ struct ASTBinaryOp      : public AST
     explicit
     ASTBinaryOp( const String& op, AST* lhs, AST* rhs, integer position )
     : AST(Types::BinaryOp, position)
-    , Operator(op), Lhs(lhs), Rhs(rhs)
-    {}
+    , Operator(op), Lhs(lhs), Rhs(rhs)                                                            {}
 
     /// Virtual destructor.
-    virtual ~ASTBinaryOp()                                                                  override
-    {}
+    virtual ~ASTBinaryOp()                                                               override {}
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
@@ -257,18 +241,17 @@ struct ASTConditional     : public AST
     ASTConditional(AST* q, AST* t, AST* f, integer position, integer colonPosition)
     : AST(Types::TernaryOp, position)
     , Q(q), T(t), F(f)
-    , ColonPosition(colonPosition)
-    {}
+    , ColonPosition(colonPosition)                                                                {}
 
     /// Virtual destructor.
-    virtual ~ASTConditional()                                                               override
-    {}
+    virtual ~ASTConditional()                                                            override {}
 
     /// Implements abstract method.
     /// @param program         The program to be compiled.
     /// @param allocator       An allocator usable for temporary objects.
     /// @param[out] normalized The normalized string, built during recursive compilation of the AST.
-    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) override;
+    virtual void Assemble( Program& program, MonoAllocator& allocator,
+                           AString & normalized )                                          override;
 
     /// Implements abstract method.
     /// @param normalization The compiler flags denoting the normalization settings.

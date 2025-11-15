@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 #if ALIB_DEBUG
@@ -45,7 +45,7 @@
 #   include <functional>
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module   ALib.Lang;
 #  if ALIB_DEBUG
@@ -99,14 +99,14 @@
 #endif
 
 #if ALIB_DEBUG
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #include "ALib.Lang.CIFunctions.H"
 
 namespace alib::assert {
 
-// #################################################################################################
+//##################################################################################################
 // Debug functions
-// #################################################################################################
+//##################################################################################################
 #if (ALIB_SINGLE_THREADED && ALIB_EXT_LIB_THREADS_AVAILABLE) || DOXYGEN
 
 #if !DOXYGEN
@@ -115,8 +115,8 @@ namespace alib::assert {
 #endif
 
 
-//==============================================================================================
-/// This method stores the first thread that invokes it, and if in the future the method is
+//==================================================================================================
+/// This function stores the first thread that invokes it, and if in the future the method is
 /// visited by a different thread, it asserts.
 ///
 /// In release compilations, this function is inlined and empty, and therefore it is not
@@ -137,7 +137,7 @@ namespace alib::assert {
 /// Besides several macros, some other prominent \alib entities, like \alib{lox::Lox},
 /// \alib{format;Formatter} or \alib{monomem;TMonoAllocator} invoke this method with their
 /// acquisition.
-//==============================================================================================
+//==================================================================================================
 void SingleThreaded()
 {
     if( dbg_in_single_threaded_check ) // this would happen when the assertion below is raised
@@ -164,12 +164,13 @@ void SingleThreaded()
 
 } // namespace [alib]
 
-// #################################################################################################
+//##################################################################################################
 // Assert functions
-// #################################################################################################
+//##################################################################################################
 namespace alib::assert {
 
-void (*PLUGIN)( const CallerInfo& ci, int type, std::string_view domain, std::string_view msg )     = nullptr;
+void (*PLUGIN)( const CallerInfo&  ci    , int              type,
+                std::string_view   domain, std::string_view msg )                         = nullptr;
 
 namespace {  }
 std::string_view                   FORMAT           = "{file}:{line} {type}:\n{message}";
@@ -229,8 +230,7 @@ RegisterPrintable(typeid(const char8_t*),
 RegisterPrintable(typeid(const wchar_t*),
     [](const std::any& any, std::string& s) {
         auto* value= std::any_cast<const wchar_t*>(any);
-        if (value)
-        {
+        if (value) {
           ALIB_WARNINGS_IGNORE_DEPRECATED
             std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
             s+= converter.to_bytes(value);
@@ -243,8 +243,7 @@ DOX_MARKER( [DOX_ASSERT_REGISTER_PRINTABLE])
             RegisterPrintable(typeid(const char32_t*),
                 [](const std::any& any, std::string& s) {
                     auto* value= std::any_cast<const char32_t*>(any);
-                    if (value)
-                    {
+                    if (value) {
                       ALIB_WARNINGS_IGNORE_DEPRECATED
                         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
                         s+= converter.to_bytes(value);
@@ -255,8 +254,7 @@ DOX_MARKER( [DOX_ASSERT_REGISTER_PRINTABLE])
             RegisterPrintable(typeid(const char16_t*),
                 [](const std::any& any, std::string& s) {
                     auto* value= std::any_cast<const char16_t*>(any);
-                    if (value)
-                    {
+                    if (value) {
                       ALIB_WARNINGS_IGNORE_DEPRECATED
                         std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
                         s+= converter.to_bytes(value);
@@ -380,6 +378,7 @@ DOX_MARKER( [DOX_ASSERT_REGISTER_PRINTABLE])
         RegisterPrintable(typeid(lang::CurrentData      ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::CurrentData      >(any)); });
         RegisterPrintable(typeid(lang::Inclusion        ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::Inclusion        >(any)); });
         RegisterPrintable(typeid(lang::Initialization   ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::Initialization   >(any)); });
+        RegisterPrintable(typeid(lang::LineFeeds        ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::LineFeeds        >(any)); });
         RegisterPrintable(typeid(lang::Phase            ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::Phase            >(any)); });
         RegisterPrintable(typeid(lang::Propagation      ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::Propagation      >(any)); });
         RegisterPrintable(typeid(lang::Reach            ), [](const std::any& any, std::string& s) {  s+= NString256(std::any_cast<lang::Reach            >(any)); });
@@ -432,97 +431,88 @@ DOX_MARKER( [DOX_ASSERT_REGISTER_PRINTABLE])
 
     }
 
-    void printRegisteredAny(const std::any& any, const CallerInfo& ci) {
-        if (!any.has_value())
-            return;
-        auto it = registeredAnys.find(std::type_index(any.type()));
-        if (it != registeredAnys.end()) {
-            // Call the associated function
-            it->second(any, outBuffer);
-        } else {
-            std::cerr << "Internal Error using alib::assert::Assert(): No converter registered for type: <"
-                      << lang::DbgTypeDemangler( any.type() ).Get()
-                      << '>' << std::endl
-                      << "at " << ci.File << ':' << ci.Line << std::endl;
-            assert(false);
+void printRegisteredAny(const std::any& any, const CallerInfo& ci) {
+    if (!any.has_value())
+        return;
+    auto it = registeredAnys.find(std::type_index(any.type()));
+    if (it != registeredAnys.end()) {
+        // Call the associated function
+        it->second(any, outBuffer);
+    } else {
+        std::cerr << "Internal Error using alib::assert::Assert(): No converter registered for type: <"
+                  << lang::DbgTypeDemangler( any.type() ).Get()
+                  << '>' << std::endl
+                  << "at " << ci.File << ':' << ci.Line << std::endl;
+        assert(false);
+}   }
+
+const char* resolveMessageType(int msgType) {
+    if (msgType == 0) return "error";
+    if (msgType == 1) return "warning";
+                      return "message";
+}
+
+void writeMessage( std::ostream& os, int msgType, const std::string_view& domain,
+                    const char* file, int line,
+                    const std::string_view& message                   ) {
+    // Start with the global format string
+    std::string_view format = FORMAT;
+
+    // Loop and process the format string
+    size_t start = 0;
+    while (start < format.size()) {
+        // Find the next placeholder starting from 'start'
+        size_t openBrace = format.find('{', start);
+        if (openBrace == std::string_view::npos) {
+            // No more placeholders, print the remaining part
+            os << format.substr(start);
+            break;
         }
+
+        // Print everything before the '{'
+        os << format.substr(start, openBrace - start);
+
+        // Find the closing '}'
+        size_t closeBrace = format.find('}', openBrace + 1);
+        if (closeBrace == std::string_view::npos) {
+            // Invalid placeholder syntax (no closing '}'), just print raw text
+            os << format.substr(openBrace);
+            break;
+        }
+
+        // Extract the placeholder name
+        std::string_view placeholder = format.substr(openBrace + 1, closeBrace - openBrace - 1);
+
+        // Substitute the placeholder with the corresponding value
+             if ( placeholder == "type"    ) os << resolveMessageType(msgType);
+        else if ( placeholder == "file"    ) os << file;
+        else if ( placeholder == "line"    ) os << line;
+        else if ( placeholder == "message" ) os << message;
+        else if ( placeholder == "domain"  ) os << domain;
+        else       os << "{" << placeholder << "}"; // unknown placeholder
+
+        // Move past the closing '}'
+        start = closeBrace + 1;
     }
+    os << std::endl;
+} // writeMessage
 
-    const char* resolveMessageType(int msgType) {
-        if (msgType == 0) return "error";
-        if (msgType == 1) return "warning";
-                          return "message";
-    }
+class RecursionBlocker {
+  private:
+    static inline std::atomic<bool> isRecursing{false};
+    bool wasBlocked;
 
-    void writeMessage( std::ostream& os, int msgType, const std::string_view& domain,
-                        const char* file, int line,
-                        const std::string_view& message                   ) {
-        // Start with the global format string
-        std::string_view format = FORMAT;
+  public:
+    RecursionBlocker()                         noexcept { wasBlocked = isRecursing.exchange(true); }
 
-        // Loop and process the format string
-        size_t start = 0;
-        while (start < format.size()) {
-            // Find the next placeholder starting from 'start'
-            size_t openBrace = format.find('{', start);
-            if (openBrace == std::string_view::npos) {
-                // No more placeholders, print the remaining part
-                os << format.substr(start);
-                break;
-            }
+    ~RecursionBlocker()                                    { if (!wasBlocked) isRecursing = false; }
 
-            // Print everything before the '{'
-            os << format.substr(start, openBrace - start);
+    [[nodiscard]] bool blocked()                               const noexcept { return wasBlocked; }
 
-            // Find the closing '}'
-            size_t closeBrace = format.find('}', openBrace + 1);
-            if (closeBrace == std::string_view::npos) {
-                // Invalid placeholder syntax (no closing '}'), just print raw text
-                os << format.substr(openBrace);
-                break;
-            }
-
-            // Extract the placeholder name
-            std::string_view placeholder = format.substr(openBrace + 1, closeBrace - openBrace - 1);
-
-            // Substitute the placeholder with the corresponding value
-                 if ( placeholder == "type"    ) os << resolveMessageType(msgType);
-            else if ( placeholder == "file"    ) os << file;
-            else if ( placeholder == "line"    ) os << line;
-            else if ( placeholder == "message" ) os << message;
-            else if ( placeholder == "domain"  ) os << domain;
-            else       os << "{" << placeholder << "}"; // unknown placeholder
-
-            // Move past the closing '}'
-            start = closeBrace + 1;
-        }
-        os << std::endl;
-    } // writeMessage
-
-    class RecursionBlocker {
-    private:
-        static inline std::atomic<bool> isRecursing{false};
-        bool wasBlocked;
-
-    public:
-        RecursionBlocker() noexcept {
-            wasBlocked = isRecursing.exchange(true);
-        }
-
-        ~RecursionBlocker() {
-            if (!wasBlocked) {
-                isRecursing = false;
-            }
-        }
-
-        [[nodiscard]] bool blocked() const noexcept {
-            return wasBlocked;
-        }
-
-        // Delete copy operations to ensure RAII semantics
-        RecursionBlocker(const RecursionBlocker&) = delete;
-        RecursionBlocker& operator=(const RecursionBlocker&) = delete;
-    };
+    // Delete copy operations to ensure RAII semantics
+    RecursionBlocker(const RecursionBlocker&)                                               =delete;
+    RecursionBlocker& operator                              =(const RecursionBlocker&)      =delete;
+};
 
 #if ALIB_DEBUG_ASSERTION_PRINTABLES
     struct Key { const char* str; // Pointer to the file name
@@ -570,7 +560,7 @@ void RegisterPrintable(std::type_index typeIndex, AnyConversionFunc func) {
 
 #endif // !DOXYGEN
 
-TLD& GetHaltFlagAndCounters() { return HALT_FLAGS_AND_COUNTERS; }
+TLD& GetHaltFlagAndCounters()                                    { return HALT_FLAGS_AND_COUNTERS; }
 
 void raise( const CallerInfo& ci, int type, std::string_view domain,
             const std::span<std::any>& args )  {
@@ -623,8 +613,7 @@ void raise( const CallerInfo& ci, int type, std::string_view domain,
                     outBuffer+= str.substr(0, pos);
 
                     // Move to the next argument for substitution
-                    if (++i >= args.size())
-                    {
+                    if (++i >= args.size()) {
                         std::cerr << "alib::assert: Not enough arguments for format placeholders!" << std::endl;
                         std::cerr << " Format string: <" << origStr << '>' << std::endl;
                         std::cerr << " @ : " << ci.File << ':' << ci.Line << std::endl;
@@ -660,7 +649,7 @@ void raise( const CallerInfo& ci, int type, std::string_view domain,
 
     // Print the formatted message to the console.
     else {
-        // check if io-streams is already locked by us. We can do this, because this is anyhow
+        // check if we already lock io-streams. We can do this, because this is anyhow
         // debug-code. This way, we avoid recursive locking.
         // (If locked by somebody else, we do not care and still write to the ostream!)
         #if !ALIB_SINGLE_THREADED
@@ -685,8 +674,7 @@ void raise( const CallerInfo& ci, int type, std::string_view domain,
     else if (type == 1) {HALT_FLAGS_AND_COUNTERS.CtdWarnings++; halt= HALT_FLAGS_AND_COUNTERS.HaltOnWarnings; }
     else                {HALT_FLAGS_AND_COUNTERS.CtdMessages++; halt= false; }
     #if defined( _WIN32 )
-        if( halt )
-        {
+        if( halt ) {
             #if  ALIB_CAMP
             if ( BASECAMP.IsDebuggerPresent() )
                 DebugBreak();
@@ -696,9 +684,11 @@ void raise( const CallerInfo& ci, int type, std::string_view domain,
         }
     #else
         #if defined(__GNUC__) || defined(__clang__)
-            if (halt)  __builtin_trap();
+            if (halt)
+                __builtin_trap();
         #elif defined ( _MSC_VER )
-            if (halt)  __debugbreak();
+            if (halt)
+                __debugbreak();
         #else
             (void) halt; // for release compiles with ALIB_DEBUG set
             assert( !halt );
@@ -710,8 +700,3 @@ void raise( const CallerInfo& ci, int type, std::string_view domain,
 
 #   include "ALib.Lang.CIMethods.H"
 #endif // ALIB_DEBUG
-
-
-
-
-

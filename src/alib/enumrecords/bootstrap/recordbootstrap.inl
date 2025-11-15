@@ -33,7 +33,7 @@ struct Initializer {
     template<typename... TArgs>
     Initializer(TEnum elem, TArgs &&... args) noexcept
     : element(elem)
-    , record(std::forward<TArgs>(args)...) {}
+    , record(std::forward<TArgs>(args)...)                                                        {}
 };
 
 /// Defines a record for a single element of \p{TEnum}.
@@ -56,7 +56,7 @@ struct Initializer {
 ///                 create and store.
 template<typename TEnum, typename... TArgs>
 requires alib::enumrecords::HasRecords<TEnum>
-void Bootstrap(TEnum element, TArgs &&... args) noexcept {
+void Bootstrap(TEnum element, TArgs &&... args)                                           noexcept {
     auto & records = detail::EnumRecordHook<TEnum>::GetSingleton();
     auto **lastP   = records.getPointerToLast();
     #if ALIB_MONOMEM
@@ -170,9 +170,9 @@ void Bootstrap(const String &input,
 #include "ALib.Lang.CIMethods.H"
 } // namespace [alib::enumrecords::bootstrap]
 
-// #################################################################################################
+//##################################################################################################
 // enumrecords::detail::bootstrap()/shutdown()
-// #################################################################################################
+//##################################################################################################
 ALIB_EXPORT namespace alib::enumrecords::detail {
 
 //==================================================================================================

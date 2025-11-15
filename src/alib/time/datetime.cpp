@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,21 +11,21 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Time;
 #else
 #   include "ALib.Time.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace std::chrono;
 namespace alib::time {
 
-// #################################################################################################
+//##################################################################################################
 // Windows OS specific: file time, system time
-// #################################################################################################
+//##################################################################################################
 #if defined( _WIN32 ) && !DOXYGEN
 
 // filetime_duration has the same layout as FILETIME; 100ns intervals
@@ -101,4 +101,3 @@ DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, lang::Timezone timezone
 }
 #endif // defined( _WIN32 ) && !DOXYGEN
 } // namespace [alib::time]
-

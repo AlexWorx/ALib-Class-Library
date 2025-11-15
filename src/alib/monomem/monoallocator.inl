@@ -44,9 +44,7 @@ struct Buffer
     /// @return The value to add to the allocation size to ensure that an object with a certain
     ///         alignment fits after placing \p{firstObject} at the start..
     static constexpr size_t firstOffset(size_t firstObject, size_t alignment)
-    {
-        return ((firstObject + alignment - 1) / alignment) * alignment;
-    }
+    { return ((firstObject + alignment - 1) / alignment) * alignment; }
 
     /// Initializes the members of this buffer to reflect the given \p{size}.
     /// @param size  The size of the given \p{mem}.
@@ -56,36 +54,28 @@ struct Buffer
         end = reinterpret_cast<char*>( this ) + size;
     }
 
-    //==============================================================================================
     /// Defaulted default constructor
-    //==============================================================================================
-    Buffer()                                                                       = default;
+    Buffer()                                                                               =default;
 
     /// @return The size of this buffer.
-    size_t Size()    {  return size_t(end - reinterpret_cast<char*>(this)) ;  }
+    size_t Size()                           { return size_t(end - reinterpret_cast<char*>(this)) ; }
 
-    //==============================================================================================
-    /// "Frees" all allocated memory, by simply resetting the fill marker of the
-    /// this buffer to the first usable byte of the allocated buffer.
-    //==============================================================================================
-    void reset()
-    {
+    /// "Frees" all allocated memory by simply resetting the fill marker of this buffer to the
+    /// first usable byte of the allocated buffer.
+    void reset() {
         act= reinterpret_cast<char*>( this + 1 );
         #if ALIB_DEBUG_ALLOCATIONS
             memset( act, 0xD2, size_t(end - act));
         #endif
     }
 
-    //==============================================================================================
     /// Returns a pointer to an aligned piece of memory of the requested size inside this
     /// buffer. If there is not enough space left, \c nullptr is returned.
     ///
     /// @param size       The size to allocate.
     /// @param alignment  The necessary alignment.
     /// @return \c nullptr on failure, otherwise pointer to the requested memory.
-    //==============================================================================================
-    char* allocate( size_t size, size_t alignment )
-    {
+    char* allocate( size_t size, size_t alignment ) {
         ALIB_ASSERT_ERROR( lang::BitCount(alignment) == 1, "MONOMEM",
                            "Requested alignment is not a power of 2:", alignment )
 
@@ -131,9 +121,10 @@ class Snapshot
   public:
     /// Default constructor.
     /// \note
-    ///  Default-constructed snapshots passed to method \alib{monomem;MonoAllocator::Reset(Snapshot)}
-    ///  do reset the monotonic allocator to its initial state after construction. All monotonic
-    ///  allocated memory is considered 'freed' then.
+    ///   Default-constructed snapshots passed to method
+    ///   \alib{monomem;MonoAllocator::Reset(Snapshot)} do reset the monotonic allocator to its
+    ///   initial state after construction. All monotonically allocated memory is considered
+    ///   'freed' then.
     constexpr Snapshot()                                                                    noexcept
     : buffer (nullptr)
     , actFill(nullptr)                                                                            {}
@@ -141,8 +132,7 @@ class Snapshot
     /// Returns \c false if this snapshot was never initialized properly (default
     /// constructed and not copied over).
     /// @return \c true if this is not a valid snapshot, \c false otherwise.
-    constexpr bool IsValid()                                                                noexcept
-                                                                       { return buffer != nullptr; }
+    constexpr bool IsValid()                                  noexcept { return buffer != nullptr; }
 
 }; // class Snapshot
 
@@ -153,36 +143,36 @@ class Snapshot
 struct Statistics
 {
     /// The number of created buffers.
-    unsigned int    QtyBuffers                                                              = 0;
+    unsigned        QtyBuffers                                                                   =0;
 
     /// The number of created buffers.
-    unsigned int    QtyRecyclables                                                          = 0;
+    unsigned        QtyRecyclables                                                               =0;
 
     /// The number of bytes allocated at the heap.
-    size_t          HeapSizeRecycled                                                        = 0;
+    size_t          HeapSizeRecycled                                                             =0;
 
     /// The number of bytes allocated at the heap from buffers currently used.
     /// Note: To get the total size, add #HeapSizeRecycled.
-    size_t          HeapSize                                                                = 0;
+    size_t          HeapSize                                                                     =0;
 
     /// The overall number of bytes requested. Note that this value includes the
     /// losses due to alignment. To get the exact value, method
     /// \alib{monomem::TMonoAllocator;DbgGetStatistics} needs to be used and its
     /// information about the alignment waste has to be subtracted.
-    size_t          AllocSize                                                               = 0;
+    size_t          AllocSize                                                                    =0;
 
     /// The number of bytes remaining in buffers, because a next object did not fit. This
     /// does not include the remaining bytes in the current buffer.
-    size_t          BufferWaste                                                             = 0;
+    size_t          BufferWaste                                                                  =0;
 
     /// The free space in the current buffer.
-    size_t          CurrentBufferFree                                                       = 0;
+    size_t          CurrentBufferFree                                                            =0;
 
     /// The size of the current buffer.
-    size_t          CurrentBufferSize                                                       = 0;
+    size_t          CurrentBufferSize                                                            =0;
 
     /// The planned size of the next buffer (that is not an oversize-allocation).
-    size_t          NextBufferSize                                                          = 0;
+    size_t          NextBufferSize                                                               =0;
 
 };  // struct Statistics
 
@@ -219,7 +209,7 @@ struct Statistics
 #endif
 
 
-// =================================================================================================
+//==================================================================================================
 /// \par Important Note
 ///   Please consult the \ref alib_contmono_intro "Programmer's Manual" of \alib module
 ///   \alib_monomem_nl for an introduction into the rather complex topic of monotonous allocation
@@ -274,7 +264,7 @@ struct Statistics
 /// \par Debug Features
 /// Depending on the compiler-symbol \ref ALIB_DEBUG_MEMORY, some metrics on instances of this
 /// class become available.
-/// Those might for example be helpful to find a reasonable value for constructor parameters
+/// Those might, for example, be helpful to find a reasonable value for constructor parameters
 /// \p{initialBufferSize} and \p{bufferGrowthInPercent}.
 ///
 /// \par See also
@@ -287,12 +277,12 @@ struct Statistics
 ///                    \alib{lang;HeapAllocator}.<br>
 ///                    For general information see chapter \ref alib_contmono_chaining
 ///                    of the Programmer's Manual.
-// =================================================================================================
+//==================================================================================================
 template<typename TAllocator>
 class TMonoAllocator  : public lang::AllocatorMember<TAllocator>
 {
   protected:
-    /// The allocator type that \p{TAllocator} specifies.
+    /// The type of the base class that stores the chained allocator.
     using allocMember= lang::AllocatorMember<TAllocator>;
 
     /// The actual buffer. Contains a link to previously allocated buffers.
@@ -309,19 +299,19 @@ class TMonoAllocator  : public lang::AllocatorMember<TAllocator>
     /// Growth factor of subsequently allocated buffers.
     /// Given by a construction parameter, which in most cases defaults to \c 200,
     /// doubling the buffer size with each next buffer allocation.
-    unsigned int                bufferGrowthInPercent;
+    unsigned                    bufferGrowthInPercent;
 
     #if ALIB_DEBUG
-      public:
-        /// A name for this object.
-        /// With debug-compilations, this name has to be given with construction.
-        const char*             DbgName;
+  public:
+    /// A name for this object.
+    /// With debug-compilations, this name has to be given with construction.
+    const char*             DbgName;
 
-      protected:
-        /// This flag to mark this allocator to not accept allocations.
-        /// @see Method #DbgLock and chapter \ref alib_contmono_further_debug of the
-        /// Programmer's Manual of this \alibmod_nl.
-        bool                    dbgLock                                                     = false;
+  protected:
+    /// This flag to mark this allocator to not accept allocations.
+    /// @see Method #DbgLock and chapter \ref alib_contmono_further_debug of the
+    /// Programmer's Manual of this \alibmod_nl.
+    bool                    dbgLock                                                          =false;
     #endif
 
     #if ALIB_DEBUG_MEMORY
@@ -332,17 +322,16 @@ class TMonoAllocator  : public lang::AllocatorMember<TAllocator>
 
   public:
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Due to the possibility of beeing self-contained, this type needs special treatment
-        /// in respect to instance \alib{lang;DbgCriticalSections}. It must be neither derived
-        /// nor being a member. Instead, destruction has to be controlled.
-        /// Furthermore, the \ref GrpALibMacros_mod_threads "ALib Module Threads Macros"
-        /// cannot be used.
-        lang::Placeholder<lang::DbgCriticalSections>    DbgCriticalSectionsPH;
+    /// Due to the possibility of beeing self-contained, this type needs special treatment
+    /// in respect to instance \alib{lang;DbgCriticalSections}. It must be neither derived
+    /// nor being a member. Instead, destruction has to be controlled.
+    /// Furthermore, the \ref GrpALibMacros_mod_threads "ALib Module Threads Macros"
+    /// cannot be used.
+    lang::Placeholder<lang::DbgCriticalSections>    DbgCriticalSectionsPH;
     #endif
 
   protected:
 
-    //==============================================================================================
     /// This internal allocation method is called by the allocation interface methods, in case
     /// the current request cannot be trivially satisfied.
     ///
@@ -352,10 +341,9 @@ class TMonoAllocator  : public lang::AllocatorMember<TAllocator>
     /// @param size      The size of the first object to allocate in the buffer.
     /// @param alignment The allocation alignment of the first object to allocate.
     /// @return A pointer to the memory allocated for the object.
-    //==============================================================================================
     ALIB_DLL char*   nextBuffer(size_t size, size_t alignment);
 
-public:
+  public:
     /// The type of the allocator that this allocator uses underneath to allocate the buffers,
     /// given with template parameter \p{TAllocator}.<br>
     /// The instance can be accessed with inherited methods
@@ -370,9 +358,9 @@ public:
     /// @see Field \alib{lang;Allocator::MAX_ALIGNMENT}.
     static constexpr size_t             MAX_ALIGNMENT         = (std::numeric_limits<size_t>::max)();
 
-  // ###############################################################################################
+  //################################################################################################
   // ##### Constructors/Destructor
-  // ###############################################################################################
+  //################################################################################################
   public:
     #if DOXYGEN
     /// Special constructor that is not initializing this type.
@@ -396,10 +384,10 @@ public:
     #else
         template<typename TRequires= lang::AllocatorMember<TAllocator>>
         requires std::default_initializable<TRequires>
-        TMonoAllocator(ALIB_DBG(const char* dbgName,) std::nullptr_t)                       noexcept
-        : allocMember(TAllocator())
-        , buffer     (nullptr)
-        , recyclables(nullptr)
+    TMonoAllocator(ALIB_DBG(const char* dbgName,) std::nullptr_t)                       noexcept
+    : allocMember(TAllocator())
+    , buffer     (nullptr)
+    , recyclables(nullptr)
 ALIB_DBG(,DbgName(dbgName))                                                                       {}
     #endif
 
@@ -428,20 +416,19 @@ ALIB_DBG(,DbgName(dbgName))                                                     
     TMonoAllocator( const char*     dbgName,
                     detail::Buffer* pInitialBuffer,
                     size_t          pInitialBufferSizeInKB,
-                    unsigned int    pBufferGrowthInPercent= 200  );
+                    unsigned        pBufferGrowthInPercent= 200  );
     #else
     template<typename TRequires= lang::AllocatorMember<TAllocator>>
     requires std::default_initializable<TRequires>
     TMonoAllocator( ALIB_DBG(const char* dbgName,)
                     detail::Buffer* pInitialBuffer,
                     size_t          pInitialBufferSizeInKB,
-                    unsigned int    pBufferGrowthInPercent= 200  )
+                    unsigned        pBufferGrowthInPercent= 200  )
     : buffer               ( pInitialBuffer )
     , recyclables          ( nullptr )
     , nextBuffersUsableSize( (pInitialBufferSizeInKB * 1024 * pBufferGrowthInPercent) / 100 )
     , bufferGrowthInPercent( pBufferGrowthInPercent )
-ALIB_DBG(,DbgName          (dbgName))
-    {
+ALIB_DBG(,DbgName          (dbgName)) {
         // assert alignment
         ALIB_ASSERT_ERROR( (size_t(pInitialBuffer) & (alignof(void*)-1) )== 0, "MONOMEM",
                          "The given initial buffer is not aligned to at least 'alignof(void*)'."  )
@@ -471,20 +458,19 @@ ALIB_DBG(,DbgName          (dbgName))
                     TAllocator&     pAllocator,
                     detail::Buffer* pInitialBuffer,
                     size_t          pInitialBufferSizeInKB,
-                    unsigned int    pBufferGrowthInPercent= 200  );
+                    unsigned        pBufferGrowthInPercent= 200  );
     #else
     TMonoAllocator( ALIB_DBG(const char* dbgName,)
                     TAllocator&     pAllocator,
                     detail::Buffer* pInitialBuffer,
                     size_t          pInitialBufferSizeInKB,
-                    unsigned int    pBufferGrowthInPercent= 200  )
+                    unsigned        pBufferGrowthInPercent= 200  )
     : allocMember          ( pAllocator )
     , buffer               ( pInitialBuffer )
     , recyclables          ( nullptr )
     , nextBuffersUsableSize( (pInitialBufferSizeInKB * 1024 * pBufferGrowthInPercent) / 100 )
     , bufferGrowthInPercent( pBufferGrowthInPercent )
-    ALIB_DBG(,DbgName      (dbgName))
-    {
+    ALIB_DBG(,DbgName      (dbgName)) {
         // assert alignment
         ALIB_ASSERT_ERROR( (size_t(pInitialBuffer) & (alignof(void*)-1) )== 0, "MONOMEM",
                        "The given initial buffer is not aligned to at least 'alignof(void*)'."  )
@@ -520,18 +506,17 @@ ALIB_DBG(,DbgName          (dbgName))
     requires std::default_initializable<TRequires>
     TMonoAllocator( const char*          dbgName,
                     size_t               pInitialBufferSizeInKB,
-                    unsigned int         pBufferGrowthInPercent= 200  );
+                    unsigned             pBufferGrowthInPercent= 200  );
     #else
     template<typename TRequires= lang::AllocatorMember<TAllocator>>
     requires std::default_initializable<TRequires>
     TMonoAllocator( ALIB_DBG(const char* dbgName,)
                     size_t               pInitialBufferSizeInKB,
-                    unsigned int         pBufferGrowthInPercent= 200  )
+                    unsigned             pBufferGrowthInPercent= 200  )
     : recyclables          ( nullptr )
     , nextBuffersUsableSize( (pInitialBufferSizeInKB * 1024 * pBufferGrowthInPercent) / 100 )
     , bufferGrowthInPercent( pBufferGrowthInPercent )
-ALIB_DBG(,DbgName(dbgName))
-    {
+ALIB_DBG(,DbgName(dbgName)) {
         #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
           ALIB_ASSERT_ERROR( pInitialBufferSizeInKB, "MONOMEM", "Initial buffer of 0kb requested." )
         #endif
@@ -562,17 +547,16 @@ ALIB_DBG(,DbgName(dbgName))
     //==============================================================================================
     ALIB_DLL
     TMonoAllocator( const char* dbgName, TAllocator& pAllocator,
-                    size_t pInitialBufferSizeInKB, unsigned int pBufferGrowthInPercent= 200  );
+                    size_t pInitialBufferSizeInKB, unsigned pBufferGrowthInPercent= 200  );
     #else
     ALIB_DLL
     TMonoAllocator( ALIB_DBG(const char* dbgName,) TAllocator& pAllocator,
-                    size_t pInitialBufferSizeInKB, unsigned int pBufferGrowthInPercent= 200  )
+                    size_t pInitialBufferSizeInKB, unsigned pBufferGrowthInPercent= 200  )
     : allocMember          ( pAllocator )
     , recyclables          ( nullptr )
     , nextBuffersUsableSize( (pInitialBufferSizeInKB * 1024 * pBufferGrowthInPercent) / 100 )
     , bufferGrowthInPercent( pBufferGrowthInPercent )
-ALIB_DBG(,DbgName(dbgName))
-    {
+ALIB_DBG(,DbgName(dbgName)) {
         ALIB_ASSERT_ERROR( pInitialBufferSizeInKB, "MONOMEM", "Initial buffer of 0kb requested." )
         size_t initialBufferSize= pInitialBufferSizeInKB * 1024;
         buffer= new (TAllocator().allocate(initialBufferSize, alignof(detail::Buffer)))
@@ -585,10 +569,10 @@ ALIB_DBG(,DbgName(dbgName))
     #endif
 
     /// Not copyable.
-    TMonoAllocator(const TMonoAllocator&)                                                  = delete;
+    TMonoAllocator(const TMonoAllocator&)                                                   =delete;
 
     /// Not movable.
-    TMonoAllocator(TMonoAllocator&&)                                                       = delete;
+    TMonoAllocator(TMonoAllocator&&)                                                        =delete;
 
     /// Destructor. Disposes all memory allocated with #ChainedAllocator.
     ALIB_DLL
@@ -631,18 +615,18 @@ ALIB_DBG(,DbgName(dbgName))
     static TMonoAllocator* Create( const char*  dbgName,
                                    TAllocator&  pAllocator,
                                    size_t       initialBufferSizeInKB,
-                                   unsigned int bufferGrowthInPercent= 200 );
+                                   unsigned     bufferGrowthInPercent= 200 );
     #else
     ALIB_DLL
     static TMonoAllocator* Create( ALIB_DBG(const char* dbgName,)
                                    TAllocator&  pAllocator,
                                    size_t       initialBufferSizeInKB,
-                                   unsigned int bufferGrowthInPercent= 200 );
+                                   unsigned     bufferGrowthInPercent= 200 );
     #endif
 
     #if DOXYGEN
     //==============================================================================================
-    /// Same as #Create(const char*, TAllocator&, size_t, unsigned int), but misses the allocator
+    /// Same as #Create(const char*, TAllocator&, size_t, unsigned), but misses the allocator
     /// parameter.
     /// Used with chained allocators that are default-constructible (e.g., \b HeapAllocator):
     ///
@@ -662,13 +646,13 @@ ALIB_DBG(,DbgName(dbgName))
     requires std::default_initializable<TRequires>
     static TMonoAllocator* Create( const char*  dbgName,
                                    size_t       initialBufferSizeInKB,
-                                   unsigned int bufferGrowthInPercent= 200 );
+                                   unsigned     bufferGrowthInPercent= 200 );
     #else
     template<typename TRequires= lang::AllocatorMember<TAllocator>>
     requires std::default_initializable<TRequires>
     static TMonoAllocator* Create( ALIB_DBG( const char*  dbgName, )
-                                   size_t       initialBufferSizeInKB,
-                                   unsigned int bufferGrowthInPercent= 200 )
+                                             size_t       initialBufferSizeInKB,
+                                             unsigned     bufferGrowthInPercent= 200 )
     {
         TAllocator a;
         return Create( ALIB_DBG(dbgName,) a, initialBufferSizeInKB, bufferGrowthInPercent );
@@ -705,9 +689,9 @@ ALIB_DBG(,DbgName(dbgName))
 
 
 
-    // #############################################################################################
+    //##############################################################################################
     /// @name lang::Allocator Implementation
-    // #############################################################################################
+    //##############################################################################################
 
     /// Allocate memory from the internal buffer. If the buffer's size is exceeded, a next buffer
     /// is allocated and used.
@@ -717,8 +701,7 @@ ALIB_DBG(,DbgName(dbgName))
     ///                  See Chapter \ref alib_contmono_further_alignment of the Programmer's
     ///                  Manual of this module.
     /// @return Pointer to the allocated memory.
-    inline void* allocate( size_t size, size_t alignment )
-    {
+    inline void* allocate( size_t size, size_t alignment ) {
         #if ALIB_DEBUG_CRITICAL_SECTIONS
             DbgCriticalSectionsPH.Get()->Acquire(ALIB_CALLER);
         #endif
@@ -745,8 +728,7 @@ ALIB_DBG(,DbgName(dbgName))
 
 
         char* mem= buffer->allocate(size, alignment);
-        if ( mem )
-        {
+        if ( mem ) {
             #if ALIB_DEBUG_MEMORY
                 DBG_ALIGNMENT_MEASURE(buffer)
             #endif
@@ -776,8 +758,7 @@ ALIB_DBG(,DbgName(dbgName))
     ///                  See Chapter \ref alib_contmono_further_alignment of the Programmer's
     ///                  Manual of this module.
     /// @return Pointer to the re-allocated memory block.
-    inline void* reallocate( void* mem, size_t oldSize, size_t newSize, size_t  alignment )
-    {
+    inline void* reallocate( void* mem, size_t oldSize, size_t newSize, size_t  alignment ) {
         ALIB_ASSERT_ERROR( !dbgLock, "MONOMEM", "This MonoAllocator is locked.")
         ALIB_DBG(assert::SingleThreaded());
         ALIB_ASSERT_ERROR(lang::BitCount(alignment) == 1, "MONOMEM",
@@ -810,8 +791,7 @@ ALIB_DBG(,DbgName(dbgName))
     ///
     /// @param  mem   The memory to free.
     /// @param  size  The allocated size.
-    inline void free( void* mem, size_t size)                                                  const
-    {
+    inline void free( void* mem, size_t size)                                                const {
         ALIB_ASSERT_ERROR( !dbgLock, "MONOMEM", "This MonoAllocator is locked.")
         lang::DbgAlloc::checkMem(mem, size, detail::Buffer::MAGIC, ALIB_REL_DBG(nullptr, DbgName) );
         lang::DbgAlloc::clearMem(mem, size, detail::Buffer::CLEAR);
@@ -822,7 +802,7 @@ ALIB_DBG(,DbgName(dbgName))
     /// \alib{lang;Allocator::dbgAcknowledgeIncreasedAllocSize}.
     /// @tparam TSize    The type of parameter \p{allocSize}. (Deduced by the compiler.)
     template<typename TSize>
-    void dbgAcknowledgeIncreasedAllocSize( void*, TSize  )                                 const  {}
+    void dbgAcknowledgeIncreasedAllocSize( void*, TSize  )                                  const {}
 
     /// Returns a temporary object (which is usually optimized out together with a call to this
     /// operator) providing high-level convenience methods for allocation.
@@ -831,28 +811,26 @@ ALIB_DBG(,DbgName(dbgName))
     lang::AllocatorInterface<TMonoAllocator> operator()()
     { return lang::AllocatorInterface<TMonoAllocator>(*this); }
 
-  #if DOXYGEN
-    /// See the description of this method with prototype \alib{lang;Allocator::allowsMemSplit}.<br>
-    /// (Note: This method is static. For technical reasons this cannot be reflected in this
-    /// documentation)
-    /// @return \c true, except if the compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS is given.
-           constexpr bool allowsMemSplit()                                                 noexcept;
-  #else
-    static inline constexpr bool allowsMemSplit()                                           noexcept
-    {
-        #if !ALIB_DEBUG_ALLOCATIONS
-            return true;
-        #else
-            return false;
-        #endif
-    }
-  #endif
+    #if DOXYGEN
+        /// See the description of this method with prototype
+        /// \alib{lang;Allocator::allowsMemSplit}.<br> (Note: This method is static. For technical
+        /// reasons this cannot be reflected in this documentation)
+        /// @return \c true, except if the compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS is given.
+        constexpr bool allowsMemSplit()                                                    noexcept;
+    #else
+    static inline constexpr bool allowsMemSplit()                                         noexcept {
+      #if !ALIB_DEBUG_ALLOCATIONS
+        return true;
+      #else
+        return false;
+      #endif
+  }
+    #endif
 
     //##############################################################################################
     /// @name Snapshots and Reset
     //##############################################################################################
 
-    //==============================================================================================
     /// Saves the current state of the allocator and returns this information as a \b Snapshot
     /// value. Such snapshots may be passed to method #Reset(Snapshot).
     ///
@@ -861,13 +839,8 @@ ALIB_DBG(,DbgName(dbgName))
     /// contents.
     ///
     /// @return A (lightweight) snapshot value object.
-    //==============================================================================================
-    Snapshot        TakeSnapshot()
-    {
-        return Snapshot(buffer, buffer->act);
-    }
+    Snapshot        TakeSnapshot()                         { return Snapshot(buffer, buffer->act); }
 
-    //==============================================================================================
     /// Resets this allocator to the given \alib{monomem;Snapshot}.
     /// Parameter \p{snapshot} is defaulted with a default-constructed \b Snapshot, which
     /// completely resets the allocator.
@@ -884,11 +857,9 @@ ALIB_DBG(,DbgName(dbgName))
     /// used buffer and its fill level.
     ///
     /// @param snapshot The snapshot to reset to.
-    //==============================================================================================
     ALIB_DLL
     void   Reset( Snapshot snapshot= Snapshot() );
 
-    //==============================================================================================
     /// Special version of #Reset(Snapshot) which resets this allocator to the first buffer
     /// and within that, behind the first object of the given size.<br>
     /// This method is used by class \alib{monomem;TSharedMonoVal} to avoid the need of storing
@@ -898,7 +869,6 @@ ALIB_DBG(,DbgName(dbgName))
     /// overwritten with <c>0xD2</c>. This helps to identify invalid reset operations.
     /// @param firstObjectSize      The size of the first emplaced object.
     /// @param firstObjectAlignment The alignment of the first emplaced object.
-    //==============================================================================================
     void   Reset( size_t firstObjectSize, size_t firstObjectAlignment )
     {
         Reset( ALIB_DBG( Snapshot(nullptr, reinterpret_cast<char*>(1)) ) );
@@ -937,10 +907,13 @@ ALIB_DBG(,DbgName(dbgName))
     /// For example, this is used with function \alib{monomem;DbgDumpStatistics}.
     /// With release-compilations, this method is empty and not useable.
     /// @return A pointer to the internal buffer.
-    const detail::Buffer* DbgGetBuffer() const noexcept { ALIB_REL_DBG( return nullptr;, return buffer;) }
+    const detail::Buffer* DbgGetBuffer()                                            const noexcept {
+        ALIB_REL_DBG(  return nullptr; ,
+                       return buffer;   )
+    }
 
     /// If the compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS is not set, this method is empty and will
-    /// be optimized out. Otherwise, this will raise an \alib assertion if the piece of allocated
+    /// be optimized out. Otherwise, this will raise an \alib_assertion if the piece of allocated
     /// memory is corrupted or its allocation size is not rightfully given by the using code.
     /// @see Chapter \ref alib_contmono_further_debug of the Programmer's Manual.
     ///
@@ -959,18 +932,18 @@ ALIB_DBG(,DbgName(dbgName))
         ///
         /// @return The internal statistics struct.
         //==========================================================================================
-        const       DbgStatistics& DbgGetStatistics()                    const  { return dbgStats; }
+        const       DbgStatistics& DbgGetStatistics()                    const { return dbgStats; }
      #endif
 
 }; // class TMonoAllocator
 
 
-// #############################   Template instantiation declaration   ############################
+//################################ Template instantiation declaration ##############################
 #if !DOXYGEN
-    extern template ALIB_DLL class TMonoAllocator<lang::HeapAllocator>;
+extern template ALIB_DLL class TMonoAllocator<lang::HeapAllocator>;
 #endif
 
-// ######################################   Global Allocator   #####################################
+//######################################### Global Allocator #######################################
 
 /// This is the global monotonic allocator singleton instance.
 /// It's initial size defaults to \  128 kilobytes. This can be tweaked by performing a
@@ -1003,12 +976,10 @@ extern ALIB_DLL    RecursiveLock                        GLOBAL_ALLOCATOR_LOCK;
 using     MonoAllocator =   monomem::TMonoAllocator<lang::HeapAllocator>;
 
 /// Type alias in namespace \b alib to denote the use of a \alib{MonoAllocator}
-/// with type \alib{lang::StdContainerAllocator}.
+/// with type \alib{lang::StdAllocator}.
 template<typename T>
-using SCAMono= lang::StdContainerAllocator<T, MonoAllocator>;
+using StdMA= lang::StdAllocator<T, MonoAllocator>;
 
 
 
 } // namespace [alib]
-
-

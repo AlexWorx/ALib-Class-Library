@@ -109,4 +109,3 @@ using  NField          =     strings::TField<nchar>;
 using  WField          =     strings::TField<wchar>;
 }
 #endif
-

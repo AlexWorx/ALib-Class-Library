@@ -23,7 +23,7 @@ struct ScanParameters
     {
         DONT_RESOLVE            = 0, ///< Demands \b not to resolve symbolic links in any way.
         RESOLVE_BUT_DONT_FOLLOW = 1, ///< Demands to read symbolic links, but not follow linked directories.
-                                     ///< FInfo dates, sizes and access rights are set according to
+                                     ///< FInfo dates, sizes, and access rights are set according to
                                      ///< the link target.
         RECURSIVE               = 2, ///< Read symbolic links and in case they are targeting a
                                      ///< directory, recurse into, if this directory meets the
@@ -31,16 +31,16 @@ struct ScanParameters
     };
 
     /// Denotes 'infinite' recursion if set to field #MaxDepth.
-    static constexpr unsigned int InfiniteRecursion = (std::numeric_limits<unsigned int>::max)();
+    static constexpr unsigned InfiniteRecursion = (std::numeric_limits<unsigned>::max)();
 
     /// The path to be scanned.
     Path            StartPath;
 
     /// Denotes how symbolic links are treated.
-    SymbolicLinks   LinkTreatment                               =  SymbolicLinks::RECURSIVE;
+    SymbolicLinks   LinkTreatment                                         =SymbolicLinks::RECURSIVE;
 
     /// The maximum recursion depth. Defaults to #InfiniteRecursion.
-    unsigned int    MaxDepth=   InfiniteRecursion;
+    unsigned        MaxDepth                                                     =InfiniteRecursion;
 
     /// If \c true, the default, scanning does not stop recursion on directories which represent
     /// a mounted filesystem. If \c false, the search is restricted to the device that #StartPath
@@ -49,21 +49,21 @@ struct ScanParameters
 
     /// If \c false (the default), scanning aborts if \e 'artificial' filesystems are found.
     /// Artificial filesystems under GNU/Linux, are for example:
-    /// <c>/proc</c>, <c>/dev</c>, <c>/run</c>, <c>/sys</c> and <c>/temp</c>.
+    /// <c>/proc</c>, <c>/dev</c>, <c>/run</c>, <c>/sys</c>, and <c>/temp</c>.
     bool            IncludeArtificialFS                                                     = false;
 
-    /// If \c false, empty directories remain in the result tree. Otherwise they are deleted
+    /// If \c false, empty directories remain in the result tree. Otherwise, they are deleted
     /// and do not appear in the tree.
     bool            RemoveEmptyDirectories                                                  = false;
 
     /// If set (not containing \c nullptr), files are passed to this filter and removed if \c false
     /// is returned.<br>
-    /// The term "files" here means all sort of files except Directories.
-    /// Directories are either real directories, or in case field #LinkTreatment is set to
+    /// The term "files" here means all sorts of files except Directories.
+    /// Directories are either real directories, or in case the field #LinkTreatment is set to
     /// \alib{files::ScanParameters;SymbolicLinks::RECURSIVE}, symbolic links that
     /// target a directory.
     ///
-    /// \see Optional filters  #DirectoryFilterPreRecursion and #DirectoryFilterPostRecursion.
+    /// \see Optional filters #DirectoryFilterPreRecursion and #DirectoryFilterPostRecursion.
     SPFileFilter    FileFilter;
 
     /// If set (not containing \c nullptr), this filter is invoked \b after a recursive scan of
@@ -72,7 +72,7 @@ struct ScanParameters
     /// \c false.<br>
     /// Note that in case field #LinkTreatment is set to
     /// \alib{files::ScanParameters;SymbolicLinks::RECURSIVE}, this filter
-    /// is also applied to symbolic links, which are readable, not broken and target a directory.
+    /// is also applied to symbolic links, which are readable, not broken, and target a directory.
     ///
     /// \note
     ///   Directories (and symbolic links to directories) are first recursively scanned before this
@@ -82,7 +82,7 @@ struct ScanParameters
     ///   To increase performance and filter directories \e before their recursive scan,
     ///   alternative field #DirectoryFilterPreRecursion is to be used.
     ///
-    /// \see Optional filters  #DirectoryFilterPreRecursion and #FileFilter.
+    /// \see Optional filters #DirectoryFilterPreRecursion and #FileFilter.
     ///
     SPFileFilter    DirectoryFilterPostRecursion;
 
@@ -94,7 +94,7 @@ struct ScanParameters
     /// If a directory is "pruned" due to this filter, the entry still occurs in the \b %FTree,
     /// unless field #RemoveEmptyDirectories evaluates to \c true.<br>
     ///
-    /// \see Optional filters  #DirectoryFilterPostRecursion and #FileFilter.
+    /// \see Optional filters #DirectoryFilterPostRecursion and #FileFilter.
     ///
     SPFileFilter    DirectoryFilterPreRecursion;
 
@@ -105,20 +105,19 @@ struct ScanParameters
     /// @param crossFileSystems      Stored in field #CrossFileSystems. Defaults to \c true.
     /// @param includeArtificialFS   Stored in field #IncludeArtificialFS. Defaults to \c false.
     ScanParameters( const system::PathString& startPath,
-                    SymbolicLinks                   linkTreatment           = SymbolicLinks::RECURSIVE,
-                    unsigned int                    maxDepth                = InfiniteRecursion,
-                    bool                            crossFileSystems        = true,
-                    bool                            includeArtificialFS     = false                        )
+                    SymbolicLinks   linkTreatment      = SymbolicLinks::RECURSIVE,
+                    unsigned        maxDepth           = InfiniteRecursion,
+                    bool            crossFileSystems   = true,
+                    bool            includeArtificialFS= false                        )
     : StartPath          (startPath          )
     , LinkTreatment      (linkTreatment      )
     , MaxDepth           (maxDepth           )
     , CrossFileSystems   (crossFileSystems   )
-    , IncludeArtificialFS(includeArtificialFS)
-    {}
+    , IncludeArtificialFS(includeArtificialFS)                                                    {}
 
 }; // struct ScanParameters
 
-/// A simple triple of a path string, a corresponding \b FTree node and a boolean to indicate
+/// A simple triple of a path string, a corresponding \b FTree node, and a boolean to indicate
 /// whether the path existed already. This struct is used as an output parameter of function
 /// #ScanFiles.
 struct ResultsPaths
@@ -137,17 +136,17 @@ struct ResultsPaths
     ResultsPaths(const system::PathString& realPath, FTree::Cursor node, bool existed )
     : RealPath(realPath)
     , Node    (node)
-    , Existed (existed)
-    {}
+    , Existed (existed)                                                                           {}
 };
 
 #if DOXYGEN
 /// ### General Information ###
-/// Scans the filesystem according to given \b ScanParameters and adds \alib{files;FInfo}
+/// Scans the filesystem according to the given \b ScanParameters and adds \alib{files;FInfo}
 /// entries to the given \alib{files;FTree}.
 ///
 /// ### ALib FTree Data Contract ###
-/// This function has a contract with class \alib{files;FTree} that is used to store the scan results.
+/// This function has a contract with the class \alib{files;FTree} that is used to store the scan
+/// results.
 /// This contract states that any file or directory found during a scan is always stored using
 /// the <em>"Real Path"</em> of the entry. This means that any symbolic link is resolved.
 /// The consequences are:
@@ -157,14 +156,14 @@ struct ResultsPaths
 ///   1. The original link information given, which often uses relative path addressing.
 ///   2. The absolute, <em>"Real Path"</em> of the target, which has a corresponding result entry
 ///      in the given \b %FTree.
-/// - If a using software wants to use symbolic paths, for example to present them to the end
+/// - If a using software wants to use symbolic paths, for example, to present them to the end
 ///   user, such paths have to be assembled by the user's code in own responsibility.
 ///   All information for doing this is provided in the resulting tree object
 /// - Doubly linked target files and directories are never a problem for this scanner. Each
 ///   file is scanned only once. This especially prevents all sorts of problems that would otherwise
 ///   occur with cyclic symbolic links.
 /// - Due to this, even the given start path of a search might not be found as a result
-///   in given \b %FTree, because also start paths are converted to a <em>Real Path</em>.
+///   in the given \b %FTree, because also start paths are converted to a <em>Real Path</em>.
 /// - The scan result may contain more than one resulting path. This happens, if a symbolic link
 ///   targets a file or directory that is not recursively included in the start path.
 ///   The resulting <em>"Real Path"</em> of the given start path is however always the first
@@ -185,7 +184,7 @@ struct ResultsPaths
 /// scanned again. If a rescan of a certain path is wanted, then the target entry of that path has
 /// to be deleted before invoking this function. Due to the implementation of class FTree, repeated
 /// delete and scan operations will not cause any heap-memory activities (of course, as long as no
-/// new entries are detected).
+/// are detected which have been created meanwhile).
 ///
 /// ### platform-dependent Code Selection ###
 /// File scanning is a platform-dependent task and hence \b ALib uses one of two different
@@ -217,8 +216,8 @@ struct ResultsPaths
 ///   Well, but it is still fast though!
 ///
 /// \note As for today, using this module under WindowsOS, will fall back to the
-///       <em>C++ std::filesystem</em> version. It may be that a future version will provide a native
-///       implementation of this target system. Volunteers from the community are welcome to
+///       <em>C++ std::filesystem</em> version. It may be that a future version will provide a
+///       native implementation of this target system. Volunteers from the community are welcome to
 ///       contribute.
 ///
 /// @param tree        The tree to fill.
@@ -235,8 +234,9 @@ struct ResultsPaths
 ///                    \alib_threads is included in the \alibbuild.
 ///
 /// @return Scan quality code of the tree node of the first resulting path, hence of the node
-///         referred to by \alib{files;ScanParameters::StartPath}. If this is erroneous,
-///         the start path was invalid, for example, not accessible, a broken link, a circular link,
+///         referred to by \alib{files;ScanParameters::StartPath}.<br>
+///         On error, i.e the start path was invalid, not accessible, a broken link, a circular
+///         link, or other, then \alib{files::FInfo;Qualities;Qualities::NOT_EXISTENT} is returned.
 ///         etc.
 ALIB_DLL
 FInfo::Qualities  ScanFiles( FTree&                      tree,
@@ -245,10 +245,10 @@ FInfo::Qualities  ScanFiles( FTree&                      tree,
                              SharedLock*                 lock           );
 #else
     ALIB_DLL
-    FInfo::Qualities  ScanFiles( FTree&                      tree,
-                                 ScanParameters&             parameters,
-                                 std::vector<ResultsPaths>&  resultPaths
-              IF_ALIB_THREADS( , SharedLock*                lock)           );
+FInfo::Qualities  ScanFiles( FTree&                      tree,
+                             ScanParameters&             parameters,
+                             std::vector<ResultsPaths>&  resultPaths
+          IF_ALIB_THREADS( , SharedLock*                lock)           );
 #endif
 
 /// Invokes #ScanFiles( FTree&, ScanParameters&, std::vector<ResultsPaths>&,SharedLock*)

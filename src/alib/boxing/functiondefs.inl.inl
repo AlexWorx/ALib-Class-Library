@@ -13,8 +13,7 @@ ALIB_EXPORT namespace alib { namespace boxing  {
 
 template<typename TComparable>
 requires (!std::is_pointer_v<TComparable> )
-bool  FEquals::ComparableTypes( const Box& self, const Box& rhsBox )
-{
+bool  FEquals::ComparableTypes( const Box& self, const Box& rhsBox ) {
     if( !rhsBox.IsType<TComparable >() )
         return false;
 
@@ -23,8 +22,7 @@ bool  FEquals::ComparableTypes( const Box& self, const Box& rhsBox )
 
 template<typename TComparableP>
 requires (std::is_pointer_v<TComparableP>)
-bool FEquals::ComparableTypes( const Box& self, const Box& rhsBox )
-{
+bool FEquals::ComparableTypes( const Box& self, const Box& rhsBox ) {
     if( !rhsBox.IsType<TComparableP>() )
         return false;
 
@@ -41,8 +39,7 @@ bool FEquals::ComparableTypes( const Box& self, const Box& rhsBox )
 
 template<typename TComparable>
 requires (!std::is_pointer_v<TComparable>)
-bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox )
-{
+bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox ) {
     if( !rhsBox.IsType<TComparable >() )
         return std::type_index( self.TypeID() ) < std::type_index( rhsBox.TypeID() );
 
@@ -51,8 +48,7 @@ bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox )
 
 template<typename TComparableP>
 requires (std::is_pointer_v<TComparableP>)
-bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox )
-{
+bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox ) {
     if( !rhsBox.IsType<TComparableP>() )
         return false;
 
@@ -67,8 +63,7 @@ bool FIsLess::ComparableTypes( const Box& self, const Box& rhsBox )
 }
 
 template<size_t N>
-size_t FHashcode::UsePlaceholderBytes( const Box& self )
-{
+size_t FHashcode::UsePlaceholderBytes( const Box& self ) {
     ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
         ALIB_ASSERT_ERROR(N == self.GetPlaceholderUsageLength(), "BOXING",
                           "Hash function registered with type of wrong usage length")
@@ -91,8 +86,7 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
             return result;
 
         // tests if smaller than second "word"
-        else if constexpr ( N - sizeof( uinteger ) < sizeof( uinteger ) )
-        {
+        else if constexpr ( N - sizeof( uinteger ) < sizeof( uinteger ) ) {
             return size_t( (   self.Data().Integrals.UArray[1]
                                           & ((Bit1 << ((N - sizeof(uinteger)) * 8) )- 1)   )   * 892112 )
                    + result;
@@ -119,14 +113,12 @@ void FAppend<TChar,TAllocator>::Appendable( const Box& self,
     auto pointer= self.Unbox<TAppendable>();
     if( pointer )
         target.template Append<NC>( *pointer );
-    else
-    {
+    else {
         #if ALIB_DEBUG
             target << self.TypeID() <<"(nullptr)";
         #endif
         target << "(nullptr)";
-    }
-}
+}   }
 
 // Definition of FAppend::WrappedAppendable()
 template<typename TChar, typename TAllocator>

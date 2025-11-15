@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,14 +11,14 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/containers/containers.prepro.hpp"
 #include "alib/resources/resources.prepro.hpp"
 #if ALIB_DEBUG_RESOURCES && ALIB_FORMAT
 #   include <vector>
 #   include <algorithm>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Format;
     import   ALib.Strings.Tokenizer;
@@ -43,7 +43,7 @@
 #endif
 
 #if ALIB_DEBUG_RESOURCES && ALIB_FORMAT
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 namespace alib::resources {
 
@@ -83,4 +83,3 @@ AString DbgDump( std::vector<std::tuple<NString, NString, String, integer>>& lis
 #   include "ALib.Lang.CIMethods.H"
 } // namespace [alib::resources]
 #endif // ALIB_DEBUG_RESOURCES && ALIB_FORMAT
-

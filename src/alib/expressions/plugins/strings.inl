@@ -20,7 +20,7 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 ///
 /// Type    | Name        | Min. Abbreviation | Description
 /// --------|-------------|-------------------|--------------
-/// String  |\b NewLine   | nl    | System dependent new line character combination ( <c>"\n"</c> or <c>"\r\n"</c>).
+/// String  |\b NewLine   | nl    | system-dependent new line character combination ( <c>"\n"</c> or <c>"\r\n"</c>).
 /// String  |\b Tabulator | tab   | String with single tabulator character (<c>"\t"</c>).
 ///
 /// <br>
@@ -282,19 +282,13 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 //==================================================================================================
 struct Strings   : public plugins::Calculus
 {
-    //==============================================================================================
     /// Constructor. Creates the hash map.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
     ALIB_DLL    Strings( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor
-    //==============================================================================================
-    virtual    ~Strings()                                                                   override
-    {}
+    virtual    ~Strings()                                                                override {}
 
-    //==============================================================================================
     /// Overwrites the implementation of class \b %Calculus. While this is usually not needed,
     /// this class uses this for wildcard and regular expression matching functions.
     /// These functions implement a special behavior in respect to allocate "matcher" classes
@@ -306,11 +300,9 @@ struct Strings   : public plugins::Calculus
     ///
     /// @param[in,out]  ciFunction  The compilation info struct.
     /// @return \c true if compilation information was given, \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIFunction&   ciFunction)                              override;
 
-    //==============================================================================================
     /// Overwrites the implementation of class \b %Calculus. While this is usually not needed,
     /// this class uses this to fetch arbitrary boxed types for certain operations because
     /// the interface mechanics of module \alib_boxing allows us to convert any custom type
@@ -320,7 +312,6 @@ struct Strings   : public plugins::Calculus
     ///
     /// @param[in,out]  ciBinaryOp  The compilation info struct.
     /// @return \c true if compilation information was given, \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIBinaryOp&   ciBinaryOp )                             override;
 
@@ -364,4 +355,3 @@ ALIB_DLL
 Box CBFormat( Scope& scope, ArgIterator  args, ArgIterator );
 
 }}} // namespace [alib::expressions::plugins]
-

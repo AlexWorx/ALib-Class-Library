@@ -22,31 +22,29 @@ namespace alib
 {
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdVectorMono=     std::vector<T, SCAMono<T>>;
+    using  StdVectorMA=     std::vector<T, StdMA<T>>;
 
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdVectorPool=     std::vector<T, SCAPool<T>>;
+    using  StdVectorPA=     std::vector<T, StdPA<T>>;
 
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdListMono  =     std::list<T, SCAMono<T>>;
+    using  StdListMA  =     std::list  <T, StdMA<T>>;
 
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdListPool  =     std::list<T, SCAPool<T>>;
+    using  StdListPA  =     std::list  <T, StdPA<T>>;
 
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdDequeMono  =     std::deque<T, SCAMono<T>>;
+    using  StdDequeMA  =    std::deque <T, StdMA<T>>;
 
     /// Type alias in namespace \b alib.
     template<typename T>
-    using  StdDequePool  =     std::deque<T, SCAPool<T>>;
+    using  StdDequePA  =    std::deque <T, StdPA<T>>;
 
 } // namespace [alib]
 
 #endif // ALIB_MONOMEM
 #endif // H_ALIB_MONOMEM_STDCONTAINERS
-
-

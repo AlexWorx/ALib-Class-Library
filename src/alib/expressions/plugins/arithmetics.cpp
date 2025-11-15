@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/expressions/expressions.prepro.hpp"
 #include <math.h>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions.Impl;
     import   ALib.Characters.Functions;
@@ -26,7 +26,7 @@
 #   include "ALib.Strings.H"
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if !DOXYGEN
 
 #define ARG0           (*args)
@@ -56,9 +56,9 @@ FUNC( ToBoolean , return  args->Call<FIsTrue>();  )
 namespace {
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Arithmetics - constants
-// #################################################################################################
+//##################################################################################################
 
 Box constTrue  = true;
 Box constFalse = false;
@@ -71,9 +71,9 @@ Box float_0    = 0.0;
 Box float_1    = 1.0;
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Arithmetics - Functions
-// #################################################################################################
+//##################################################################################################
 FUNC( toInt_B  , return integer(BOL(ARG0));   )
 FUNC( toInt_I  , return ARG0;                 )
 FUNC( toInt_F  , return integer(FLT(ARG0));   )
@@ -84,9 +84,9 @@ FUNC( toFloat_F, return ARG0;                 )
 FUNC( arrLen,    return ARG0.UnboxLength();   )
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Arithmetics - unary operations
-// #################################################################################################
+//##################################################################################################
 
 FUNC( pos      , return  ARG0;                     )
 FUNC( pos_B    , return    integer(BOL(ARG0));     )
@@ -99,9 +99,9 @@ FUNC( boolNot_I, return   INT(ARG0) == integer(0); )
 FUNC( boolNot_F, return   FLT(ARG0) == 0.0;        )
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Arithmetics - binary operations
-// #################################################################################################
+//##################################################################################################
 
 #if defined(_MSC_VER)
     #pragma warning( push )
@@ -443,12 +443,11 @@ Calculus::BinaryOpOptimizationsTableEntry  binaryOperatorOptimizations[] =
 } // anonymous namespace
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Arithmetics - Constructor. Creates the hash map
-// #################################################################################################
+//##################################################################################################
 Arithmetics::Arithmetics( Compiler& compiler )
-: Calculus( "ALib Arithmetics", compiler, CompilePriorities::Arithmetics )
-{
+: Calculus( "ALib Arithmetics", compiler, CompilePriorities::Arithmetics ) {
     constexpr int tableSize= 9;
     Token functionNames[tableSize];
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPA", functionNames
@@ -477,8 +476,7 @@ Arithmetics::Arithmetics( Compiler& compiler )
 
     AddOperators( OperatorTable );
 
-    if( HasBits(compiler.CfgCompilation, Compilation::AllowBitwiseBooleanOperators ) )
-    {
+    if( HasBits(compiler.CfgCompilation, Compilation::AllowBitwiseBooleanOperators ) ) {
         AddOperatorAliases( bitwiseOpsAliasBooleanOps );
         AddOperatorAlias  ( A_CHAR("~"), Types::Boolean, Types::Void, A_CHAR("!") );
     }
@@ -490,27 +488,23 @@ Arithmetics::Arithmetics( Compiler& compiler )
                        descriptor - functionNames, tableSize)
 }
 
-bool Arithmetics::TryCompilation( CIFunction& ciFunction )
-{
+bool Arithmetics::TryCompilation( CIFunction& ciFunction ) {
     if( Calculus::TryCompilation( ciFunction ) )
         return true;
 
-    if( ciFunction.QtyArgs() == 1 && ciFunction.ArgsBegin->IsArray() )
-    {
+    if( ciFunction.QtyArgs() == 1 && ciFunction.ArgsBegin->IsArray() ) {
         constexpr int tableSize= 1;
         Token functionNames[tableSize];
 
         strings::util::LoadResourcedTokens( EXPRESSIONS, "CPALen", functionNames
                                             ALIB_DBG(,tableSize)                     );
 
-        if( functionNames[0].Match( ciFunction.Name ) )
-        {
+        if( functionNames[0].Match( ciFunction.Name ) ) {
             ciFunction.Name.Reset( functionNames[0] );
 ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
 
             // for constants, the callback might b invoked right away (optimizing call out)
-            if( ciFunction.AllArgsAreConst )
-            {
+            if( ciFunction.AllArgsAreConst ) {
                 ciFunction.TypeOrValue      = ciFunction.ArgsBegin->UnboxLength();
                 return true;
             }
@@ -519,8 +513,7 @@ ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
             ciFunction.TypeOrValue          = Types::Integer;
 
             return true;
-        }
-    }
+    }   }
 
     return false;
 }

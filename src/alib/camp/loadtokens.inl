@@ -8,7 +8,7 @@
 ALIB_EXPORT namespace alib::strings::util {
 
 #if DOXYGEN
-//==========================================================================================
+//==================================================================================================
 /// Shortcut to the sibling function \alib{strings::util;LoadResourcedTokens} that accepts a module
 /// and uses its resource pool and resource category.
 ///
@@ -26,7 +26,7 @@ ALIB_EXPORT namespace alib::strings::util {
 ///
 /// \par Module Dependencies
 ///   This method is only available if module \alib_camp is included in the \alibbuild.
-//==========================================================================================
+//==================================================================================================
 inline
 void LoadResourcedTokens( camp::Camp&           module,
                           const NString&        resourceName,
@@ -49,6 +49,3 @@ void LoadResourcedTokens( camp::Camp&           module,
 #endif // DOXYGEN
 
 } // namespace [alib::strings::util]
-
-
-

@@ -24,8 +24,7 @@ struct EnumRecordKey
     /// @param element  Assigned to #Element.
     EnumRecordKey(const std::type_info& rtti, integer element)
     : RTTI   (rtti)
-    , Element(element)
-    {}
+    , Element(element)                                                                            {}
 
     /// Hash functor for this key type.
     struct Hash
@@ -33,8 +32,7 @@ struct EnumRecordKey
         /// Calculate hash code.
         /// @param key  The key to calculate a hash value for.
         /// @return A hash code for this key.
-        std::size_t operator()( const EnumRecordKey & key ) const
-        {
+        std::size_t operator()( const EnumRecordKey & key )                                  const {
             size_t result=    key.RTTI.hash_code()
                             ^ size_t(key.Element);
             #if ALIB_SIZEOF_INTEGER == 4
@@ -54,7 +52,7 @@ struct EnumRecordKey
         /// @param rhs  The right-hand side value.
         /// @return \c true if the two keys are equal, \c false otherwise.
         bool operator()( const EnumRecordKey & lhs,
-                         const EnumRecordKey & rhs ) const
+                         const EnumRecordKey & rhs )                                           const
         {
             return    lhs.RTTI    == rhs.RTTI
                    && lhs.Element == rhs.Element;

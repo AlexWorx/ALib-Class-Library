@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions.Impl;
     import   ALib.Characters.Functions;
@@ -29,7 +29,7 @@
 #   include "ALib.Strings.Calendar.H"
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -54,12 +54,11 @@ namespace alib {  namespace expressions { namespace plugins {
 
 namespace {
 
-// #################################################################################################
+//##################################################################################################
 // ### Reverse generation: convert program constants to expression strings
-// #################################################################################################
+//##################################################################################################
 DOX_MARKER([DOX_EXPR_FToLiteral_3])
-void FToLiteral_Duration( const Box& constantValue, AString& expressionString )
-{
+void FToLiteral_Duration( const Box& constantValue, AString& expressionString ) {
     // Unbox the time span and convert to nanoseconds
     auto value= constantValue.Unbox<DateTime::Duration>().InNanoseconds();
 
@@ -67,49 +66,35 @@ void FToLiteral_Duration( const Box& constantValue, AString& expressionString )
     NString result;
     if( value == 0 )
         result= "Milliseconds";
-    else
-    {
+    else {
         result= "Nanoseconds";
 
-        if( (value % 1000) == 0 )
-        {
+        if( (value % 1000) == 0 ) {
             value/= 1000;
             result= "Microseconds";
-            if( (value % 1000) == 0 )
-            {
+            if( (value % 1000) == 0 ) {
                 value/= 1000;
                 result= "Milliseconds";
-                if( (value % 1000) == 0 )
-                {
+                if( (value % 1000) == 0 ) {
                     value/= 1000;
                     result= "Seconds";
-                    if( (value % 60) == 0 )
-                    {
+                    if( (value % 60) == 0 ) {
                         value/= 60;
                         result= "Minutes";
-                        if( (value % 60) == 0 )
-                        {
+                        if( (value % 60) == 0 ) {
                             value/= 60;
                             result= "Hours";
-                            if( (value % 24) == 0 )
-                            {
+                            if( (value % 24) == 0 ) {
                                 value/= 24;
                                 result= "Days";
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    }   }   }   }   }   }   }
 
     // wWite the function argument
     expressionString << result << '(' << value << ')' ;
 }
 DOX_MARKER([DOX_EXPR_FToLiteral_3])
 
-void FToLiteral_DateTime( const Box& constantValue, AString& expressionString )
-{
+void FToLiteral_DateTime( const Box& constantValue, AString& expressionString ) {
     CalendarDateTime ct( constantValue.Unbox<DateTime>(), lang::Timezone::UTC );
 
     expressionString << "UTCDateTime( " << ct.Year         << ','
@@ -122,9 +107,9 @@ void FToLiteral_DateTime( const Box& constantValue, AString& expressionString )
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // ### DateTime
-// #################################################################################################
+//##################################################################################################
 FUNC( dateTime        , auto qtyArgs= end-args;
                         return CalendarDateTime(                int( INT(ARG0) )         , // year
                                              ( qtyArgs> 1  ) ?  int( INT(*(args+1)) ) : 1, // month
@@ -174,9 +159,9 @@ FUNC( utcMinute       , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::
 FUNC( utcMillisecond  , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Millisecond); )
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Duration
-// #################################################################################################
+//##################################################################################################
 
 
 // constructor functions
@@ -244,9 +229,9 @@ FUNC(   smDUR    , return  DUR(ARG0)  <  DUR(ARG1);   )
 FUNC( smeqDUR    , return  DUR(ARG0)  <= DUR(ARG1);   )
 
 
-// #################################################################################################
+//##################################################################################################
 // ### Duration
-// #################################################################################################
+//##################################################################################################
 Calculus::OperatorTableEntry  binaryOpTableDateTime[] =
 {
     { A_CHAR("+") , Types::DateTime , Types::Duration , CALCULUS_CALLBACK( add_DTDUR ), Types::DateTime ,Calculus::CTI },
@@ -280,11 +265,10 @@ Calculus::OperatorTableEntry  binaryOpTableDateTime[] =
 } // anonymous namespace
 
 
-// #################################################################################################
+//##################################################################################################
 // ### DateAndTime - Constructor. Creates the hash map
-// #################################################################################################
-void  DateAndTime::Bootstrap()
-{
+//##################################################################################################
+void  DateAndTime::Bootstrap() {
 DOX_MARKER([DOX_EXPR_FToLiteral_2])
 // register ToLiteral interface for class DateTime::Duration with boxing
 boxing::BootstrapRegister<FToLiteral, time::DateTime::Duration>( FToLiteral_Duration );
@@ -293,8 +277,7 @@ boxing::BootstrapRegister<FToLiteral, time::DateTime          >( FToLiteral_Date
 }
 
 DateAndTime::DateAndTime( Compiler& compiler )
-: Calculus( "ALib DateAndTime", compiler, CompilePriorities::DateAndTime )
-{
+: Calculus( "ALib DateAndTime", compiler, CompilePriorities::DateAndTime ) {
     // load identifier/function names from resources
     constexpr int tableSize= 58;
     Token functionNames[tableSize];

@@ -7,7 +7,7 @@
 //==================================================================================================
 
 ALIB_EXPORT namespace alib {  namespace boxing  {
-class Box; 
+class Box;
 
 //==================================================================================================
 /// This built-in \ref alib_boxing_functions "box function" constitutes the concept of
@@ -181,7 +181,7 @@ struct FEquals
 ///
 ///      return std::type_index( self.TypeID() ) < std::type_index( rhs.TypeID() );
 ///
-/// With this scheme in place, for example \c std::sort will work properly on containers of boxes of
+/// With this scheme in place, for example, \c std::sort will work properly on containers of boxes of
 /// mixed types. The following sample demonstrates this. It uses a specialization of
 /// \c std::less<T> for type \b Box. This is found in a compatibility header:
 ///
@@ -492,5 +492,3 @@ using     FAppend       =   boxing::FAppend<TChar, TAllocator>;
 #endif
 
 } // namespace [alib::boxing]
-
-

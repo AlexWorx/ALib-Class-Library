@@ -8,7 +8,7 @@
 #if !ALIB_SINGLE_THREADED
 ALIB_EXPORT namespace alib {  namespace threads {
 
-// =================================================================================================
+//==================================================================================================
 /// This class is a simple wrapper around C++ standard library type \c std::shared_mutex.
 /// Thus, it is used to implement <em>mutual exclusive access</em> to resources by protecting
 /// critical code sections from being executed in parallel in concurrent threads, while
@@ -48,9 +48,9 @@ ALIB_EXPORT namespace alib {  namespace threads {
 /// This type is not available if the compiler-symbol \ref ALIB_SINGLE_THREADED is set.
 ///
 /// @see
-///  - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
-///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
-// =================================================================================================
+///   - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
+///   - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+//==================================================================================================
 class SharedLock
 #if ALIB_DEBUG_CRITICAL_SECTIONS
 : public lang::DbgCriticalSections::AssociatedLock
@@ -66,7 +66,7 @@ class SharedLock
         /// \note With debug-compilations, this is of type <c>std::timed_mutex</c>.
         std::shared_mutex        mutex;
     #else
-        std::shared_timed_mutex  mutex;
+    std::shared_timed_mutex  mutex;
     #endif
 
   public:
@@ -74,30 +74,23 @@ class SharedLock
     DbgSharedLockAsserter        Dbg;
 
     /// Warning-threshold of maximum number of parallel shared acquisitions.<br>
-    /// Defaults to 10.
-    std::atomic<int>     DbgWarningMaximumShared                                                =10;
+    /// Defaults to 1000.
+    std::atomic<int>            DbgWarningMaximumShared                                       =1000;
   #endif
   public:
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Destructor. With debug-compilations, asserts that this lock is not acquired.
-        ~SharedLock()    override
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
+    ALIB_DLL virtual bool DCSIsAcquired()                                            const override;
 
-        /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
-        ALIB_DLL virtual bool DCSIsAcquired()                                        const override;
-
-        /// @return \c true if the lock is shared-acquired (by at least any thread).
-        ///            Otherwise, returns \c false.
-        ALIB_DLL virtual bool DCSIsSharedAcquired()                                  const override;
-    #elif ALIB_DEBUG
-        ~SharedLock()
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is shared-acquired (by at least any thread).
+    ///            Otherwise, returns \c false.
+    ALIB_DLL virtual bool DCSIsSharedAcquired()                                      const override;
     #endif
 
-  // ===============================================================================================
+  //================================================================================================
   // ====  Standard Acquire/Release (Writer)
-  // ===============================================================================================
+  //================================================================================================
 
   #if ALIB_DEBUG || DOXYGEN
     /// Acquires this lock.
@@ -107,8 +100,8 @@ class SharedLock
     ///
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-     ALIB_DLL
-     void  Acquire( ALIB_DBG_TAKE_CI );
+    ALIB_DLL
+    void  Acquire( ALIB_DBG_TAKE_CI );
 
     /// Tries to acquire this lock.
     /// Multiple (nested) successful calls to this method or method #Acquire are not supported and
@@ -138,9 +131,9 @@ class SharedLock
   #endif
 
 
-  // ===============================================================================================
+  //================================================================================================
   // ====  Shared Acquire/Release (Reader)
-  // ===============================================================================================
+  //================================================================================================
   #if ALIB_DEBUG || DOXYGEN
     /// Acquires this lock in shared mode.
     /// In the case that this object is already owned (not shared) by another thread, the invoking
@@ -191,4 +184,3 @@ using     SharedLock= threads::SharedLock;
 
 } // namespace [alib]
 #endif // !ALIB_SINGLE_THREADED
-

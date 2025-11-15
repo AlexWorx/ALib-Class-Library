@@ -24,14 +24,14 @@ namespace ut_aworx {
 UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
-//--- PathSpecialDirectories
+//--- Path
 //--------------------------------------------------------------------------------------------------
-UT_METHOD(PathSpecialDirectories)
+UT_METHOD(Path)
 {
     UT_INIT()
 
+    // Special Directories
     UT_PRINT("") UT_PRINT( "### Directory::SpecialFolders ###" )
-
     {
         Path dir( SystemFolders::Current );
         UT_PRINT( String512() << "The current directory is:     "  << dir )
@@ -79,6 +79,18 @@ UT_METHOD(PathSpecialDirectories)
         UT_PRINT( String512() << "The VarTemp directory is:     " << dir )
         UT_TRUE( dir.IsNotEmpty() )    UT_TRUE( dir.IsDirectory() )
     }
+
+    // Various
+
+    #if !defined(_WIN32)
+    {  Path p= A_PATH( "/"    ) ; UT_EQ( A_PATH("/") , p.Parent(  ) ) }
+    {  Path p= A_PATH( "/test") ; UT_EQ( A_PATH("/") , p.Parent(  ) ) }
+    {  Path p= A_PATH( "test" ) ; UT_EQ( A_PATH("" ) , p.Parent(  ) ) }
+
+    {  Path p= A_PATH("/"    ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("/"   )), p ) }
+    {  Path p= A_PATH("/test") ; UT_TRUE(  p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("/"   )), p ) }
+    {  Path p= A_PATH("test" ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("test")), p ) }
+    #endif
 }
 
 
@@ -147,9 +159,7 @@ UT_METHOD(Processes)
             nextPID= pi.PPID;
         }
 
-
     #elif defined(_WIN32)
-
 
         output.Reset( "PID:               " ) << currentProcess.PID;                      UT_PRINT( output )
         output.Reset( "CmdLine:           " ) << currentProcess.CmdLine;                  UT_PRINT( output )
@@ -160,6 +170,202 @@ UT_METHOD(Processes)
     #endif
 }
 
+//--------------------------------------------------------------------------------------------------
+//--- ShellCommand
+//--------------------------------------------------------------------------------------------------
+UT_METHOD(ShellCommand)
+{
+    UT_INIT()
+
+    UT_PRINT("") UT_PRINT( "### Class ShellCommand ###" )
+
+    // MonoAllocator version
+    {
+        LocalAllocator4K ma;
+        ShellCommandMA shellCmd(ma);
+
+        UT_PRINT("Passing invalid command")
+        NCString cmd= "notacommand";
+        int cmdResult= shellCmd.Run(cmd);
+    #if !defined(_WIN32)
+        UT_EQ( 127, cmdResult)
+    #else
+        UT_EQ(   1, cmdResult)
+    #endif
+        UT_EQ( 0UL, shellCmd.size())
+
+    #if !defined(_WIN32)
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/system";
+    #else
+        NString256 cmdBuf("dir " ALIB_BASE_DIR "\\src\\alib\\system" );
+        cmdBuf.SearchAndReplace('/', '\\'),
+        cmd= cmdBuf;
+    #endif
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= shellCmd.Run(cmd);
+        UT_EQ(   0, cmdResult)
+    #if !defined(_WIN32)
+        UT_EQ(17UL, shellCmd.size())
+    #else
+        UT_EQ(21UL, shellCmd.size())
+    #endif
+    #if !defined(_WIN32)
+        if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : shellCmd )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+        }
+
+        UT_PRINT("Cmd: {!Q'}  (repeated)", cmd)
+        cmdResult= shellCmd.Run(cmd);
+        UT_EQ(   0, cmdResult)
+        if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : shellCmd )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(17UL, shellCmd.size())
+        }
+
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/threadmodel";
+        UT_PRINT("Cmd: {!Q'}  (without clearing old)", cmd)
+        cmdResult= shellCmd.Run(cmd, lang::CurrentData::Keep);
+        UT_EQ(   0, cmdResult)
+        if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : shellCmd )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(28UL, shellCmd.size())
+        }
+    #endif
+    }
+
+    #if !defined(_WIN32)
+    // HeapAllocator version (mainly for testing compilation)
+    {
+        ShellCommand shellCmd;
+
+        UT_PRINT("Passing invalid command")
+        NCString cmd= "notacommand";
+        int cmdResult= shellCmd.Run(cmd);
+        UT_EQ( 127, cmdResult)
+        UT_EQ( 0UL, shellCmd.size())
+
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/system";
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= shellCmd.Run(cmd);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(17UL, shellCmd.size())
+        if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : shellCmd )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(17UL, shellCmd.size())
+        }
+    }
+
+    // PoolAllocator version (mainly for testing compilation, has no template instantiation)
+    {
+        LocalAllocator8K ma;
+        PoolAllocator pa(ma);
+        system::TShellCommand<PoolAllocator> shellCmd(pa);
+
+        UT_PRINT("Passing invalid command")
+        NCString cmd= "notacommand";
+        int cmdResult= shellCmd.Run(cmd);
+        UT_EQ( 127, cmdResult)
+        UT_EQ( 0UL, shellCmd.size())
+
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/system";
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= shellCmd.Run(cmd);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(17UL, shellCmd.size())
+        if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : shellCmd )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(17UL, shellCmd.size())
+        }
+    }
+
+    // Static usage version
+    {
+        LocalAllocator4K ma;
+        NAStringMA as(ma.AsMonoAllocator());
+        NStringVectorMA sv(ma);
+
+        UT_PRINT("Passing invalid command")
+        NCString cmd= "notacommand";
+        int cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
+        UT_EQ( 127, cmdResult)
+        UT_EQ( 0UL, sv.size())
+
+        // read directory
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/system";
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(17UL, sv.size())
+        if ( cmdResult == 0 && as.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : sv )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(17UL, sv.size())
+        }
+
+        // read a next directory
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/threadmodel";
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(28UL, sv.size())
+        if ( cmdResult == 0 && as.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : sv )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(28UL, sv.size())
+        }
+
+        // repeat without providing the vector (test nullptr checks)
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        integer oldBuffLen= as.Length();
+        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(28UL, sv.size())
+        UT_TRUE(oldBuffLen + 20 < as.Length() )
+        if ( cmdResult == 0 && as.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : sv )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(28UL, sv.size())
+        }
+    }
+    #endif
+}
 
 //--------------------------------------------------------------------------------------------------
 //--- ByteSize

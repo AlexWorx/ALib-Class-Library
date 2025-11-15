@@ -13,11 +13,10 @@ namespace alib { namespace monomem {
 #if !DOXYGEN
 #include "ALib.Lang.CIFunctions.H"
 template<typename TAllocator>
-TMonoAllocator<TAllocator>* TMonoAllocator<TAllocator>::Create( ALIB_DBG(const char* pDbgName,)
-                                                                TAllocator&  pAllocator,
-                                                                size_t       initialBufferSizeInKB,
-                                                                unsigned int pBufferGrowthInPercent )
-{
+TMonoAllocator<TAllocator>* TMonoAllocator<TAllocator>::Create(ALIB_DBG(const char* pDbgName,)
+                                                               TAllocator& pAllocator,
+                                                               size_t      initialBufferSizeInKB,
+                                                               unsigned    pBufferGrowthInPercent) {
     using TMA= TMonoAllocator<TAllocator>;
     ALIB_ASSERT_ERROR( initialBufferSizeInKB, "MONOMEM", "Initial buffer of 0kb requested." )
 
@@ -33,8 +32,7 @@ TMonoAllocator<TAllocator>* TMonoAllocator<TAllocator>::Create( ALIB_DBG(const c
 #endif
 
 template<typename TAllocator>
-TMonoAllocator<TAllocator>::~TMonoAllocator()
-{
+TMonoAllocator<TAllocator>::~TMonoAllocator() {
     #if ALIB_DEBUG_CRITICAL_SECTIONS
         DbgCriticalSectionsPH.Destruct();
     #endif
@@ -45,8 +43,7 @@ TMonoAllocator<TAllocator>::~TMonoAllocator()
 
     // first delete recyclable buffers
     auto* cnk= recyclables;
-    while( cnk )
-    {
+    while( cnk ) {
         #if ALIB_DEBUG_MEMORY
             ++cntBuffers;
         #endif
@@ -58,8 +55,7 @@ TMonoAllocator<TAllocator>::~TMonoAllocator()
 
     // then the active ones
     cnk= buffer;
-    while( cnk )
-    {
+    while( cnk ) {
         auto* next= cnk->previous;
         allocMember::GetAllocator().free( cnk, cnk->Size() );
 
@@ -84,8 +80,7 @@ void TMonoAllocator<TAllocator>::Reset( monomem::Snapshot snapshot )
 
     #if ALIB_DEBUG
         // check if a (forbidden!) full reset is requested on a self-contained instance
-        if( snapshot.buffer == nullptr )
-        {
+        if( snapshot.buffer == nullptr ) {
             detail::Buffer* firstBuffer= buffer;
             while( firstBuffer->previous )
                 firstBuffer= firstBuffer->previous;
@@ -121,8 +116,7 @@ void TMonoAllocator<TAllocator>::Reset( monomem::Snapshot snapshot )
 
     // recycle buffers until snapshot buffer or end is found
     detail::Buffer* it= buffer;
-    while( it != snapshot.buffer )
-    {
+    while( it != snapshot.buffer ) {
         #if !ALIB_DEBUG_ALLOCATIONS
             it->reset();
         #else
@@ -137,8 +131,7 @@ void TMonoAllocator<TAllocator>::Reset( monomem::Snapshot snapshot )
 
 
         detail::Buffer* next= it->previous;
-        if ( next == nullptr )
-        {
+        if ( next == nullptr ) {
             #if ALIB_DEBUG_ALLOCATIONS
                 if ( snapshot.actFill != reinterpret_cast<char*>(1) )
                     memset( buffer->act, 0xD2, size_t(buffer->end - buffer->act) );
@@ -182,8 +175,7 @@ void TMonoAllocator<TAllocator>::destructWithExternalBuffer()
 // TMonoAllocator::get/Free
 //==================================================================================================
 template<typename TAllocator>
-char*  TMonoAllocator<TAllocator>::nextBuffer(size_t size, size_t alignment)
-{
+char*  TMonoAllocator<TAllocator>::nextBuffer(size_t size, size_t alignment) {
     // we always have a buffer in place, and this method is called from the inlined allocation
     // function when the current buffer does not fit.
 
@@ -211,8 +203,7 @@ char*  TMonoAllocator<TAllocator>::nextBuffer(size_t size, size_t alignment)
     while( recyclable )
     {                                                                                DBG_ALIGNMENT_INIT(    recyclable )
         char* mem= recyclable->allocate( size, alignment ); DBG_ALIGNMENT_MEASURE( recyclable )
-        if( mem )
-        {
+        if( mem ) {
             *previousPointer= recyclable->previous;
             recyclable->previous= buffer;
             buffer= recyclable;
@@ -251,8 +242,7 @@ void  TMonoAllocator<TAllocator>::GetStatistics( Statistics& result )
     result.CurrentBufferSize= buffer->Size();
     result.CurrentBufferFree= size_t(buffer->end - buffer->act);
 
-    while( it != nullptr )
-    {
+    while( it != nullptr ) {
         result.QtyBuffers++;
         result.HeapSize+=  it->Size();
         result.AllocSize+= it->Size() - size_t(it->end - it->act) - sizeof(detail::Buffer);
@@ -263,13 +253,10 @@ void  TMonoAllocator<TAllocator>::GetStatistics( Statistics& result )
     }
 
     it= recyclables;
-    while( it != nullptr )
-    {
+    while( it != nullptr ) {
         result.QtyRecyclables++;
         result.HeapSizeRecycled+= it->Size();
         it= it->previous;
-    }
-}
+}   }
 
 }} // namespace [alib::monomem]
-

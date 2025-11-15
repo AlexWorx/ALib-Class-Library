@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <vector>
 #include <algorithm>
 #include <any>
 #include "alib/boxing/boxing.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Exceptions;
     import   ALib.Lang;
@@ -48,21 +48,19 @@
 #   include "ALib.Camp.Base.H"
 #   include "ALib.Exceptions.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::exceptions::Exception*, vt_alib_exception )
 
 
 namespace alib::exceptions {
 
-void ERException::Parse()
-{
+void ERException::Parse() {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName       );
                                              ERSerializable::MinimumRecognitionLength= 0;
     enumrecords::bootstrap::EnumRecordParser::Get( DescriptionOrItsResourceName   , true );
 }
 
-Message* Exception::allocMessageLink()
-{
+Message* Exception::allocMessageLink() {
     // find pointer to the last entry pointer;
     detail::ExceptionEntry** tail= &**this;
     while(*tail != nullptr)
@@ -75,28 +73,25 @@ Message* Exception::allocMessageLink()
 }
 
 
-void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool* pool, const NString& category )
-{
+void Exception::finalizeMessage( Message*       message,
+                                 bool           hasRecord,
+                                 ResourcePool*  pool,
+                                 const NString& category ) {
     message->CloneAll();
 
-    if( hasRecord )
-    {
+    if( hasRecord ) {
         #if ALIB_DEBUG
         {
             auto* tryRecord= boxing::TryRecord<ERException>(message->Type);
-            if( tryRecord == nullptr )
-            {
+            if( tryRecord == nullptr ) {
                 std::vector<std::pair<integer,const void*>> recordList;
                 for( auto& record : enumrecords::detail::getInternalRecordMap() )
                     if( record.first.RTTI == message->Type.TypeID() )
                         recordList.push_back( std::pair<integer,const void*>(record.first.Element, record.second) );
-                if( recordList.size() == 0)
-                {
+                if( recordList.size() == 0) {
                     ALIB_ERROR( "EXCEPT", "No enum records defined for exception enumeration "
                                           "type {!Q<>}.", message->Type.TypeID().name() )
-                }
-                else
-                {
+                } else {
                     std::sort( recordList.begin(), recordList.end(),
                     [] (std::pair<integer,const void*>& a, std::pair<integer,const void*>& b )
                        {
@@ -108,16 +103,13 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
                     args.emplace_back( message->Type.Integral() );
                     args.emplace_back( &message->Type.TypeID()   );
 
-                    for( auto& pair : recordList )
-                    {
+                    for( auto& pair : recordList ) {
                         args.emplace_back( "  {}: {}\n" );
                         args.emplace_back( pair.first );
                         args.emplace_back( reinterpret_cast<const ERException*>( pair.second )->EnumElementName );
                     }
                     assert::raise( ALIB_CALLER_PRUNED, 1, "EXCEPT", args );
-                }
-            }
-        }
+        }   }   }
         #endif
         const auto& enumRecord= boxing::GetRecord<ERException>(message->Type);
         if( pool == nullptr )
@@ -128,12 +120,10 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
                               pool->Get( category,
                                          enumRecord.DescriptionOrItsResourceName
                                               ALIB_DBG(, true)                         )  );
-    }
-}
+}   }
 
 
-Message&   Exception::Back() const
-{
+Message&   Exception::Back()                                                                 const {
     auto* result= **this;
     while( result->next != nullptr )
         result= result->next;
@@ -141,12 +131,10 @@ Message&   Exception::Back() const
     return result->message;
 }
 
-int   Exception::Size() const
-{
+int   Exception::Size()                                                                      const {
     int result= 1;
     auto* entry= **this;
-    while( entry->next != nullptr )
-    {
+    while( entry->next != nullptr ) {
         entry= entry->next;
         ++result;
     }
@@ -154,8 +142,7 @@ int   Exception::Size() const
     return result;
 }
 
-const Enum&   Exception::Type() const
-{
+const Enum&   Exception::Type()                                                              const {
     auto* entry= **this;
     Enum* result= &entry->message.Type;
     while( (entry= entry->next) != nullptr )
@@ -167,8 +154,7 @@ const Enum&   Exception::Type() const
 
 
 #if ALIB_FORMAT
-AString&   Exception::Format( AString& target )     const
-{
+AString&   Exception::Format( AString& target )                                              const {
     Paragraphs text(target);
     Tokenizer tknzr;
     tknzr.TrimChars= A_CHAR( "\r" );
@@ -177,8 +163,7 @@ AString&   Exception::Format( AString& target )     const
     Formatter& formatter= *Formatter::Default;
     formatter.GetArgContainer();
     size_t entryNo= 1;
-    for ( auto entry= begin(); entry != end(); ++entry )
-    {
+    for ( auto entry= begin(); entry != end(); ++entry ) {
         text.Add( A_CHAR("{}{}: {!Q<>}"), (entry->Type.Integral() >= 0 ? 'E' : 'I'), entryNo, entry->Type );
         text.PushIndent( A_CHAR("    ") );
         try
@@ -216,8 +201,7 @@ AString&   Exception::Format( AString& target )     const
 #if ALIB_CAMP
 namespace alib::system {
 
-Exception CreateSystemException( const CallerInfo& ci, int errNo )
-{
+Exception CreateSystemException( const CallerInfo& ci, int errNo ) {
     auto* enumRecord= enumrecords::TryRecord( SystemErrors(errNo) );
     if( enumRecord == nullptr )
         return Exception( ci, SystemErrors::UNKNOWN, errNo );

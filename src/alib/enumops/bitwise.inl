@@ -18,9 +18,9 @@ ALIB_EXPORT namespace alib {
 ///   namespace documentation indicates!
 namespace enumops {
 
-// #################################################################################################
+//##################################################################################################
 // struct BitwiseTraits
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// Simple type trait that inherits <c>std::false_type</c> by default.
@@ -34,8 +34,8 @@ namespace enumops {
 /// - \alib{enumops::bitwise;operator^}
 /// - \alib{enumops::bitwise;operator^=}
 /// - \alib{enumops::bitwise;operator~}
-/// - \alib{enumops::bitwise;operator+}  (Alias for \alib{enumops::bitwise;operator|})
-/// - \alib{enumops::bitwise;operator-}  (Alias for a combination of operators
+/// - \alib{enumops::bitwise;operator+} (Alias for \alib{enumops::bitwise;operator|})
+/// - \alib{enumops::bitwise;operator-} (Alias for a combination of operators
 ///   \alib{enumops::bitwise;operator&} and \alib{enumops::bitwise;operator~})
 /// - \alib{enumops::bitwise;operator+=} (An alias for \alib{enumops::bitwise;operator|=})
 /// - \alib{enumops::bitwise;operator-=} (Removes given bit(s) )
@@ -57,7 +57,7 @@ namespace enumops {
 ///   - For details and a source code sample see chapter \ref alib_enums_arithmetic_bitwise
 ///     of the Programmer's Manual of the module \alib_enumops.
 ///
-///  \I{#############################################################################################}
+/// \I{#############################################################################################}
 /// # Restrictions #
 /// For technical reasons, this concept is not applicable to enum types that are defined as
 /// \c private or \c protected inner types of structs or classes.
@@ -83,9 +83,9 @@ ALIB_WARNINGS_RESTORE
 } // namespace alib[::enumops]
 } // namespace [alib]
 
-// #################################################################################################
+//##################################################################################################
 // Bitwise Operators
-// #################################################################################################
+//##################################################################################################
 // For documentation, all operators and enum related template functions are faked into namespace
 // alib::enumops
 #if DOXYGEN
@@ -116,8 +116,7 @@ ALIB_EXPORT namespace bitwise {
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator&  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator&  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum(TBits(lhs) & TBits(rhs));
 }
@@ -133,8 +132,7 @@ constexpr TEnum operator&  (TEnum  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator&=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator&=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TBits(lhs) & TBits(rhs) );
 }
@@ -150,8 +148,7 @@ constexpr TEnum operator&=  (TEnum&  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator|  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator|  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum(TBits(lhs) | TBits(rhs));
 }
@@ -167,8 +164,7 @@ constexpr TEnum operator|  (TEnum  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator|=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator|=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TBits(lhs) | TBits(rhs) );
 }
@@ -184,8 +180,7 @@ constexpr TEnum operator|=  (TEnum&  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator^  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator^  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum(TBits(lhs) ^ TBits(rhs));
 }
@@ -201,8 +196,7 @@ constexpr TEnum operator^  (TEnum  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator^=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator^=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TBits(lhs) ^ TBits(rhs) );
 }
@@ -221,8 +215,7 @@ constexpr TEnum operator^=  (TEnum&  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr TEnum operator~ (TEnum  op) noexcept
-{
+constexpr TEnum operator~ (TEnum  op)                                                     noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum( ~ TBits(op) );
 }
@@ -231,7 +224,7 @@ constexpr TEnum operator~ (TEnum  op) noexcept
 /// Alias to bitwise \b or operator usable with scoped enum types.<br>
 /// Selected by the compiler only if \alib{enumops;BitwiseTraits} is specialized for
 /// template enum type \p{TEnum} to inherit \c std::true_type and if \alib{enumops;ArithmeticalTraits}
-/// is \b not specialized to inherit  \c std::true_type. The latter is to avoid ambiguities in
+/// is \b not specialized to inherit \c std::true_type. The latter is to avoid ambiguities in
 /// situations where an enum is both, arithmetical and bitwise.
 ///
 /// @tparam TEnum      Enumeration type.
@@ -242,8 +235,7 @@ ALIB_EXPORT
 template<typename TEnum>
 requires (     alib::enumops::IsBitwise     <TEnum>
            && !alib::enumops::IsArithmetical<TEnum> )
-constexpr TEnum operator+  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator+  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum(TBits(lhs) | TBits(rhs));
 }
@@ -262,8 +254,7 @@ ALIB_EXPORT
 template<typename TEnum>
 requires (     alib::enumops::IsBitwise     <TEnum>
            && !alib::enumops::IsArithmetical<TEnum> )
-constexpr TEnum operator+=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator+=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TBits(lhs) | TBits(rhs) );
 }
@@ -274,7 +265,7 @@ constexpr TEnum operator+=  (TEnum&  lhs, TEnum rhs) noexcept
 ///
 /// Selected by the compiler only if \alib{enumops;BitwiseTraits} is specialized for
 /// template enum type \p{TEnum} to inherit \c std::true_type  and if \alib{enumops;ArithmeticalTraits}
-/// is \b not specialized to inherit  \c std::true_type. The latter is to avoid ambiguities in
+/// is \b not specialized to inherit \c std::true_type. The latter is to avoid ambiguities in
 /// situations where an enum is both, arithmetical and bitwise.
 ///
 /// @tparam TEnum       Enumeration type.
@@ -285,8 +276,7 @@ ALIB_EXPORT
 template<typename TEnum>
 requires (     alib::enumops::IsBitwise     <TEnum>
            && !alib::enumops::IsArithmetical<TEnum> )
-constexpr TEnum operator-  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator-  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return TEnum( TBits(lhs) & (~TBits(rhs)) );
 }
@@ -297,7 +287,7 @@ constexpr TEnum operator-  (TEnum  lhs, TEnum rhs) noexcept
 ///
 /// Selected by the compiler only if \alib{enumops;BitwiseTraits} is specialized for
 /// template enum type \p{TEnum} to inherit \c std::true_type and if \alib{enumops;ArithmeticalTraits}
-/// is \b not specialized to inherit  \c std::true_type. The latter is to avoid ambiguities in
+/// is \b not specialized to inherit \c std::true_type. The latter is to avoid ambiguities in
 /// situations where an enum is both, arithmetical and bitwise.
 ///
 /// @tparam TEnum       Enumeration type.
@@ -308,8 +298,7 @@ ALIB_EXPORT
 template<typename TEnum>
 requires (     alib::enumops::IsBitwise     <TEnum>
            && !alib::enumops::IsArithmetical<TEnum> )
-constexpr TEnum operator-=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator-=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TBits(lhs) & (~TBits(rhs)) );
 }
@@ -333,8 +322,7 @@ ALIB_EXPORT namespace alib {
 /// @return \c true if all bits of \p{selection} are set in \p{element}.
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr bool HasBits(TEnum  element, TEnum selection)                           noexcept
-{
+constexpr bool HasBits(TEnum  element, TEnum selection)                                   noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return ( TBits(element) & TBits(selection) ) == TBits(selection);
 }
@@ -354,14 +342,13 @@ constexpr bool HasBits(TEnum  element, TEnum selection)                         
 /// @return \c true if one of the bits of \p{selection} are set in \p{element}.
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr bool HasOneOf(TEnum  element, TEnum selection)                                                   noexcept
-{
+constexpr bool HasOneOf(TEnum  element, TEnum selection)                                  noexcept {
     using TBits= typename std::underlying_type<TEnum>::type;
     return ( TBits(element) & TBits(selection) ) != TBits(0);
 }
 
 /// Returns the number of bitwise enumeration elements set in the given value.
-/// In other words, the bits given in \p value are counted and the number is returned.
+/// In other words, the bits given in \p{value} are counted and the number is returned.
 ///
 /// Selected by the compiler only if \alib{enumops;BitwiseTraits} is specialized for
 /// template enum type \p{TEnum} to inherit \c std::true_type.
@@ -370,13 +357,10 @@ constexpr bool HasOneOf(TEnum  element, TEnum selection)                        
 /// @return The result of a call to #alib::lang::BitCount().
 template<typename TEnum>
 requires alib::enumops::IsBitwise<TEnum>
-constexpr int CountElements( TEnum value )
-{ return lang::BitCount(UnderlyingIntegral(value)); }
+constexpr int CountElements( TEnum value )     { return lang::BitCount(UnderlyingIntegral(value)); }
 
 #if DOXYGEN
 }}} // doxygen namespace [alib::enumops::bitwise]
 #else
 } // namespace [alib]
 #endif
-
-

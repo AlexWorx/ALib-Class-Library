@@ -19,7 +19,6 @@ project("ALib_UnitTests")
 # Settings prior to including the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    # set( ALIB_C20_MODULES                  "On" )
     set( ALIB_PRECOMPILED_HEADER           "On" )
     # set( ALIB_UT_REDUCED_COMPILE_TIME      "On" )
     # set( ALIB_UT_MEASURE_COMPILE_TIME      "On" )
@@ -73,7 +72,7 @@ project("ALib_UnitTests")
     #set( ALIB_FILES_FORCE_STD_SCANNER      "On" )
 
     set( ALIB_DEBUG_CRITICAL_SECTIONS      "On" )
-    set( ALIB_DEBUG_ALLOCATIONS            "On" )
+    #set( ALIB_DEBUG_ALLOCATIONS            "On" )
     #set( ALIB_DEBUG_MEMORY                "On" )
     #set( ALIB_DEBUG_CONTAINERS             "On" )
     #set( ALIB_DEBUG_ARRAY_COMPRESSION      "On" )

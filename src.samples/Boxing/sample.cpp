@@ -82,7 +82,7 @@ void AcceptAny( const Box&  box )
 template <typename... T> void AcceptMany( T&&... args )
 {
     // fetch the arguments into an array of boxes
-    BoxesHA boxes;
+    Boxes boxes;
     boxes.Add( std::forward<T>( args )... );
 
     // process one by one

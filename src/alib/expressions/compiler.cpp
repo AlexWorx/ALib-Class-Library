@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/expressions/expressions.prepro.hpp"
 #include "ALib.Monomem.StdContainers.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions;
     import   ALib.Expressions.Impl;
@@ -28,18 +28,18 @@
 #else
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace expressions {
 
 using namespace detail;
 
-// #################################################################################################
+//##################################################################################################
 // Scope constructor, Clear()
-// #################################################################################################
+//##################################################################################################
 Scope::Scope( SPFormatter& formatter)  // evaluation scope constructor using an own allocator
 : EvalScopeAllocator(MonoAllocator::Create(ALIB_DBG("ExpressionScope",) 1, 200))
 , Allocator         (*EvalScopeAllocator)
-, Stack             (Allocator().New<StdVectorMono<Box>>(Allocator))
+, Stack             (Allocator().New<StdVectorMA<Box>>(Allocator))
 , Formatter         (formatter)
 , NamedResources    (nullptr)
 , EvalScopeVMMembers(Allocator().New<VMMembers>(Allocator))
@@ -51,7 +51,7 @@ Scope::Scope( SPFormatter& formatter)  // evaluation scope constructor using an 
 Scope::Scope( MonoAllocator& allocator, SPFormatter& formatter )
 : EvalScopeAllocator(nullptr) // compile-time scope constructor using the allocator of the expression
 , Allocator         (allocator)
-, Stack             (Allocator().New<StdVectorMono<Box>>(Allocator))
+, Stack             (Allocator().New<StdVectorMA<Box>>(Allocator))
 , Formatter         (formatter)
 , NamedResources    (Allocator().New< HashMap< MonoAllocator,
                                                NString,
@@ -62,21 +62,17 @@ Scope::Scope( MonoAllocator& allocator, SPFormatter& formatter )
 #endif
 {}
 
-Scope::~Scope()
-{
+Scope::~Scope() {
     // Destruct members in vectors and tables.
     freeResources();
     lang::Destruct(*Stack);
-    if ( EvalScopeAllocator )
-    {
+    if ( EvalScopeAllocator ) {
         lang::Destruct(*EvalScopeVMMembers);
         lang::Destruct(*EvalScopeAllocator);
-    }
-}
+}   }
 
 
-void    Scope::freeResources()
-{
+void    Scope::freeResources() {
     Stack->clear();
 
     if ( NamedResources )
@@ -84,8 +80,7 @@ void    Scope::freeResources()
             lang::Destruct(*resource.second);
 }
 
-void    Scope::Reset()
-{
+void    Scope::Reset() {
     ALIB_ASSERT( !IsCompileTime(), "EXPR" )
     
     // save sizes
@@ -99,7 +94,7 @@ void    Scope::Reset()
     Allocator.Reset(sizeof(MonoAllocator), alignof(MonoAllocator));
 
     // create new
-    Stack             = Allocator().New<StdVectorMono<Box>>(Allocator);
+    Stack             = Allocator().New<StdVectorMA<Box>>(Allocator);
     EvalScopeVMMembers= Allocator().New<VMMembers>(Allocator);
 
     // reserve storage of the previous sizes for the next run.
@@ -108,9 +103,9 @@ void    Scope::Reset()
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // Constructor & Setup
-// #################################################################################################
+//##################################################################################################
 Compiler::Compiler()
 : allocator                      (ALIB_DBG("ExpressionCompiler",) 4)
 , typeMap                        (allocator, 2.0, 5.0) // we don't care about speed here, just for log output
@@ -119,8 +114,7 @@ Compiler::Compiler()
 , AlphabeticUnaryOperatorAliases (allocator)
 , AlphabeticBinaryOperatorAliases(allocator)
 , BinaryOperators                (allocator)
-, CfgNormalizationDisallowed     (allocator)
-{
+, CfgNormalizationDisallowed     (allocator) {
     // create a clone of the default formatter.
     CfgFormatter= Formatter::Default->Clone();
 
@@ -152,11 +146,7 @@ Compiler::Compiler()
     CfgNestedExpressionThrowIdentifier= EXPRESSIONS.GetResource( "EFT" );
 }
 
-Compiler::~Compiler()
-{
-    if( Repository != nullptr )
-        delete Repository;
-}
+Compiler::~Compiler()                             { if( Repository != nullptr ) delete Repository; }
 
 Scope* Compiler::createCompileTimeScope(MonoAllocator& ctAllocator)
 {
@@ -164,11 +154,9 @@ Scope* Compiler::createCompileTimeScope(MonoAllocator& ctAllocator)
     return result;
 }
     
-void Compiler::SetupDefaults()
-{
-    //------------- add default unary ops ----------
-    if( HasBits( CfgCompilation, Compilation::DefaultUnaryOperators ) )
-    {
+void Compiler::SetupDefaults() {
+  //------------------------------------- add default unary ops ------------------------------------
+    if( HasBits( CfgCompilation, Compilation::DefaultUnaryOperators ) ) {
         auto enumRecordIt= EnumRecords<DefaultUnaryOperators>::begin();
         ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultUnaryOperators::NONE, "EXPR",
                            "Expected none-operator as first enum record" )
@@ -176,19 +164,16 @@ void Compiler::SetupDefaults()
             AddUnaryOperator( enumRecordIt->EnumElementName );
 
         // default unary op aliases
-        if( HasBits( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
-        {
+        if( HasBits( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) ) {
             // Not -> !
             auto& record= enumrecords::GetRecord( DefaultAlphabeticUnaryOperatorAliases::Not );
             if( record.Symbol.IsNotEmpty() )
                 AlphabeticUnaryOperatorAliases.EmplaceOrAssign( record.Symbol,
                                                                 record.Replacement );
-        }
-    }
+    }   }
 
-    //------------- add default binary ops ----------
-    if( HasBits( CfgCompilation, Compilation::DefaultBinaryOperators ) )
-    {
+  //------------------------------------- add default binary ops -----------------------------------
+    if( HasBits( CfgCompilation, Compilation::DefaultBinaryOperators ) ) {
         auto enumRecordIt= EnumRecords<DefaultBinaryOperators>::begin();
         ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultBinaryOperators::NONE, "EXPR",
                            "Expected none-operator as first enum record" )
@@ -216,7 +201,7 @@ void Compiler::SetupDefaults()
     }
 
 
-    //------------- add default plug-ins ----------
+  //---------------------------------------- add default plug --------------------------------------
     CfgNormalizationDisallowed.emplace_back( A_CHAR("--") );
     CfgNormalizationDisallowed.emplace_back( A_CHAR("++") );
 
@@ -240,11 +225,10 @@ IF_ALIB_CAMP(
         InsertPlugin( new plugins::DateAndTime(*this) , lang::Responsibility::Transfer );        )
 }
 
-// #############################################################################################
+//##################################################################################################
 // Parse and compile
-// #############################################################################################
-Expression   Compiler::Compile( const String& expressionString )
-{
+//##################################################################################################
+Expression   Compiler::Compile( const String& expressionString ) {
     // checks
     ALIB_ASSERT_ERROR( HasPlugins(), "EXPR",
                        "No plug-ins attached. Invoke SetupDefaults() on compiler instance." )
@@ -289,7 +273,8 @@ Expression   Compiler::Compile( const String& expressionString )
         expression->program= new detail::Program( *this, *expression, &allocator );
 
         // assemble
-        ast->Assemble( *static_cast<detail::Program*>(expression->program), allocator, expression->normalizedString );
+        ast->Assemble( *static_cast<detail::Program*>(expression->program), allocator,
+                       expression->normalizedString );
         expression->normalizedString.TrimEnd();
 
         static_cast<detail::Program*>(expression->program)->AssembleFinalize();
@@ -329,20 +314,19 @@ Expression   Compiler::Compile( const String& expressionString )
     return Expression(expression);
 }
 
-void      Compiler::getOptimizedExpressionString( ExpressionVal& expression )
-{
+void      Compiler::getOptimizedExpressionString( ExpressionVal& expression ) {
     detail::AST* ast= nullptr;
     auto startOfDecompilation= allocator.TakeSnapshot();
     try
     {
-	    expression.allocator.DbgLock(false);
+        expression.allocator.DbgLock(false);
         ast                     = detail::VirtualMachine::Decompile( *static_cast<detail::Program*>(expression.program),
                                                                      allocator );
         detail::Program* program= allocator().New<detail::Program>( *this, expression, nullptr );
         ast->Assemble( *program, allocator, expression.optimizedString );
         program->AssembleFinalize();
         lang::Destruct(*program);
-	    expression.allocator.DbgLock(true);
+        expression.allocator.DbgLock(true);
     }
     catch(Exception& )
     {
@@ -353,12 +337,11 @@ void      Compiler::getOptimizedExpressionString( ExpressionVal& expression )
 }
 
 
-// #############################################################################################
+//##################################################################################################
 // Manage named expressions
-// #############################################################################################
+//##################################################################################################
 
-bool           Compiler::AddNamed( const String& name, const String& expressionString )
-{
+bool           Compiler::AddNamed( const String& name, const String& expressionString ) {
     String128 key;
     key.DbgDisableBufferReplacementWarning();
     key << name;
@@ -369,10 +352,8 @@ bool           Compiler::AddNamed( const String& name, const String& expressionS
     bool existed=   it != namedExpressions.end();
 
     // removal requested?
-    if( expressionString.IsNull() )
-    {
-        if ( existed )
-        {
+    if( expressionString.IsNull() ) {
+        if ( existed ) {
             namedExpressions.erase( it );
             return true;
         }
@@ -391,8 +372,7 @@ bool           Compiler::AddNamed( const String& name, const String& expressionS
     return existed;
 }
 
-Expression   Compiler::GetNamed( const String& name )
-{
+Expression   Compiler::GetNamed( const String& name ) {
     // search
     String128 key;
     key.DbgDisableBufferReplacementWarning();
@@ -422,19 +402,17 @@ Expression   Compiler::GetNamed( const String& name )
     return sharedExpression;
 }
 
-// #################################################################################################
+//##################################################################################################
 // Helpers
-// #################################################################################################
-void    Compiler::AddType( Type sample, const NString& name )
-{
+//##################################################################################################
+void    Compiler::AddType( Type sample, const NString& name ) {
     ALIB_DBG( auto it= )
     typeMap.EmplaceIfNotExistent( &sample.TypeID(), name );
     ALIB_ASSERT_ERROR( it.second == true, // is insert
                        "EXPR",  "Type already registered with compiler."  )
 }
 
-NString Compiler::TypeName(Type box)
-{
+NString Compiler::TypeName(Type box) {
     if( box.IsType<void>() )
         return "NONE";
 
@@ -447,23 +425,20 @@ NString Compiler::TypeName(Type box)
     return entry.Mapped();
 }
 
-void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target )
-{
+void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target ) {
     bool variadic= qty && (*(boxArray + qty -1)) == nullptr;
     if( variadic )
         --qty;
 
     target<< '(';
     bool isFirst= true;
-    for( size_t i= 0 ; i <  qty ; ++i )
-    {
+    for( size_t i= 0 ; i <  qty ; ++i ) {
         if(!isFirst)
             target<< ", ";
         isFirst= false;
         target << '<' << TypeName( **boxArray++ ) << '>';
     }
-    if(variadic)
-    {
+    if(variadic) {
         if(!isFirst)
             target<< ", ";
         target<< "...";
@@ -474,8 +449,7 @@ void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& ta
 
 void Compiler::WriteFunctionSignature( ArgIterator  begin,
                                        ArgIterator  end,
-                                       AString&     target  )
-{
+                                       AString&     target  ) {
     std::vector<Box*> buf;
     buf.reserve( size_t(end - begin) );
     while( begin != end )

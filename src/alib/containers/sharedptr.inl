@@ -25,7 +25,7 @@ ALIB_EXPORT namespace alib {  namespace containers {
 /// - This implementation misses an equivalent to method <c>owner_before</c> and corresponding
 ///   comparison operators.
 /// - This implementation misses dedicated array support (at least as of today).
-/// 
+///
 /// Advantages are:
 /// - The type has a footprint of only <c>sizeof(void*)</c>, where the standard's type has
 ///   a size of two pointers.
@@ -64,7 +64,7 @@ class SharedPtr
         size_t                      allocSize;
 
         /// The reference counter used to implement the <c>std::shared_ptr</c> behavior.
-        std::atomic<unsigned int>   refCount;
+        std::atomic<unsigned>       refCount;
 
         /// The instance, either derived or T.
         U                           u;
@@ -95,17 +95,12 @@ class SharedPtr
 
     /// Internal shortcut to receive the custom member.
     /// @return The pointer to the contained type, or \c nullptr in case this is empty.
-    T* getP()                                                                         const noexcept
-    {
-        return members ? reinterpret_cast<T*>(&members->u)
-                       : nullptr;
-    }
+    T* getP()       const noexcept { return members ? reinterpret_cast<T*>(&members->u) : nullptr; }
 
     /// Internal shortcut to receive a reference to the custom member.
     /// Asserts in debug-compilations.
     /// @return A reference the contained type.
-    T& getR()                                                                         const noexcept
-    {
+    T& getR()                                                                       const noexcept {
         ALIB_ASSERT_ERROR( members, "CONTAINERS", "Accessing nulled SharedVal." )
         return reinterpret_cast<T&>(members->u);
     }
@@ -119,12 +114,12 @@ class SharedPtr
     using StoredType   = T;
 
     /// Default Constructor. Leaves this object \e nulled.
-    SharedPtr()                                                    noexcept    : members(nullptr) {}
+    SharedPtr()                                                       noexcept : members(nullptr) {}
 
     /// Constructs an empty instance from \c std::nullptr.
     /// This constructor is necessary to allow assignment of \c std::nullptr to values of this type,
     /// which clears the automatic pointer.
-    SharedPtr(std::nullptr_t)                                      noexcept    : members(nullptr) {}
+    SharedPtr(std::nullptr_t)                                         noexcept : members(nullptr) {}
 
     /// Copy Constructor. Increases the reference counter of the shared pointer (in case given
     /// \p{other} is not nulled).
@@ -144,15 +139,13 @@ class SharedPtr
     /// necessary, and then the object in \p{other} is copied to this object.
     /// @param other The object to copy into this one.
     /// @return A reference to \c this.
-    SharedPtr& operator=(const SharedPtr& other)                                            noexcept
-    {
+    SharedPtr& operator=(const SharedPtr& other)                                          noexcept {
         // handle self assignment and assignment with same contents
         if (this == &other || this->members == other.members)
             return *this;
 
         // decrement the old reference count and delete the old data if needed
-        if (members && members->refCount.fetch_sub(1) == 1)
-        {
+        if (members && members->refCount.fetch_sub(1) == 1) {
             lang::Destruct(getR());
             members->GetAllocator().free( members, members->allocSize );
         }
@@ -168,15 +161,13 @@ class SharedPtr
     /// Otherwise, the object in \p{other} is copied to this.
     /// @param other The object to move into this one.
     /// @return A reference to \c this.
-    SharedPtr& operator=(SharedPtr&& other)                                                 noexcept
-    {
+    SharedPtr& operator=(SharedPtr&& other)                                               noexcept {
         // handle self assignment
         if (this == &other)
             return *this;
 
         // decrement the old reference count and delete the old data if needed
-        if (members && members != other.members && members->refCount.fetch_sub(1) == 1)
-        {
+        if (members && members != other.members && members->refCount.fetch_sub(1) == 1) {
             lang::Destruct(getR());
             members->GetAllocator().free( members, members->allocSize );
         }
@@ -200,8 +191,7 @@ class SharedPtr
     /// @param  args       The arguments for constructing \p{T}.
     template<  typename... TArgs, typename TRequires= TAllocator>
     requires ( !std::default_initializable<TRequires> )
-    SharedPtr( TAllocator& allocator, TArgs&&... args )
-    {
+    SharedPtr( TAllocator& allocator, TArgs&&... args ) {
         auto* mem= allocator().template Alloc<FieldMembers<T>>();
         members   = reinterpret_cast<FieldMembers<void*>*>(mem);
         new (members)  FieldMembers<void*>(allocator, &mem->u, sizeof(FieldMembers<T>));
@@ -226,8 +216,7 @@ class SharedPtr
     requires(    std::is_default_constructible_v<TRequires>
               && !std::is_same_v<std::decay_t<TArgs>... , SharedPtr>
               && (sizeof...(TArgs) > 0)                           )
-    SharedPtr(TArgs&&... args)
-    {
+    SharedPtr(TArgs&&... args) {
         auto* mem= TAllocator()().template Alloc<FieldMembers<T>>();
         members   = reinterpret_cast<FieldMembers<void*>*>(mem);
         new (members)  FieldMembers<void*>(&mem->u, sizeof(FieldMembers<T>));
@@ -246,8 +235,7 @@ class SharedPtr
     /// @param  args       The arguments for constructing \p{T}.
     template <typename TDerived, typename TRequires= TAllocator, typename... TArgs>
     requires std::is_default_constructible_v<TRequires>
-    void InsertDerived(TArgs&&... args)
-    {
+    void InsertDerived(TArgs&&... args) {
         // delete any existing
         lang::Destruct(*this);
 
@@ -271,8 +259,7 @@ class SharedPtr
     /// @param  args       The arguments for constructing \p{T}.
     template <typename TDerived, typename TRequires= TAllocator, typename... TArgs>
     requires( !std::is_default_constructible_v<TRequires> )
-    void InsertDerived(TAllocator& allocator, TArgs&&... args)
-    {
+    void InsertDerived(TAllocator& allocator, TArgs&&... args) {
         // delete any existing
         lang::Destruct(*this);
         new (this) SharedPtr(); // note: without this, some compilers complain about
@@ -288,14 +275,11 @@ class SharedPtr
 
     /// Destructor. If this is the last copy, the destructor of \p{T} is invoked and the
     /// memory is freed to \p{TAllocator}.
-    ~SharedPtr()
-    {
-        if (members && members->refCount.fetch_sub(1) == 1)
-        {
+    ~SharedPtr() {
+        if (members && members->refCount.fetch_sub(1) == 1) {
             lang::Destruct(getR());
             members->GetAllocator().free( members, members->allocSize );
-        }
-    }
+    }   }
 
     /// @return The size of the memory that is allocated for the \p{T} as well as for
     ///         the reference counter and the allocator member.
@@ -305,27 +289,25 @@ class SharedPtr
 
     /// @return The allocator given with construction that will be used to free the memory
     ///         that had been allocated, at the moment the use counter becomes \c 0.
-    AllocatorType&    GetAllocator()                                                           const
-    {
+    AllocatorType&    GetAllocator()                                                         const {
         ALIB_ASSERT_ERROR( members, "CONTAINERS", "Accessing nulled SharedVal." )
         return members->GetAllocator();
     }
 
     /// @return The allocator interface of the allocator received with construction.
-    lang::AllocatorInterface<TAllocator> AI()      const noexcept       { return GetAllocator()(); }
+    lang::AllocatorInterface<TAllocator> AI()            const noexcept { return GetAllocator()(); }
 
     /// Returns the number of shared usages.
     /// In a multithreaded environment, the value returned is approximate.
     /// @return \c The number of shared usages.
     ///            If this instance was default-constructed, moved, method #SetNulled was called,
     ///            or \c nullptr was assigned, then \c 0 is returned.
-    unsigned int      UseCount()                                                      const noexcept
+    unsigned          UseCount()                                                      const noexcept
     { return members != nullptr ? members->refCount.load() : 0; }
 
     /// Returns \c true if the #UseCount is \c 1.
     /// @return \c true if this instance is set but not shared.
-    bool              Unique()                                                        const noexcept
-    { return members && members->refCount.load() == 1; }
+    bool              Unique()   const noexcept { return members && members->refCount.load() == 1; }
     
     /// Sets this object to \e nulled state, as if default constructed or \c nullptr was assigned.
     /// If no shared copy exists, all data is destructed and memory is freed.<br>
@@ -371,5 +353,3 @@ template<typename T, typename TAllocator= lang::HeapAllocator>
 using     SharedPtr =   containers::SharedPtr<T, TAllocator>;
 
 } // namespace [alib]
-
-

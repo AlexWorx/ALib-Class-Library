@@ -46,13 +46,12 @@ ALIB_EXPORT namespace alib {  namespace boxing {
 struct Enum : protected Box
 {
     #if !DOXYGEN
-    friend class Box;
+        friend class Box;
     #endif
 
     /// Default constructor.
     Enum()
-    : Box(nullptr)
-    {}
+    : Box(nullptr)                                                                                {}
 
     /// Implicit constructor, which accepts arbitrary elements of scoped or non-scoped enum types.
     ///
@@ -61,13 +60,13 @@ struct Enum : protected Box
     template<typename  TEnum>
     requires std::is_enum<TEnum>::value
     constexpr Enum( TEnum element )
-    : Box( element )                        {}
+    : Box( element )                                                                              {}
 
     /// This is a shortcut to \alib{boxing;Box::Unbox;Box::Unbox<TEnum>()} to retrieve the
     /// original enum element in a type-safe way.
     ///
     /// Before invoking this, the boxed type can be checked with #IsType. If the wrong type
-    /// is tried to be received, an \alib assertion is raised.
+    /// is tried to be received, an \alib_assertion is raised.
     ///
     /// @tparam TEnum       The external (user specific) enumeration type.
     /// @return The underlying integral value of the encapsulated enum element.
@@ -84,28 +83,19 @@ struct Enum : protected Box
     ///   underlying type of the enumeration.
     ///
     /// @return The underlying integral value.
-    integer  Integral()                                                                        const
-    {
-        return data.Integrals.Array[0];
-    }
+    integer  Integral()                                    const { return data.Integrals.Array[0]; }
 
     /// Comparison operator.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object equals \p{rhs}, \c false otherwise.
-    bool operator==(const Enum& rhs)                                                           const
-    {
-        return this->CastToBox() == rhs.CastToBox();
-    }
+    bool operator==(const Enum& rhs)          const { return this->CastToBox() == rhs.CastToBox(); }
 
     /// Comparison operator.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object does not equal \p{rhs}, \c false otherwise.
-    bool operator!=(const Enum& rhs)                                                           const
-    {
-        return this->CastToBox() != rhs.CastToBox();
-    }
+    bool operator!=(const Enum& rhs)          const { return this->CastToBox() != rhs.CastToBox(); }
 
     #if DOXYGEN
     /// Imports \c protected base class's method \alib{boxing;Box::TypeID}.
@@ -126,19 +116,13 @@ struct Enum : protected Box
     /// is lifted.
     ///
     /// @return A mutable reference to this object.
-    Box& CastToBox()
-    {
-        return static_cast<Box&>(*this);
-    }
+    Box& CastToBox()                                            { return static_cast<Box&>(*this); }
 
     /// Same as overloaded version, but returns a \c const reference and consequently this method
     /// is declared\c const itself.
     ///
     /// @return A constant reference to this object.
-    const Box& CastToBox()                                                                     const
-    {
-        return static_cast<const Box&>(*this);
-    }
+    const Box& CastToBox()                          const { return static_cast<const Box&>(*this); }
 
 
     /// Checks if this instance has an enum element of type \p{TEnum} stored.<br>
@@ -155,12 +139,11 @@ struct Enum : protected Box
     /// Comparison operator with enum elements.
     ///
     /// @tparam TEnum       The external (user specific) enumeration type.
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object equals \p{rhs}, \c false otherwise.
     template<typename  TEnum>
     requires std::is_enum<TEnum>::value
-    bool operator==(TEnum rhs)       const
-    {
+    bool operator==(TEnum rhs)                                                               const {
         return Integral() == static_cast<typename std::underlying_type<TEnum>::type>( rhs )
                && TypeID() == typeid( TEnum );
     }
@@ -168,12 +151,11 @@ struct Enum : protected Box
     /// Comparison operator with enum elements.
     ///
     /// @tparam TEnum       The external (user specific) enumeration type.
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object does not equal \p{rhs}, \c false otherwise.
     template<typename  TEnum>
     requires std::is_enum<TEnum>::value
-    bool operator!=(TEnum rhs)       const
-    {
+    bool operator!=(TEnum rhs)                                                               const {
         return Integral() != static_cast<typename std::underlying_type<TEnum>::type>( rhs )
                || TypeID() != typeid( TEnum );
     }
@@ -190,13 +172,12 @@ struct Enum : protected Box
     ///   cannot be determined by the user code.
     ///
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return If the encapsulated type of this instance is the same as that of \p{rhs}, this
     ///         methods returns \c true if #Integral() of this object is smaller than the one of
     ///         \p{rhs} and otherwise \c false. If the types are not the same, than the result is
     ///         dependent on the tool chain (compiler) used for compiling \alib.
-    bool operator< (Enum const& rhs)  const
-    {
+    bool operator< (Enum const& rhs)                                                         const {
         return      (    std::type_index(    TypeID() )
                        < std::type_index(rhs.TypeID() )  )
                 ||  (    TypeID() == rhs.TypeID()
@@ -211,6 +192,3 @@ struct Enum : protected Box
 using     Enum=              boxing::Enum;
 
 } // namespace [alib]
-
-
-

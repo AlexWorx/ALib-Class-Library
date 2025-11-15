@@ -39,19 +39,17 @@ struct Parsed
     Parsed( CommandLine* cmdLine )
     : CmdLine        (cmdLine)
     , Position       ((std::numeric_limits<integer>::max)())
-    , ConsumedArguments(0)
-    {}
+    , ConsumedArguments(0)                                                                        {}
 };
 
 
-// #################################################################################################
+//##################################################################################################
 // Decl and Def versions of commands, options, parameters and ExitCodes
-// #################################################################################################
+//##################################################################################################
 
 
 /// \ref alib_enums_records "ALib Enum Record" type used by class \alib{cli;ParameterDecl}.
- struct ERParameterDecl : public enumrecords::ERSerializable
- {
+struct ERParameterDecl : public enumrecords::ERSerializable {
     /// The identifier of the parameter.
     String      identifier;
 
@@ -73,9 +71,9 @@ struct Parsed
     /// Denotes if this is an optional parameter.
     bool        isOptional;
 
-     /// Default constructor leaving the record undefined. (Implementation required as documented
-     /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
-     ERParameterDecl()                                                          noexcept  = default;
+    /// Default constructor leaving the record undefined. (Implementation required as documented
+    /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
+    ERParameterDecl()                                                             noexcept =default;
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
@@ -91,120 +89,92 @@ struct Parsed
 /// invoked for (each) enum type.
 class ParameterDecl
 {
-    protected:
-        /// The enumeration element given with construction.
-        Enum            declElement;
+  protected:
+    /// The enumeration element given with construction.
+    Enum            declElement;
 
-        /// A copy (!) of the enum record.
-        ERParameterDecl record;
+    /// A copy (!) of the enum record.
+    ERParameterDecl record;
 
-        /// The resource information of the enumeration type given with construction.
-        ResourceInfo    resourceInfo;
+    /// The resource information of the enumeration type given with construction.
+    ResourceInfo    resourceInfo;
 
-    public:
-        /// Templated constructor which takes an enum element of a custom type equipped with
-        /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERParameterDecl}.
-        ///
-        /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
-        /// @param element   The enum element
-        template<typename TEnum>
-        ParameterDecl( TEnum element )
-        : declElement( element )
-        , resourceInfo(element)
-        {
-            // make a copy of the resourced record
-            record= enumrecords::GetRecord(element);
+  public:
+    /// Templated constructor which takes an enum element of a custom type equipped with
+    /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERParameterDecl}.
+    ///
+    /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
+    /// @param element   The enum element
+    template<typename TEnum>
+    ParameterDecl( TEnum element )
+    : declElement( element )
+    , resourceInfo(element) {
+        // make a copy of the resourced record
+        record= enumrecords::GetRecord(element);
 
-            // fix separator character
-            if( record.valueListSeparator == 'C' )
-                record.valueListSeparator= ',';
-        }
+        // fix separator character
+        if( record.valueListSeparator == 'C' )
+            record.valueListSeparator= ',';
+    }
 
-       /// Returns the type and integral value of the enumeration element used with construction.
-       /// @return The enumeration element used with construction.
-        const Enum&     Element()                                                              const
-        {
-            return declElement;
-        }
+    /// Returns the type and integral value of the enumeration element used with construction.
+    /// @return The enumeration element used with construction.
+    const Enum&     Element()                                          const { return declElement; }
 
-        /// Returns the name of the parameter. This is not the identifier. The name is just for
-        /// help and configuration output.
-        ///
-        /// \see Method #Identifier.
-        ///
-        /// @return The name of the enum element.
-        const String&   Name()
-        {
-            return record.EnumElementName;
-        }
+    /// Returns the name of the parameter. This is not the identifier. The name is just for
+    /// help and configuration output.
+    ///
+    /// \see Method #Identifier.
+    ///
+    /// @return The name of the enum element.
+    const String&   Name()                                        { return record.EnumElementName; }
 
-        /// Returns the identifier of the parameter. If this is empty, the parameter is not optional
-        /// and hence has no identifier.
-        ///
-        /// @return The name of the enum element.
-        const String&   Identifier()
-        {
-            return record.identifier;
-        }
+    /// Returns the identifier of the parameter. If this is empty, the parameter is not optional
+    /// and hence has no identifier.
+    ///
+    /// @return The name of the enum element.
+    const String&   Identifier()                                       { return record.identifier; }
 
-        /// Returns the minimum parse length of the identifier.
-        /// @return The minimum characters to satisfy the parameter.
-        int             MinimumRecognitionLength()
-        {
-            return record.MinimumRecognitionLength;
-        }
+    /// Returns the minimum parse length of the identifier.
+    /// @return The minimum characters to satisfy the parameter.
+    int             MinimumRecognitionLength()           { return record.MinimumRecognitionLength; }
 
-        /// An optional separator string (usually "="), that separates the parameter name from a
-        /// parameter value.
-        /// @return The separator string.
-        const String&   ValueSeparator()
-        {
-            return record.valueSeparator;
-        }
+    /// An optional separator string (usually "="), that separates the parameter name from a
+    /// parameter value.
+    /// @return The separator string.
+    const String&   ValueSeparator()                               { return record.valueSeparator; }
 
-        /// A separator character for parsing multiple values.
-        /// @return The separator character.
-        nchar           ValueListSeparator()
-        {
-            return record.valueListSeparator != 'C' ? record.valueListSeparator : ',';
-        }
+    /// A separator character for parsing multiple values.
+    /// @return The separator character.
+    nchar           ValueListSeparator()
+    { return record.valueListSeparator != 'C' ? record.valueListSeparator : ','; }
 
-        /// The number of CLI arguments to consume and store in \alib{cli;Option::Args} with method
-        /// \alib{cli;Parameter::Read}.
-        ///
-        /// @return The parameter identifier.
-        int             QtyExpectedArgsFollowing()
-        {
-            return record.RequiredArguments;
-        }
+    /// The number of CLI arguments to consume and store in \alib{cli;Option::Args} with method
+    /// \alib{cli;Parameter::Read}.
+    ///
+    /// @return The parameter identifier.
+    int             QtyExpectedArgsFollowing()                  { return record.RequiredArguments; }
 
-        /// Returns \c true if the parameter is optional. The information about this attribute is
-        /// used to create help messages and usage format strings only. It does not automatically
-        /// raise an exception if a parameter is not given. Such exception or other error treatment
-        /// is up to the user code.
-        /// @return \c true if the parameter is optional, \c false otherwise.
-        bool IsOptional()
-        {
-            return record.isOptional;
-        }
+    /// Returns \c true if the parameter is optional. The information about this attribute is
+    /// used to create help messages and usage format strings only. It does not automatically
+    /// raise an exception if a parameter is not given. Such exception or other error treatment
+    /// is up to the user code.
+    /// @return \c true if the parameter is optional, \c false otherwise.
+    bool IsOptional()                                                  { return record.isOptional; }
 
-        /// Returns the short help text.
-        /// Loads the string from #resourceInfo using resource name \c "THelpParShtNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   GetHelpTextShort()
-        {
-            return resourceInfo.Get( NString64("THlpParSht_" ) << Name()  ALIB_DBG(, true) );
-        }
+    /// Returns the short help text.
+    /// Loads the string from #resourceInfo using resource name \c "THelpParShtNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   GetHelpTextShort()
+    { return resourceInfo.Get( NString64("THlpParSht_" ) << Name()  ALIB_DBG(, true) ); }
 
-        /// Returns the long help text.
-        /// Loads the string from #resourceInfo using resource name \c "THelpParLngNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   GetHelpTextLong()
-        {
-            return resourceInfo.Get( String64("THlpParLng_" ) << Name() ALIB_DBG(, true));
-        }
+    /// Returns the long help text.
+    /// Loads the string from #resourceInfo using resource name \c "THelpParLngNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   GetHelpTextLong()
+    { return resourceInfo.Get( String64("THlpParLng_" ) << Name() ALIB_DBG(, true)); }
 }; // ParameterDecl
 
 /// A declaration for a \alib{cli::Parameter}.
@@ -214,7 +184,7 @@ struct Parameter : public Parsed
     ParameterDecl*                                  Declaration                           = nullptr;
 
     /// Arguments belonging to us.
-    List<MonoAllocator, String, Recycling::Shared>  Args;
+    ListMA<String, Recycling::Shared>  Args;
 
     /// Constructor
     /// @param cmdLine   The command line instance.
@@ -231,7 +201,7 @@ struct Parameter : public Parsed
     /// This is done in the following cases:
     /// - When \alib{cli;ParameterDecl::Identifier} is empty and the parameter is
     ///   \alib{cli;ParameterDecl::IsOptional} gives \c true.
-    /// - When it was successfully read, but  \alib{cli;ParameterDecl::QtyExpectedArgsFollowing}
+    /// - When it was successfully read, but \alib{cli;ParameterDecl::QtyExpectedArgsFollowing}
     ///   is defined \c -1.
     ///
     /// See \alib{cli;CommandLine;ReadNextCommands} for details
@@ -268,7 +238,7 @@ struct EROptionDecl : public enumrecords::ERSerializable
     /// Defaulted constructor leaving the record undefined.
     /// (Implementation required as documented
     /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
-    EROptionDecl()                                                              noexcept  = default;
+    EROptionDecl()                                                                noexcept =default;
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
@@ -285,102 +255,80 @@ struct EROptionDecl : public enumrecords::ERSerializable
 ///
 class OptionDecl
 {
-    protected:
-        /// The enumeration element given with construction.
-        Enum            declElement;
+  protected:
+    /// The enumeration element given with construction.
+    Enum            declElement;
 
-        /// A copy (!) of the enum record.
-        EROptionDecl    record;
+    /// A copy (!) of the enum record.
+    EROptionDecl    record;
 
-        /// The resource information of the enumeration type given with construction.
-        ResourceInfo    resourceInfo;
-
-
-    public:
-        /// Templated constructor which takes an enum element of a custom type equipped with
-        /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;EROptionDecl}.
-        ///
-        /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
-        /// @param element   The enum element
-        template<typename TEnum>
-        OptionDecl( TEnum element )
-        : declElement( element )
-        , resourceInfo(element)
-        {
-            // make a copy of the resourced record
-            record= enumrecords::GetRecord(element);
-        }
-
-       /// Returns the type and integral value of the enumeration element used with construction.
-       /// @return The enumeration element used with construction.
-        const Enum&     Element()                                                              const
-        {
-            return declElement;
-        }
-
-        /// Returns the identifier of the option if double hyphen <c>'--'</c> is used.
-        /// @return The option identifier.
-        const String&   Identifier()
-        {
-            return record.EnumElementName;
-        }
-
-        /// Returns the minimum parse length of the identifier if double hyphen <c>'--'</c> is used.
-        /// @return The minimum characters to satisfy the option.
-        int             MinimumRecognitionLength()
-        {
-            return record.MinimumRecognitionLength;
-        }
-
-        /// Returns the identifier of the option if single hyphen <c>'-'</c> is used.
-        /// @return The option identifier.
-        character       IdentifierChar()
-        {
-            return record.identifierChar.IsNotEmpty() ? record.identifierChar.CharAtStart()
-                                                      : '\0';
-        }
-
-        /// An optional separator string (usually "="), that separates the parameter name from a
-        /// parameter value.
-        /// @return The separator string.
-        const String&   ValueSeparator()
-        {
-            return record.valueSeparator;
-        }
-
-        /// The number of CLI arguments to consume and store in \alib{cli;Option::Args} with method
-        /// \alib{cli;Option::Read}.
-        /// @return The option identifier.
-        integer         QtyExpectedArgsFollowing()
-        {
-            return record.RequiredArguments;
-        }
-
-        /// If an option is a shortcut to another one, this string replaces the argument given.
-        /// @return The option identifier.
-        const String&   ShortcutReplacementString()
-        {
-            return record.shortcutReplacementString;
-        }
+    /// The resource information of the enumeration type given with construction.
+    ResourceInfo    resourceInfo;
 
 
-        /// Returns a formal description of the usage.
-        /// Loads the string from #resourceInfo using resource name \c "TOptUsgNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   HelpUsageLine()
-        {
-            return resourceInfo.Get( NString64("TOptUsg_" ) << Identifier()   ALIB_DBG(, true) );
-        }
+  public:
+    /// Templated constructor which takes an enum element of a custom type equipped with
+    /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;EROptionDecl}.
+    ///
+    /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
+    /// @param element   The enum element
+    template<typename TEnum>
+    OptionDecl( TEnum element )
+    : declElement( element )
+    , resourceInfo(element)
+    {
+        // make a copy of the resourced record
+        record= enumrecords::GetRecord(element);
+    }
 
-        /// Returns the help text.
-        /// Loads the string from #resourceInfo using resource name \c "TOptHlpNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   HelpText()
-        {
-            return resourceInfo.Get( NString64("TOptHlp_" ) << Identifier()   ALIB_DBG(, true) );
-        }
+    /// Returns the type and integral value of the enumeration element used with construction.
+    /// @return The enumeration element used with construction.
+    const Enum&     Element()                                          const { return declElement; }
+
+    /// Returns the identifier of the option if double hyphen <c>'--'</c> is used.
+    /// @return The option identifier.
+    const String&   Identifier()                                  { return record.EnumElementName; }
+
+    /// Returns the minimum parse length of the identifier if double hyphen <c>'--'</c> is used.
+    /// @return The minimum characters to satisfy the option.
+    int             MinimumRecognitionLength()           { return record.MinimumRecognitionLength; }
+
+    /// Returns the identifier of the option if single hyphen <c>'-'</c> is used.
+    /// @return The option identifier.
+    character       IdentifierChar()
+    {
+        return record.identifierChar.IsNotEmpty() ? record.identifierChar.CharAtStart()
+                                                  : '\0';
+    }
+
+    /// An optional separator string (usually "="), that separates the parameter name from a
+    /// parameter value.
+    /// @return The separator string.
+    const String&   ValueSeparator()                               { return record.valueSeparator; }
+
+    /// The number of CLI arguments to consume and store in \alib{cli;Option::Args} with method
+    /// \alib{cli;Option::Read}.
+    /// @return The option identifier.
+    integer         QtyExpectedArgsFollowing()                  { return record.RequiredArguments; }
+
+    /// If an option is a shortcut to another one, this string replaces the argument given.
+    /// @return The option identifier.
+    const String&   ShortcutReplacementString()         { return record.shortcutReplacementString; }
+
+
+    /// Returns a formal description of the usage.
+    /// Loads the string from #resourceInfo using resource name \c "TOptUsgNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   HelpUsageLine()
+    { return resourceInfo.Get( NString64("TOptUsg_" ) << Identifier()   ALIB_DBG(, true) ); }
+
+    /// Returns the help text.
+    /// Loads the string from #resourceInfo using resource name \c "TOptHlpNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   HelpText()
+    { return resourceInfo.Get( NString64("TOptHlp_" ) << Identifier()   ALIB_DBG(, true) ); }
 }; // OptionDecl
 
 /// An option of a command line. Options are read "automatically" using their declaration
@@ -395,7 +343,7 @@ class OptionDecl
 /// and then processes all options that may have remaining arguments left in the list.
 /// Using field #Position further arguments may be consumed from \alib{cli;CommandLine::ArgsLeft}.<br>
 /// Note, "processing all options" may mean a nested loop. The outer is over the option types
-/// of  \alib{cli;CommandLine;OptionsFound}, the inner is over the vector of options per type.
+/// of \alib{cli;CommandLine;OptionsFound}, the inner is over the vector of options per type.
 ///
 struct Option : public Parsed
 {
@@ -403,7 +351,7 @@ struct Option : public Parsed
     OptionDecl*                                     Declaration                           = nullptr;
 
     /// Arguments belonging to this option.
-    List<MonoAllocator, String, Recycling::Shared>  Args;
+    ListMA<String, Recycling::Shared>  Args;
 
     /// Constructor
     /// @param cmdLine   The command line main object.
@@ -427,20 +375,20 @@ struct Option : public Parsed
 };
 
 /// \ref alib_enums_records "ALib Enum Record" type used by class \alib{cli;CommandDecl}.
- struct ERCommandDecl : public enumrecords::ERSerializable
- {
+struct ERCommandDecl : public enumrecords::ERSerializable
+{
     /// List of parameters attached. Separated by <c>'/'</c>.
     String      parameters;
 
-     /// Default constructor leaving the record undefined.
-     /// (Implementation required as documented
-     /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
-     ERCommandDecl()                                                            noexcept  = default;
+    /// Default constructor leaving the record undefined.
+    /// (Implementation required as documented
+    /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
+    ERCommandDecl()                                                               noexcept =default;
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
     void Parse();
- };
+};
 
 /// A declaration for a \alib{cli::Command}.
 ///
@@ -452,86 +400,73 @@ struct Option : public Parsed
 ///
 class CommandDecl
 {
-    protected:
-        /// The enumeration element given with construction.
-        Enum                                declElement;
+  protected:
+    /// The enumeration element given with construction.
+    Enum                                declElement;
 
-        /// A copy (!) of the enum record.
-        ERCommandDecl                       record;
+    /// A copy (!) of the enum record.
+    ERCommandDecl                       record;
 
-        /// The resource information of the enumeration type given with construction.
-        ResourceInfo                        resourceInfo;
+    /// The resource information of the enumeration type given with construction.
+    ResourceInfo                        resourceInfo;
 
-    public :
-        /// The command line instance we belong to.
-        CommandLine&                        CmdLine;
+  public :
+    /// The command line instance we belong to.
+    CommandLine&                        CmdLine;
 
-        /// Command parameters.
-        List<MonoAllocator, ParameterDecl*> Parameters;
+    /// Command parameters.
+    ListMA<ParameterDecl*> Parameters;
 
-        /// Templated constructor which takes an enum element of a custom type equipped with
-        /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERCommandDecl}.
-        ///
-        /// Field #Parameters is filled as specified in the enum record.
-        ///
-        /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
-        /// @param element   The enum element
-        /// @param cmdLine   The command line  object. Will be stored.
-        template<typename TEnum>
-        inline
-        CommandDecl( TEnum element, CommandLine& cmdLine );
+    /// Templated constructor which takes an enum element of a custom type equipped with
+    /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERCommandDecl}.
+    ///
+    /// Field #Parameters is filled as specified in the enum record.
+    ///
+    /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
+    /// @param element   The enum element
+    /// @param cmdLine   The command line  object. Will be stored.
+    template<typename TEnum>
+    inline
+    CommandDecl( TEnum element, CommandLine& cmdLine );
 
-       /// Returns the type and integral value of the enumeration element used with construction.
-       /// @return The enumeration element used with construction.
-        const Enum&     Element()                                                              const
-        {
-            return declElement;
-        }
+    /// Returns the type and integral value of the enumeration element used with construction.
+    /// @return The enumeration element used with construction.
+    const Enum&     Element()                                          const { return declElement; }
 
-        /// Returns the identifier (name) of the command
-        /// @return The command identifier.
-        const String&   Identifier()
-        {
-            return record.EnumElementName;
-        }
+    /// Returns the identifier (name) of the command
+    /// @return The command identifier.
+    const String&   Identifier()                                  { return record.EnumElementName; }
 
-        /// Returns the minimum parse length of the identifier.
-        /// @return The minimum characters to satisfy the command to be parsed.
-        int             MinimumRecognitionLength()
-        {
-            return record.MinimumRecognitionLength;
-        }
+    /// Returns the minimum parse length of the identifier.
+    /// @return The minimum characters to satisfy the command to be parsed.
+    int             MinimumRecognitionLength()           { return record.MinimumRecognitionLength; }
 
-        /// Returns the short version of the help text.
-        /// Loads the string from #resourceInfo using resource name \c "THlpCmdShtNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   HelpTextShort()
-        {
-            return resourceInfo.Get( NString64("THlpCmdSht_" ) << Identifier()  ALIB_DBG(, true) );
-        }
+    /// Returns the short version of the help text.
+    /// Loads the string from #resourceInfo using resource name \c "THlpCmdShtNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   HelpTextShort()
+    { return resourceInfo.Get( NString64("THlpCmdSht_" ) << Identifier()  ALIB_DBG(, true) ); }
 
-        /// Returns the long version of the help text.
-        /// Loads the string from #resourceInfo using resource name \c "THlpCmdLngNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The help text.
-        const String&   HelpTextLong()
-        {
-            return resourceInfo.Get( NString64("THlpCmdLng_" ) << Identifier()  ALIB_DBG(, true) );
-        }
+    /// Returns the long version of the help text.
+    /// Loads the string from #resourceInfo using resource name \c "THlpCmdLngNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The help text.
+    const String&   HelpTextLong()
+    { return resourceInfo.Get( NString64("THlpCmdLng_" ) << Identifier()  ALIB_DBG(, true) ); }
 
-        /// Searches in #Parameters for the declaration of parameter \p{name}.
-        /// @param name   The declaration name of the parameter.
-        /// @return A pointer to the parameter's declaration, \c nullptr if parameter was not
-        ///         declared.
-        ALIB_DLL
-        ParameterDecl* GetParameterDecl(const String& name );
+    /// Searches in #Parameters for the declaration of parameter \p{name}.
+    /// @param name   The declaration name of the parameter.
+    /// @return A pointer to the parameter's declaration, \c nullptr if parameter was not
+    ///         declared.
+    ALIB_DLL
+    ParameterDecl* GetParameterDecl(const String& name );
 
-    protected:
-        /// Called from the constructor. Parses field \alib{cli;ERCommandDecl::parameters} of the
-        /// enum record, and loads the corresponding parameters.
-        ALIB_DLL
-        void addParamDecls();
+  protected:
+    /// Called from the constructor. Parses field \alib{cli;ERCommandDecl::parameters} of the
+    /// enum record, and loads the corresponding parameters.
+    ALIB_DLL
+    void addParamDecls();
 };
 
 /// A command of a \alib_cli_nl command line.
@@ -541,10 +476,10 @@ struct Command  : public Parsed
     CommandDecl*                                        Declaration                       = nullptr;
 
     /// Mandatory parameters parsed.
-    List<MonoAllocator, Parameter*, Recycling::Shared>  ParametersMandatory;
+    ListMA<Parameter*, Recycling::Shared>  ParametersMandatory;
 
     /// Optional parameters parsed.
-    List<MonoAllocator, Parameter*, Recycling::Shared>  ParametersOptional;
+    ListMA<Parameter*, Recycling::Shared>  ParametersOptional;
 
     /// Constructor
     /// @param cmdLine   The command line instance.
@@ -566,7 +501,7 @@ struct Command  : public Parsed
     /// Searches in #ParametersMandatory and #ParametersOptional for parameter \p{name} and returns
     /// its (first) argument.
     /// @param name   The declaration name of the parameter.
-    /// @return The argument string, \b NULL_STRING  if parameter was not parsed if not given.
+    /// @return The argument string, \b NULL_STRING if parameter was not parsed if not given.
     ALIB_DLL
     String GetParsedParameterArg( const String& name );
 };
@@ -583,8 +518,7 @@ struct ERExitCodeDecl : public enumrecords::ERSerializable
     /// (Implementation required as documented
     /// \alib{enumrecords;EnumRecordPrototype::EnumRecordPrototype();here}.)
     ERExitCodeDecl()                                                            noexcept
-    : ERSerializable()
-    {}
+    : ERSerializable()                                                                            {}
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     ALIB_DLL
@@ -606,57 +540,50 @@ struct ERExitCodeDecl : public enumrecords::ERSerializable
 ///   method \alib{cli;CLIUtil::GetExitCode}.
 class ExitCodeDecl
 {
-    protected:
-        /// The enumeration element given with construction.
-        Enum            declElement;
+  protected:
+    /// The enumeration element given with construction.
+    Enum            declElement;
 
-        /// A copy (!) of the enum record.
-        ERExitCodeDecl  record;
+    /// A copy (!) of the enum record.
+    ERExitCodeDecl  record;
 
-        /// The resource information of the enumeration type given with construction.
-        ResourceInfo    resourceInfo;
+    /// The resource information of the enumeration type given with construction.
+    ResourceInfo    resourceInfo;
 
 
-    public:
-        /// Templated constructor which takes an enum element of a custom type equipped with
-        /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERExitCodeDecl}.
-        ///
-        /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
-        /// @param element   The enum element.
-        template<typename TEnum>
-        ExitCodeDecl( TEnum element )
-        : declElement( element )
-        , resourceInfo(element)
-        {
-            // make a copy of the resourced record
-            record= enumrecords::GetRecord(element);
-        }
+  public:
+    /// Templated constructor which takes an enum element of a custom type equipped with
+    /// \ref alib_enums_records "ALib Enum Records" of type \alib{cli;ERExitCodeDecl}.
+    ///
+    /// @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
+    /// @param element   The enum element.
+    template<typename TEnum>
+    ExitCodeDecl( TEnum element )
+    : declElement( element )
+    , resourceInfo(element)
+    {
+        // make a copy of the resourced record
+        record= enumrecords::GetRecord(element);
+    }
 
-        /// Returns the name of the enum element
-        /// @return The name of the enum element.
-        const String&   Name()
-        {
-            return record.EnumElementName;
-        }
+    /// Returns the name of the enum element
+    /// @return The name of the enum element.
+    const String&   Name()                                        { return record.EnumElementName; }
 
-        /// If an element of enum type \alib{cli;Exceptions} is associated with this exit code, it
-        /// is returned. Otherwise <c>cli::ExitCodes(-1)</c>.
-        ///
-        /// \see Method \alib{cli;CLIUtil::GetExitCode}.
-        /// @return The associated element of cli::Exceptions.
-        cli::Exceptions AssociatedCLIException()
-        {
-            return cli::Exceptions( record.associatedCLIException );
-        }
+    /// If an element of enum type \alib{cli;Exceptions} is associated with this exit code, it
+    /// is returned. Otherwise <c>cli::ExitCodes(-1)</c>.
+    ///
+    /// \see Method \alib{cli;CLIUtil::GetExitCode}.
+    /// @return The associated element of cli::Exceptions.
+    cli::Exceptions AssociatedCLIException()
+    { return cli::Exceptions( record.associatedCLIException ); }
 
-        /// Returns the format string associated with this exit code.
-        /// Loads the string from #resourceInfo using resource name \c "TExitNN",
-        /// where \c NN is the enum element's integral value.
-        /// @return The format string.
-        const String&   FormatString()
-        {
-            return resourceInfo.Get( NString64("TExit" ) << declElement.Integral()  ALIB_DBG(, true) );
-        }
+    /// Returns the format string associated with this exit code.
+    /// Loads the string from #resourceInfo using resource name \c "TExitNN",
+    /// where \c NN is the enum element's integral value.
+    /// @return The format string.
+    const String&   FormatString()
+    { return resourceInfo.Get( NString64("TExit" ) << declElement.Integral() ALIB_DBG(,true)); }
 };
 
 } // namespace [alib::cli]

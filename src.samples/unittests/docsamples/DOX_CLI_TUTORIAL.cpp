@@ -30,36 +30,20 @@ namespace ut_aworx {
 namespace {
 #include "ALib.Lang.CIFunctions.H"
 
-std::pair<int, AString>     executeprocess(NString cmdWithoutOutputRedirection)
+std::pair<int, NAString>     executeprocess(NString cmdWithoutOutputRedirection)
 {
     NString512 cmd(cmdWithoutOutputRedirection);
     cmd << "  2>&1";
 
+    NAString resultBuf;
+    int resultCode= ShellCommand::Run(cmd, resultBuf);
 
-    std::array<char, 128> buffer;
-    std::string result;
-    auto pipe = popen(cmd, "r");
-
-    AString output;
-    if (!pipe)
-        return std::make_pair(999999, output.Reset("popen() failed!"));
-
-    while (!feof(pipe))
-    {
-        if (fgets(buffer.data(), 128, pipe) != nullptr)
-            result += buffer.data();
-    }
-    int rc = pclose(pipe);
-    if( rc > 256 )
-        rc/= 256; // I do not know exactly why I have to dived this by 256!
-                  // obviously the real result code is shifted
-
-    return std::make_pair(rc, output.Reset(result));
+    return std::make_pair(resultCode, resultBuf);
 }
 
 
 #define SAMPLE_EXE_DIR  A_CHAR( "/tmp/_builds_/ALib_Samples/cli_clion_debug")
-std::pair<int, AString>  utExecCLI(AWorxUnitTesting& ut, NString args, NString fileExt)
+std::pair<int, NAString>  utExecCLI(AWorxUnitTesting& ut, NString args, NString fileExt)
 {
     NAString cmd( SAMPLE_EXE_DIR A_CHAR("/Sample " ));
     cmd << ' ' <<  args;
@@ -74,7 +58,7 @@ std::pair<int, AString>  utExecCLI(AWorxUnitTesting& ut, NString args, NString f
 
     String2K buffer( result.second );
     {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-     Formatter::Default->Format( buffer, "<Exit code {:2>}>{}", result.first, NEW_LINE ); }
+     Formatter::Default->Format( buffer, "<Exit code {:>2}>{}", result.first, NEW_LINE ); }
     ut.WriteResultFile( NString256("DOX_CLI_").Append(fileExt).Append(".txt"), buffer, "" );
     return result;
 }
@@ -98,25 +82,25 @@ UT_METHOD( CLI )
     }
 
     auto
-    r= utExecCLI(ut, ""                            , "NOCMD"            );  UT_EQ( 0, r.first)
-                                                                            UT_EQ( 19 + NEW_LINE.Length()  , r.second.Length() )
-    r= utExecCLI(ut, "now"                         , "CMDNOW"           );  UT_EQ( 0, r.first)
-                                                                            UT_EQ( 19 + NEW_LINE.Length()  , r.second.Length() )
-    r= utExecCLI(ut, "--format=\"MMM dd, yyyy\""   , "CMDNOW_FORMAT"    );  UT_EQ( 0, r.first)
-                                                                            UT_EQ( 12 + NEW_LINE.Length()  , r.second.Length())
+    r= utExecCLI(ut, ""                            , "NOCMD"            );  UT_EQ( 0 , r.first)
+                                                                            UT_EQ( 19, r.second.Length() )
+    r= utExecCLI(ut, "now"                         , "CMDNOW"           );  UT_EQ( 0 , r.first)
+                                                                            UT_EQ( 19, r.second.Length() )
+    r= utExecCLI(ut, "--format=\"MMM dd, yyyy\""   , "CMDNOW_FORMAT"    );  UT_EQ( 0 , r.first)
+                                                                            UT_EQ( 12, r.second.Length())
        utExecCLI(ut, "file /home"                  , "CMDFILE"          );
 
     r= utExecCLI(ut, "file"                        , "FILE_MISSING_PAR" );  UT_EQ( r.first, 102 )
-                                                                            UT_EQ( 70 + NEW_LINE.Length()  , r.second.Length())
+                                                                            UT_EQ( 70, r.second.Length())
 
     r= utExecCLI(ut, "--format"                    , "FILE_MISSING_PAR2");  UT_EQ(   r.first, 10 )
                                                                             UT_TRUE( r.second.Length() > 300)
 
     r= utExecCLI(ut, "unknown"                     , "UNKN_CMD");           UT_EQ( r.first, 100 )
-                                                                            UT_EQ( 38 + NEW_LINE.Length()  , r.second.Length())
+                                                                            UT_EQ( 38, r.second.Length())
 
     r= utExecCLI(ut, "--unknown"                   , "UNKN_OPT");           UT_EQ( r.first, 101 )
-                                                                            UT_EQ( 39 + NEW_LINE.Length()  , r.second.Length() )
+                                                                            UT_EQ( 39, r.second.Length() )
 
     r= utExecCLI(ut, "--help"                      , "HELP");               UT_EQ(   r.first, 0 )
                                                                             UT_TRUE( r.second.Length() > 100)

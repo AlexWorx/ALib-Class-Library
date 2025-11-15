@@ -13,12 +13,12 @@ ALIB_EXPORT namespace alib::boxing {
 /// Returns the \ref alib_enums_records "ALib Enum Record" associated with the given instance of
 /// class \alib{boxing;Enum}, which is defined in module \alib_boxing.
 ///
-/// In debug-compilations an \alib assertion is raised, if no enum record was defined for
+/// In debug-compilations an \alib_assertion is raised if no enum record was defined for
 /// the enumeration element represented by this instance.
 ///
 /// \see
-/// - Namespace function \alib{enumrecords::GetRecord} of module \alib_enumrecords, which provides the
-///   standard way of accessing enum records for enum elements known at compile-time.
+/// - Namespace function \alib{enumrecords::GetRecord} of the module \alib_enumrecords, which
+///   provides the standard way of accessing enum records for enum elements known at compile-time.
 /// - Sibling method #TryRecord.
 ///
 /// @tparam TRecord  The enumeration record type associated with the enum type.
@@ -28,8 +28,7 @@ ALIB_EXPORT namespace alib::boxing {
 /// @param  e        The enumeration element, boxed in class \b %Enum.
 /// @return The record that is associated with this enumeration element.
 template<typename TRecord>
-const TRecord&  GetRecord(Enum e)
-{
+const TRecord&  GetRecord(Enum e) {
     const void* result= enumrecords::detail::getEnumRecord( e.TypeID(), e.Integral() );
     ALIB_ASSERT_ERROR( result != nullptr, "BOXING", "Enum Record for type <{}>({}) not found.",
         &e.TypeID(), e.Integral()  )
@@ -38,7 +37,7 @@ const TRecord&  GetRecord(Enum e)
 }
 
 /// Returns a pointer to the \ref alib_enums_records "ALib Enum Record" associated with this
-/// the enumeration element represented by this instance.
+/// enumeration element represented by this instance.
 /// If no enum record was is defined, \c nullptr is returned.
 ///
 /// \see

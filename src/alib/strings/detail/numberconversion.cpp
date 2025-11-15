@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include <math.h>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings;
     import   ALib.Lang;
@@ -22,7 +22,7 @@
 #   include "ALib.Lang.H"
 #   include "ALib.Strings.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 
 namespace alib {  namespace strings {
@@ -74,8 +74,7 @@ constexpr inline bool hasBits(NumberFormatFlags lhs, NumberFormatFlags rhs)
 
 
 template<typename TChar>
-uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
-{
+uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx ) {
     uint64_t result=    0;
 
     // check
@@ -86,8 +85,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
     const TChar* buf=    src.Buffer();
 
     // read number
-    while ( idx < length )
-    {
+    while ( idx < length ) {
         const TChar c= buf[idx];
         if ( c < '0' || c > '9' )
             break;
@@ -105,8 +103,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
 ALIB_WARNINGS_UNINITIALIZED_OFF
 
 template<typename TChar>
-int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
 
     integer srcLength= src.Length();
 
@@ -122,8 +119,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
 
     // read sign
     bool negative;
-    if ( (negative= (buffer[idx] == '-')) == true || buffer[idx] == '+' )
-    {
+    if ( (negative= (buffer[idx] == '-')) == true || buffer[idx] == '+' ) {
         if( (idx= src. template IndexOfAny<lang::Inclusion::Exclude, NC>( nf.Whitespaces, idx + 1 ) ) == -1 )
             return 0;
     }
@@ -187,8 +183,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
 ALIB_WARNINGS_RESTORE
 
 template<typename TChar>
-uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
     uint64_t result=    0;
 
     // read whitespaces
@@ -200,8 +195,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
     bool         charFound=  false;
     integer      length=     src.Length();
     const TChar* buf=        src.Buffer();
-    while ( idx < length )
-    {
+    while ( idx < length ) {
         const TChar c= buf[idx];
         if (    charFound
              && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
@@ -228,8 +222,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
 
 template<typename TChar>
-uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
     uint64_t result=    0;
 
     // read whitespaces
@@ -241,8 +234,7 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
     bool        charFound=  false;
     integer    length    =  src.Length();
     const TChar* buf     =  src.Buffer();
-    while ( idx < length )
-    {
+    while ( idx < length ) {
         TChar c= buf[idx];
         if (    charFound
              && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
@@ -256,16 +248,14 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
             continue;
         }
 
-        if ( c == '0'  )
-        {
+        if ( c == '0'  ) {
             result<<= 1;
             ++idx;
             charFound= true;
             continue;
         }
 
-        if ( c == '1'  )
-        {
+        if ( c == '1'  ) {
             result<<= 1;
             result|=1;
             ++idx;
@@ -282,8 +272,7 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
 }
 
 template<typename TChar>
-uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
     uint64_t result=    0;
 
     // read whitespaces
@@ -295,8 +284,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
     bool         charFound=  false;
     integer      length=     src.Length();
     const TChar* buf=        src.Buffer();
-    while ( idx < length )
-    {
+    while ( idx < length ) {
         TChar c= buf[idx];
         if (    charFound
              && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
@@ -309,8 +297,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
             continue;
         }
 
-        if ( c >= '0' && c <= '9' )
-        {
+        if ( c >= '0' && c <= '9' ) {
             result<<= 4;
             result|=  uint64_t(c - '0');
             ++idx;
@@ -318,8 +305,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
             continue;
         }
 
-        if ( c >= 'A' && c <= 'F' )
-        {
+        if ( c >= 'A' && c <= 'F' ) {
             result<<= 4;
             result|=  uint64_t(c - 'A' + 10 );
             ++idx;
@@ -327,8 +313,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
             continue;
         }
 
-        if ( c >= 'a' && c <= 'f' )
-        {
+        if ( c >= 'a' && c <= 'f' ) {
             result<<= 4;
             result|=  uint64_t(c - 'a' + 10 );
             ++idx;
@@ -346,8 +331,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
 }
 
 template<typename TChar>
-uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
     uint64_t result=    0;
 
     // read whitespaces
@@ -359,8 +343,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
     bool         charFound=  false;
     integer      length=     src.Length();
     const TChar* buf=        src.Buffer();
-    while ( idx < length )
-    {
+    while ( idx < length ) {
         TChar c= buf[idx];
         if (     charFound
              && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
@@ -371,8 +354,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
             continue;
         }
 
-        if ( c >= '0' && c <= '7' )
-        {
+        if ( c >= '0' && c <= '7' ) {
             result<<= 3;
             result|=  uint64_t(c - '0');
             ++idx;
@@ -389,8 +371,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
 }
 
 template<typename TChar>
-double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf )
-{
+double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
     // checks
     if( startIdx < 0 || startIdx >= src.Length() )
         return 0.0;
@@ -409,8 +390,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // +/- sign
     bool negative= (*buf == '-');
-    if ( negative || *buf == '+' )
-    {
+    if ( negative || *buf == '+' ) {
         if( ++buf == bufEnd )
             return 0.0;
 
@@ -441,8 +421,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
     // read number before dot?
     TChar c= *buf;
     bool integralPartFound= isdigit(int(c));
-    if ( integralPartFound )
-    {
+    if ( integralPartFound ) {
         if (  c < '0' || c > '9' )
             return 0.0;
 
@@ -454,15 +433,12 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
         // end?
         ALIB_ASSERT_ERROR( buf <= bufEnd, "STRINGS", "Error in float parsing algorithm." )
-        if ( buf == bufEnd )
-        {
+        if ( buf == bufEnd ) {
             startIdx= buf - src.Buffer();
             return negative ? -result : result;
-        }
-    }
+    }   }
 
-    if( nf.DecimalPointChar == *buf  )
-    {
+    if( nf.DecimalPointChar == *buf  ) {
         // consume dot
         ++buf;
 
@@ -474,19 +450,16 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
             double  intValue= double( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), intIdx) );
             buf+= intIdx;
             result+= ( intValue / pow( 10, double(intIdx) ) );
-        }
-    }
+    }   }
     else if( !integralPartFound )
         return 0.0; // index not moved, indicates failure.
 
     // read eNNN
-    if ( buf <  bufEnd )
-    {
+    if ( buf <  bufEnd ) {
         auto oldBuf= buf;
         bool eSepFound=  false;
         integer  sepLen= nf.ExponentSeparator.Length();
-        if ( buf + sepLen < bufEnd )
-        {
+        if ( buf + sepLen < bufEnd ) {
             integer pos= 0;
             while (     pos < sepLen
                     &&  nf.ExponentSeparator. template CharAt<NC>(pos) == *(buf + pos) )
@@ -494,36 +467,27 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
             if ( (eSepFound= ( pos == sepLen ) ) == true )
                 buf += pos;
         }
-        if ( !eSepFound && ( *buf == 'e' || *buf == 'E' ) )
-        {
+        if ( !eSepFound && ( *buf == 'e' || *buf == 'E' ) ) {
             ++buf;
             eSepFound= true;
         }
 
 
-        if (eSepFound && buf < bufEnd)
-        {
+        if (eSepFound && buf < bufEnd) {
             bool negativeE= false;
             if ( (negativeE= (*buf == '-') ) == true ||  *buf == '+' )
                 ++buf;
 
-            if( buf < bufEnd )
-            {
+            if( buf < bufEnd ) {
                 integer idx= 0;
                 int exp= int( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), idx ) );
-                if( idx > 0 )
-                {
+                if( idx > 0 ) {
                     buf+= idx;
                     result*= pow( 10, negativeE ? -exp : exp );
-                }
-                else
-                {
+                } else {
                     // no number found behind e. restore buf and ignore.
                     buf= oldBuf;
-                }
-            }
-        }
-    }
+    }   }   }   }
 
     // adjust given idx
     startIdx= buf - src.Buffer();
@@ -534,8 +498,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
 template<typename TChar>
 integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
-                          const TNumberFormat<TChar>& nf )
-{
+                          const TNumberFormat<TChar>& nf ) {
     int width= overrideWidth != 0 ? overrideWidth
                                   : nf.DecMinimumFieldWidth;
 
@@ -546,8 +509,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     {
         if( value < 10 )
             digitsInValue = 1;
-        else
-        {
+        else {
             int leadingBinaryZeros= lang::CLZ(value);
             digitsInValue= binSizeToDecSize[leadingBinaryZeros];
 
@@ -559,22 +521,18 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
                                   && (digitsInValue == 20 || value <  pow10_0to19[digitsInValue  ]),
                               "STRINGS", "Error calculating the number of digits in value {}",
                               value )
-        }
-    }
+    }   }
 
 
     // calc printable digits and print leading group char replacement ' '
     int printDigits;
     {
         int requestedDigits;
-        if ( hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.ThousandsGroupChar != '\0' )
-        {
+        if ( hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.ThousandsGroupChar != '\0' ) {
             if ( width > 26 )
                 width= 26;
             requestedDigits=  width - width / 4;
-        }
-        else
-        {
+        } else {
             if ( width > 20 )
                 width= 20;
             requestedDigits= width;
@@ -593,8 +551,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     // main loop
     bool printSpace= hasBits(nf.Flags, NumberFormatFlags::ReplaceLeadingZerosWithSpaces);
     int  actDigit=      printDigits;
-    while ( actDigit > 0 )
-    {
+    while ( actDigit > 0 ) {
         // print normal digit
         int digitValue=   int( ( value / pow10_0to19[actDigit-1] ) );
         ALIB_ASSERT( digitValue <= 9, "STRINGS" )
@@ -621,20 +578,16 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
 
 template<typename TChar>
 integer WriteDecSigned( int64_t value, TChar* buffer, integer idx, int overrideWidth,
-                        const TNumberFormat<TChar>& nf )
-{
+                        const TNumberFormat<TChar>& nf ) {
     integer oldIdx= idx;
 
     // write sign and turn negative to positive
     uint64_t uValue;
-    if ( value >= 0 )
-    {
+    if ( value >= 0 ) {
         uValue= uint64_t( value );
         if ( nf.PlusSign != '\0' )
             buffer[idx++]= nf.PlusSign;
-    }
-    else
-    {
+    } else {
         uValue= uint64_t( -value );
         buffer[idx++]= '-';
     }
@@ -650,8 +603,7 @@ integer WriteDecSigned( int64_t value, TChar* buffer, integer idx, int overrideW
 
 template<typename TChar>
 integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth,
-                  const TNumberFormat<TChar>& nf )
-{
+                  const TNumberFormat<TChar>& nf ) {
     // how many digits in a grouping block?
     int groupWidth=   !hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars)             ? 0
                      : nf.BinNibbleGroupChar  != '\0' ? 4
@@ -665,10 +617,8 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
 
     // adjust minDigits to 0..64 (if 0 demanded, 0 is given!)
     int digits=  overrideWidth != 0 ? overrideWidth  : nf.BinFieldWidth;
-    if (digits > 0 )
-    {
-        if ( groupWidth != 0 )
-        {
+    if (digits > 0 ) {
+        if ( groupWidth != 0 ) {
             nextSeparator=  digits<= groupWidth ? 0
                             :   (     digits >= groupWidth
                                   && (digits % (groupWidth + 1)) == 0 ) ? 1 : 2;
@@ -687,11 +637,9 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
                             : 1;
 
     uint64_t testValue= uint64_t(1) << (digits - 1);
-    while ( digits > 0)
-    {
+    while ( digits > 0) {
         // write the separator
-        if( groupWidth != 0 && ( digits % groupWidth) == 0 )
-        {
+        if( groupWidth != 0 && ( digits % groupWidth) == 0 ) {
             if ( nextSeparator != 0 )
                 buffer[idx++]=  nextSeparator == 1     ? nf.LeadingGroupCharReplacement :
                                 ( digits % 32 == 0 )   ? nf.BinWord32GroupChar          :
@@ -713,8 +661,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
 
 template<typename TChar>
 integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
-                  const TNumberFormat<TChar>& nf )
-{
+                  const TNumberFormat<TChar>& nf ) {
     // how many digits in a grouping block?
     int groupWidth=  !hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars)             ? 0
                     : nf.HexByteGroupChar    != '\0' ? 2
@@ -728,17 +675,14 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
     int digits= overrideWidth != 0 ? overrideWidth : nf.HexFieldWidth;
 
     // adjust minDigits to 0..64 (if 0 demanded, 0 is given!)
-    if (digits > 0 )
-    {
-        if ( groupWidth != 0 )
-        {
+    if (digits > 0 ) {
+        if ( groupWidth != 0 ) {
             nextSeparator=  digits<= groupWidth ? 0
                             :   (     digits >= groupWidth
                                   && (digits % (groupWidth + 1)) == 0 ) ? 1 : 2;
 
             digits-= digits / (groupWidth + 1); // subtract needed separators from digits
-        }
-    }
+    }   }
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
@@ -749,14 +693,12 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
     if ( digits > 16 )
            digits= 16;
 
-    unsigned int characterA= static_cast<unsigned int>( hasBits(nf.Flags, NumberFormatFlags::HexLowerCase) ? 'a' : 'A' );
-    int          shiftBits= (digits -1 ) * 4;
+    unsigned characterA= static_cast<unsigned int>( hasBits(nf.Flags, NumberFormatFlags::HexLowerCase) ? 'a' : 'A' );
+    int      shiftBits= (digits -1 ) * 4;
     uint64_t testMask=  uint64_t( 15 ) << shiftBits;
-    while ( digits > 0)
-    {
+    while ( digits > 0) {
         // write the separator
-        if( groupWidth != 0 && ( digits % groupWidth) == 0 )
-        {
+        if( groupWidth != 0 && ( digits % groupWidth) == 0 ) {
             if ( nextSeparator != 0 )
                 buffer[idx++]=  nextSeparator == 1   ? nf.LeadingGroupCharReplacement :
                                 ( digits % 8 == 0 )  ? nf.HexWord32GroupChar          :
@@ -765,7 +707,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
         nextSeparator= 2; // from now on write separators
 
         // write digit
-        unsigned int nibble= static_cast<unsigned int>( ( value & testMask ) >> shiftBits );
+        unsigned nibble= static_cast<unsigned int>( ( value & testMask ) >> shiftBits );
         buffer[idx++]=   ( nibble < 10 )   ?  static_cast<TChar>('0' + nibble)
                                            :  static_cast<TChar>(characterA + (nibble - 10));
 
@@ -780,8 +722,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
 template<typename TChar>
 integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
-                  const TNumberFormat<TChar>& nf )
-{
+                  const TNumberFormat<TChar>& nf ) {
     // how many digits in a grouping block?
     const int groupWidth=  hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.OctGroupChar != '\0' ? 3 : 0;
 
@@ -791,17 +732,14 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     // adjust minDigits to 0..64 (if 0 demanded, 0 is given!)
     int digits= overrideWidth != 0 ? overrideWidth : nf.OctFieldWidth;
-    if (digits > 0 )
-    {
-        if ( groupWidth != 0 )
-        {
+    if (digits > 0 ) {
+        if ( groupWidth != 0 ) {
             nextSeparator=  digits<= groupWidth ? 0
                             :   (     digits >= groupWidth
                                   && (digits % (groupWidth + 1)) == 0 ) ? 1 : 2;
 
             digits-= digits / (groupWidth + 1); // subtract needed separators from digits
-        }
-    }
+    }   }
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
@@ -813,11 +751,9 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
            digits= 22;
 
     int           shiftBits= (digits -1 ) * 3;
-    while ( digits > 0)
-    {
+    while ( digits > 0) {
         // write the separator
-        if( groupWidth != 0 && ( digits % groupWidth) == 0 )
-        {
+        if( groupWidth != 0 && ( digits % groupWidth) == 0 ) {
             if ( nextSeparator != 0 )
                 buffer[idx++]=  nextSeparator == 1    ? nf.LeadingGroupCharReplacement : nf.OctGroupChar;
         }
@@ -837,8 +773,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
 template<typename TChar>
 integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
-                    const TNumberFormat<TChar>& nf )
-{
+                    const TNumberFormat<TChar>& nf ) {
     int integralWidth= overrideWidth != 0 ? overrideWidth : nf.IntegralPartMinimumWidth;
 
 
@@ -846,10 +781,8 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
     auto classification=  std::fpclassify(value);
     if( classification == FP_NAN )    {  return idx+= nf.NANLiteral.CopyTo(buffer + idx);   }
     bool isNegative= std::signbit(value);
-    if ( isNegative )
-    {
-        if( classification == FP_ZERO )
-        {
+    if ( isNegative ) {
+        if( classification == FP_ZERO ) {
             isNegative= false;
             value     = 0.0;
         }
@@ -858,8 +791,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
     }
 
     // +/-inf
-    if( classification == FP_INFINITE )
-    {
+    if( classification == FP_INFINITE ) {
         if ( isNegative )
             buffer[idx++]= '-';
         else if ( nf.PlusSign != '\0' )
@@ -894,8 +826,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
     int firstNonZero;
 
     // scientific output
-    if ( scientific )
-    {
+    if ( scientific ) {
         auto dotPos= MaxFloatSignificantDigits - exp10;
         intPart=     uint64_t(llrint( value * pow( 10, dotPos ) ));
         fractPart=   intPart %  pow10_0to19[ MaxFloatSignificantDigits ];
@@ -903,8 +834,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
         // determine first non zero fract number
         firstNonZero= 0;
-        if ( fractPart > 0 )
-        {
+        if ( fractPart > 0 ) {
             ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero < 20, "STRINGS")
             while ( fractPart < pow10_0to19[ MaxFloatSignificantDigits - firstNonZero - 1 ] )
                 ++firstNonZero;
@@ -917,8 +847,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
     }
 
      // normal output, number > 0
-     else if (exp10 >= 0 )
-     {
+     else if (exp10 >= 0 ) {
         int intPartSize= MaxFloatSignificantDigits - exp10;
         ALIB_ASSERT( intPartSize > 0  && intPartSize <= MaxFloatSignificantDigits, "STRINGS" )
         intPart=     uint64_t(llrint( value * pow( 10, intPartSize ) ));
@@ -927,8 +856,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
         // determine first non zero fract number
         firstNonZero= 0;
-        if ( fractPart > 0 )
-        {
+        if ( fractPart > 0 ) {
             while ( fractPart < pow10_0to19[ intPartSize - firstNonZero - 1 ] )
                 ++firstNonZero;
             ALIB_ASSERT( intPartSize - firstNonZero > 0, "STRINGS" )
@@ -940,8 +868,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
      }
 
     // normal output, number  < 1
-    else
-    {
+    else {
         // just zeros? -> write them and return
         firstNonZero= -exp10;
         intPart=      0;
@@ -958,8 +885,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
         uint64_t rest= fractPart % pow10_0to19[ unusedFractDigits ];
         fractPart    = fractPart / pow10_0to19[ unusedFractDigits ];
-        if ( rest > pow10_0to19[ unusedFractDigits ] / 2 )
-        {
+        if ( rest > pow10_0to19[ unusedFractDigits ] / 2 ) {
             ++fractPart;
             int  overflowDigit= 0;
             bool overflow=      false;
@@ -969,25 +895,17 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                    )
                 ++overflowDigit;
 
-            if ( overflow )
-            {
-                if ( overflowDigit == (fractionalDigits >= 0 ? fractionalDigits : 15) )
-                {
+            if ( overflow ) {
+                if ( overflowDigit == (fractionalDigits >= 0 ? fractionalDigits : 15) ) {
                     fractPart= 0;
                     ++intPart;
-                }
-                else
-                {
+                } else {
                     ALIB_ASSERT( firstNonZero > 1, "STRINGS" )
                     --firstNonZero;
-                }
-            }
-        }
-    }
+    }   }   }   }
 
     // write sign. Do it only if this is not a 0 value after rounding.
-    if ( isNegative )
-    {
+    if ( isNegative ) {
         if(    intPart
             || (    fractPart
                  && ( fractionalDigits < 0 || fractionalDigits > firstNonZero -1)
@@ -1006,8 +924,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         buffer[idx++]=  nf.DecimalPointChar;
 
     // write fract part
-    if (fractionalDigits != 0)
-    {
+    if (fractionalDigits != 0) {
         int fractZeros= firstNonZero - 1;
         if ( fractionalDigits > 0 && fractZeros > fractionalDigits )
             fractZeros= fractionalDigits;
@@ -1039,8 +956,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
             // write digit unless its a '0'
             if ( digitValue == 0 )
                 ++cntOmittedZeros;
-            else
-            {
+            else {
                 for ( int i= 0; i< cntOmittedZeros ; ++i )
                     buffer[idx++]= '0';
                 cntOmittedZeros= 0;
@@ -1056,15 +972,11 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
             qtyDigits= 1;
 
         // write omitted zeros
-        if ( cntDigits < qtyDigits )
-        {
-            if ( hasBits(nf.Flags, NumberFormatFlags::OmitTrailingFractionalZeros) )
-            {
+        if ( cntDigits < qtyDigits ) {
+            if ( hasBits(nf.Flags, NumberFormatFlags::OmitTrailingFractionalZeros) ) {
                 if( cntDigits == 0 )
                     buffer[idx++]= '0';
-            }
-            else
-            {
+            } else {
                 for ( int i= 0; i< cntOmittedZeros ; ++i )
                     buffer[idx++]= '0';
                 cntDigits+= cntOmittedZeros;
@@ -1072,13 +984,10 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                 // write missing digits
                 for ( int i= cntDigits; i< qtyDigits; ++i )
                     buffer[idx++]= '0';
-            }
-        }
-    }
+    }   }   }
 
     // write eNN
-    if ( scientific )
-    {
+    if ( scientific ) {
         int p= 0;
         while( nf.ExponentSeparator[p] != '\0' )
             buffer[idx++]= nf.ExponentSeparator[p++];
@@ -1142,4 +1051,3 @@ template integer  WriteFloat      <xchar>( double  , xchar*, integer, int , cons
 
 #endif // !DOXYGEN
 }}} // namespace [alib::strings::detail]
-

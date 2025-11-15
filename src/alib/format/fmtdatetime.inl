@@ -29,6 +29,3 @@ ALIB_DLL void
 FFormat_DateTime( const Box & self, const String & formatSpec, NumberFormat& nf, AString& target );
 
 } // namespace [alib::format]
-
-
-

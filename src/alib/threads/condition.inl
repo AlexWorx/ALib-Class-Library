@@ -103,7 +103,6 @@ struct TCondition
         TCondition()                                                                      = default;
     #endif
 
-    //==============================================================================================
     /// A thread which invokes this method gets registered as the current owner of this object,
     /// until the same thread releases the ownership invoking #Release.
     /// In the case that this object is already owned by another thread, the invoking thread is
@@ -117,9 +116,7 @@ struct TCondition
     ///
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void  Acquire( ALIB_DBG_TAKE_CI )
-    {
+    void  Acquire( ALIB_DBG_TAKE_CI ) {
         #if ALIB_DEBUG
             Dbg.Assert( Dbg.Owner != Thread::GetCurrent(), ALIB_CALLER, ci,
                 "Acquire: Multiple acquirements of TCondition are forbidden." );
@@ -135,7 +132,6 @@ struct TCondition
         #endif
     }
 
-    //==============================================================================================
     /// Releases ownership of this object.
     /// If this method is invoked on an object that is not acquired or acquired by a different
     /// thread, in debug-compilations an \ref alib_mod_assert "error is raised".
@@ -143,9 +139,7 @@ struct TCondition
     /// @see Method #Acquire.
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void Release( ALIB_DBG_TAKE_CI )
-    {
+    void Release( ALIB_DBG_TAKE_CI ) {
         #if ALIB_DEBUG
             Dbg.Assert( lang::IsNotNull(Dbg.Owner), ALIB_CALLER, ci, "Release: Not acquired." );
             Dbg.Assert( Dbg.Owner == Thread::GetCurrent(), ALIB_CALLER, ci,
@@ -157,7 +151,6 @@ struct TCondition
         mutex.unlock();
     }
 
-    //==============================================================================================
     /// Unblock a next waiting thread.<p>
     /// As the method name indicates, with this implementation, it is necessary to acquire this
     /// object before invoking this method.
@@ -166,9 +159,7 @@ struct TCondition
     ///
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void ReleaseAndNotify( ALIB_DBG_TAKE_CI )
-    {
+    void ReleaseAndNotify( ALIB_DBG_TAKE_CI ) {
         #if ALIB_DEBUG
             Dbg.Assert( lang::IsNotNull(Dbg.Owner), ALIB_CALLER, ci,
                 "ReleaseAndNotify called without prior acquisition" );
@@ -185,13 +176,10 @@ struct TCondition
         conditionVariable.notify_one();
     }
 
-    //==============================================================================================
     /// Releases the internal mutex and wakes up all sleeping threads.
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void ReleaseAndNotifyAll( ALIB_DBG_TAKE_CI )
-    {
+    void ReleaseAndNotifyAll( ALIB_DBG_TAKE_CI ) {
         #if ALIB_DEBUG
             Dbg.Assert( lang::IsNull(Dbg.AssertExclusiveWaiter), ALIB_CALLER,  ci,
                 "An exclusive waiter is set. Thus, notifying 'all' is not allowed.");
@@ -210,7 +198,6 @@ struct TCondition
         conditionVariable.notify_all();
     }
 
-    //==============================================================================================
     /// Waits for notification (for an unlimited time).<br>
     /// Before invoking this method, this object has to be \ref Acquire "acquired".
     /// After the wake-up call, the internal mutex is (again) acquired and thus has to be
@@ -220,9 +207,7 @@ struct TCondition
     /// Note that "spurious wake-ups" are internally caught with this implementation.
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void WaitForNotification( ALIB_DBG_TAKE_CI )
-    {
+    void WaitForNotification( ALIB_DBG_TAKE_CI ) {
         #if ALIB_DEBUG
             Dbg.Assert(  lang::IsNull(Dbg.AssertExclusiveWaiter)
                       || Dbg.AssertExclusiveWaiter == std::this_thread::get_id(), ALIB_CALLER,  ci,
@@ -253,16 +238,14 @@ struct TCondition
     void WaitForNotification( const Ticks::Duration::TDuration& maxWaitTimeSpan)
     {
     #else
-    //==============================================================================================
     /// Same as #WaitForNotification(ALIB_DBG_TAKE_CI), but takes a C++ time span that defines
     /// a maximum wait time.
     ///
     /// @param maxWaitTimeSpan  The maximum time to wait.
     /// @param ci               Caller information.
     ///                         Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void WaitForNotification( const Ticks::Duration::TDuration& maxWaitTimeSpan, const CallerInfo& ci )
-    {
+    void WaitForNotification( const Ticks::Duration::TDuration& maxWaitTimeSpan,
+                              const CallerInfo&                 ci ) {
             Dbg.Assert(  lang::IsNull(Dbg.AssertExclusiveWaiter)
                       || Dbg.AssertExclusiveWaiter == std::this_thread::get_id(), ALIB_CALLER,  ci,
             "WaitForNotification called by a different thread than granted with 'Dbg.AssertExclusiveWaiter'.");
@@ -289,14 +272,12 @@ struct TCondition
     }
 
     #if ALIB_DEBUG
-    //==============================================================================================
     /// Same as #WaitForNotification(ALIB_DBG_TAKE_CI), but takes a time span that defines
     /// a maximum wait time.
     ///
     /// @param maxWaitTimeSpan  The maximum time to wait.
     /// @param ci               Caller information.
     ///                         Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
     void WaitForNotification( const Ticks::Duration& maxWaitTimeSpan, const CallerInfo& ci )
     { WaitForNotification( maxWaitTimeSpan.Export(), ci ); }
     #else
@@ -309,16 +290,13 @@ struct TCondition
     void WaitForNotification( const Ticks& wakeUpTime )
     {
     #else
-    //==============================================================================================
     /// Same as #WaitForNotification(ALIB_DBG_TAKE_CI), but takes a point in time at which
     /// waiting stops.
     ///
     /// @param wakeUpTime  The point in time to wake up, even if not notified.
     /// @param ci          Caller information.
     ///                    Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void WaitForNotification( const Ticks& wakeUpTime, const CallerInfo& ci )
-    {
+    void WaitForNotification( const Ticks& wakeUpTime, const CallerInfo& ci ) {
             Dbg.Assert(  lang::IsNull(Dbg.AssertExclusiveWaiter)
                       || Dbg.AssertExclusiveWaiter == std::this_thread::get_id(), ALIB_CALLER,  ci,
             "WaitForNotification called by a different thread than granted with 'Dbg.AssertExclusiveWaiter'.");
@@ -351,8 +329,7 @@ struct TCondition
 /// This implementation constitutes the simplest possible derivate, by
 /// 1. holding just a boolean member, and
 /// 2. by providing a similar generic interface.
-/// @see
-///  Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+/// @see Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
 class Condition : protected TCondition<Condition>
 {
     /// the parent type needs to be able to call protected method #isConditionMet.
@@ -386,8 +363,7 @@ class Condition : protected TCondition<Condition>
     /// Wakes up the next sleeping thread.
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    void Notify( ALIB_DBG_TAKE_CI )
-    {
+    void Notify( ALIB_DBG_TAKE_CI ) {
         Acquire(ALIB_DBG(ci));
         notified= true;
         ReleaseAndNotify(ALIB_DBG(ci));
@@ -396,8 +372,7 @@ class Condition : protected TCondition<Condition>
     /// Wakes up all sleeping threads.
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    void NotifyAll( ALIB_DBG_TAKE_CI )
-    {
+    void NotifyAll( ALIB_DBG_TAKE_CI ) {
         Acquire(ALIB_DBG(ci));
         notified= true;
         ReleaseAndNotifyAll(ALIB_DBG(ci));
@@ -406,8 +381,7 @@ class Condition : protected TCondition<Condition>
     /// Waits for notification (for an unlimited time).<p>
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    void Wait( ALIB_DBG_TAKE_CI )
-    {
+    void Wait( ALIB_DBG_TAKE_CI ) {
       #if ALIB_DEBUG
         Acquire(ci);
           notified= false;
@@ -421,16 +395,13 @@ class Condition : protected TCondition<Condition>
     }
 
     #if ALIB_DEBUG
-    //==============================================================================================
     /// Same as #Wait(const Ticks::Duration&, const CallerInfo&), but takes a
     /// C++ time span.
     ///
     /// @param maxWaitTimeSpan  The maximum time to wait.
     /// @param ci               Caller information.
     ///                         Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void Wait( const Ticks::Duration::TDuration& maxWaitTimeSpan, const CallerInfo& ci )
-    {
+    void Wait( const Ticks::Duration::TDuration& maxWaitTimeSpan, const CallerInfo& ci ) {
         Acquire(ci);
           notified= false;
           WaitForNotification(maxWaitTimeSpan, ci);
@@ -446,7 +417,6 @@ class Condition : protected TCondition<Condition>
 
 
     #if ALIB_DEBUG
-    //==============================================================================================
     /// Waits for notification but only for a given duration.
     ///
     /// Before invoking this method, this object has to be \ref Acquire "acquired".
@@ -456,7 +426,6 @@ class Condition : protected TCondition<Condition>
     /// @param maxWaitTimeSpan  The maximum time to wait.
     /// @param ci               Caller information.
     ///                         Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
     void Wait( const Ticks::Duration& maxWaitTimeSpan, const CallerInfo& ci )
     { Wait( maxWaitTimeSpan.Export(), ci ); }
     #else
@@ -465,7 +434,6 @@ class Condition : protected TCondition<Condition>
     #endif
 
     #if ALIB_DEBUG
-    //==============================================================================================
     /// Waits for notification, but only until a given point in time.
     ///
     /// Before invoking this method, this object has to be \ref Acquire "acquired".
@@ -475,9 +443,7 @@ class Condition : protected TCondition<Condition>
     /// @param wakeUpTime  The point in time to wake up, even if not notified.
     /// @param ci          Caller information.
     ///                    Use macro \ref ALIB_COMMA_CALLER_PRUNED with invocations.
-    //==============================================================================================
-    void Wait( const Ticks& wakeUpTime, const CallerInfo& ci )
-    {
+    void Wait( const Ticks& wakeUpTime, const CallerInfo& ci ) {
         Acquire(ci);
           notified= false;
           WaitForNotification(wakeUpTime, ci);

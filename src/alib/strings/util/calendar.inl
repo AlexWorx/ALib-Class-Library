@@ -28,7 +28,7 @@ ALIB_EXPORT namespace alib { namespace  strings::util {
 //==================================================================================================
 class CalendarDateTime
 {
-    public:
+  public:
         /// A list of month names used with the method
         /// \alib{strings::util;CalendarDateTime::Format}.
         ///
@@ -46,56 +46,49 @@ class CalendarDateTime
         /// key <c>"Days"</c>. In both cases a user might change this during bootstrap.
         static ALIB_DLL String DAY_NAMES [7];
 
-        /// The calendar year (e.g., 2022).
-        int                     Year;
+    /// The calendar year (e.g., 2022).
+    int                     Year;
 
-        /// The calendar month (1..12).
-        int                     Month;
+    /// The calendar month (1..12).
+    int                     Month;
 
-        /// The calendar day (1..31).
-        int                     Day;
+    /// The calendar day (1..31).
+    int                     Day;
 
-        /// The calendar hour (0..23).
-        int                     Hour;
+    /// The calendar hour (0..23).
+    int                     Hour;
 
-        /// The calendar minute (0..59).
-        int                     Minute;
+    /// The calendar minute (0..59).
+    int                     Minute;
 
-        /// The calendar second (0..59).
-        int                     Second;
+    /// The calendar second (0..59).
+    int                     Second;
 
-        /// The calendar millisecond (0..999).
-        int                     Millisecond;
+    /// The calendar millisecond (0..999).
+    int                     Millisecond;
 
-        /// The calendar day of week (0==Sunday..6==Saturday).
-        /// \attention This value is only set when constructed with a \b DateTime object and
-        ///            set to \c -1 if constructed with single values, or if method #Clear is
-        ///            invoked.
-        int                     DayOfWeek;
-    //==============================================================================================
+    /// The calendar day of week (0==Sunday..6==Saturday).
+    /// \attention This value is only set when constructed with a \b DateTime object and
+    ///            set to \c -1 if constructed with single values, or if method #Clear is
+    ///            invoked.
+    int                     DayOfWeek;
     /// Constructs an unset object.
     /// @param init  If \b Initialization::Default or \b nulled, #Clear is invoked.
     ///              Otherwise fields are not initialized.
     ///              Defaults to \c Initialization::Default.
-    //==============================================================================================
     CalendarDateTime(lang::Initialization init= lang::Initialization::Default)
     {
         if(init != lang::Initialization::Suppress )
             Clear();
     }
 
-    //==============================================================================================
     /// Constructs the object according to the given timestamp object and time zone.
     /// @param timeStamp The point in time to use for setting the public fields
     /// @param timezone  Denotes if the time that is calculated should be local or UTC.
     ///                  Defaults to \c TimeZone::Local.
-    //==============================================================================================
     CalendarDateTime( const DateTime& timeStamp, lang::Timezone timezone =lang::Timezone::Local )
-    {
-        Set( timeStamp, timezone );
-    }
+    { Set( timeStamp, timezone ); }
 
-    //==============================================================================================
     /// Constructs the object according to the given date and time values.
     /// @param year        The year of the calendar time.
     /// @param month       The month of the calendar time.
@@ -104,7 +97,6 @@ class CalendarDateTime
     /// @param minute      The minute of the calendar time.
     /// @param second      The second of the calendar time.
     /// @param millisecond The millisecond of the calendar time.
-    //==============================================================================================
     CalendarDateTime( int year   , int month= 1 , int day= 1,
                       int hour= 0, int minute= 0, int second= 0, int millisecond= 0 )
     : Year        ( year       )
@@ -114,19 +106,15 @@ class CalendarDateTime
     , Minute      ( minute     )
     , Second      ( second     )
     , Millisecond ( millisecond)
-    , DayOfWeek   ( -1         )
-    {}
+    , DayOfWeek   ( -1         )                                                                  {}
 
-    //==============================================================================================
     /// Sets the public fields according to the given timestamp object.
     /// @param timeStamp The point in time to use for setting the public fields
     /// @param timezone  Denotes if the time that is calculated should be local or UTC.
     ///                  Defaults to \c TimeZone::Local.
-    //==============================================================================================
     ALIB_DLL
     void        Set( const DateTime& timeStamp, lang::Timezone timezone =lang::Timezone::Local );
 
-    //==============================================================================================
     /// Creates a \b DateTime object from this calendar date.
     /// \attention
     /// The resolution and possible time range of class \b %DateTime is platform-dependent.
@@ -135,17 +123,13 @@ class CalendarDateTime
     /// @param timezone Denote if the time that is calculated should be local or UTC.
     ///                 Defaults to \c TimeZone::Local.
     /// @returns The point in time represented by the public fields of this class.
-    //==============================================================================================
     ALIB_DLL
     DateTime    Get( lang::Timezone timezone =lang::Timezone::Local )                         const;
 
-    //==============================================================================================
     /// Sets all public values to \c 0.
-    //==============================================================================================
     ALIB_DLL
     void        Clear();
 
-    //==============================================================================================
     /// Formats the date using a given pattern string. Within the pattern string, different symbols
     /// are interpreted as tokens. The format is compatible with C# time format strings, as well as
     /// with class SimpleDateFormat of the Java APIs.<br>
@@ -183,7 +167,6 @@ class CalendarDateTime
     /// @param targetData If \c CurrentData::Keep (the default) the string is appended to \p{target}.
     ///                   if \c CurrentData::Clear, \p{target} is cleared.
     /// @returns \p{target} (for convenience).
-    //==============================================================================================
     ALIB_DLL
     AString&    Format( Substring format,   AString& target,
                         lang::CurrentData targetData= lang::CurrentData::Keep)                const;
@@ -197,151 +180,112 @@ class CalendarDateTime
 //==================================================================================================
 class CalendarDuration
 {
-    public:
-        /// The number of days within the duration
-        int                     Days;
+  public:
+    /// The number of days within the duration
+    int Days;
 
-        /// The number of hours (not the total, hence 0-23) within the duration.
-        int                     Hours;
+    /// The number of hours (not the total, hence 0-23) within the duration.
+    int Hours;
 
-        /// The number of minutes (not the total, hence 0-59) within the duration.
-        int                     Minutes;
+    /// The number of minutes (not the total, hence 0-59) within the duration.
+    int Minutes;
 
-        /// The number of seconds (not the total, hence 0-59) within the duration.
-        int                     Seconds;
+    /// The number of seconds (not the total, hence 0-59) within the duration.
+    int Seconds;
 
-        /// The number of milliseconds (not the total, hence 0-999) within the duration.
-        int                     Milliseconds;
+    /// The number of milliseconds (not the total, hence 0-999) within the duration.
+    int Milliseconds;
 
-        /// The number of microseconds (not the total, hence 0-999) within the duration.
-        int                     Microseconds;
+    /// The number of microseconds (not the total, hence 0-999) within the duration.
+    int Microseconds;
 
-        /// The number of nanoseconds (not the total, hence 0-999) within the duration.
-        int                     Nanoseconds;
+    /// The number of nanoseconds (not the total, hence 0-999) within the duration.
+    int Nanoseconds;
 
-    //==============================================================================================
     /// Constructs the object to represent a duration of 0. (Sets all public fields to 0.)
     /// @param init If \b Initialization::Default or \b Nulled, #Clear is invoked.
     ///             Otherwise fields are not initialized.
     ///             Defaults to \b Initialization::Default.
-    //==============================================================================================
-                                CalendarDuration(lang::Initialization init= lang::Initialization::Default)
+    CalendarDuration(lang::Initialization init= lang::Initialization::Default)
     {
         if(init != lang::Initialization::Suppress )
             Clear();
     }
 
-    //==============================================================================================
     /// Constructs the object using the given duration measured in nanoseconds.
     /// Invokes #FromNanoSeconds.
     /// @param nanos The duration to use for setting the public fields.
-    //==============================================================================================
-                                 CalendarDuration( int64_t nanos )
-    {
-        FromNanoSeconds( nanos );
-    }
+    CalendarDuration( int64_t nanos )                                  { FromNanoSeconds( nanos ); }
 
-    //==============================================================================================
     /// Constructs the object using the given duration object.
     /// Invokes #FromDuration.
     /// @param duration The duration to use for setting the public fields.
-    //==============================================================================================
-                                 CalendarDuration( DateTime::Duration duration )
-    {
-        FromDuration( duration );
-    }
+    CalendarDuration( DateTime::Duration duration )                    { FromDuration( duration ); }
 
-    //==============================================================================================
     /// Constructs the object using the given duration object.
     /// Invokes #FromDuration.
     /// @param duration The duration to use for setting the public fields.
-    //==============================================================================================
-                                 CalendarDuration( Ticks::Duration  duration )
-    {
-        FromDuration( duration );
-    }
+    CalendarDuration( Ticks::Duration  duration )                      { FromDuration( duration ); }
 
-    //==============================================================================================
     /// Sets the public fields to represent the given duration value.
     /// The state of the object will hereafter be the same as it was when constructed with the same
     /// parameter.
     /// @param duration The duration to use for setting the public fields.
-    //==============================================================================================
-    void                        FromDuration( DateTime::Duration duration )
-    {
-        FromNanoSeconds( duration.InNanoseconds() );
-    }
+    void               FromDuration( DateTime::Duration duration )
+    { FromNanoSeconds( duration.InNanoseconds() ); }
 
-    //==============================================================================================
     /// Sets the public fields to represent the given duration value.
     /// The state of the object will hereafter be the same as it was when constructed with the same
     /// parameter.
     /// @param duration The duration to use for setting the public fields.
-    //==============================================================================================
-    void                        FromDuration( Ticks::Duration duration )
-    {
-        FromNanoSeconds( duration.InNanoseconds() );
-    }
+    void               FromDuration( Ticks::Duration duration )
+    { FromNanoSeconds( duration.InNanoseconds() ); }
 
-    //==============================================================================================
     /// Takes the current values of the public fields and returns a duration value compatible with
     /// class \b %DateTime.
     /// @returns The duration represented by the public fields of this class.
-    //==============================================================================================
-    DateTime::Duration          ToDateTimeDuration()
-    {
-        return DateTime::Duration::FromNanoseconds( ToNanoSeconds() );
-    }
+    DateTime::Duration ToDateTimeDuration()
+    { return DateTime::Duration::FromNanoseconds( ToNanoSeconds() ); }
 
-    //==============================================================================================
     /// Takes the current values of the public fields and returns a duration value compatible with
     /// class \b %Ticks.
     /// @returns The duration represented by the public fields of this class.
-    //==============================================================================================
-    Ticks::Duration             ToTicksDuration()
-    {
-        return Ticks::Duration::FromNanoseconds( ToNanoSeconds() );
-    }
+    Ticks::Duration    ToTicksDuration()
+    { return Ticks::Duration::FromNanoseconds( ToNanoSeconds() ); }
 
-    //==============================================================================================
     /// Sets the public fields to represent the given duration value.
     /// The state of the object will hereafter be the same as it was when constructed with the same
     /// parameter.
     /// @param nanos The duration to use for setting the public fields.
-    //==============================================================================================
-    ALIB_DLL void               FromNanoSeconds( int64_t nanos );
+    ALIB_DLL void      FromNanoSeconds( int64_t nanos );
 
-    //==============================================================================================
     /// Takes the current values of the public fields and returns the duration.
     /// @returns The duration represented by the public fields of this class in nanoseconds.
-    //==============================================================================================
-    ALIB_DLL int64_t            ToNanoSeconds();
-    //==============================================================================================
+    ALIB_DLL int64_t   ToNanoSeconds();
+
     /// Sets all public values to 0.
-    //==============================================================================================
-    ALIB_DLL void               Clear();
+    ALIB_DLL void      Clear();
 };
-
-
 
 //==================================================================================================
 /// Represents a date in the systems calendar without the provision of a clock time.
-/// This class internally uses types \alib{time;DateTime} and \alib{strings::util;CalendarDateTime} to
-/// perform operators <c>+</c>, <c>-</c>, <c>+=</c> and <c>-=</c>, but is much more efficient with
-/// in- and decrement operators <c>++</c> and <c>--</c>. Furthermore it uses only 32-bits of storage.
+/// This class internally uses types \alib{time;DateTime} and \alib{strings::util;CalendarDateTime}
+/// to perform operators <c>+</c>, <c>-</c>, <c>+=</c> and <c>-=</c>, but is much more efficient
+/// with in- and decrement operators <c>++</c> and <c>--</c>. Furthermore it uses only 32-bits of
+/// storage.
 ///
 /// Besides storing clock-time agnostic date values, the type is useful to securely iterate over
 /// dates, because there is no risk of false comparisons due to mixed time-zone and daylight
 /// saving properties and in general due to arbitrarily set clock times.
 ///
-/// Another small difference is that field \alib{strings::util::CalendarDate;DayOfWeek} is always kept in a
-/// reliable (correct) state, which is not the case with field
+/// Another small difference is that field \alib{strings::util::CalendarDate;DayOfWeek} is always
+/// kept in a reliable (correct) state, which is not the case with field
 /// \alib{strings::util;CalendarDateTime::DayOfWeek}.
 ///
-/// Internally,  the values are stored a 32-bit storage word using the following scheme
-/// - bits 1-3   encode the day of week (from 0 (= Sunday) to 6 (= Saturday)
-/// - bits 4-8   encode the calendar day (1..31)
-/// - bits 9-12  encode the calendar month (1..12)
+/// Internally, the values are stored a 32-bit storage word using the following scheme
+/// - bits 1-3 encode the day of week (from 0 (= Sunday) to 6 (= Saturday)
+/// - bits 4-8 encode the calendar day (1..31)
+/// - bits 9-12 encode the calendar month (1..12)
 /// - bits 13-32 encode the calendar year
 /// consequently, for the calendar year 20 bits are available, which evaluates to a range of
 /// \b 1,048,576 years.
@@ -353,291 +297,212 @@ class CalendarDuration
 //==================================================================================================
 class CalendarDate
 {
-    protected:
-        uint32_t        stamp; ///< Encoded date value.
+  protected:
+    uint32_t        stamp; ///< Encoded date value.
 
-    // #############################################################################################
-    // Conversion to time platform/language specific values
-    // #############################################################################################
-    public:
-        /// Default constructor leaving this object uninitialized (random value).   **************
-        CalendarDate()                                                                    = default;
+  //################################################################################################
+  // Conversion to time platform/language specific values
+  //################################################################################################
+  public:
+    /// Default constructor leaving this object uninitialized (random value).
+    CalendarDate()                                                                         =default;
 
-        /// Trivial default copy constructor.  ***************************************************
-        CalendarDate( const CalendarDate&  )              noexcept                        = default;
+    /// Trivial default copy constructor.
+    CalendarDate( const CalendarDate&  )                                          noexcept =default;
 
-        /// Trivial default move constructor.  ***************************************************
-        CalendarDate(       CalendarDate&& )              noexcept                        = default;
+    /// Trivial default move constructor.
+    CalendarDate(       CalendarDate&& )                                          noexcept =default;
 
-        /// Trivial default copy assign operator.
-        /// @return A reference to \c this.     ***************************************************
-        CalendarDate& operator=( const CalendarDate&  )   noexcept                        = default;
+    /// Trivial default copy assign operator.
+    /// @return A reference to \c this.
+    CalendarDate& operator=( const CalendarDate&  )                               noexcept =default;
 
-        /// Trivial default move assign operator.
-        /// @return A reference to \c this.     ***************************************************
-        CalendarDate& operator=(       CalendarDate&& )   noexcept                        = default;
+    /// Trivial default move assign operator.
+    /// @return A reference to \c this.
+    CalendarDate& operator=(       CalendarDate&& )                               noexcept =default;
 
-        /// Trivial default destructor.        ***************************************************
-        ~CalendarDate()                           noexcept                                = default;
+    /// Trivial default destructor.
+    ~CalendarDate()                                                               noexcept =default;
 
-        //==========================================================================================
-        /// Constructor taking the date as separated values.
-        /// @param year      The year to use. Must be between 0 and 1,048,575
-        /// @param month     The month to use. Must be between 1 and 12
-        /// @param day       The day to use. Must be between 1 and 31
-        /// @param dayOfWeek The day of week that results from the previous values.
-        ///                  Defaults to \c -1 which instructs this constructor to retrieve that
-        ///                  correct value.<br>
-        ///                  If given, values must be between 0 (Sunday) and 6 (Saturday).
-        ///                  In debug compilations an assertion will be raised if the
-        ///                  value is out of range or inconsistent.
-        //==========================================================================================
-        CalendarDate(int year, int month, int day, int dayOfWeek= -1)
-        {
-            Set( year, month, day, dayOfWeek );
-        }
+    /// Constructor taking the date as separated values.
+    /// @param year      The year to use. Must be between 0 and 1,048,575
+    /// @param month     The month to use. Must be between 1 and 12
+    /// @param day       The day to use. Must be between 1 and 31
+    /// @param dayOfWeek The day of week that results from the previous values.
+    ///                  Defaults to \c -1 which instructs this constructor to retrieve that
+    ///                  correct value.<br>
+    ///                  If given, values must be between 0 (Sunday) and 6 (Saturday).
+    ///                  In debug compilations an assertion will be raised if the
+    ///                  value is out of range or inconsistent.
+    CalendarDate(int year, int month, int day, int dayOfWeek= -1)
+    { Set( year, month, day, dayOfWeek ); }
 
-        //==========================================================================================
-        /// Constructor creating a date that represents "today".
-        /// @param timezone  Determines whether the local time zone should be used or UTC.
-        //==========================================================================================
-        explicit
-        CalendarDate( lang::Timezone timezone )
-        {
-            Set( DateTime(lang::Initialization::Default), timezone);
-        }
+    /// Constructor creating a date that represents "today".
+    /// @param timezone  Determines whether the local time zone should be used or UTC.
+    explicit
+    CalendarDate( lang::Timezone timezone )
+    { Set( DateTime(lang::Initialization::Default), timezone); }
 
-        //==========================================================================================
-        /// Constructor taking a \b DateTime value.
-        /// @param calendarDateTime The value to take the date from.
-        //==========================================================================================
-        ALIB_DLL explicit
-        CalendarDate( const CalendarDateTime& calendarDateTime )
-        {
-            Set( calendarDateTime.Year
-                ,calendarDateTime.Month
-                ,calendarDateTime.Day
-                ,calendarDateTime.DayOfWeek );
-        }
+    /// Constructor taking a \b DateTime value.
+    /// @param calendarDateTime The value to take the date from.
+    ALIB_DLL explicit
+    CalendarDate( const CalendarDateTime& calendarDateTime ) {
+        Set( calendarDateTime.Year
+            ,calendarDateTime.Month
+            ,calendarDateTime.Day
+            ,calendarDateTime.DayOfWeek );
+    }
 
-        //==========================================================================================
-        /// Constructor taking a \b DateTime value.
-        /// @param dateTime The value to take the date from.
-        /// @param timezone Determines whether the local time zone should be used or UTC.
-        //==========================================================================================
-        CalendarDate( const DateTime& dateTime, lang::Timezone timezone )
-        {
-            Set( dateTime, timezone);
-        }
+    /// Constructor taking a \b DateTime value.
+    /// @param dateTime The value to take the date from.
+    /// @param timezone Determines whether the local time zone should be used or UTC.
+    CalendarDate( const DateTime& dateTime, lang::Timezone timezone )  { Set( dateTime, timezone); }
 
 
-        //==========================================================================================
-        /// Sets this class to the given values.
-        /// @param year      The year to use. Must be between 0 and 1,048,575
-        /// @param month     The month to use. Must be between 1 and 12
-        /// @param day       The day to use. Must be between 1 and 31
-        /// @param dayOfWeek The day of week that results from the previous values.
-        ///                  Defaults to \c -1 which instructs this constructor to retrieve that
-        ///                  correct value.<br>
-        ///                  If given, values must be between 0 (Sunday) and 6 (Saturday).
-        ///                  In debug compilations an assertion will be raised if the
-        ///                  value is out of range or inconsistent.
-        //==========================================================================================
-        ALIB_DLL
-        void    Set( int year, int month, int day, int dayOfWeek= -1);
+    /// Sets this class to the given values.
+    /// @param year      The year to use. Must be between 0 and 1,048,575
+    /// @param month     The month to use. Must be between 1 and 12
+    /// @param day       The day to use. Must be between 1 and 31
+    /// @param dayOfWeek The day of week that results from the previous values.
+    ///                  Defaults to \c -1 which instructs this constructor to retrieve that
+    ///                  correct value.<br>
+    ///                  If given, values must be between 0 (Sunday) and 6 (Saturday).
+    ///                  In debug compilations an assertion will be raised if the
+    ///                  value is out of range or inconsistent.
+    ALIB_DLL
+    void    Set( int year, int month, int day, int dayOfWeek= -1);
 
-        //==========================================================================================
-        /// Sets this class to the date represented by the given \b DateTime instance.
-        /// @param dateTime The value to take the date from.
-        /// @param timezone Determines whether the local time zone applies to \p dateTime or
-        ///                 whether it refers to UTC.
-        //==========================================================================================
-        ALIB_DLL
-        void    Set( const DateTime& dateTime, lang::Timezone timezone );
+    /// Sets this class to the date represented by the given \b DateTime instance.
+    /// @param dateTime The value to take the date from.
+    /// @param timezone Determines whether the local time zone applies to \p{dateTime} or
+    ///                 whether it refers to UTC.
+    ALIB_DLL
+    void    Set( const DateTime& dateTime, lang::Timezone timezone );
 
-        //==========================================================================================
-        /// Creates a \b DateTime object from this calendar date.
-        /// \attention
-        /// The resolution and possible time range of class \b %DateTime is platform-dependent.
-        /// This method must not be used if inconsistent values are stored.
-        ///
-        /// @param timezone Denote if the time that is calculated should be local or UTC.
-        ///                 Defaults to \c TimeZone::Local.
-        /// @param hour     The hour of day (0..23) that the value returned should represent.
-        ///                 Defaults to noon time (\c 12).
-        /// @param minute   The minute of the hour (0..59) that the value returned should represent.
-        ///                 Defaults to \c 0.
-        /// @param second   The second of the minute (0..59) that the value returned should
-        ///                 represent. Defaults to \c 0.
-        /// @returns The point in time represented by this class and the given clock values.
-        //==========================================================================================
-        ALIB_DLL
-        DateTime    Get( lang::Timezone timezone = lang::Timezone::Local,
-                         int hour= 12, int minute= 0, int second= 0 )                         const;
+    /// Creates a \b DateTime object from this calendar date.
+    /// \attention
+    /// The resolution and possible time range of class \b %DateTime is platform-dependent.
+    /// This method must not be used if inconsistent values are stored.
+    ///
+    /// @param timezone Denote if the time that is calculated should be local or UTC.
+    ///                 Defaults to \c TimeZone::Local.
+    /// @param hour     The hour of day (0..23) that the value returned should represent.
+    ///                 Defaults to noon time (\c 12).
+    /// @param minute   The minute of the hour (0..59) that the value returned should represent.
+    ///                 Defaults to \c 0.
+    /// @param second   The second of the minute (0..59) that the value returned should
+    ///                 represent. Defaults to \c 0.
+    /// @returns The point in time represented by this class and the given clock values.
+    ALIB_DLL
+    DateTime         Get( lang::Timezone timezone = lang::Timezone::Local,
+                          int hour= 12, int minute= 0, int second= 0 )                        const;
 
-        //==========================================================================================
-        /// Returns a date and time value, by adding 12 o'clock noon time.
-        /// @return A corresponding \b DateTime value.
-        //==========================================================================================
-        ALIB_DLL
-        CalendarDateTime    ToCalendarDateTime()                                              const;
+    /// Returns a date and time value, by adding 12 o'clock noon time.
+    /// @return A corresponding \b DateTime value.
+    ALIB_DLL
+    CalendarDateTime ToCalendarDateTime()                                                     const;
 
-        //--------------------------  Year(), Month(), Day(), DayOfWeek()   ------------------------
-        /// Extracts the day of month from this date as a value between \c 1 and \c 31.
-        /// @return The calendar day of month.
-        int         Year()                          const   {  return int(  stamp >> 12       );   }
+      //---------------------------- Year(), Month(), Day(), DayOfWeek() ---------------------------
+    /// Extracts the day of month from this date as a value between \c 1 and \c 31.
+    /// @return The calendar day of month.
+    int             Year()                               const { return int(  stamp >> 12       ); }
 
-        /// Extracts the month from this date as a value between \c 1 and \c 12.
-        /// @return The calendar day of month.
-        int         Month()                         const   {  return int( (stamp >>  8) & 15 );   }
+    /// Extracts the month from this date as a value between \c 1 and \c 12.
+    /// @return The calendar day of month.
+    int             Month()                              const { return int( (stamp >>  8) & 15 ); }
 
-        /// Extracts the day of month from this date as a value between \c 1 and \c 31.
-        /// @return The calendar day of month.
-        int         Day()                           const   {  return int( (stamp >>  3) & 31 );   }
+    /// Extracts the day of month from this date as a value between \c 1 and \c 31.
+    /// @return The calendar day of month.
+    int             Day()                                const { return int( (stamp >>  3) & 31 ); }
 
-        /// Extracts the day of week from this date as a value between \c 0 (representing sunday)
-        /// and \c 6 (representing Saturday) in accordance with field
-        /// \alib{strings::util;CalendarDateTime::DayOfWeek}.
-        /// @return The calendar day of month.
-        int         DayOfWeek()                     const   {  return int(  stamp        &  7 );   }
+    /// Extracts the day of week from this date as a value between \c 0 (representing sunday)
+    /// and \c 6 (representing Saturday) in accordance with field
+    /// \alib{strings::util;CalendarDateTime::DayOfWeek}.
+    /// @return The calendar day of month.
+    int             DayOfWeek()                          const { return int(  stamp        &  7 ); }
 
-        //--------------------------- +/- and ++/--/+=/-= operators    ----------------------------
+      //--------------------------------------------- +/ -------------------------------------------
 
-        //==========================================================================================
-        /// Adds the given number of days to this date.
-        /// @param daysToAdd  The days to add. May be negative for subtraction.
-        /// @return A copy of this object after modification.
-        //==========================================================================================
-        ALIB_DLL
-        CalendarDate  operator+ ( int daysToAdd )                                             const;
+    /// Adds the given number of days to this date.
+    /// @param daysToAdd  The days to add. May be negative for subtraction.
+    /// @return A copy of this object after modification.
+    ALIB_DLL
+    CalendarDate    operator+ ( int daysToAdd )                                               const;
 
-        //==========================================================================================
-        /// Subtracts the given number of days to this date.
-        /// @param daysToSubtract The days to add. May be negative for additions.
-        /// @return A copy of this object after modification.
-        //==========================================================================================
-        CalendarDate  operator- ( int daysToSubtract )                                         const
-        {
-            return (*this) + (-daysToSubtract);
-        }
+    /// Subtracts the given number of days to this date.
+    /// @param daysToSubtract The days to add. May be negative for additions.
+    /// @return A copy of this object after modification.
+    CalendarDate    operator- ( int daysToSubtract )   const { return (*this) + (-daysToSubtract); }
 
-        //==========================================================================================
-        /// Prefix increment operator.
-        ///  @return A copy of this object after modification.
-        //==========================================================================================
-        ALIB_DLL
-        CalendarDate operator++();
+    /// Prefix increment operator.
+    /// @return A copy of this object after modification.
+    ALIB_DLL
+    CalendarDate    operator++();
 
-        //==========================================================================================
-        /// Prefix decrement operator.
-        ///  @return A copy of this object after modification.
-        //==========================================================================================
-        ALIB_DLL
-        CalendarDate operator--();
+    /// Prefix decrement operator.
+    /// @return A copy of this object after modification.
+    ALIB_DLL
+    CalendarDate    operator--();
 
-        //==========================================================================================
-        /// Postfix increment operator.
-        ///  @return A copy of this object before its modification.
-        //==========================================================================================
-        CalendarDate operator++(int)
-        {
-            auto tmp = *this;
-            ++(*this);
-            return tmp;
-        }
+    /// Postfix increment operator.
+    /// @return A copy of this object before its modification.
+    CalendarDate    operator++(int) {
+        auto tmp = *this;
+        ++(*this);
+        return tmp;
+    }
 
-        //==========================================================================================
-        /// Postfix decrement operator.
-        ///  @return A copy of this object before its modification.
-        //==========================================================================================
-        CalendarDate operator--(int)
-        {
-            auto tmp = *this;
-            --(*this);
-            return tmp;
-        }
+    /// Postfix decrement operator.
+    /// @return A copy of this object before its modification.
+    CalendarDate    operator--(int) {
+        auto tmp = *this;
+        --(*this);
+        return tmp;
+    }
 
-        //==========================================================================================
-        /// Adds the given number of days to this date.
-        /// @param daysToAdd  The days to add. May be negative for subtraction.
-        /// @return A copy of this object after modification.
-        //==========================================================================================
-        CalendarDate  operator+=( int daysToAdd )
-        {
-            return (*this)= (*this) + daysToAdd;
-        }
+    /// Adds the given number of days to this date.
+    /// @param daysToAdd  The days to add. May be negative for subtraction.
+    /// @return A copy of this object after modification.
+    CalendarDate    operator+=( int daysToAdd )             { return (*this)= (*this) + daysToAdd; }
 
-        //==========================================================================================
-        /// Subtracts the given number of days to this date.
-        /// @param daysToSubtract The days to add. May be negative for additons.
-        /// @return A copy of this object after modification.
-        //==========================================================================================
-        CalendarDate  operator-=( int daysToSubtract )
-        {
-            return (*this)+= (- daysToSubtract);
-        }
+    /// Subtracts the given number of days to this date.
+    /// @param daysToSubtract The days to add. May be negative for additons.
+    /// @return A copy of this object after modification.
+    CalendarDate    operator-=( int daysToSubtract )        { return (*this)+= (- daysToSubtract); }
 
 
-        //------------------------------------    Comparison    ------------------------------------
-        //==========================================================================================
-        /// Equal to operator.
-        /// @param other The date stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator==( const CalendarDate& other )                                         const
-        {
-            return stamp == other.stamp;
-        }
+      //----------------------------------------- Comparison ---------------------------------------
+    /// Equal to operator.
+    /// @param other The date stamp to compare.
+    /// @return The result of the comparison.
+    bool            operator==( const CalendarDate& other )   const { return stamp == other.stamp; }
 
-        //==========================================================================================
-        /// Not equal to operator.
-        /// @param other The date stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator!=( const CalendarDate& other )                                         const
-        {
-            return stamp != other.stamp;
-        }
+    /// Not equal to operator.
+    /// @param other The date stamp to compare.
+    /// @return The result of the comparison.
+    bool            operator!=( const CalendarDate& other )   const { return stamp != other.stamp; }
 
-        //==========================================================================================
-        /// Less than operator.
-        /// @param other The date stamp to compare.
-        /// @return A reference to this object.
-        //==========================================================================================
-        bool   operator<( const CalendarDate& other )                                          const
-        {
-            return stamp <  other.stamp;
-        }
+    /// Less than operator.
+    /// @param other The date stamp to compare.
+    /// @return A reference to this object.
+    bool            operator<( const CalendarDate& other )    const { return stamp <  other.stamp; }
 
-        //==========================================================================================
-        /// Less than or equal to operator.
-        /// @param other The date stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator<=( const CalendarDate& other )                                         const
-        {
-            return stamp <=  other.stamp;
-        }
+    /// Less than or equal to operator.
+    /// @param other The date stamp to compare.
+    /// @return The result of the comparison.
+    bool            operator<=( const CalendarDate& other )                                    const
+    { return stamp <=  other.stamp; }
 
-        //==========================================================================================
-        /// Greater than operator.
-        /// @param other The date stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator>( const CalendarDate& other )                                          const
-        {
-            return stamp >  other.stamp;
-        }
+    /// Greater than operator.
+    /// @param other The date stamp to compare.
+    /// @return The result of the comparison.
+    bool            operator>( const CalendarDate& other )    const { return stamp >  other.stamp; }
 
-        //==========================================================================================
-        /// Greater than or equal to operator.
-        /// @param other The date stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator>=( const CalendarDate& other )                                        const
-        {
-            return stamp >=  other.stamp;
-        }
+    /// Greater than or equal to operator.
+    /// @param other The date stamp to compare.
+    /// @return The result of the comparison.
+    bool            operator>=( const CalendarDate& other )                                    const
+    { return stamp >=  other.stamp; }
 };  // class CalendarDate
 
 
@@ -653,5 +518,3 @@ using     CalendarDuration  =     strings::util::CalendarDuration;
 using     CalendarDate      =     strings::util::CalendarDate;
 
 } // namespace [alib]
-
-

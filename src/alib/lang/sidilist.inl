@@ -63,25 +63,25 @@ struct SidiNodeBase
 
 
     /// Default constructor. (Does not initialize the pointer.)
-    SidiNodeBase()                                                              noexcept  = default;
+    SidiNodeBase()                                                                noexcept =default;
 
     /// Deleted copy constructor. This is deleted because it is dangerous, respectively often
     /// not possible and also mostly not wanted to be able to create copies of derived type
     /// \p{TElement}
-    SidiNodeBase( const SidiNodeBase&  )                                                   = delete;
+    SidiNodeBase( const SidiNodeBase&  )                                                    =delete;
 
     /// Defaulted move constructor.
-    SidiNodeBase(       SidiNodeBase&& )                                        noexcept  = default;
+    SidiNodeBase(       SidiNodeBase&& )                                          noexcept =default;
 
     /// Deleted copy assignment operator. This is deleted because it is dangerous, respectively
     /// often not possible and also mostly not wanted to create copies of derived type
     /// \p{TElement}
     /// @return Not defined.
-    SidiNodeBase&  operator=( const SidiNodeBase& )                                        = delete;
+    SidiNodeBase&  operator=( const SidiNodeBase& )                                         =delete;
 
     /// Defaulted move assignment operator.
     /// @return A reference to this object.
-    SidiNodeBase&  operator=(       SidiNodeBase&& )                             noexcept = default;
+    SidiNodeBase&  operator=(       SidiNodeBase&& )                              noexcept =default;
 
     /// Constructor accepting a pointer to the next element.
     /// @param next  Pointer to the next element. Assigned to field #n.
@@ -115,14 +115,13 @@ struct SidiNodeBase
     ///   Field #n of the returned element is \b not set to \c nullptr.
     ///
     /// @return The unhooked element.
-    TElement*   removeNext()                                                                noexcept
-    {
+    TElement*   removeNext()                                                              noexcept {
         auto* result= next();
         next( next()->next() );
         return result;
     }
 
-    /// Unhooks successors until \p last. If \p last equals field #n, only this next
+    /// Unhooks successors until \p{last}. If \p{last} equals field #n, only this next
     /// element is unhooked.
     /// \attention
     ///    Field #n of given \p{last} is \b not set to \c nullptr.
@@ -131,8 +130,7 @@ struct SidiNodeBase
     ///             <b>[</b>\ref n "n"<b>, </b> \p{last}<b>]</b> which is removed.
     ///
     /// @return The start of the range (the current successor of this node or element).
-    TElement*   removeRangeBehind( TElement* last )                                         noexcept
-    {
+    TElement*   removeRangeBehind( TElement* last )                                       noexcept {
         TElement* result= next();
         next( last->next() );
         return result;
@@ -141,8 +139,7 @@ struct SidiNodeBase
     /// Hooks the given element behind this node or element.
     /// @param  elem The element to insert behind this node or element.
     /// @return The element that given \p{elem} pointed to before the insertion.
-    TElement*   addBehind( TElement* elem )                                                 noexcept
-    {
+    TElement*   addBehind( TElement* elem )                                               noexcept {
         TElement* result = elem->next();
         elem->next(next());
         next( elem );
@@ -156,12 +153,10 @@ struct SidiNodeBase
     ///              Defaults to \c nullptr, marking the end of a list.
     /// @return The number of elements in the range.
     [[nodiscard]]
-    integer     count( SidiNodeBase* end= nullptr )                                   const noexcept
-    {
+    integer     count( SidiNodeBase* end= nullptr )                                 const noexcept {
         integer result= 0;
         SidiNodeBase* start= next();
-        while( start != end )
-        {
+        while( start != end ) {
             start= start->next();
             ++result;
         }
@@ -193,21 +188,21 @@ struct SidiListHook : SidiNodeBase<TElement>
 
     /// Deleted copy constructor.
     /// \note Copy construction is a duty of derived usable types.
-    SidiListHook( const SidiListHook&  copy )                                              = delete;
+    SidiListHook( const SidiListHook&  copy )                                               =delete;
 
     /// Move constructor.
     /// Copies the link from \p{move} and sets the link of \p{move} to \c nullptr.
-    SidiListHook(       SidiListHook&&  )                                        noexcept = default;
+    SidiListHook(       SidiListHook&&  )                                         noexcept =default;
 
     /// Deleted copy assignment operator.
     /// @return Not applicable
-    SidiListHook& operator=  ( const SidiListHook& )                              noexcept = delete;
+    SidiListHook& operator=  ( const SidiListHook& )                               noexcept =delete;
 
     /// Move assignment operator.
     /// Copies the link to the first element from \p{move} and sets the link in \p{move} to
     /// \c nullptr.
     /// @return A reference to this list object.
-    SidiListHook& operator=  ( SidiListHook&& )                                  noexcept = default;
+    SidiListHook& operator=  ( SidiListHook&& )                                   noexcept =default;
 
     /// Tests if this list is empty.
     /// @return \c false if the list is empty, \c true otherwise.
@@ -224,8 +219,7 @@ struct SidiListHook : SidiNodeBase<TElement>
 
     /// Hooks the given element to the beginning of this list.
     /// @param elem The element to insert to at the start.
-    void        pushFront( TElement* elem )                                                 noexcept
-    {
+    void        pushFront( TElement* elem )                                               noexcept {
         elem->next( TNode::next() );
         TNode::next( elem );
     }
@@ -240,9 +234,8 @@ struct SidiListHook : SidiNodeBase<TElement>
     }
 
     /// Removes and returns the first element from this list.
-    /// @return  A pointer to the element, respectively \c nullptr if the list was empty.
-    TElement*   popFront()                                                                  noexcept
-    {
+    /// @return A pointer to the element, respectively \c nullptr if the list was empty.
+    TElement*   popFront()                                                                noexcept {
         TElement* result=  first();
         if( result )
             TNode::next(result->next());
@@ -256,8 +249,7 @@ struct SidiListHook : SidiNodeBase<TElement>
     ///   To find the pointer to the last element, use #findLastBefore providing \c nullptr.
     /// @return The last element of this list.
     [[nodiscard]]
-    TElement*   findLast()                                                            const noexcept
-    {
+    TElement*   findLast()                                                          const noexcept {
         TElement* elem= first();
         while( elem->hasNext() )
             elem= elem->next();
@@ -268,8 +260,7 @@ struct SidiListHook : SidiNodeBase<TElement>
     /// @param hint An element of this list used to start the search.
     /// @return The last element of this list.
     [[nodiscard]]
-    TElement*   findLast( TElement* hint )                                            const noexcept
-    {
+    TElement*   findLast( TElement* hint )                                          const noexcept {
         TElement* elem= hint;
         while( elem->hasNext() )
             elem= elem->next();
@@ -281,8 +272,7 @@ struct SidiListHook : SidiNodeBase<TElement>
     /// @param elem The element to search for.
     /// @return The node (this object) or element pointing to \p{elem}.
     [[nodiscard]]
-    TElement*   findLastBefore( TElement* elem )                                            noexcept
-    {
+    TElement*   findLastBefore( TElement* elem )                                          noexcept {
         TNode* it= this;
         while( !it->pointsTo(elem) )
             it= it->next();
@@ -300,8 +290,7 @@ struct SidiListHook : SidiNodeBase<TElement>
     /// @param elem The element to remove.
     /// @return The node (this object) or element that pointed to given \p{elem} before the
     ///         invocation and now points to the successor of \p{elem}.
-    TNode*      findAndRemove( TElement* elem )                                             noexcept
-    {
+    TNode*      findAndRemove( TElement* elem )                                           noexcept {
         TNode* previous= findLastBefore(elem);
         previous->removeNext();
         return previous;
@@ -317,5 +306,3 @@ struct SidiListHook : SidiNodeBase<TElement>
 }; // struct SidiListHook
 
 } // namespace [alib::lang]
-
-

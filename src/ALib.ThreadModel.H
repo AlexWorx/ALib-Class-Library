@@ -22,5 +22,3 @@
 #endif
 
 #endif // H_ALIB_THREADMODEL
-
-

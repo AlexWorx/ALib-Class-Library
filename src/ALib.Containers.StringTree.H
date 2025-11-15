@@ -14,11 +14,11 @@
 
 #include "alib/containers/containers.prepro.hpp"
 
-#if ALIB_CONTAINERS
+#if ALIB_CONTAINERS && ALIB_STRINGS
 #   if ALIB_C20_MODULES && !DOXYGEN
         import ALib.Containers.StringTree;
 #   elif !defined(ALIB_INC_CONTAINERS_STRINGTREE_MPP)
-#       define ALIB_INC_CONTAINERS_STRINGTREE_MPP
+#       define    ALIB_INC_CONTAINERS_STRINGTREE_MPP
 #       include "alib/containers/stringtree.mpp"
 #   endif
 #endif

@@ -65,19 +65,13 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 //==================================================================================================
 struct Math   : public plugins::Calculus
 {
-    //==============================================================================================
     /// Constructor. Creates the hash maps.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
     ALIB_DLL    Math( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor
-    //==============================================================================================
-    virtual    ~Math()                                                                  override  {}
+    virtual    ~Math()                                                                   override {}
 };
 
 
 }}} // namespace [alib::expressions::detail]
-
-

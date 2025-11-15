@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Format.FormatterPythonStyle;
     import   ALib.Lang;
@@ -30,7 +30,7 @@
 #   include "ALib.Format.FormatterPythonStyle.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib::strings;
 
 namespace alib::format {
@@ -38,16 +38,14 @@ namespace alib::format {
 
 FormatterPythonStyle::FormatterPythonStyle()
 : FormatterStdImpl( A_CHAR( "FormatterPythonStyle" ) )
-, Sizes(&SizesDefaultInstance)
-{
+, Sizes(&SizesDefaultInstance) {
     // set number format to python defaults
     DefaultNumberFormat.Flags-=  NumberFormatFlags::ForceDecimalPoint;
     DefaultNumberFormat.Flags+=  NumberFormatFlags::WriteExponentPlusSign;
 }
 
 
-SPFormatter   FormatterPythonStyle::Clone()
-{
+SPFormatter   FormatterPythonStyle::Clone() {
     // create a clone
     SPFormatter clone;
     clone.InsertDerived<FormatterPythonStyle>();
@@ -61,8 +59,7 @@ SPFormatter   FormatterPythonStyle::Clone()
     return clone;
 }
 
-void FormatterPythonStyle::resetPlaceholder()
-{
+void FormatterPythonStyle::resetPlaceholder() {
     // first invoke parent's setting...
     FormatterStdImpl::resetPlaceholder();
 
@@ -82,8 +79,7 @@ void FormatterPythonStyle::resetPlaceholder()
 }
 
 
-integer FormatterPythonStyle::findPlaceholder()
-{
+integer FormatterPythonStyle::findPlaceholder() {
     integer idx= 0;
     while(     (idx= parser.IndexOf('{', idx )) >= 0
            &&  parser.CharAt( idx + 1 ) == '{'                   )
@@ -95,19 +91,16 @@ integer FormatterPythonStyle::findPlaceholder()
 }
 
 
-bool FormatterPythonStyle::parsePlaceholder()
-{
+bool FormatterPythonStyle::parsePlaceholder() {
     // read position
-    if( isdigit( parser.CharAtStart() )  )
-    {
+    if( isdigit( parser.CharAtStart() )  ) {
         int argNo;
         parser.ConsumeDecDigits( argNo );
         setArgument( argNo );
     }
 
     // read conversion
-    if( parser.CharAtStart() == '!' )
-    {
+    if( parser.CharAtStart() == '!' ) {
         placeholderPS.ConversionPos  = int(   formatString.Length()
                                             - parser.Length() - 1   );
         integer endConversion= parser.IndexOfAny<lang::Inclusion::Include>( A_CHAR( ":}" ) );
@@ -119,17 +112,14 @@ bool FormatterPythonStyle::parsePlaceholder()
     }
 
     // read colon and format spec
-    if( parser.CharAtStart() == ':'  )
-    {
+    if( parser.CharAtStart() == ':'  ) {
         parser.ConsumeChars(1);
 
         // find end of format spec: allow "\}", "\{" and nested "{..}" in format string
         Substring subParser= parser;
         int depth= 0;
-        while( subParser.IsNotEmpty() )
-        {
-            if( subParser.CharAtStart() == '}' )
-            {
+        while( subParser.IsNotEmpty() ) {
+            if( subParser.CharAtStart() == '}' ) {
                 if(depth == 0 )
                     break;
 
@@ -164,8 +154,7 @@ bool FormatterPythonStyle::parsePlaceholder()
 
 
 
-bool FormatterPythonStyle::parseStdFormatSpec()
-{
+bool FormatterPythonStyle::parseStdFormatSpec() {
     // parse alignment and fill character. This is a bit tricky to shorten the code.
     // The alignment token <,>,^ or = can be on first or second position. If second, then the
     // first was a fill character. Therefore , we loop from 0 to 1....
@@ -173,10 +162,8 @@ bool FormatterPythonStyle::parseStdFormatSpec()
     placeholder.AlignmentSpecified= true;
     Substring& formatSpec= placeholder.FormatSpec;
 
-
     int cNo= 0;
-    do switch ( formatSpec.CharAt( cNo++ ) )
-    {
+    do switch ( formatSpec.CharAt( cNo++ ) ) {
         case '<': placeholder.ValueAlignment= lang::Alignment::Left;    break;
         case '>': placeholder.ValueAlignment= lang::Alignment::Right;   break;
         case '^': placeholder.ValueAlignment= lang::Alignment::Center;  break;
@@ -184,13 +171,10 @@ bool FormatterPythonStyle::parseStdFormatSpec()
                   placeholder.SignPaddingMode=  true;        break;
 
         default:
-            if(cNo == 1 )
-            {
+            if(cNo == 1 ) {
                 charsToConsume= 2;
                 placeholder.FillChar= formatSpec.CharAtStart();
-            }
-            else
-            {
+            } else {
                 charsToConsume= 0;
                 placeholder.FillChar= ' ';
                 placeholder.AlignmentSpecified= false;
@@ -202,11 +186,9 @@ bool FormatterPythonStyle::parseStdFormatSpec()
 
     // other things to parse
     character actChar;
-    while( (actChar= formatSpec.CharAtStart()) != '\0' )
-    {
+    while( (actChar= formatSpec.CharAtStart()) != '\0' ) {
         // width
-        if( isdigit( actChar ) )
-        {
+        if( isdigit( actChar ) ) {
             // Python doc says:
             //   When no explicit alignment is given, preceding the width field by a zero ('0') character
             //   enables sign-aware zero-padding for numeric types.
@@ -225,8 +207,7 @@ bool FormatterPythonStyle::parseStdFormatSpec()
         // For non-number types the field indicates the maximum field size - in other words,
         // how many characters will be used from the field content. The precision is not
         // allowed for integral values."
-        else if( actChar == '.' )
-        {
+        else if( actChar == '.' ) {
             placeholderPS.PrecisionPos= int(   formatString.Length()
                                              - parser.Length()
                                              - formatSpec.Length() -1     );
@@ -241,9 +222,8 @@ bool FormatterPythonStyle::parseStdFormatSpec()
         }
 
 
-        // ----------------------------- Types -------------------------------------
-        else if (String(A_CHAR( "sdcboxXeEfFngGhHB%" )).IndexOf( actChar ) >= 0 )
-        {
+      //------------------------------------------- Types ------------------------------------------
+        else if (String(A_CHAR( "sdcboxXeEfFngGhHB%" )).IndexOf( actChar ) >= 0 ) {
             if ( placeholder.TypeCode != '\0' )
                 throw Exception( ALIB_CALLER_NULLED, FMTExceptions::DuplicateTypeCode,
                                  actChar, placeholder.TypeCode,
@@ -257,15 +237,13 @@ bool FormatterPythonStyle::parseStdFormatSpec()
                                                - parser.Length()
                                                - formatSpec.Length() - 1    );
 
-            if( String(A_CHAR( "EGF" )).IndexOf( actChar ) >= 0 )
-            {
+            if( String(A_CHAR( "EGF" )).IndexOf( actChar ) >= 0 ) {
                 placeholder.NF.ExponentSeparator= DefaultNumberFormat.ExponentSeparator;
                 placeholder.NF.INFLiteral=        DefaultNumberFormat.INFLiteral;
                 placeholder.NF.NANLiteral=        DefaultNumberFormat.NANLiteral;
             }
 
-            switch( actChar )
-            {
+            switch( actChar ) {
                 case 's':   placeholder.Type= PHTypes::String;                break;
                 case 'd':   placeholder.Type= PHTypes::IntBase10;             break;
                 case 'c':   placeholder.Type= PHTypes::Character;             break;
@@ -305,8 +283,7 @@ bool FormatterPythonStyle::parseStdFormatSpec()
 
 
         // others
-        else switch( actChar )
-        {
+        else switch( actChar ) {
             // sign
             case '+':   placeholder.NF.PlusSign= '+' ;  break;
             case '-':   placeholder.NF.PlusSign= '\0';  break;
@@ -341,8 +318,7 @@ bool FormatterPythonStyle::parseStdFormatSpec()
 }
 
 
-void    FormatterPythonStyle::writeStringPortion( integer length )
-{
+void    FormatterPythonStyle::writeStringPortion( integer length ) {
     if( length == 0)
         return;
 
@@ -353,8 +329,7 @@ void    FormatterPythonStyle::writeStringPortion( integer length )
 
     character c1;
     character c2= *src;
-    while( length > 1 )
-    {
+    while( length > 1 ) {
         c1= c2;
         c2= *++src;
 
@@ -366,8 +341,7 @@ void    FormatterPythonStyle::writeStringPortion( integer length )
                  ||    c1 == '\\'                     )
         {
             if(  c1 == '\\' )
-                switch(c2)
-                {
+                switch(c2) {
                     case 'r': c1= '\r' ; break;
                     case 'n': c1= '\n' ;
                               // reset auto-sizes with \n
@@ -393,8 +367,7 @@ void    FormatterPythonStyle::writeStringPortion( integer length )
 
     // copy last character and adjust target string length:
     // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
-    if( length == 1)
-    {
+    if( length == 1) {
         *dest= *src;
         // reset auto-sizes when last character is '\n'
         if(  *dest == '\n' )
@@ -404,15 +377,13 @@ void    FormatterPythonStyle::writeStringPortion( integer length )
 }
 
 
-bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* target )
-{
+bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* target ) {
     bool isPreProcess=  startIdx < 0;
     bool isPostProcess= startIdx>= 0 && target == nullptr;
     Substring conversion= placeholderPS.Conversion;
     ++placeholderPS.ConversionPos;
 
-    while( conversion.IsNotEmpty() )
-    {
+    while( conversion.IsNotEmpty() ) {
         if( !conversion.ConsumeChar('!') )
             throw Exception(ALIB_CALLER_NULLED, FMTExceptions::ExclamationMarkExpected,
                             placeholder.Arg->TypeID(),
@@ -428,8 +399,7 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
         {
             String8 open = A_CHAR( '"' );
             String8 close= A_CHAR( '"' );
-            if (conversion.IsNotEmpty() && conversion.CharAtStart() != A_CHAR('!'))
-            {
+            if (conversion.IsNotEmpty() && conversion.CharAtStart() != A_CHAR('!')) {
                 open  .Reset( conversion.ConsumeChar() );
                 close.Reset(  conversion.IsNotEmpty() && conversion.CharAtStart() != A_CHAR('!')
                             ? conversion.ConsumeChar()
@@ -440,8 +410,7 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
                 targetString->InsertAt<NC>( open, startIdx ) .Append<NC>(  close );
         }
 
-        else if(  conversion.ConsumePartOf( A_CHAR( "Fill"      ) ) > 0 )
-        {
+        else if(  conversion.ConsumePartOf( A_CHAR( "Fill"      ) ) > 0 ) {
             placeholder.Type= PHTypes::Fill;
             placeholder.FillChar=  conversion.ConsumeChar<lang::Case::Ignore>('C' ) && conversion.Length() > 0
                                                    ? conversion.ConsumeChar<NC>()
@@ -449,8 +418,7 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
 
         }
 
-        else if(  conversion.ConsumePartOf( A_CHAR( "Tab"       ) ) > 0 )
-        {
+        else if(  conversion.ConsumePartOf( A_CHAR( "Tab"       ) ) > 0 ) {
             character tabChar= conversion.ConsumeChar<lang::Case::Ignore>('C') && conversion.Length() > 0
                                 ? conversion.ConsumeChar<NC>()
                                 : ' ';
@@ -463,16 +431,12 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
 
         }
 
-        else if( conversion.ConsumePartOf( A_CHAR( "ATab" ), 2 ) > 0 )
-        {
+        else if( conversion.ConsumePartOf( A_CHAR( "ATab" ), 2 ) > 0 ) {
 
-            if( conversion.ConsumePartOf(  A_CHAR( "Reset")    ) > 0 )
-            {
+            if( conversion.ConsumePartOf(  A_CHAR( "Reset")    ) > 0 ) {
                 if( isPreProcess )
                     Sizes->Reset();
-            }
-            else
-            {
+            } else {
                 character tabChar= conversion.ConsumeChar<lang::Case::Ignore>('C' ) && conversion.Length() > 0
                                 ? conversion.ConsumeChar<NC>()
                                 : ' ';
@@ -481,24 +445,17 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
                 if( !conversion.ConsumeDecDigits<int>( growth ) )
                     growth= 3;
 
-                if( isPreProcess )
-                {
+                if( isPreProcess ) {
                     integer actPos= targetString->Length() - targetStringStartLength;
                     integer tabStop= Sizes->Next( AutoSizes::Types::Tabstop, actPos , growth );
                     targetString->InsertChars<NC>( tabChar, tabStop - actPos );
-                }
-            }
-        }
+        }   }   }
 
-        else if( conversion.ConsumePartOf( A_CHAR( "AWidth" ), 2 ) > 0 )
-        {
-            if( conversion.ConsumePartOf(  A_CHAR( "Reset"  )    ) > 0 )
-            {
+        else if( conversion.ConsumePartOf( A_CHAR( "AWidth" ), 2 ) > 0 ) {
+            if( conversion.ConsumePartOf(  A_CHAR( "Reset"  )    ) > 0 ) {
                 if( isPreProcess )
                     Sizes->Reset();
-            }
-            else
-            {
+            } else {
                 int extraPadding;
                 conversion.ConsumeDecDigits<int>( extraPadding );
 
@@ -506,8 +463,7 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
                     placeholder.Width= int( Sizes->Actual( AutoSizes::Types::Field, 0, extraPadding ) );
                 else if ( isPostProcess )
                     Sizes->Next( AutoSizes::Types::Field, targetString->Length() - startIdx, extraPadding );
-            }
-        }
+        }   }
 
         else if(    conversion.ConsumePartOf( A_CHAR( "Esc" ) ) > 0
                  || conversion.ConsumePartOf( A_CHAR( "A"   ) ) > 0 )
@@ -521,8 +477,7 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
                 targetString->_<NC>( typename strings::TEscape<character>( toESC, startIdx ) );
         }
 
-        else if( conversion.ConsumePartOf( A_CHAR( "Replace" ), 2 ) > 0 )
-        {
+        else if( conversion.ConsumePartOf( A_CHAR( "Replace" ), 2 ) > 0 ) {
             String search = conversion.ConsumeField( '<', '>' );
             String replace= conversion.ConsumeField( '<', '>' );
             if( search.IsNull() || replace.IsNull() )
@@ -532,17 +487,14 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
                                                + placeholderPS.Conversion.Length()
                                                - conversion.Length() );
 
-            if( target != nullptr )
-            {
+            if( target != nullptr ) {
                 // special case: fill empty fields
-                if( search.IsEmpty() && target->Length() - startIdx == 0 )
-                {
+                if( search.IsEmpty() && target->Length() - startIdx == 0 ) {
                     *target << replace;
                 }
                 else
                     target->SearchAndReplace( search, replace, startIdx );
-            }
-        }
+        }   }
 
         // error (not recognized)
         else
@@ -557,11 +509,9 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
 }
 
 
-bool  FormatterPythonStyle::checkStdFieldAgainstArgument()
-{
+bool  FormatterPythonStyle::checkStdFieldAgainstArgument() {
     bool wasFloat= placeholder.Type == PHTypes::Float;
-    if( wasFloat )
-    {
+    if( wasFloat ) {
              if ( placeholderPS.Precision >= 0 )
             placeholder.NF.FractionalPartWidth= int8_t( placeholderPS.Precision );
         else if( placeholder.NF.FractionalPartWidth < 0 )
@@ -570,8 +520,7 @@ bool  FormatterPythonStyle::checkStdFieldAgainstArgument()
 
     bool result= FormatterStdImpl::checkStdFieldAgainstArgument();
 
-    if( !wasFloat && placeholder.Type == PHTypes::Float )
-    {
+    if( !wasFloat && placeholder.Type == PHTypes::Float ) {
         if ( placeholderPS.Precision >= 0 )
             placeholder.NF.FractionalPartWidth= int8_t( placeholderPS.Precision );
     }
@@ -590,4 +539,3 @@ bool  FormatterPythonStyle::checkStdFieldAgainstArgument()
 
 
 } // namespace [alib::format]
-

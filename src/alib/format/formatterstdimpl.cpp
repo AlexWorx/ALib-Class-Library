@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <cmath>
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Format.StdImplementation;
     import   ALib.Lang;
@@ -31,7 +31,7 @@
 #   include "ALib.Format.StdImplementation.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 // For code compatibility with ALox Java/C++
 // We have to use underscore as the start of the name and for this have to disable a compiler
 // warning. But this is a local code (cpp file) anyhow.
@@ -50,8 +50,7 @@ namespace alib::format {
 
 
 FormatterStdImpl::FormatterStdImpl( const String& formatterClassName )
-: formatterName( formatterClassName )
-{
+: formatterName( formatterClassName ) {
     Formatter::AlternativeNumberFormat.SetFromLocale();
 
     Formatter::AlternativeNumberFormat.ExponentSeparator=  A_CHAR( "e"   );
@@ -64,8 +63,7 @@ FormatterStdImpl::FormatterStdImpl( const String& formatterClassName )
 int  FormatterStdImpl::format( AString&        pTargetString,
                                const String&   pFormatString,
                                const BoxesMA&  pArguments,
-                               int             pArgOffset        )
-{
+                               int             pArgOffset        ) {
     // save parameters/init state
     targetString=             &pTargetString;
     targetStringStartLength=  pTargetString.Length();
@@ -78,12 +76,10 @@ int  FormatterStdImpl::format( AString&        pTargetString,
     nextAutoIdx=        0;
     argsConsumed=       0;
 
-    for(;;)
-    {
+    for(;;) {
         // find start of esc
         integer escStart= findPlaceholder();
-        if ( escStart < 0 )
-        {
+        if ( escStart < 0 ) {
             // write rest of formatString string (only if we had consumed before)
             if( argsConsumed > 0)
                 writeStringPortion( parser.Length() );
@@ -111,11 +107,9 @@ int  FormatterStdImpl::format( AString&        pTargetString,
 
 
         // write field
-        if( preAndPostProcess( -1 ) )
-        {
+        if( preAndPostProcess( -1 ) ) {
             integer actIdx= targetString->Length();
-            if ( !writeCustomFormat() )
-            {
+            if ( !writeCustomFormat() ) {
                 // standard format
                 if (    ( placeholder.FormatSpec.IsNotEmpty()  && !parseStdFormatSpec() )
                      || !checkStdFieldAgainstArgument() )
@@ -130,8 +124,7 @@ int  FormatterStdImpl::format( AString&        pTargetString,
 }
 
 
-void FormatterStdImpl::resetPlaceholder()
-{
+void FormatterStdImpl::resetPlaceholder() {
     placeholder.NF.Set( &(Formatter::DefaultNumberFormat) );
     placeholder.NF.Flags+= NumberFormatFlags::HexLowerCase;
     placeholder.Type                    = PHTypes::NotGiven;
@@ -153,10 +146,8 @@ void FormatterStdImpl::resetPlaceholder()
 }
 
 
-bool    FormatterStdImpl::setArgument( int pos )
-{
-    if( argumentCountStartsWith1 )
-    {
+bool    FormatterStdImpl::setArgument( int pos ) {
+    if( argumentCountStartsWith1 ) {
         if( pos == 0 )
         throw Exception(ALIB_CALLER_NULLED, FMTExceptions::ArgumentIndexIs0,
                         formatString, formatString.Length() - parser.Length() - 2 );
@@ -187,8 +178,7 @@ bool    FormatterStdImpl::setArgument( int pos )
 }
 
 
-bool    FormatterStdImpl::checkStdFieldAgainstArgument()
-{
+bool    FormatterStdImpl::checkStdFieldAgainstArgument() {
     if( placeholder.TypeCodePosition < 0 )
         placeholder.TypeCodePosition= int( formatString.Length() - parser.Length() - 1 );
 
@@ -199,8 +189,7 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
         return true;
 
 
-    if ( placeholder.Arg->IsFloatingPoint() )
-    {
+    if ( placeholder.Arg->IsFloatingPoint() ) {
         if( placeholder.Type == PHTypes::NotGiven )
             placeholder.Type=   PHTypes::Float;
 
@@ -244,8 +233,7 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
                          formatString,  placeholder.TypeCodePosition               );
     }
 
-    if(   placeholder.Arg->IsCharacter() )
-    {
+    if(   placeholder.Arg->IsCharacter() ) {
         if( placeholder.Type == PHTypes::NotGiven )
             placeholder.Type=   PHTypes::Character;
         if( placeholder.Type == PHTypes::Character )
@@ -265,14 +253,12 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
 }
 
 
-void    FormatterStdImpl::writeStdArgument()
-{
+void    FormatterStdImpl::writeStdArgument() {
 
     // write to temp buffer first, if we have a field width given
     AString* target;
 
-    if ( placeholder.Width > 0 )
-    {
+    if ( placeholder.Width > 0 ) {
         target= &(fieldBuffer.Reset());
 
         // set default alignment
@@ -291,8 +277,7 @@ void    FormatterStdImpl::writeStdArgument()
     integer fieldStartIdx= target->Length();
 
     // the main switch over the type
-    switch( placeholder.Type )
-    {
+    switch( placeholder.Type ) {
         case PHTypes::NotGiven:
             ALIB_ERROR( "FORMAT",
              "Internal error: this should have been handled by method checkStdFieldAgainstArgument")
@@ -356,20 +341,16 @@ void    FormatterStdImpl::writeStdArgument()
         case PHTypes::IntOctal:
         {
             int digits= placeholder.Width;
-            if( placeholder.WriteBinOctHexPrefix )
-            {
+            if( placeholder.WriteBinOctHexPrefix ) {
                 target->_<NC>( placeholder.Type == PHTypes::IntOctal  ? placeholder.NF.OctLiteralPrefix :
                                   placeholder.Type == PHTypes::IntBinary ? placeholder.NF.BinLiteralPrefix :
                                                                            placeholder.NF.HexLiteralPrefix       );
                 digits-= int((target->Length() - fieldStartIdx));
-                if( placeholder.Width > 0 && digits <= 0 )
-                {
+                if( placeholder.Width > 0 && digits <= 0 ) {
                     target->ShortenTo( fieldStartIdx + placeholder.Width );
                     break; // stop output, no space left
-                }
-            }
-            if ( digits <= 0 )
-            {
+            }   }
+            if ( digits <= 0 ) {
                 if (placeholder.Type == PHTypes::HashCode )
                     digits= ALIB_SIZEOF_INTEGER * 2;
                 else if ( placeholder.Arg->IsPointer() || placeholder.Arg->IsArray() )
@@ -412,28 +393,23 @@ void    FormatterStdImpl::writeStdArgument()
             if( placeholder.IsPercentage )
                 value*= 100.0;
 
-            if (placeholder.SignPaddingMode)
-            {
+            if (placeholder.SignPaddingMode) {
                 auto classification=  std::fpclassify(value);
 
                 // write sign upfront and set fill character to 0
-                if( classification != FP_NAN  )
-                {
+                if( classification != FP_NAN  ) {
                     bool negative= std::signbit(value);
-                    if( classification == FP_ZERO && negative )
-                    {
+                    if( classification == FP_ZERO && negative ) {
                         value= 0.0;
                         negative= false;
                     }
 
-                    if( negative )
-                    {
+                    if( negative ) {
                         targetString->_<NC>( '-' );
                         --placeholder.Width;
                         value= -value;
                     }
-                    else if( placeholder.NF.PlusSign != '\0' )
-                    {
+                    else if( placeholder.NF.PlusSign != '\0' ) {
                         targetString->_<NC>( placeholder.NF.PlusSign );
                         --placeholder.Width;
                     }
@@ -441,11 +417,9 @@ void    FormatterStdImpl::writeStdArgument()
 
                     if ( !HasBits(placeholder.NF.Flags, NumberFormatFlags::WriteGroupChars) || placeholder.NF.ThousandsGroupChar == '\0')
                         placeholder.FillChar= '0';
-                    else
-                    {
+                    else {
                         // calculate integral part width
-                        if ( placeholder.Width > 0 && !HasBits(placeholder.NF.Flags, NumberFormatFlags::ForceScientific) )
-                        {
+                        if ( placeholder.Width > 0 && !HasBits(placeholder.NF.Flags, NumberFormatFlags::ForceScientific) ) {
                             placeholder.NF.IntegralPartMinimumWidth= int8_t( placeholder.Width - 1 ); // -1 == the dot
 
                             if( placeholder.NF.FractionalPartWidth >= 0 )
@@ -457,9 +431,7 @@ void    FormatterStdImpl::writeStdArgument()
                             // check
                             if( placeholder.NF.IntegralPartMinimumWidth <= 0)
                                 placeholder.NF.IntegralPartMinimumWidth= 1;
-                        }
-                    }
-                }
+                }   }   }
 
             }
 
@@ -485,40 +457,31 @@ void    FormatterStdImpl::writeStdArgument()
     preAndPostProcess( fieldStartIdx, target );
 
     // apply cutting
-    if ( placeholder.CutContent >= 0 )
-    {
+    if ( placeholder.CutContent >= 0 ) {
         // wchar compilation: we grant the length is the same as the number of wide characters
         // added, although this is still not true for some unicode character combinations
-        if( std::is_same<character, wchar>::value )
-        {
+        if( std::is_same<character, wchar>::value ) {
             // too much added?
             if( target->Length() - oldTargetLength > placeholder.CutContent )
                 target->ShortenTo( oldTargetLength + placeholder.CutContent );
-        }
-        else
-        {
+        } else {
             integer qtyWCharsAdded= target->Substring<NC>( oldTargetLength, target->Length() - oldTargetLength ).WStringLength();
 
             // too much added?
-            if( qtyWCharsAdded > placeholder.CutContent )
-            {
+            if( qtyWCharsAdded > placeholder.CutContent ) {
                 // was not unicode?
                 if( qtyWCharsAdded == target->Length() - oldTargetLength )
                     target->ShortenTo( oldTargetLength + placeholder.CutContent );
 
                 // in the unicode case, it gets complicated: we have to convert to unicode and
                 // then convert a part of it back!
-                else if( qtyWCharsAdded < 256)
-                {
+                else if( qtyWCharsAdded < 256) {
                     WString256 wBuf;
                     wBuf.DbgDisableBufferReplacementWarning();
                     wBuf.Append<NC>( target->Buffer() + oldTargetLength, target->Length() - oldTargetLength );
                     target->ShortenTo( oldTargetLength );
                     target->Append<NC>( wBuf.Buffer(),placeholder.CutContent );
-                }
-            }
-        }
-    }
+    }   }   }   }
 
 
     // if field mode, we have to append the field buffer as a field to the real target now
@@ -527,8 +490,7 @@ void    FormatterStdImpl::writeStdArgument()
 
 }
 
-bool    FormatterStdImpl::writeCustomFormat()
-{
+bool    FormatterStdImpl::writeCustomFormat() {
     auto* func=  placeholder.Arg->GetFunction<FFormat>( lang::Reach::Local );
     if( !func )
         return false;
@@ -538,4 +500,3 @@ bool    FormatterStdImpl::writeCustomFormat()
 }
 
 } // namespace [alib::format]
-

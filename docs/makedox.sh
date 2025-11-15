@@ -9,8 +9,9 @@ echo "      3. ALox Sample has to be run once (generates an INI-file in doxygen/
 #makeclean.sh
 
 # prior used doxygen version
-Doxygen="doxygen"
-Doxygen=/opt/doxygen/doxygen.git/_builds_/bin/doxygen
+#Doxygen="doxygen"
+#Doxygen=/opt/doxygen/doxygen.git/_builds_/bin/doxygen
+Doxygen=/opt/doxygen/doxygen14.git/_builds_/bin/doxygen
 
 echo "Doxygen version: "
 $Doxygen --version

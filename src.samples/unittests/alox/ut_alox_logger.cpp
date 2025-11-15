@@ -148,6 +148,7 @@ UT_METHOD(Log_Multiline)
     Log::DebugLogger->GetFormatMultiLine().Mode= 0;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 0 (single line) --------" )
+
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
     Log::DebugLogger->GetFormatMultiLine().Mode= 0;
@@ -159,28 +160,28 @@ UT_METHOD(Log_Multiline)
     Log::DebugLogger->GetFormatMultiLine().Mode= 0;
     Log::DebugLogger->GetFormatMultiLine().Delimiter.Reset();
     Log_Info( "" )
-    Log_Info( "-------- ML Mode = 0 (single line) with delimiter set to \"\" (stops multi line processing) --------" )
+    Log_Info( "-------- ML Mode = 0 (single line) with delimiter set to \"\" (stops multi-line processing) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
     Log::DebugLogger->GetFormatMultiLine().Delimiter.SetNull();
 
     Log::DebugLogger->GetFormatMultiLine().Mode= 1;
     Log_Info( "" )
-    Log_Info( "-------- ML Mode = 1 (multi line, all meta info per line) --------" )
+    Log_Info( "-------- ML Mode = 1 (multi-line, all meta info per line) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
     Log::DebugLogger->GetFormatMultiLine().Mode= 2;
     Log_Info( "" )
-    Log_Info( "-------- ML Mode = 2 (multi line, meta info blanked) --------" )
+    Log_Info( "-------- ML Mode = 2 (multi-line, meta info blanked) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
     Log::DebugLogger->GetFormatMultiLine().Mode= 3;
     Log_Info( "" )
-    Log_Info( "-------- ML Mode = 3 (multi line, print headline with info, text starts at pos 0) --------" )
+    Log_Info( "-------- ML Mode = 3 (multi-line, print headline with info, text starts at pos 0) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
     Log::DebugLogger->GetFormatMultiLine().Mode= 4;
     Log_Info( "" )
-    Log_Info( "-------- ML Mode = 4 (pure multi line, no meta info, no headline, starts at pos 0)) --------" )
+    Log_Info( "-------- ML Mode = 4 (pure multi-line, no meta info, no headline, starts at pos 0)) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 }
 
@@ -439,14 +440,16 @@ UT_METHOD(Log_TextLogger_FormatConfig)
 struct TestTextLogger : public lox::textlogger::TextLogger
 {
     void    t(AString& buf, int64_t diff)     { writeTimeDiff( buf, diff ); }
-    void logText(  lox::detail::Domain&    ,
-                   Verbosity               ,
-                   AString&                ,
-                   lox::detail::ScopeInfo& ,
-                   int                  )      override{}
-    void notifyMultiLineOp( lang::Phase )      override{}
+    void logText( lox::detail::Domain&    ,
+                  Verbosity               ,
+                  AString&                ,
+                  lox::detail::ScopeInfo& ,
+                  int                     ,
+                  bool                      )      override {}
     
-    TestTextLogger(AWorxUnitTesting& ut) : TextLogger("","", false)
+    void notifyMultiLineOp( lang::Phase )      override {}
+    
+    TestTextLogger(AWorxUnitTesting& ut) : TextLogger("", "")
     {
         ALIB_LOCK_WITH(ALOX.GetConfig())
             varFormatTimeDiff.Declare(A_CHAR("ALOX/FORMAT_TIME_DIFF"), A_CHAR("ALOXFTD"));

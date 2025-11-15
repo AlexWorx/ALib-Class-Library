@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,14 +11,14 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/files/files.prepro.hpp"
 #if !defined (_WIN32)
 #   include <pwd.h>
 #   include <grp.h>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Files;
     import   ALib.Characters.Functions;
@@ -34,13 +34,12 @@
 #   include "ALib.Expressions.H"
 #   include "ALib.Files.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 using namespace alib::system;
 namespace alib::files {
 
-void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathString& realTarget)
-{
+void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathString& realTarget) {
     EISymLinkFile& ei= *static_cast<EISymLinkFile*>(extendedInfo);
     auto& pool= tree.Pool;
 
@@ -67,13 +66,11 @@ void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathStr
     namespace { NString unknown("<Unknown>"); }
 #endif
 
-const NString&  OwnerAndGroupResolver::GetOwnerName( const FInfo& fInfo )
-{
+const NString&  OwnerAndGroupResolver::GetOwnerName( const FInfo& fInfo ) {
     #if !defined ( _WIN32)
         auto key= fInfo.Owner();
         auto resultPair= ownerCache.Try( key );
-        if( !resultPair.first )
-        {
+        if( !resultPair.first ) {
             auto* result= getpwuid(key);
             resultPair.second.Construct( key, NString(result ? result->pw_name : "?"));
         }
@@ -84,13 +81,11 @@ const NString&  OwnerAndGroupResolver::GetOwnerName( const FInfo& fInfo )
     #endif
 }
 
-const NString&  OwnerAndGroupResolver::GetGroupName( const FInfo& fInfo )
-{
+const NString&  OwnerAndGroupResolver::GetGroupName( const FInfo& fInfo ) {
     #if !defined ( _WIN32)
         auto key= fInfo.Group();
         auto resultPair= groupCache.Try( key );
-        if( !resultPair.first )
-        {
+        if( !resultPair.first ) {
             auto* result= getgrgid(key);
             resultPair.second.Construct( key, NString(result ? result->gr_name : "?"));
         }

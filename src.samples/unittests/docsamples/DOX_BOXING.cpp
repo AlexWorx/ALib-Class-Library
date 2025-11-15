@@ -969,7 +969,7 @@ DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC])
 template <typename... T> void VariadicFunction( T&&... args )
 {
     // fetch the arguments into a Boxes object
-    alib::BoxesHA boxes;
+    alib::Boxes boxes;
     boxes.Add( std::forward<T>( args )... );
 
     // do something
@@ -989,7 +989,7 @@ void sampleFunc()
 {
     {
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_1])
-alib::BoxesHA boxes;
+alib::Boxes boxes;
 boxes.Add( 7, "ALib", 3.14 );
 boxes.Add( 42, "Yipee-yeah" );
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_1])
@@ -1007,7 +1007,7 @@ void sampleFunc2()
 {
     {
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC_CALL_1])
-alib::BoxesHA boxes;
+alib::Boxes boxes;
 boxes.Add( 2, 3 );
 VariadicFunction( 1, boxes, 4 );
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC_CALL_1])
@@ -1018,7 +1018,7 @@ void sampleFunc3()
 {
     {
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC_CALL_2])
-alib::BoxesHA boxes;
+alib::Boxes boxes;
 boxes.Add( 2, 3 );
 alib::Box   box( boxes );
 VariadicFunction( 1, box, 4 );
@@ -1035,7 +1035,7 @@ void HeavilyOverloadedFunction( const alib::Box& boxOrBoxes )
 {
     // pass the single box into a Boxes object. This way, if another boxes object gets passed,
     // its elements are added to the list!
-    alib::BoxesHA boxes;
+    alib::Boxes boxes;
     boxes.Add( std::forward<const alib::Box>( boxOrBoxes ) );
 
     // do something
@@ -1055,7 +1055,7 @@ void sampleFunc()
 {
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE_1])
 HeavilyOverloadedFunction( 1 );
-alib::BoxesHA boxes;
+alib::Boxes boxes;
 boxes.Add(1, 2, 3);
 HeavilyOverloadedFunction( boxes );
 DOX_MARKER([DOX_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE_1])

@@ -726,7 +726,7 @@ UT_METHOD(Log_MultipleLogables)
     Log_Prune( check_MemLogStartsWith( A_CHAR("Test")     , ut, memLogger );  )
 
 {
-    BoxesHA logables;
+    Boxes logables;
     logables.Add( "Hello {}", "World" );
     Log_Info ( "BOXES", logables )
     Log_Prune( check_MemLogStartsWith( A_CHAR("Hello World")     , ut, memLogger ); )
@@ -748,7 +748,7 @@ DOX_MARKER( [DOX_ALOX_LOX_ONCE])
 
 // passing a vector of boxes (less efficient than above, if the container object is used only once)
 {
-    Log_Prune( BoxesHA logables; )
+    Log_Prune( Boxes logables; )
     Log_Prune( logables.Add("One - {} - {}!", "two", 3 ) );
     Log_Once(  logables )
 }

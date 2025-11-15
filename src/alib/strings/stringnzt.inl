@@ -122,9 +122,9 @@ class TStringNZT  : public TString<TChar>
 
 }; // class TStringNZT
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits for class TStringNZT
-// #################################################################################################
+//##################################################################################################
 } namespace characters {
 #if !DOXYGEN
 template<typename TChar>
@@ -157,5 +157,3 @@ using  WStringNZT       =     strings::TStringNZT<wchar>;
 using  XStringNZT       =     strings::TStringNZT<xchar>;
 
 } // namespace [alib::strings]
-
-

@@ -122,4 +122,3 @@ enum class FMTExceptions
 
 ALIB_ENUMS_ASSIGN_RECORD(   alib::format::FMTExceptions, alib::exceptions::ERException )
 ALIB_BOXING_VTABLE_DECLARE( alib::format::FMTExceptions, vt_system_fmtexceptions )
-

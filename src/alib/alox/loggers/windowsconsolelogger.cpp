@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::loggers - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if defined( _WIN32 )
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
@@ -12,12 +12,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alox/alox.prepro.hpp"
 #include <iostream>
 #include <string.h>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -31,16 +31,16 @@
 #   include "ALib.Camp.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib::lox::textlogger;
 
 namespace alib::lox::loggers {
 
 using namespace detail;
 
-// #################################################################################################
+//##################################################################################################
 // Windows Console Colors
-// #################################################################################################
+//##################################################################################################
  #define W32C_FOREGROUND_MASK   0xFFF0
  #define W32C_BACKGROUND_MASK   0xFF0F
 
@@ -68,11 +68,11 @@ using namespace detail;
  };
  //! @endcond
 
-// #################################################################################################
+//##################################################################################################
 // Constructor/Destructor
-// #################################################################################################
+//##################################################################################################
 WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
-:    TextLogger( name, "WINDOWS_CONSOLE",  true)
+:    TextLogger( name, "WINDOWS_CONSOLE" )
 {
     // get actual console attributes
     WORD actualAttributes;
@@ -120,12 +120,12 @@ void WindowsConsoleLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::Container
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // logText
-// #################################################################################################
+//##################################################################################################
 void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                                     AString&    msg,
-                                    ScopeInfo&     ,    int                   )
+                                    ScopeInfo&     ,    int , bool                  )
 {
     HANDLE H=       GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD ignore;
@@ -269,4 +269,3 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 }  // namespace [alib::lox::loggers]
 
 #endif // Win32
-

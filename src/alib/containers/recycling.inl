@@ -54,11 +54,9 @@ void    recycleImpl( lang::SidiListHook<TNode>& recyclables, TNode* elem )
 /// @param recyclables  The recycling stack.
 /// @param begin        The first element of the list store, must not be \c nullptr.
 template<typename TNode>
-void    recycleListImpl( lang::SidiListHook<TNode>& recyclables, TNode* begin )
-{
+void    recycleListImpl( lang::SidiListHook<TNode>& recyclables, TNode* begin ) {
     TNode* actual  = begin;
-    for (;;)
-    {
+    for (;;) {
         TNode* next= actual->next();
         lang::Destruct(*actual);
         if (next == nullptr)
@@ -77,13 +75,11 @@ void    recycleListImpl( lang::SidiListHook<TNode>& recyclables, TNode* begin )
 ///         provides the number of nodes recycled.
 template<typename TNode>
 std::pair<TNode*,integer>  recycleListImpl( lang::SidiListHook<TNode>& recyclables,
-                                           TNode* begin, TNode* end )
-{
+                                           TNode* begin, TNode* end ) {
     std::pair<TNode*,integer> result;
     result.second= 1;
     result.first = begin;
-    for (;;)
-    {
+    for (;;) {
         TNode* next= result.first->next();
         lang::Destruct(*result.first);
         if (next == end)
@@ -104,31 +100,25 @@ std::pair<TNode*,integer>  recycleListImpl( lang::SidiListHook<TNode>& recyclabl
 /// @param recyclables  The recycling stack.
 /// @param qty          The quantity of elements to reserve.
 template<typename TAllocator, typename TNode>
-void    reserveImpl( TAllocator& allocator, lang::SidiListHook<TNode>& recyclables, integer qty )
-{
+void    reserveImpl( TAllocator& allocator, lang::SidiListHook<TNode>& recyclables, integer qty ) {
     if (qty <= 0)
         return;
 
-    if constexpr ( TAllocator::allowsMemSplit() )
-    {
+    if constexpr ( TAllocator::allowsMemSplit() ) {
         TNode* newElements= allocator().template AllocArray<TNode>(qty);
         for( integer i= qty - 2; i >= 0   ; --i )
             newElements[i].next( &newElements[i + 1] );
 
         recyclables.pushFront( &newElements[0], &newElements[qty-1] );
-    }
-    else
-    {
+    } else {
         TNode* start= allocator().template Alloc<TNode>();
         TNode* end = start;
-        for( integer i= 1; i < qty   ; ++i )
-        {
+        for( integer i= 1; i < qty   ; ++i ) {
             end->next( allocator().template Alloc<TNode>() );
             end= end->next();
         }
         recyclables.pushFront( start, end );
-    }
-}
+}   }
 
 /// Frees an element (no recycling).
 /// @param allocator  The allocator to use.
@@ -146,19 +136,16 @@ void    disposeImpl( TAllocator& allocator, TNode* elem )
 /// @param allocator  The allocator to use.
 /// @param begin      The first element of the list to free.
 template<typename TAllocator, typename TNode>
-void disposeListImpl( TAllocator& allocator, TNode* begin )
-{
+void disposeListImpl( TAllocator& allocator, TNode* begin ) {
     TNode* actual  = begin;
-    for (;;)
-    {
+    for (;;) {
         TNode* next= actual->next();
         lang::Destruct(*actual);
         allocator().Free(actual);
         if (next == nullptr)
             return;
         actual= next;
-    }
-}
+}   }
 
 /// Deletes a list of elements for recycling. Both given nodes have to exist.
 /// @param allocator  The allocator to use.
@@ -167,13 +154,11 @@ void disposeListImpl( TAllocator& allocator, TNode* begin )
 /// @return A pair of values. The first is a pointer to the last node deleted, and the second
 ///         provides the number of nodes deleted.
 template<typename TAllocator, typename TNode>
-std::pair<TNode*,integer>    disposeListImpl( TAllocator& allocator,  TNode* begin, TNode* end )
-{
+std::pair<TNode*,integer>    disposeListImpl( TAllocator& allocator,  TNode* begin, TNode* end ) {
     std::pair<TNode*,integer> result;
     result.second= 1;
     result.first= begin;
-    for (;;)
-    {
+    for (;;) {
         TNode* next= result.first->next();
         lang::Destruct(*result.first);
         allocator().Free(result.first);
@@ -181,8 +166,7 @@ std::pair<TNode*,integer>    disposeListImpl( TAllocator& allocator,  TNode* beg
             return result;
         ++result.second;
         result.first= next;
-    }
-}
+}   }
 
 /// Recycles a chunk of memory that is \e not of the node type.
 /// Such recycling is useful for example, in combination with hash tables, which usually
@@ -193,22 +177,19 @@ std::pair<TNode*,integer>    disposeListImpl( TAllocator& allocator,  TNode* beg
 /// @param  chunk       The recyclable chunk's address.
 /// @param  count       The number of objects. (For non-array types, \c 1 is to be given.)
 template<typename TNode, typename TChunk>
-void    recycleChunkImpl( lang::SidiListHook<TNode>& recyclables, TChunk* chunk, size_t count )
-{
+void    recycleChunkImpl( lang::SidiListHook<TNode>& recyclables, TChunk* chunk, size_t count ) {
     void*   mem = chunk;
     size_t  size= sizeof(TChunk[1]) * count;
 
     // align beginning of buffer (if necessary)
-    if constexpr( alignof(TNode) > alignof(TChunk[1])  )
-    {
+    if constexpr( alignof(TNode) > alignof(TChunk[1])  ) {
         mem =  reinterpret_cast<void*>((size_t(chunk) + alignof(TNode) - 1) & ~(alignof(TNode) -1));
         size-= size_t(reinterpret_cast<char*>(mem) - reinterpret_cast<char*>(chunk));
     }
 
     // create recyclables
     ALIB_DBG( size_t cntRecycledObjects= 0; )
-    while(size > sizeof(TNode))
-    {
+    while(size > sizeof(TNode)) {
         recyclables.pushFront( reinterpret_cast<TNode*>( mem ) );
         mem  =  reinterpret_cast<char*>(mem) + sizeof(TNode);
         size -= sizeof (TNode);
@@ -216,8 +197,7 @@ void    recycleChunkImpl( lang::SidiListHook<TNode>& recyclables, TChunk* chunk,
     }
 
     #if ALIB_DEBUG
-        if( cntRecycledObjects <= 0 )
-        {
+        if( cntRecycledObjects <= 0 ) {
             ALIB_WARNING( "MONOMEM/RECYCLER",
               "De-allocated chunk size is smaller than node size.\n"
               "  Chunk object:       Type: <{}>\n"
@@ -247,12 +227,12 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
         /// The base type.
         using base= lang::AllocatorMember<TAllocator>;
 
-        /// The list of recyclables.
-        lang::SidiListHook<TNode>  recyclables;
+    /// The list of recyclables.
+    lang::SidiListHook<TNode>  recyclables;
 
   public:
     /// Parameterless constructor. Used with type \b HeapAllocator.
-    RecyclerPrivate()                                                            noexcept = default;
+    RecyclerPrivate()                                                             noexcept =default;
 
     /// Constructor taking an allocator.
     /// @param pAllocator The allocator to use.
@@ -269,32 +249,23 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
     /// @param move The private recycler to move.
     RecyclerPrivate( RecyclerPrivate&& move )                                               noexcept
     : base( move )
-    , recyclables(move)
-    {
-        move.recyclables.reset();
-    }
+    , recyclables(move)                                                { move.recyclables.reset(); }
 
     /// Destructor. Frees all recyclables with the allocator.
-    ~RecyclerPrivate()                                                                      noexcept
-    {
+    ~RecyclerPrivate()                                                                    noexcept {
         TNode* actual  = recyclables.first();
-        while (actual)
-        {
+        while (actual) {
             TNode* next= actual->next();
             base::AI().Free(actual);
             actual= next;
-        }
-    }
+    }   }
 
     /// Resets this recycler. Frees all recyclables with the allocator.
-    void Reset()                                                                            noexcept
-    {
-        if(recyclables.first())
-        {
+    void Reset()                                                                          noexcept {
+        if(recyclables.first()) {
             disposeListImpl(base::GetAllocator(), recyclables.first());
             recyclables.reset();
-        }
-    }
+    }   }
 
     /// @return Returns the allocator received with construction.
     TAllocator&  GetAllocator()                      const noexcept { return base::GetAllocator(); }
@@ -305,9 +276,9 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
     /// @return Returns \c true to indicate that this is not a non-recycling version.
     static constexpr bool IsRecycling()                                    noexcept { return true; }
 
-    ///  Counts the number of recyclables.<br>
-    ///  Attention: This method runs in linear time.
-    ///  @return The number of available elements.
+    /// Counts the number of recyclables.<br>
+    /// Attention: This method runs in linear time.
+    /// @return The number of available elements.
     [[nodiscard]]
     integer       Count()                             const noexcept { return recyclables.count(); }
 
@@ -319,9 +290,10 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
     /// Returns a recycled object or allocates a new one.
     /// @return A recycled or allocated element.
     [[nodiscard]]
-    TNode*        Get()
-    { return  !recyclables.isEmpty() ? recyclables.popFront()
-                                     : base::AI().template Alloc<TNode>(); }
+    TNode*        Get() {
+        return  !recyclables.isEmpty() ? recyclables.popFront()
+                                       : base::AI().template Alloc<TNode>();
+    }
 
     /// Stores an element for recycling.
     /// @param elem The element to store.
@@ -358,8 +330,7 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
     /// @param chunk   The chunk array to convert into nodes
     /// @param length  The length of the chunk array (pass \c 1 if the chunk is not an array type).
     template<typename TChunk>
-    void RecycleChunk(TChunk* chunk, size_t length )                                        noexcept
-    {
+    void RecycleChunk(TChunk* chunk, size_t length )                                      noexcept {
         if constexpr ( TAllocator::allowsMemSplit() )
             recycleChunkImpl( recyclables, chunk, length );
         else
@@ -375,13 +346,12 @@ struct RecyclerPrivate  : lang::AllocatorMember<TAllocator>
     /// @param chunk   The chunk array to convert into nodes
     /// @param length  The length of the chunk array (pass \c 1 if the chunk is not an array type).
     template<typename TChunk>
-    void DisposeChunk(TChunk* chunk, size_t length )                                        noexcept
-    {
-#if !defined(__MINGW32__)
-        base::AI().FreeArray(chunk, length );
-#else
-        base::AI().template FreeArray(chunk, length );
-#endif
+    void DisposeChunk(TChunk* chunk, size_t length )                                      noexcept {
+        #if !defined(__MINGW32__)
+            base::AI().FreeArray(chunk, length );
+        #else
+            base::AI().template FreeArray(chunk, length );
+        #endif
     }
 };
 
@@ -422,11 +392,9 @@ class SharedRecycler  : public    lang::AllocatorMember<TAllocator>
     ~SharedRecycler()                                                          noexcept { Reset(); }
 
     /// Reset. Deletes all recyclables with the allocator.
-    void Reset()                                                                            noexcept
-    {
+    void Reset()                                                                          noexcept {
         TNode* actual  = this->first();
-        while (actual)
-        {
+        while (actual) {
             TNode* next= actual->next();
             allocBase::AI().Free(actual);
             actual= next;
@@ -436,14 +404,13 @@ class SharedRecycler  : public    lang::AllocatorMember<TAllocator>
 
     /// Counts the number of recyclables.
     /// @return The number of recycled container elements available.
-    integer Count()                   const noexcept { return this->count();  }
+    integer Count()                                         const noexcept { return this->count(); }
 
     /// Reserves space for at least the given number of recyclables.
     /// @param qty       The expected number or increase of elements to be stored in the containers
     ///                  that share this recycler.
     /// @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
-    void Reserve( integer qty, lang::ValueReference reference )
-    {
+    void Reserve( integer qty, lang::ValueReference reference ) {
         auto requiredRecyclables= ( qty - (reference == lang::ValueReference::Absolute ? Count()
                                                                                        : 0     ) );
 
@@ -454,7 +421,7 @@ class SharedRecycler  : public    lang::AllocatorMember<TAllocator>
 
 /// Implements internal recycling interface. Used by container types of module \alib_containers_nl that
 /// use shared recycling (when \b their template parameter \p{TRecycling} evaluates to
-///  \alib{containers;Recycling;Shared}).
+/// \alib{containers;Recycling;Shared}).
 ///
 /// @tparam TAllocator The allocator to store and use.
 /// @tparam TNode      The type to recycle. Has to be derived of \alib{lang::SidiNodeBase}.
@@ -462,8 +429,8 @@ template<typename TAllocator, typename TNode>
 class RecyclerShared
 {
   protected:
-        /// The reference to the list of recyclables.
-        SharedRecycler<TAllocator,TNode>&  sr;
+    /// The reference to the list of recyclables.
+    SharedRecycler<TAllocator,TNode>&  sr;
 
   public:
 
@@ -475,7 +442,7 @@ class RecyclerShared
 
     /// Copy constructor. Copies the reference to the shared recycler.
     /// @param copy The private recycler to copy.
-    RecyclerShared( const RecyclerShared& copy )                                 noexcept = default;
+    RecyclerShared( const RecyclerShared& copy )                                  noexcept =default;
 
     /// Move constructor. Just copies the reference but leaves original intact. (We don't care)
     /// @param move The private recycler to move.
@@ -483,10 +450,10 @@ class RecyclerShared
     : sr(move.sr)                                                                                 {}
 
     /// Destructor.
-    ~RecyclerShared()                                                                   noexcept  {}
+    ~RecyclerShared()                                                                    noexcept {}
 
     /// Does nothing. Shared recyclers can't be reset.
-    void Reset()                                                                        noexcept  {}
+    void Reset()                                                                         noexcept {}
 
     /// @return Returns the allocator received with construction.
     TAllocator&  GetAllocator()                         const noexcept { return sr.GetAllocator(); }
@@ -498,9 +465,9 @@ class RecyclerShared
     /// @return Returns \c true to indicate that this is not a non-recycling version.
     static constexpr bool IsRecycling()                                    noexcept { return true; }
 
-    ///  Counts the number of recyclables.<br>
-    ///  Attention: This method runs in linear time.
-    ///  @return The number of available elements.
+    /// Counts the number of recyclables.<br>
+    /// Attention: This method runs in linear time.
+    /// @return The number of available elements.
     [[nodiscard]]
     integer       Count()                                      const noexcept { return sr.count(); }
 
@@ -511,9 +478,7 @@ class RecyclerShared
     /// Returns a recycled object or allocates a new one.
     /// @return A recycled or allocated element.
     [[nodiscard]]
-    TNode*        Get()
-    { return  !sr.isEmpty() ? sr.popFront()
-                            : sr.AI().template Alloc<TNode>(); }
+    TNode*        Get()  { return !sr.isEmpty() ? sr.popFront() : sr.AI().template Alloc<TNode>(); }
 
     /// Stores an element for recycling.
     /// @param elem The element to store.
@@ -547,8 +512,7 @@ class RecyclerShared
     /// @param chunk   The chunk array to convert into nodes
     /// @param length  The length of the chunk array (pass \c 1 if the chunk is not an array type).
     template<typename TChunk>
-    void RecycleChunk(TChunk* chunk, size_t length )                                        noexcept
-    {
+    void RecycleChunk(TChunk* chunk, size_t length )                                      noexcept {
         if constexpr ( TAllocator::allowsMemSplit() )
             recycleChunkImpl( sr, chunk, length );
         else
@@ -579,7 +543,7 @@ struct RecyclerVoid  : lang::AllocatorMember<TAllocator>
 
   public:
     /// Parameterless constructor. Used with type \b HeapAllocator.
-    RecyclerVoid()                                                                        = default;
+    RecyclerVoid() : base()                                                                       {}
 
     /// Defaulted default constructor.
     /// @param pAllocator The allocator to use.
@@ -592,11 +556,11 @@ struct RecyclerVoid  : lang::AllocatorMember<TAllocator>
     /// @return Returns \c false to indicate that this is a non-recycling version.
     static constexpr bool   IsRecycling()                                 noexcept { return false; }
 
-    ///  This recycler just returns \c 0.
-    ///  Attention: With other implementations, this method may run in linear time.
-    ///  @return \c 0, which in this case is always the number of available elements.
+    /// This recycler just returns \c 0.
+    /// Attention: With other implementations, this method may run in linear time.
+    /// @return \c 0, which in this case is always the number of available elements.
     [[nodiscard]]
-    constexpr integer       Count()                                    const noexcept  { return 0; }
+    constexpr integer       Count()                                     const noexcept { return 0; }
 
     /// Does nothing. In debug-compilations a \ref alib_mod_assert "warning is raised".
     void    Reserve( integer )                                                              noexcept
@@ -605,7 +569,7 @@ struct RecyclerVoid  : lang::AllocatorMember<TAllocator>
     /// Allocates a new one.
     /// @return An allocated element.
     [[nodiscard]]
-    TNode*  Get()                         { return base::AI().template Alloc<TNode>(); }
+    TNode*  Get()                                     { return base::AI().template Alloc<TNode>(); }
 
     /// Frees an element.
     /// @param elem The element to store.
@@ -644,13 +608,12 @@ struct RecyclerVoid  : lang::AllocatorMember<TAllocator>
     /// @param chunk  The chunk array to convert into nodes
     /// @param length The length of the chunk array (pass \c 1 if the chunk is not an array type).
     template<typename TChunk>
-    constexpr void          RecycleChunk( TChunk* chunk, size_t length )                    noexcept
-    {
-#if !defined(__MINGW32__)
-        base::AI().FreeArray(chunk, length );
-#else
-        base::AI().template FreeArray(chunk, length );
-#endif
+    constexpr void          RecycleChunk( TChunk* chunk, size_t length )                  noexcept {
+        #if !defined(__MINGW32__)
+            base::AI().FreeArray(chunk, length );
+        #else
+            base::AI().template FreeArray(chunk, length );
+        #endif
     }
 
     /// Frees the given memory. Note that the shared recycler calls #RecycleChunk with this method.
@@ -658,13 +621,12 @@ struct RecyclerVoid  : lang::AllocatorMember<TAllocator>
     /// @param chunk   The chunk array to convert into nodes
     /// @param length  The length of the chunk array (pass \c 1 if the chunk is not an array type).
     template<typename TChunk>
-    void DisposeChunk(TChunk* chunk, size_t length )                                        noexcept
-    {
-#if !defined(__MINGW32__)
-        base::AI().FreeArray(chunk, length );
-#else
-        base::AI().template FreeArray(chunk, length );
-#endif
+    void DisposeChunk(TChunk* chunk, size_t length )                                      noexcept {
+        #if !defined(__MINGW32__)
+            base::AI().FreeArray(chunk, length );
+        #else
+            base::AI().template FreeArray(chunk, length );
+        #endif
     }
 
 }; // struct RecyclerVoid
@@ -708,6 +670,3 @@ template<> struct RecyclingSelector<Recycling::None>
 
 #include "ALib.Lang.CIMethods.H"
 } // namespace [alib::containers::detail]
-
-
-

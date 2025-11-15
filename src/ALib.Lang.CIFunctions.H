@@ -21,5 +21,3 @@
 #      define ALIB_CALLER      {__FILE__,__LINE__,ALIB_CALLER_FUNC,nullptr}
 #   endif
 #endif
-
-

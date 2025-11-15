@@ -293,8 +293,6 @@ UT_METHOD( TextTests )
         st.LineWidth= 40;  st.Clear();   st.Add( lorem );  UT_PRINT("123456789 123456789 123456789 123456789 |\n",  st.Buffer,"\n" )  UT_EQ( st.LineWidth, st.DetectedMaxLineWidth )
         st.LineWidth= 41;  st.Clear();   st.Add( lorem );  UT_PRINT("123456789 123456789 123456789 123456789 1|\n", st.Buffer,"\n" )  UT_EQ( st.LineWidth, st.DetectedMaxLineWidth )
     }
-
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -426,13 +424,46 @@ UT_METHOD( TestWildcardMatcher )
     TestMatcher( ut, A_CHAR("abc.conf"), A_CHAR("a*o*")           , true    );
     TestMatcher( ut, A_CHAR("abc.conf"), A_CHAR("a*x*")           , false   );
 
-    // quick test for case insenstive matching:
+    // quick test for case insensitive matching:
     WildcardMatcher wcm(A_CHAR("*bc.c*")  );
     UT_EQ( true , wcm.Match( A_CHAR("abc.conf") , lang::Case::Ignore ) )
     UT_EQ( true , wcm.Match( A_CHAR("abC.conf") , lang::Case::Ignore ) )
     UT_EQ( true , wcm.Match( A_CHAR("ABC.CONF") , lang::Case::Ignore ) )
     UT_EQ( false, wcm.Match( A_CHAR("ABx.CONF") , lang::Case::Ignore ) )
 }
+
+//--------------------------------------------------------------------------------------------------
+//--- RegexMatcher
+//--------------------------------------------------------------------------------------------------
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+UT_METHOD( TestRegexMatcher )
+{
+    UT_INIT()
+
+    RegexMatcher re;
+
+    re.Compile( A_CHAR("abc") );
+    UT_EQ( 0,  re.SearchIn( A_CHAR("abc.conf"   ) ).Position )
+                                                
+    re.Compile( A_CHAR("\\.conf") );            
+    UT_EQ( 3,  re.SearchIn( A_CHAR("abc.conf"   ) ).Position )
+                                                
+    re.Compile( A_CHAR("c\\..*") );             
+    UT_EQ( 2,  re.SearchIn( A_CHAR("abc.conf"   ) ).Position )
+                                                
+    re.Compile( A_CHAR("^conf") );              
+    UT_EQ( -1, re.SearchIn( A_CHAR("abc.conf"   ) ).Position )
+                                                
+    re.Compile( A_CHAR("conf$") );              
+    UT_EQ( 4,  re.SearchIn( A_CHAR("abc.conf"   ) ).Position )
+
+    re.Compile( A_CHAR("[A-Z]+[a-z]+") );
+    UT_EQ( 0,  re.SearchIn( A_CHAR("Hello World") ).Position )
+
+    re.Compile( A_CHAR("World" ) );
+    UT_EQ( 6,  re.SearchIn( A_CHAR("Hello World") ).Position )
+}
+#endif
 
 //--------------------------------------------------------------------------------------------------
 //--- StringSearch
@@ -478,7 +509,7 @@ UT_METHOD( TestSubstringSearch )
     }
 
     {
-        StringSearch<lang::Case::Ignore   > reused( A_CHAR("Rocks") );       UT_EQ( 14, reused.Search( haystack ) )
+        StringSearch<lang::Case::Ignore   > reused( A_CHAR("Rocks") );          UT_EQ( 14, reused.Search( haystack ) )
                                         reused.Compile( A_CHAR("is") );         UT_EQ( 20, reused.Search( haystack ) )
                                         reused.Compile( A_CHAR("title") );      UT_EQ( 25, reused.Search( haystack ) )
                                         reused.Compile( A_CHAR("paintings") );  UT_EQ( 44, reused.Search( haystack ) )
@@ -1011,56 +1042,94 @@ UT_METHOD( TokenMatch )
 }
 
 //--------------------------------------------------------------------------------------------------
-//--- StringWriter
+//--- OStreamWriter
 //--------------------------------------------------------------------------------------------------
-UT_METHOD( StringWriterNLCorrection )
+UT_METHOD( OStreamWriterNLCorrection )
 {
     UT_INIT()
-    StringWriter sw;
-    std::ostringstream	 os;
-    sw.SetStream(&os);
+    std::ostringstream	    nos;
+    OStreamWriter           nsw(nos);
+    std::wostringstream	    wos;
+    OStreamWriter<wchar_t>  wsw(wos);
 
     ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
-    // non-windows conversion
+    // standard newline conversion ("\n")
     if constexpr (NEW_LINE.Length()==1) {
-                    sw.Write(        "\n"                      ); UT_EQ("\n"            , os.str() )
-        os.str(""); sw.Write(        "\n\n"                    ); UT_EQ("\n\n"          , os.str() )
-        os.str(""); sw.Write(        "\r\n"                    ); UT_EQ("\n"            , os.str() )
-        os.str(""); sw.Write(        "\r\n\r\n"                ); UT_EQ("\n\n"          , os.str() )
-        os.str(""); sw.Write(        "\r\n\n\r\n"              ); UT_EQ("\n\n\n"        , os.str() )
-        os.str(""); sw.Write(        "\ntest\r\n"              ); UT_EQ("\ntest\n"      , os.str() )
-        os.str(""); sw.Write(        "\r\ntest\n"              ); UT_EQ("\ntest\n"      , os.str() )
-        os.str(""); sw.Write(        "x\r\ntest\r\ny\r\n\r\n"  ); UT_EQ("x\ntest\ny\n\n", os.str() )
+        nos.str(""); nsw.Write(        "\n"                      ); UT_EQ("\n"            , nos.str() )
+        nos.str(""); nsw.Write(        "\n\n"                    ); UT_EQ("\n\n"          , nos.str() )
+        nos.str(""); nsw.Write(        "\r\n"                    ); UT_EQ("\n"            , nos.str() )
+        nos.str(""); nsw.Write(        "\r\n\r\n"                ); UT_EQ("\n\n"          , nos.str() )
+        nos.str(""); nsw.Write(        "\r\n\n\r\n"              ); UT_EQ("\n\n\n"        , nos.str() )
+        nos.str(""); nsw.Write(        "\ntest\r\n"              ); UT_EQ("\ntest\n"      , nos.str() )
+        nos.str(""); nsw.Write(        "\r\ntest\n"              ); UT_EQ("\ntest\n"      , nos.str() )
+        nos.str(""); nsw.Write(        "x\r\ntest\r\ny\r\n\r\n"  ); UT_EQ("x\ntest\ny\n\n", nos.str() )
 
-        os.str(""); sw.Write(A_WCHAR("\n"                     )); UT_EQ("\n"            , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\n\n"                   )); UT_EQ("\n\n"          , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\n"                   )); UT_EQ("\n"            , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\n\r\n"               )); UT_EQ("\n\n"          , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\n\n\r\n"             )); UT_EQ("\n\n\n"        , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\ntest\r\n"             )); UT_EQ("\ntest\n"      , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\ntest\n"             )); UT_EQ("\ntest\n"      , os.str() )
-        os.str(""); sw.Write(A_WCHAR("x\r\ntest\r\ny\r\n\r\n" )); UT_EQ("x\ntest\ny\n\n", os.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\n"                     )); UT_EQ("\n"            , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\n\n"                   )); UT_EQ("\n\n"          , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\n"                   )); UT_EQ("\n"            , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\n\r\n"               )); UT_EQ("\n\n"          , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\n\n\r\n"             )); UT_EQ("\n\n\n"        , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\ntest\r\n"             )); UT_EQ("\ntest\n"      , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\ntest\n"             )); UT_EQ("\ntest\n"      , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("x\r\ntest\r\ny\r\n\r\n" )); UT_EQ("x\ntest\ny\n\n", nos.str() )
+
+        wos.str(L""); wsw.Write(        "\n"                      ); UT_EQ(L"\n"            , wos.str() )
+        wos.str(L""); wsw.Write(        "\n\n"                    ); UT_EQ(L"\n\n"          , wos.str() )
+        wos.str(L""); wsw.Write(        "\r\n"                    ); UT_EQ(L"\n"            , wos.str() )
+        wos.str(L""); wsw.Write(        "\r\n\r\n"                ); UT_EQ(L"\n\n"          , wos.str() )
+        wos.str(L""); wsw.Write(        "\r\n\n\r\n"              ); UT_EQ(L"\n\n\n"        , wos.str() )
+        wos.str(L""); wsw.Write(        "\ntest\r\n"              ); UT_EQ(L"\ntest\n"      , wos.str() )
+        wos.str(L""); wsw.Write(        "\r\ntest\n"              ); UT_EQ(L"\ntest\n"      , wos.str() )
+        wos.str(L""); wsw.Write(        "x\r\ntest\r\ny\r\n\r\n"  ); UT_EQ(L"x\ntest\ny\n\n", wos.str() )
+                                                                           
+        wos.str(L""); wsw.Write(A_WCHAR("\n"                     )); UT_EQ(L"\n"            , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\n\n"                   )); UT_EQ(L"\n\n"          , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\r\n"                   )); UT_EQ(L"\n"            , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\r\n\r\n"               )); UT_EQ(L"\n\n"          , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\r\n\n\r\n"             )); UT_EQ(L"\n\n\n"        , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\ntest\r\n"             )); UT_EQ(L"\ntest\n"      , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("\r\ntest\n"             )); UT_EQ(L"\ntest\n"      , wos.str() )
+        wos.str(L""); wsw.Write(A_WCHAR("x\r\ntest\r\ny\r\n\r\n" )); UT_EQ(L"x\ntest\ny\n\n", wos.str() )
     }
 
-    // windows conversion
+    // non-standard newline conversion ("\r\n")
     else {
-                    sw.Write(        "\r\n"                    ); UT_EQ("\r\n"                  , os.str() )
-        os.str(""); sw.Write(        "\r\n\r\n"                ); UT_EQ("\r\n\r\n"              , os.str() )
-        os.str(""); sw.Write(        "\n"                      ); UT_EQ("\r\n"                  , os.str() )
-        os.str(""); sw.Write(        "\n\n"                    ); UT_EQ("\r\n\r\n"              , os.str() )
-        os.str(""); sw.Write(        "\n\n\r\n"                ); UT_EQ("\r\n\r\n\r\n"          , os.str() )
-        os.str(""); sw.Write(        "\r\ntest\n"              ); UT_EQ("\r\ntest\r\n"          , os.str() )
-        os.str(""); sw.Write(        "\ntest\r\n"              ); UT_EQ("\r\ntest\r\n"          , os.str() )
-        os.str(""); sw.Write(        "x\ntest\ny\n\n"          ); UT_EQ("x\r\ntest\r\ny\r\n\r\n", os.str() )
+        nos.str(""); nsw.Write(        "\r\n"                    ); UT_EQ("\r\n"                  , nos.str() )
+        nos.str(""); nsw.Write(        "\r\n\r\n"                ); UT_EQ("\r\n\r\n"              , nos.str() )
+        nos.str(""); nsw.Write(        "\n"                      ); UT_EQ("\r\n"                  , nos.str() )
+        nos.str(""); nsw.Write(        "\n\n"                    ); UT_EQ("\r\n\r\n"              , nos.str() )
+        nos.str(""); nsw.Write(        "\n\n\r\n"                ); UT_EQ("\r\n\r\n\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(        "\r\ntest\n"              ); UT_EQ("\r\ntest\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(        "\ntest\r\n"              ); UT_EQ("\r\ntest\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(        "x\ntest\ny\n\n"          ); UT_EQ("x\r\ntest\r\ny\r\n\r\n", nos.str() )
 
-        os.str(""); sw.Write(A_WCHAR("\r\n"                   )); UT_EQ("\r\n"                  , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\n\r\n"               )); UT_EQ("\r\n\r\n"              , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\n"                     )); UT_EQ("\r\n"                  , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\n\n"                   )); UT_EQ("\r\n\r\n"              , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\n\n\r\n"               )); UT_EQ("\r\n\r\n\r\n"          , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\r\ntest\n"             )); UT_EQ("\r\ntest\r\n"          , os.str() )
-        os.str(""); sw.Write(A_WCHAR("\ntest\r\n"             )); UT_EQ("\r\ntest\r\n"          , os.str() )
-        os.str(""); sw.Write(A_WCHAR("x\ntest\ny\n\n"         )); UT_EQ("x\r\ntest\r\ny\r\n\r\n", os.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\n"                   )); UT_EQ("\r\n"                  , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\n\r\n"               )); UT_EQ("\r\n\r\n"              , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\n"                     )); UT_EQ("\r\n"                  , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\n\n"                   )); UT_EQ("\r\n\r\n"              , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\n\n\r\n"               )); UT_EQ("\r\n\r\n\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\r\ntest\n"             )); UT_EQ("\r\ntest\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("\ntest\r\n"             )); UT_EQ("\r\ntest\r\n"          , nos.str() )
+        nos.str(""); nsw.Write(A_WCHAR("x\ntest\ny\n\n"         )); UT_EQ("x\r\ntest\r\ny\r\n\r\n", nos.str() )
+
+        wos.str(L""); wsw.Write( "\r\n"                    ); UT_EQ(L"\r\n"                  , wos.str() )
+        wos.str(L""); wsw.Write( "\r\n\r\n"                ); UT_EQ(L"\r\n\r\n"              , wos.str() )
+        wos.str(L""); wsw.Write( "\n"                      ); UT_EQ(L"\r\n"                  , wos.str() )
+        wos.str(L""); wsw.Write( "\n\n"                    ); UT_EQ(L"\r\n\r\n"              , wos.str() )
+        wos.str(L""); wsw.Write( "\n\n\r\n"                ); UT_EQ(L"\r\n\r\n\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( "\r\ntest\n"              ); UT_EQ(L"\r\ntest\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( "\ntest\r\n"              ); UT_EQ(L"\r\ntest\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( "x\ntest\ny\n\n"          ); UT_EQ(L"x\r\ntest\r\ny\r\n\r\n", wos.str() )
+
+        wos.str(L""); wsw.Write( L"\r\n"                   ); UT_EQ(L"\r\n"                  , wos.str() )
+        wos.str(L""); wsw.Write( L"\r\n\r\n"               ); UT_EQ(L"\r\n\r\n"              , wos.str() )
+        wos.str(L""); wsw.Write( L"\n"                     ); UT_EQ(L"\r\n"                  , wos.str() )
+        wos.str(L""); wsw.Write( L"\n\n"                   ); UT_EQ(L"\r\n\r\n"              , wos.str() )
+        wos.str(L""); wsw.Write( L"\n\n\r\n"               ); UT_EQ(L"\r\n\r\n\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( L"\r\ntest\n"             ); UT_EQ(L"\r\ntest\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( L"\ntest\r\n"             ); UT_EQ(L"\r\ntest\r\n"          , wos.str() )
+        wos.str(L""); wsw.Write( L"x\ntest\ny\n\n"         ); UT_EQ(L"x\r\ntest\r\ny\r\n\r\n", wos.str() )
+
     }
     ALIB_WARNINGS_RESTORE
 }

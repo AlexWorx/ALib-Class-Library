@@ -46,7 +46,7 @@ ALIB_EXPORT namespace alib {  namespace containers {
 /// \alib{containers;DBG_STATS_STRINGTREE_NAMES} and \alib{containers;DBG_STATS_STRINGTREE_NAME_OVERFLOWS}
 /// can be used.
 ///
-/// Method #InitializeNode is invoked after insertion of a new element (aka "node")
+/// Method #InitializeNode is invoked after the insertion of a new element (aka "node")
 /// into the container and #FreeNode is invoked before the destruction of a node.
 /// When #InitializeNode is invoked, the custom object of template type \p{T} (of the \b StringTree)
 /// is already default constructed and the key of the node in union
@@ -63,17 +63,17 @@ ALIB_EXPORT namespace alib {  namespace containers {
 /// compatible fashion.
 ///
 /// The main purpose of the node handler types is to ensure that the name strings of inserted
-/// nodes are duly allocated, copied and freed as needed:
+/// nodes are duly allocated, copied, and freed as needed:
 /// When a new element is (or a whole path of new elements are) created, then the initial name
 /// of the nodes are taken from the string passed to the corresponding interface method of class
-/// \b StringTree (and inner types). The challenge is that these string's life-cycle might
-/// be only short term. Therefore, right after the creation of an element, method #InitializeNode
-/// is invoked, allowing to create a safe copy of the name.<br>
-/// To free any allocated space, method #FreeNode is invoked.
+/// \b StringTree (and inner types). The challenge is that this string's life-cycle might
+/// be only short term. Therefore, right after the creation of an element, the method
+/// #InitializeNode is invoked, allowing to create a safe copy of the name.<br>
+/// To free any allocated space, the method #FreeNode is invoked.
 ///
-/// Besides this, custom implementation may tweak the given node on their own discretion.
+/// Besides this, custom implementations may tweak the given node on their own discretion.
 /// Especially a custom implementation may create and recycle other portions of the stored
-/// objects, to establish \ref alib_contmono_intro_strictweak "weak monotonic allocation rules".
+/// objects to establish \ref alib_contmono_intro_strictweak "weak monotonic allocation rules".
 /// A sample of such more complex behavior is found with \alib type \alib{files;FTree}.
 ///
 /// \see
@@ -109,32 +109,28 @@ struct StringTreeNamesDynamic
 
     /// This implementation copies the node's name to a dynamically allocated piece of heap memory.
     /// \see
-    ///   See class description for further information.
+    ///   See the class description for further information.
+    /// @param  node  The node that was just created. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               allocator that the tree uses for the allocation of nodes.
-    /// @param  node  The node that was just created. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     /// @tparam TTree The type of the templated instantiation of struct
     ///               \alib{containers;detail::StringTreeBase} that this method is invoked by.
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void InitializeNode( TTree& tree, typename TTree::Node&  node )
-    {
+    void InitializeNode( typename TTree::Node& node, TTree& tree ) {
         (void) tree;
 
         // if not a local string buffer, then dynamically allocate and copy.
-        if constexpr (TLocalCapacity <= 0)
-        {
+        if constexpr (TLocalCapacity <= 0) {
             CharacterType* buffer= new CharacterType[size_t(node.name.key.Length())];
             node.name.key.CopyTo( buffer );
             node.name.key= strings::TString<CharacterType>( buffer, node.name.key.Length() );
-        }
-        else
-        {
+        } else {
             // create a local string which may allocate heap if name is too long
             strings::TString<TChar> key= node.name.key;                   // get current pointer
             new (&node.name.storage) NameStringType();                    // placement-new to re-establish local string
@@ -144,26 +140,24 @@ struct StringTreeNamesDynamic
             ALIB_DBG( ++DBG_STATS_STRINGTREE_NAMES;
                       if( internalBuffer != node.name.storage.Buffer() )         // ++statistics if local buffer was too small
                         ++DBG_STATS_STRINGTREE_NAME_OVERFLOWS; )
-        }
-    }
+    }   }
 
     /// This implementation frees the dynamically allocated memory of the node's name.
     /// \see
-    ///   See class description for further information.
+    ///   See the class description for further information.
+    /// @param  node  The node that is to be removed. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               allocator that the tree uses for the allocation of nodes.
-    /// @param  node  The node that is to be removed. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     /// @tparam TTree The type of the templated instantiation of struct
     ///               \alib{containers;detail::StringTreeBase} that this method is invoked by.
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void FreeNode( TTree& tree, typename TTree::Node& node )
-    {
+    void FreeNode( typename TTree::Node& node, TTree& tree ) {
         (void) tree;
         if constexpr (TLocalCapacity <= 0)
             delete[] node.name.key.Buffer();
@@ -179,8 +173,8 @@ struct StringTreeNamesDynamic
 ///
 /// This type does not allocate memory and does not copy the key string of a node. Therefore, this
 /// type is very efficient to use in situations where exclusively "static" strings for child names
-/// and paths are passed to the interface methods of class \b StringTree (and inner types) which lead
-/// to the creation of new child nodes.<br>
+/// and paths are passed to the interface methods of class \b StringTree (and inner types) which
+/// lead to the creation of new child nodes.<br>
 /// The term "static" here means that the strings given are either static character data of a
 /// compilation unit or by any other means their allocated memory and the contained data survive
 /// the life-cycle of the corresponding \b StringTree.
@@ -213,23 +207,19 @@ struct StringTreeNamesStatic
     ///   See description of this class and the "default implementation"
     ///   \alib{containers;StringTreeNamesDynamic}.
     ///
+    /// @param  node  The node that was just created. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               allocator that the tree uses for the allocation of nodes.
-    /// @param  node  The node that was just created. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     /// @tparam TTree The type of the templated instantiation of struct
     ///               \alib{containers;detail::StringTreeBase} that this method is invoked by.
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void InitializeNode( TTree& tree, typename TTree::Node&  node )
-    {
-        (void) tree;
-        (void) node;
-    }
+    void InitializeNode( typename TTree::Node& node, TTree& tree )     { (void) node; (void) tree; }
 
     /// This implementation is empty.
     ///
@@ -249,8 +239,7 @@ struct StringTreeNamesStatic
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void FreeNode( TTree& tree, typename TTree::Node& node )
-    { (void) tree; (void) node; }
+    void FreeNode( TTree::Node& node, TTree& tree )                    { (void) node; (void) tree; }
 }; // StringTreeNamesStatic
 
 /// Built-in implementation usable as template parameter
@@ -298,22 +287,20 @@ struct StringTreeNamesAlloc
     ///   See description of this class and the "default implementation"
     ///   \alib{containers;StringTreeNamesDynamic}.
     ///
+    /// @param  node  The node that was just created. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               allocator that the tree uses for the allocation of nodes.
-    /// @param  node  The node that was just created. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     /// @tparam TTree The type of the templated instantiation of struct
     ///               \alib{containers;detail::StringTreeBase} that this method is invoked by.
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void InitializeNode( TTree& tree, typename TTree::Node&  node )
-    {
-        node.name.storage.Allocate( tree.nodeTable.GetAllocator(), node.name.key );
-    }
+    void InitializeNode( typename TTree::Node& node, TTree& tree )
+    { node.name.storage.Allocate( tree.nodeTable.GetAllocator(), node.name.key ); }
 
     /// This implementation does nothing.
     ///
@@ -333,7 +320,7 @@ struct StringTreeNamesAlloc
     ///               (Deduced by the compiler.)
     template<typename TTree>
     static
-    void FreeNode( TTree& tree, typename TTree::baseNode& node )       { (void) tree; (void) node; }
+    void FreeNode( typename TTree::baseNode& node, TTree& tree )       { (void) node; (void) tree; }
 };
 
 //==================================================================================================
@@ -361,17 +348,19 @@ struct StringTreeNamesAlloc
 /// attributes provided in template type \p{T}.
 ///
 /// \I{#############################################################################################}
-/// # 2. Inner Types # {#alib_ns_containers_stringtree_inner}
-/// Two public inner types exist.
-/// All operations on tree nodes like insertion, deletion, search and attribute access is performed
-/// using objects of public type \alib{containers;StringTree::TCursor}. This is a lightweight,
-/// iterator-like "handle" containing a pointer to the originating tree object and to a represented
-/// node. The type provides various methods to travers the tree. It is templated over a boolean
-/// value which determines if a const or mutable \b StringTree is given. Shortcuts for these
-/// types are \alib{containers;StringTree::Cursor} and \alib{containers;StringTree::ConstCursor}.
+/// # 2. Helper Types # {#alib_ns_containers_stringtree_inner}
+/// Two important helper types exist.
+/// All operations on tree nodes like insertion, deletion, search, and attribute access is performed
+/// using objects of the public inner type \alib{containers;StringTree::TCursor}. This is a
+/// lightweight, iterator-like "handle" containing a pointer to the originating tree object and to
+/// a represented node. The type provides various methods to travers the tree. It is templated over
+/// a boolean value which determines if a const or mutable \b StringTree is given. Shortcuts for
+/// these types are \alib{containers;StringTree::Cursor} and
+/// \alib{containers;StringTree::ConstCursor}.
 ///
-/// Besides this, class \alib{containers;StringTree::RecursiveIterator} allows recursive
-/// iterations with built-in or custom sort orders.
+/// Besides this, class \alib{containers;StringTreeIterator} allows recursive iterations with
+/// built-in or custom sort orders. Note that this class is available with inclusion of
+/// \implude{Containers.StringTreeIterator}.
 ///
 /// Both types are explained in the following paragraphs.
 ///
@@ -386,7 +375,7 @@ struct StringTreeNamesAlloc
 ///
 /// Class \b %Cursor is very lightweight as it contains just two pointers, one to the
 /// \b %StringTree it originates from and one to the tree node currently represented.
-/// Hence, objects of this type can be copied, assigned and passed around very efficiently.<br>
+/// Hence, objects of this type can be copied, assigned, and passed around very efficiently.<br>
 /// The currently represented node's templated custom data can be accessed with method
 /// #TCursor::Value.
 ///
@@ -401,7 +390,7 @@ struct StringTreeNamesAlloc
 /// - #TCursor::GoToLastChild
 ///
 /// With these methods, class \b StringTree::Cursor constitutes a sort of iterator idiom
-/// idiom. For example to traverse all entries in the root folder, the following schematic would
+/// idiom. For example, to traverse all entries in the root folder, the following schematic would
 /// be used:
 ///
 ///          myCursor=  myTree.GetRoot()
@@ -448,8 +437,8 @@ struct StringTreeNamesAlloc
 /// assigning a valid instance.
 ///
 /// \I{#############################################################################################}
-/// ## 2.2. Inner Class RecursiveIterator ## {#alib_ns_containers_stringtree_iterator}
-/// Class \alib{containers;StringTree::RecursiveIterator} provides a configurable and controlled
+/// ## 2.2. Class StringTreeIterator ## {#alib_ns_containers_stringtree_iterator}
+/// Class \alib{containers;StringTreeIterator} provides a configurable and controlled
 /// way of iterating a branch of a tree. Some features of the class are:
 /// - Iterators can be initialized to start from any node of the tree
 ///   Iteration ends when all (recursive) child nodes of the start node have been visited.
@@ -463,13 +452,13 @@ struct StringTreeNamesAlloc
 ///   The choices are:
 ///   - No sorting (iterates in order of node insertion).
 ///   - Built-in sorting by node (path) name, ascending/descending, case-sensitive or ignoring case
-///   - user-defined by path name, number of children or any other attribute of the node, of course
-///     including a node's custom data values.
+///   - user-defined by path name, the number of children, or any other attribute of the node,
+///     of course including a node's custom data values.
 ///
-/// Class \b RecursiveIterator is of rather heavy weight and sorted iteration needs to allocate
+/// Class \b StringTreeIterator is of rather heavy weight, and sorted iteration needs to allocate
 /// memory for sorting the child nodes for each depth level of a potential recursion.
-/// Therefore , it is recommended to reuse instances of the class with subsequent, similar iterations.
-/// In addition this explains why this class does not follow the concept of
+/// Therefore, it is recommended to reuse instances of the class with later, similar iterations.
+/// In addition, this explains why this class does not follow the concept of
 /// <c>std::iterator_traits</c>, which is designed to be used with lightweight iterator types.
 ///
 /// \I{#############################################################################################}
@@ -530,12 +519,12 @@ struct StringTreeNamesAlloc
 /// # 5. Equipping the Root Node with Values # {#alib_ns_containers_stringtree_rootnodevalues}
 /// It depends on the field of application, whether the root node should dispose over an instance
 /// of custom type \p{T} or not.
-/// For example a tree of depth \c 1, which could be implemented using type
-/// <c>std::vector<T></c>, no stored type \p{T} can be be attached to the vector object itself, only
+/// For example, a tree of depth \c 1, which could be implemented using type
+/// <c>std::vector<T></c>, no stored type \p{T} can be attached to the vector object itself, only
 /// to its "children".<br>
 /// Nevertheless, in many use cases, the root node naturally contains the same data as any other
 /// node in the tree. Therefore, if this class would not support root node data, using
-/// code would for example have to check a \alib{containers::StringTree;TCursor;Cursor} for pointing
+/// code would, for example, have to check a \alib{containers::StringTree;TCursor;Cursor} for pointing
 /// to the root node and in this case get the custom data from somewhere else.<br>
 /// On the other hand, if this class would "insist" in the provision of root node values, then already
 /// with construction of the tree, arguments for the construction of the associated \p{T} object
@@ -550,7 +539,7 @@ struct StringTreeNamesAlloc
 /// methods \alib{containers::StringTree;DestructRootValue} may be used to initialize and
 /// destruct the optional root nodes' data.
 ///
-/// To prevent memory leaks, in debug-compilations, the following \alib assertions and warnings are
+/// To prevent memory leaks, in debug-compilations, the following \alib_assertions and warnings are
 /// raised:
 /// - \alib{containers::StringTree;TCursor::Value;Cursor::Value} will raise an assertion if
 ///   called on the root node without having set a value.
@@ -563,7 +552,7 @@ struct StringTreeNamesAlloc
 /// \I{#############################################################################################}
 /// # Reference Documentation # {#alib_ns_containers_stringtree_referencedoc}
 ///
-/// @tparam TAllocator   The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator   The \alib{lang;Allocator;allocator type} to use.
 /// @tparam T            The custom type of elements stored in this container.
 /// @tparam TNodeHandler
 ///         A template type that needs to provide an interface as documented with
@@ -587,9 +576,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
   #if !DOXYGEN
   protected:
         friend class Cursor;
-
         friend class ConstCursor;
-
         friend TNodeHandler;
 
         using basetree         = detail::StringTreeBase<TAllocator,T,TNodeHandler,TRecycling>;
@@ -640,11 +627,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param other The cursor handle to compare this handle to.
         /// @return \c true if both handles refer to the same cursor or if both handles are
         ///         invalid. \c false otherwise.
-        bool operator==(const CursorHandle& other) const noexcept { return value==other.value; }
+        bool operator==(const CursorHandle& other)     const noexcept { return value==other.value; }
 
         /// Checks if this is a valid handle.
         /// @return \c true if this handle is not nulled.
-        bool IsValid()                                     const noexcept { return value != 0; }
+        bool IsValid()                                         const noexcept { return value != 0; }
     };
 
     /// A handle type used with methods #TCursor::Export and #ImportCursor.
@@ -652,33 +639,43 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     {
         uinteger value; ///< The encapsulated value.
 
+        /// Defaulted default constructor.
+        ConstCursorHandle()                                                                =default;
+
+        /// Constructor accepting a raw value.
+        /// @param pValue The value that this handle is supposed to use.
+        ConstCursorHandle(uinteger pValue)                    : value{pValue}                     {}
+
+        /// Constructor accepting a mutable handle.
+        /// @param mutableHandle The mutable handle that is to be converted to a constant one.
+        ConstCursorHandle( const CursorHandle& mutableHandle) : value{mutableHandle.value}        {}
+
         /// Comparison operator.
         /// @param other The cursor handle to compare this handle to.
         /// @return \c true if both handles refer to the same cursor or if both handles are
         ///         invalid. \c false otherwise.
-        bool operator==(const ConstCursorHandle& other)                           const noexcept
+        bool operator==(const ConstCursorHandle& other)                               const noexcept
                                                                   { return value==other.value; }
 
         /// Comparison operator.
         /// @param other The cursor handle to compare this handle to.
         /// @return \c true if both handles refer to the same cursor or if both handles are
         ///         invalid. \c false otherwise.
-        bool operator==(const CursorHandle& other)                                const noexcept
-                                                                  { return value==other.value; }
+        bool operator==(const CursorHandle& other)     const noexcept { return value==other.value; }
 
         /// Checks if this is a valid handle.
         /// @return \c true if this handle is not nulled.
-        bool IsValid()                                     const noexcept { return value != 0; }
+        bool IsValid()                                         const noexcept { return value != 0; }
     };
 
-    //==========================================================================================
     /// This public, inner class provides the main interface into outer class \b StringTree.
     /// The class should be considered being similar to a simple pointer or to a lightweight
     /// iterator type, which refers to a tree and a current node.<br>
     /// The class's interface allows the access to a node's name and value and to insert and
     /// remove child nodes.
     ///
-    /// Instances of this class can be received with methods #Root and #RecursiveIterator::Node.
+    /// Instances of this class can be received with method #Root and then from methods of this
+    /// type itself.
     ///
     /// The default constructor creates an invalid object, which has to be initialized by
     /// assigning a valid object before its first use.
@@ -694,7 +691,6 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     ///
     /// ## Friends ##
     /// class \alib{containers;StringTree}
-    //==========================================================================================
     template<bool TConst>
     class TCursor : protected basetree::template TCursorBase<TConst>
     {
@@ -725,18 +721,16 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// \p{TConst}
         using cmCursor  = std::conditional_t<!TConst, baseCursor, baseConstCursor>;
 
-        //####  Protected methods (class Cursor)  ##############################################
-
+      //############################## Protected methods (class Cursor) ############################
         /// Internal constructor
-        /// @param pTree  The \b %StringTree we work on.
         /// @param pNode  The node to refer to.
-        TCursor(cmTree *pTree, cmNode *pNode) noexcept
-        : basetree::template TCursorBase<TConst>(pTree, pNode) {}
+        /// @param pTree  The \b %StringTree we work on.
+        TCursor(cmNode *pNode, cmTree *pTree) noexcept
+        : basetree::template TCursorBase<TConst>(pNode, pTree)                                    {}
 
         /// Checks if this cursor is associated with a tree.
         /// Empty and optimized out with release-builds.
-        void dbgCheckTree()                                                                const
-        {
+        void dbgCheckTree()                                                                  const {
             ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "STRINGTREE",
               "Invalid StringTree::Cursor: No binding with a StringTree. "
               "(Probably default-constructed.)")
@@ -744,14 +738,13 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
 
         /// Checks if this cursor is associated with a tree and a valid node of the tree.
         /// Empty and optimized out with release-builds.
-        void dbgCheckTreeAndNode()                                                         const
-        {
+        void dbgCheckTreeAndNode()                                                           const {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( cmCursor::node != nullptr, "STRINGTREE",
              "Invalid StringTree::Cursor not representing a node of the assigned tree." )
         }
 
-      //##########  Constructor, comparison operators, etc     #####################################
+      //########################### Constructor, comparison operators, etc #########################
       public:
         /// Constant or mutable version of the outer string tree type, depending on template
         /// parameter \p{TConst}
@@ -761,43 +754,40 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// Public constructor. Creates an invalid cursor.
         /// The only way to make a default-constructed instance valid is by
         /// (copy-) assigning another instance.
-        TCursor() noexcept                                                            = default;
+        TCursor()                                                                 noexcept =default;
 
         /// Copy constructor.
         /// @param src The cursor to copy.
-        TCursor( const TCursor& src)                                                    noexcept
-        : TCursor{ src.tree, src.node }
-        {}
+        TCursor( const TCursor& src)                                                        noexcept
+        : TCursor{ src.node, src.tree }                                                           {}
 
         /// Move constructor.
         /// @param src The cursor to move.
-        TCursor( TCursor&& src)                                                         noexcept
-        : TCursor{ src.tree, src.node }
-        {}
+        TCursor( TCursor&& src)                                                             noexcept
+        : TCursor{ src.node, src.tree }                                                           {}
 
         /// Trivial default copy assign operator.
-         /// @return A reference to \c this.
-        TCursor &operator=(const TCursor &)                                 noexcept  = default;
+        /// @return A reference to \c this.
+        TCursor &operator=(const TCursor &)                                       noexcept =default;
 
         /// Trivial default move assign operator.
-         /// @return A reference to \c this.
-        TCursor &operator=(TCursor &&)                                      noexcept  = default;
+        /// @return A reference to \c this.
+        TCursor &operator=(TCursor &&)                                            noexcept =default;
 
         /// Trivial default destructor.
-        ~TCursor()                                                          noexcept  = default;
+        ~TCursor()                                                                noexcept =default;
 
         /// Conversion operator from <em>TCursor<TConst></em> to <em>TCursor<!TConst></em>.
         /// For const to mutable, this will fail as intended.
         /// @return A constant iterator, if this is a mutable. Otherwise compilation will
         ///         duly fail.
-        operator TCursor<!TConst>() { return TCursor<!TConst>(cmCursor::tree, cmCursor::node); }
+        operator TCursor<!TConst>()     { return TCursor<!TConst>(cmCursor::node, cmCursor::tree); }
 
         /// Comparison operator.
         /// @param other  The object to compare ourselves to.
         /// @return \c    true if this and given cursor are equal, \c false
         ///               otherwise.
-        bool operator==(const TCursor &other) const
-        {
+        bool operator==(const TCursor &other)                                                const {
             return    cmCursor::node == other.node
                    && cmCursor::tree == other.tree;
         }
@@ -806,10 +796,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param other  The object to compare ourselves to.
         /// @return \c    false if this and given cursor are equal, \c true
         ///               otherwise.
-        bool operator!=(const TCursor &other) const
-        {
-            return !((*this) == other);
-        }
+        bool operator!=(const TCursor &other)                  const { return !((*this) == other); }
 
         /// This method exports the address of the node in the \b StringTree.
         /// The second pointer needed to comprise a cursor determines the tree a node belongs to.
@@ -821,17 +808,17 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///            operations and keyword <c>reinterpret_cast</c>. Use with care.
         /// @return A value usable to reconstruct this cursor with the method
         ///         #StringTree::ImportCursor.
-        CursorHandle        Export()         { return CursorHandle {uinteger(cmCursor::node)}; }
+        CursorHandle        Export()              { return CursorHandle{uinteger(cmCursor::node)}; }
 
         /// Overloaded \c const version that returns a \c const handle, usable likewise only
         /// to re-construct a \c const cursor instance.
         ///
         /// @return A value usable to reconstruct this cursor with method
         ///         #StringTree::ImportCursor.
-        ConstCursorHandle   Export() const{return ConstCursorHandle {uinteger(cmCursor::node)};}
+        ConstCursorHandle   Export()  const { return ConstCursorHandle {uinteger(cmCursor::node)}; }
 
         /// Determines if this is a valid object. Cursors may become invalid with
-        /// transition methods like #GoToParent, #GoToFirstChild or GoToNextSibling.
+        /// transition methods like #GoToParent, #GoToFirstChild, or GoToNextSibling.
         /// An invalid object may be turned into a valid one by either
         /// - assigning a valid object (copy assignment), or
         /// - invoking method #GoToRoot, or
@@ -842,34 +829,26 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return \c true if this is a valid cursor.
         ///          If invalid, \c false is returned and this object must not be used.
-        bool IsValid()                                                                     const
-        {
-            return cmCursor::node != nullptr;
-        }
+        bool IsValid()                                   const { return cmCursor::node != nullptr; }
 
         /// Returns the opposite of #IsValid.
         ///
         /// @return \c true if this is an invalid cursor that must not be used,
         ///         \c false otherwise.
-        bool IsInvalid()                                                                   const
-        {
-            return !IsValid();
-        }
+        bool IsInvalid()                                                const { return !IsValid(); }
 
-        //####  Tree navigation inplace, returning status      #########################
+      //######################### Tree navigation inplace, returning status ########################
         /// Returns a cursor to the root node of the tree.
         /// @return A cursor representing the root node of the tree this pointer
         ///         represents.
-        TCursor Root()                                                                     const
-        {
+        TCursor Root()                                                                       const {
             dbgCheckTree();
             return TCursor(cmCursor::tree, &cmCursor::tree->root.root);
         }
 
         /// Moves this cursor to the root node of the tree.
         /// @return A reference to this object
-        TCursor& GoToRoot()
-        {
+        TCursor& GoToRoot() {
             dbgCheckTree();
             cmCursor::node = &cmCursor::tree->root.root;
             return *this;
@@ -883,18 +862,16 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return A cursor pointing to the parent node of the node represented
         ///         by this cursor.
-        TCursor Parent() const
-        {
+        TCursor Parent()                                                                     const {
             dbgCheckTreeAndNode();
-            return TCursor(cmCursor::tree, static_cast<cmNode*>(cmCursor::node->parent));
+            return TCursor(static_cast<cmNode*>(cmCursor::node->parent), cmCursor::tree);
         }
 
         /// Moves this cursor to the parent of the current node.
         /// If this is the root node, this object becomes invalid.
         ///
         /// @return *this to allow concatenated calls
-        TCursor& GoToParent()
-        {DCSSHRD
+        TCursor& GoToParent()                                                               {DCSSHRD
             dbgCheckTreeAndNode();
             cmCursor::node = static_cast<cmNode*>(cmCursor::node->parent);
             return (*this);
@@ -906,10 +883,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return A cursor object representing the next sibling of the node
         ///         represented by this object.
-        TCursor NextSibling() const
-        {DCSSHRD
-            return TCursor(cmCursor::tree, HasNextSibling() ? static_cast<cmNode*>(cmCursor::node->next())
-                                                            : nullptr);
+        TCursor NextSibling()                                                         const {DCSSHRD
+            return TCursor( HasNextSibling() ? static_cast<cmNode*>(cmCursor::node->next())
+                                             : nullptr,
+                            cmCursor::tree                 );
         }
 
         /// Moves this cursor to the next sibling of the represented node.
@@ -918,11 +895,9 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return \c true if this cursor was moved,
         ///         \c false if the represented node has no next sibling.
-        bool GoToNextSibling()
-        {DCSSHRD
+        bool GoToNextSibling()                                                              {DCSSHRD
             // go to node next and check for hook?
-            if (HasNextSibling())
-            {
+            if (HasNextSibling()) {
                 cmCursor::node = static_cast<cmNode*>(cmCursor::node->next());
                 return true;
             }
@@ -936,22 +911,20 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return A cursor object representing the previous sibling of the node
         ///         represented by this object.
-        TCursor PreviousSibling() const
-        {DCSSHRD
-            return TCursor(cmCursor::tree,  HasPreviousSibling() ? static_cast<cmNode*>(cmCursor::node->prev())
-                                                                 : nullptr );
+        TCursor PreviousSibling()                                                     const {DCSSHRD
+            return TCursor( HasPreviousSibling() ? static_cast<cmNode*>(cmCursor::node->prev())
+                                                 : nullptr,
+                            cmCursor::tree );
         }
 
         /// Moves this cursor to the previous sibling of the represented node.
         /// If the node has no previous sibling, this cursor becomes invalid.
         /// The latter is always true if this is the root node of the tree.
         ///
-        /// @return \c true  if this cursor was moved,
+        /// @return \c true if this cursor was moved,
         ///         \c false if the represented node has no previous sibling.
-        bool        GoToPreviousSibling()
-        {DCSSHRD
-            if( HasPreviousSibling() )
-            {
+        bool        GoToPreviousSibling()                                                   {DCSSHRD
+            if( HasPreviousSibling() ) {
                 cmCursor::node= static_cast<cmNode*>(cmCursor::node->prev());
                 return true;
             }
@@ -964,10 +937,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// If the represented node has no children, an invalid cursor is returned.
         ///
         /// @return A cursor representing the first child of the node this cursor points to.
-        TCursor     FirstChild()                                                           const
-        {DCSSHRD
-            return TCursor( cmCursor::tree, HasChildren() ? static_cast<cmNode*>(cmCursor::node->children.first())
-                                                          : nullptr                        );
+        TCursor     FirstChild()                                                      const {DCSSHRD
+            return TCursor( HasChildren() ? static_cast<cmNode*>(cmCursor::node->children.first())
+                                          : nullptr,
+                            cmCursor::tree              );
         }
 
         /// Moves this cursor to the first child of its represented node.
@@ -975,10 +948,8 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return \c true if the cursor was moved, \c false if the represented node
         ///         has no children.
-        bool        GoToFirstChild()
-        {DCSSHRD
-            if( HasChildren() )
-            {
+        bool        GoToFirstChild()                                                        {DCSSHRD
+            if( HasChildren() ) {
                 cmCursor::node= static_cast<cmNode*>(cmCursor::node->children.first());
                 return true;
             }
@@ -992,10 +963,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return A cursor representing the last child of the node represented
         ///         by this cursor.
-        TCursor     LastChild()                                                            const
-        {DCSSHRD
-            return TCursor( cmCursor::tree, HasChildren() ? static_cast<cmNode*>(cmCursor::node->children.last())
-                                                          : nullptr );
+        TCursor     LastChild()                                                       const {DCSSHRD
+            return TCursor( HasChildren() ? static_cast<cmNode*>(cmCursor::node->children.last())
+                                          : nullptr,
+                             cmCursor::tree            );
         }
 
         /// Moves this cursor to the last child of its represented node.
@@ -1003,10 +974,8 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @return \c true if the cursor was moved, \c false if the represented node
         ///         has no children.
-        bool        GoToLastChild()
-        {DCSSHRD
-            if( HasChildren() )
-            {
+        bool        GoToLastChild()                                                         {DCSSHRD
+            if( HasChildren() ) {
                 cmCursor::node= static_cast<cmNode*>(cmCursor::node->children.last());
                 return true;
             }
@@ -1025,12 +994,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param  name   The name of the child to search.
         /// @return A cursor representing the last child of the node represented
         ///         by this cursor.
-        TCursor     Child( const NameType& name )                                          const
-        {DCSSHRD
+        TCursor     Child( const NameType& name )                                     const {DCSSHRD
             dbgCheckTreeAndNode();
             ALIB_DBG( cmCursor::tree->checkChildName( name ); ) // gives warning
-            return TCursor( cmCursor::tree,
-                           static_cast<cmNode*>(cmCursor::node->findChild(cmCursor::tree, name)));
+            return TCursor( static_cast<cmNode*>(cmCursor::node->findChild(cmCursor::tree, name)),
+                            cmCursor::tree );
         }
 
         /// Searches a child with the given name and moves this cursor to it.
@@ -1045,14 +1013,12 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param  name   The name of the child to search.
         /// @return \c true if the child existed and this object changed, \c false
         ///            otherwise.
-        bool        GoToChild( const NameType& name )
-        {DCSSHRD
+        bool        GoToChild( const NameType& name )                                       {DCSSHRD
             dbgCheckTreeAndNode();
             ALIB_DBG( cmCursor::tree->checkChildName( name ); )
 
             cmNode* child= static_cast<cmNode*>(cmCursor::node->findChild( cmCursor::tree, name ));
-            if(child)
-            {
+            if(child) {
                 cmCursor::node= child;
                 return true;
             }
@@ -1077,8 +1043,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///         while the boolean still indicates "not found" (aka \c true).
         template<typename... TArgs>
         std::pair<TCursor, bool> CreateChildIfNotExistent( const NameType& name,
-                                                           TArgs&&... args  )
-        {DCS
+                                                           TArgs&&... args  )                   {DCS
             dbgCheckTreeAndNode();
             if( !cmCursor::tree->checkChildName( name ) )
                 return std::make_pair( TCursor(cmCursor::tree, nullptr), true );
@@ -1104,11 +1069,9 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return \c false if the child was found, and \c true if one was created or the given
         ///         child name was invalid.
         template<typename... TArgs>
-        bool        GoToCreateChildIfNotExistent(const NameType& name, TArgs&&... args)
-        {DCS
+        bool        GoToCreateChildIfNotExistent(const NameType& name, TArgs&&... args)         {DCS
             dbgCheckTreeAndNode();
-            if( !cmCursor::tree->checkChildName( name ) )
-            {
+            if( !cmCursor::tree->checkChildName( name ) ) {
                 cmCursor::node= nullptr;
                 return true;
             }
@@ -1157,12 +1120,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return A pair of a cursor pointing to last child not of the existing portion
         ///         of the given \p{path}, and a substring that contains the non-existing
         ///         portion of a path, or is empty if the complete path existed.
-        std::pair<TCursor, SubstringType> operator()( const NameType& path )               const
-        {DCSSHRD
+        std::pair<TCursor, SubstringType> operator()( const NameType& path )          const {DCSSHRD
             dbgCheckTreeAndNode();
             SubstringType remainingPath(path);
             cmNode* grandChild= cmCursor::followPath( remainingPath );
-            return std::make_pair( TCursor(cmCursor::tree, grandChild), remainingPath );
+            return std::make_pair( TCursor(grandChild, cmCursor::tree), remainingPath );
         }
 
         /// Same as the
@@ -1172,8 +1134,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param path  The path to move this cursor along.
         /// @return The unconsumed portion of the path.
         ///         An empty \b Substring if the path existed.
-        SubstringType GoTo( const NameType& path )
-        {DCSSHRD
+        SubstringType GoTo( const NameType& path )                                          {DCSSHRD
             dbgCheckTreeAndNode();
             SubstringType remainingPath(path);
             cmCursor::node= cmCursor::followPath( remainingPath );
@@ -1196,15 +1157,14 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///         created.
         template<typename... TArgs>
         std::pair<TCursor, integer>  CreatePathIfNotExistent( const NameType&  path,
-                                                              TArgs&&...       args  )
-        {DCS
+                                                              TArgs&&...       args  )          {DCS
             dbgCheckTree();
             ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == cmCursor::tree->separator,
                    "STRINGTREE", "Invalid StringTree::Cursor given with relative path addressing." )
 
             auto result= cmCursor::followPathCreate( path, std::forward<TArgs>(args)... );
 
-            return std::make_pair( TCursor(cmCursor::tree, static_cast<cmNode*>(result.first)),
+            return std::make_pair( TCursor(static_cast<cmNode*>(result.first), cmCursor::tree),
                                    result.second );
         }
 
@@ -1223,8 +1183,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return The number of nodes created.
         template<typename... TArgs>
         integer                  GoToCreatedPathIfNotExistent( const NameType& path,
-                                                               TArgs&&...      args      )
-        {DCS
+                                                               TArgs&&...      args      )      {DCS
             dbgCheckTree();
             ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == cmCursor::tree->separator,
                   "STRINGTREE", "Invalid StringTree::Cursor given with relative path addressing." )
@@ -1234,17 +1193,13 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
             return result.second;
         }
 
-        //#####  Cursor Interface        #######################################################
+      //###################################### Cursor Interface ####################################
         /// Returns the name of the represented node.
         /// Note that the concatenated names of recursive child nodes, separated by
         /// \p{TSeparator} constitute a \e path.
         ///
         /// @return A constant reference to the name of the represented node.
-        const NameType& Name()                                                             const
-        {
-            dbgCheckTreeAndNode();
-            return cmCursor::node->name.key;
-        }
+        const NameType& Name()     const { dbgCheckTreeAndNode(); return cmCursor::node->name.key; }
 
         /// Returns the tree that this cursor belongs to.
         /// @tparam TParent  Optional template parameter, which casts the internal tree type
@@ -1253,8 +1208,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return The tree that this object refers to.
         template<typename TParent= StringTree>
         requires std::derived_from<TParent, StringTree>
-        TParent& Tree()                                                                    const
-        { dbgCheckTree(); return *static_cast<TParent*>(cmCursor::tree); }
+        TParent& Tree()     const { dbgCheckTree(); return *static_cast<TParent*>(cmCursor::tree); }
 
         /// Retrieves a reference to the templated value of type \p{T} stored in the represented
         /// node.
@@ -1265,12 +1219,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return The current node's value.
         template<bool TRequires= !TConst>
         requires TRequires
-        T&              Value()
-        {
+        T&              Value() {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return static_cast<baseNode*>(cmCursor::node)->data;
         }
 
@@ -1278,12 +1231,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// the represented node.
         /// @see Operators #operator->() and #operator*().
         /// @return The current node's value.
-        const T&        Value()                                                            const
-        {
+        const T&        Value()                                                              const {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return static_cast<const baseNode*>(cmCursor::node)->data;
         }
 
@@ -1295,24 +1247,22 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return The current node's value.
         template<bool TRequires= !TConst>
         requires TRequires
-        T*              operator->()
-        {
+        T*              operator->() {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return &static_cast<baseNode*>(cmCursor::node)->data;
         }
 
         /// Retrieves a constant pointer to the templated value of type \p{T} stored in
         /// the represented node.
         /// @return The current node's value.
-        const T*        operator->()                                                       const
-        {
+        const T*        operator->()                                                         const {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return &static_cast<const baseNode*>(cmCursor::node)->data;
         }
 
@@ -1324,12 +1274,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @return The current node's value.
         template<bool TRequires= !TConst>
         requires TRequires
-        T&              operator*()
-        {
+        T&              operator*() {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return static_cast<baseNode*>(cmCursor::node)->data;
         }
 
@@ -1337,28 +1286,23 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// in the represented node.
         /// \note This operator is only available if template parameter \p{TConst} is false.
         /// @return The current node's value.
-        const T&        operator*()                                                        const
-        {
+        const T&        operator*()                                                          const {
             dbgCheckTree();
             ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "STRINGTREE",
               "Root node has no value. Either this operation is unwanted or root node's value\n"
-              "has to be explicitly set using SetRootNode(...)" )
+              "has to be explicitly set using ConstructRootValue(...)" )
             return static_cast<const baseNode*>(cmCursor::node)->data;
         }
 
         /// Returns \c true if this cursor represents the root node of the
         /// \b %StringTree, \c false otherwise.
         /// @return \c true if this object represents the root node, \c false otherwise.
-        bool            IsRoot()                                                           const
-        {
-            dbgCheckTreeAndNode();
-            return cmCursor::node->isRoot();
-        }
+        bool            IsRoot()   const { dbgCheckTreeAndNode(); return cmCursor::node->isRoot(); }
 
         /// Determines the depth of the node represented by this object. This is done by
         /// counting the iterations needed to reach the root node of the tree.
         /// @return The distance from this node to the root node.
-        int             Depth()                                                            const
+        int             Depth()                                                                const
         {DCSSHRD
             dbgCheckTreeAndNode();
             return cmCursor::node->depth();
@@ -1376,8 +1320,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// @param other The node to test.
         /// @return The distance from this node to the root node. \c -1 is returned in case
         ///         \p{other} is not found in the path to this node.
-        int             Distance( const TCursor<true>& other )                             const
-        {DCSSHRD
+        int             Distance( const TCursor<true>& other )                        const {DCSSHRD
             dbgCheckTreeAndNode();
             ALIB_ASSERT_ERROR( other.node, "STRINGTREE", "Invalid node given." )
             ALIB_ASSERT_ERROR( cmCursor::tree == other.tree, "STRINGTREE",
@@ -1387,7 +1330,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
 
         /// Returns \c true if the represented node has at least one direct child.
         /// @return \c true if the current node has children, \c false otherwise.
-        bool            HasChildren()                                                      const
+        bool            HasChildren()                                                          const
         {DCSSHRD
             dbgCheckTreeAndNode();
             return cmCursor::node->qtyChildren != 0;
@@ -1396,7 +1339,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// Returns the number of direct children of the represented node.<br>
         /// Note that this method runs in constant time.
         /// @return The number of direct children of the represented node.
-        uinteger        CountChildren()                                                    const
+        uinteger        CountChildren()                                                        const
         {DCSSHRD
             dbgCheckTreeAndNode();
             return cmCursor::node->qtyChildren;
@@ -1406,8 +1349,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// parent's list of children.
         /// @return \c true if a next sibling to this object's represented node exists,
         ///         \c false otherwise.
-        bool            HasNextSibling()                                                   const
-        {DCSSHRD
+        bool            HasNextSibling()                                              const {DCSSHRD
             dbgCheckTreeAndNode();
             return     !IsRoot()
                     && !cmCursor::node->parent->children.isLast( cmCursor::node );
@@ -1417,8 +1359,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// parent's list of children.
         /// @return \c true if a previous sibling to this object's represented node exists,
         ///         \c false otherwise.
-        bool            HasPreviousSibling()                                               const
-        {DCSSHRD
+        bool            HasPreviousSibling()                                          const {DCSSHRD
             dbgCheckTreeAndNode();
             return     !IsRoot()
                     && !cmCursor::node->parent->children.isFirst( cmCursor::node );
@@ -1434,22 +1375,21 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// node, internally a local node-stack is created first, which then is traversed
         /// top-down), still in many situations, it is recommended to search for other ways to
         /// keep track of the current path of a node and modify and re-use such path.
-        /// For this, class \alib{containers;StringTree::RecursiveIterator}, optionally
-        /// allows maintaining a string representing the current path with every iteration.
+        /// For this, class \alib{containers;StringTreeIterator}, optionally allows maintaining
+        /// a string representing the current path with every iteration.
         ///
         /// \see
-        ///  Overloaded version <b>AssemblePath(AString&,TCursor<TConst>&,lang::CurrentData)</b>,
-        ///  which allows the creation a relative path from a parent node to this node.
+        ///   Overloaded version <b>AssemblePath(AString&,TCursor<TConst>&,lang::CurrentData)</b>,
+        ///   which allows the creation a relative path from a parent node to this node.
         ///
         /// @param targetString  The string buffer to append the path to.
         /// @param targetData    Denotes whether \p{target} should be cleared before
         ///                      appending the path. Defaults to \b CurrentData::Clear.
         /// @return The given \b AString to allow concatenated operations.
         strings::TAString<typename cmTree::CharacterType, lang::HeapAllocator>&
-        AssemblePath( strings::TAString<typename cmTree::CharacterType,
-                                        lang::HeapAllocator            >&  targetString,
-                      lang::CurrentData                                    targetData=
-                                                              lang::CurrentData::Clear )   const
+        AssemblePath( strings::TAString<typename cmTree::CharacterType>&  targetString,
+                      lang::CurrentData                                   targetData=
+                                                              lang::CurrentData::Clear )       const
         {DCSSHRD
             if( targetData == lang::CurrentData::Clear )
                 targetString.Reset();
@@ -1461,7 +1401,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// Same as #AssemblePath but accepts a parent node to stop at, instead of the root node.
         /// The path created is a relative path from the \p{parent} to the represented node,
         /// hence it does \b not include the parent' name and also does \b not start with the
-        /// separation character. The latter is true even if the given \p targetParent represents
+        /// separation character. The latter is true even if the given \p{targetParent} represents
         /// the root node. In this case the path is a relative path from the root node \c '/'
         /// to the child.
         ///
@@ -1479,7 +1419,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
                                         lang::HeapAllocator             >&  targetString,
                       const TCursor<true>&                                  parent,
                       lang::CurrentData                                     targetData
-                                                            = lang::CurrentData::Clear )   const
+                                                            = lang::CurrentData::Clear )       const
         {DCSSHRD
             dbgCheckTreeAndNode();
             if( targetData == lang::CurrentData::Clear )
@@ -1488,12 +1428,12 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
                                                  cmCursor::tree->separator );
         }
 
-        //#####  Cursor child creation     #####################################################
+      //################################### Cursor child creation ##################################
         /// Creates and returns a child node. If a node already exists, nothing is done and
         /// \c nullptr is returned as this is considered an error.
         ///
         /// If the child name is illegal (equal to <c>"."</c> or <c>".."</c> or contains a
-        /// separation character), an \alib warning is raised and an invalid cursor
+        /// separation character), an \alib_warning is raised and an invalid cursor
         /// is returned.
         ///
         /// Template parameter \p{TCheck} may be used to suppress the search for an
@@ -1516,35 +1456,32 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///         If the given \p{childName} was invalid or the child existed already,
         ///         the returned object is invalid.
         template<typename TCheck =CHK, typename... TArgs>
-        TCursor CreateChild( const NameType& childName, TArgs&&... args )                  const
-        {DCS
+        TCursor CreateChild( const NameType& childName, TArgs&&... args )                 const {DCS
             dbgCheckTreeAndNode();
-            if constexpr ( TCheck::value )
-            {
+            if constexpr ( TCheck::value ) {
                 // check name
-                if( !baseCursor::tree->checkChildName( childName ) )
-                {
+                if( !baseCursor::tree->checkChildName( childName ) ) {
                     ALIB_WARNING( "STRINGTREE", "Illegal child name \"{}\"", childName )
-                    return Cursor( baseCursor::tree, nullptr );
+                    return Cursor( nullptr, baseCursor::tree );
                 }
 
                 // check existence
                 if(     baseCursor::node->qtyChildren > 0
                     &&  baseCursor::tree->nodeTable.Contains( baseNodeKey( baseCursor::node, childName) ))
-                    return Cursor( baseCursor::tree, nullptr );
+                    return Cursor( nullptr, baseCursor::tree );
             }
 
             baseNode* child= &baseCursor::tree->nodeTable.EmplaceUnique( baseCursor::node, childName,
                                                                            std::forward<TArgs>(args)... )
                                                .Value();
-            TNodeHandler::InitializeNode( *baseCursor::tree, *child );
+            TNodeHandler::InitializeNode( *child, *baseCursor::tree );
 
             baseCursor::node->children.pushEnd( child );
             ++baseCursor::node->qtyChildren;
-            return TCursor( baseCursor::tree, child );
+            return TCursor( child, baseCursor::tree );
         }
 
-        //#####  Cursor deletion         #######################################################
+      //###################################### Cursor deletion #####################################
         /// Searches and deletes the child named \p{childName} from the node that this object
         /// refers to. This object itself is not changed.
         ///
@@ -1555,8 +1492,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///
         /// @param   childName   The name of the desired child.
         /// @return \c true if the child existed and was deleted, \c false otherwise.
-        bool DeleteChild( const NameType& childName )                                      const
-        {DCS
+        bool DeleteChild( const NameType& childName )                                     const {DCS
             dbgCheckTreeAndNode();
             if( baseCursor::node->qtyChildren == 0 )
                 return false;
@@ -1565,7 +1501,7 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
             if( handle.IsEmpty() )
                 return false;
             handle.Value().deleteChildren( baseCursor::tree );
-            TNodeHandler::FreeNode( *baseCursor::tree, handle.Value() );
+            TNodeHandler::FreeNode( handle.Value(), *baseCursor::tree );
             handle.Value().remove();
 
             --baseCursor::node->qtyChildren;
@@ -1586,19 +1522,19 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         ///   out by common C++ compilers.
         ///
         /// @param   child   Deletes the child represented by the given node.
-        void DeleteChild( TCursor& child )                                                 const
-        {DCS
+        /// @return The total number of nodes deleted.
+        uinteger DeleteChild( TCursor& child )                                            const {DCS
             dbgCheckTreeAndNode();
             cmNode* nodeToDelete= child.node;
             child.GoToNextSibling();
-            baseCursor::node->deleteChild( baseCursor::tree, nodeToDelete );
+            return baseCursor::node->deleteChild( baseCursor::tree, nodeToDelete );
         }
 
         /// Deletes the children of the node that this cursor refers to.
         /// This object itself is not changed.
         ///
         /// @return The number of children that were deleted.
-        uinteger DeleteChildren()                                                          const
+        uinteger DeleteChildren()                                                              const
         {DCS
             dbgCheckTreeAndNode();
             return  baseCursor::node->deleteChildren( baseCursor::tree );
@@ -1613,15 +1549,15 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         /// #ConstructRootValue and #DestructRootValue are to be used.
         ///
         /// \note
-        ///   If this method is invoked on an object returned by method
-        ///   #RecursiveIterator::Node, the invoking iterator becomes invalid.<br>
-        ///   To avoid this, method #RecursiveIterator::DeleteNode is to be used.
+        ///   When working with class \alib{containers::StringTreeIterator}, this method
+        ///   invalidates an iterator instance if it is invoked on a returned cursor.
+        ///   To avoid this, the provided special method
+        ///   \alib{containers;StringTreeIterator::DeleteNode} is to be used.
         ///
         /// @return
         ///   The total number of nodes deleted. Can be zero, in case this object represents
         ///   the root node and this node has no children.
-        uinteger Delete()
-        {DCS
+        uinteger Delete()                                                                       {DCS
             dbgCheckTreeAndNode();
             if( baseCursor::node->isRoot() )
                 return baseCursor::node->deleteChildren( baseCursor::tree );
@@ -1643,716 +1579,12 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     /// nodes received directly from the hashtable.
     /// @param node The base node.
     /// @return A valid cursor.
-    Cursor  createCursor(baseNode& node)                         { return Cursor(this, &node); }
+    Cursor  createCursor(baseNode& node)                             { return Cursor(&node, this); }
 
+  //################################################################################################
+  // StringTree Main
+  //################################################################################################
   public:
-
-    //==============================================================================================
-    /// This public, inner class can be used to recursively iterate through the nodes of
-    /// outer class \b StringTree.<br>
-    /// The type does <b>not</b> apply to the concept of \c std::iterator_traits.
-    /// The rationale for this is the fact that mechanics for sorting the child nodes are
-    /// provided, which requires allocation of more resources than usual container iterators do.
-    /// Therefore, objects of this type are not supposed to be temporary and
-    /// created "on the fly", e.g., in C++ range based loops.
-    /// Instead, instances should rather be created once and then re-used with later iterations.
-    ///
-    /// The sorting of child nodes is optional and can be changed before each recursion.
-    /// A built-in comparison function which works on node names (path names) allows choosing
-    /// ascending and descending order and to ignore or be sensitive about the letter case.
-    /// Besides this, custom comparison functions that take a combination of arbitrary node
-    /// attributes, including a node's value of template type \p{T} can be established.
-    /// See overloaded methods #SetSorting for details on this topic.
-    ///
-    /// Objects of this type can be initialized, respectively reset to distinct start nodes by
-    /// providing objects of
-    /// - type \b %StringTree,
-    /// - type \b %StringTree::Cursor or
-    /// - other objects of this type itself,
-    ///
-    /// to overloaded methods #Initialize.
-    ///
-    /// The maximum depth of recursion may be limited with optional parameter \p{depth}
-    /// found with each overloaded version of #Initialize.
-    /// During the iteration, the recursion can be individually selected per node visited.
-    /// This is done by using either of the methods #Next or #NextSibling to proceed.
-    /// Furthermore, method #NextParentSibling allows skipping the rest of the current iteration
-    /// branch.<br>
-    /// The end of an iteration is detected with the method #IsValid.
-    ///
-    /// The children of a node can be iterated in a sorted fashion. To enable and disable
-    /// sorting, various overloads of #SetSorting exist. These methods may be invoked any
-    /// time during the iteration. Whenever a recursion in iteration occurs, the most recent
-    /// settings of sorting are respected for the list of children of the node that is
-    /// processed with that recursion.
-    ///
-    /// Finally, the generation of a string representing the actual path to the current
-    /// iteration node, relative to the iteration's start node can be activated.
-    /// See method #SetPathGeneration for mor        e information about this feature.
-    ///
-    /// \see
-    ///   For more information on how this class is used, see paragraph
-    ///   \ref alib_ns_containers_stringtree_iterator "2.2 Inner Class RecursiveIterator"
-    ///   of the description of class \b %StringTree.
-    ///
-    /// ## Friends ##
-    /// class \alib{containers;StringTree}
-    //==============================================================================================
-    template<bool TConst>
-    class TRecursiveIterator
-    {
-        #if !DOXYGEN
-            #if ALIB_DEBUG_CRITICAL_SECTIONS
-                #undef   DCS
-                #undef   DCSSHRD
-                #define  DCS       ALIB_DCS_WITH(tree->nodeTable.dcs)
-                #define  DCSSHRD   ALIB_DCS_SHARED_WITH(tree->nodeTable.dcs)
-            #endif
-        #endif
-      protected:
-        /// Constant or mutable version of the base tree type, depending on template parameter
-        /// \p{TConst}
-        using cmTree    = std::conditional_t<!TConst, StringTree  , const StringTree>;
-
-        /// Constant or mutable version of the base node type, depending on template parameter
-        /// \p{TConst}
-        using cmNodeBase= std::conditional_t<!TConst, baseNodeBase, const baseNodeBase>;
-
-        /// Constant or mutable version of the base node type, depending on template parameter
-        /// \p{TConst}
-        using cmNode    = std::conditional_t<!TConst, baseNode    , const baseNode>;
-
-        /// Constant or mutable version of the base Cursor type, depending on template parameter
-        /// \p{TConst}
-        using cmCursor = std::conditional_t<!TConst, Cursor     , ConstCursor>;
-
-        //######################################################################################
-        // Inner type RecursionData
-        //######################################################################################
-        /// Protected, internal struct used to store the data of recursive iterations.
-        struct RecursionData
-        {
-            /// Combines a node hook and and a current vector index used to remember the
-            /// current child in unsorted, respectively sorted mode.
-            union
-            {
-                /// The current child of the current node in case of unsorted access
-                /// If this is pointing to the end of the child map, then
-                /// the actual node itself is selected by this RecursiveIterator.
-                cmNodeBase*         unsorted;
-
-                /// The current child index in case of sorted access.
-                /// A value of <c>size_t(-1)</c> indicates that
-                /// the actual node itself is selected.
-                size_t              sorted;
-
-            } actChild;
-
-            #if DOXYGEN
-                /// The child hook of the parent node, used with unsorted iteration.
-                /// Note that this is declared \c const, in case template param \p{TConst} equals
-                /// \c true.
-                lang::BidiListHook<baseNodeBase>*      childrenUnsorted;
-            #else
-                 std::conditional_t<!TConst,
-                                    lang::BidiListHook<baseNodeBase>*,
-                                    const lang::BidiListHook<baseNodeBase>*>   childrenUnsorted;
-            #endif
-
-            /// A pointer to a dynamically allocated vector of children used with sorting.
-            std::vector<cmNode*>    childrenSorted;
-
-            /// Copied from \alib{containers::StringTree;TRecursiveIterator} with every
-            /// recursion step.
-            bool                   (*customSorter)(const cmCursor&, const cmCursor&);
-
-            /// Copied from \alib{containers::StringTree;TRecursiveIterator} with every
-            /// recursion step.
-            bool                    isSorting;
-
-            /// Copied from \alib{containers::StringTree;TRecursiveIterator} with every
-            /// recursion step.
-            bool                    sortingIsDescending;
-
-            /// Copied from \alib{containers::StringTree;TRecursiveIterator} with every
-            /// recursion step.
-            bool                    sortingIsCaseSensitive;
-
-
-            /// Trivial default constructor.
-            RecursionData()                                             noexcept          = default;
-
-            /// Trivial default copy constructor.
-            RecursionData( const RecursionData&  )                                        = default;
-
-            /// Trivial default move constructor.
-            RecursionData(       RecursionData&& )                      noexcept          = default;
-
-            /// Trivial default copy assign operator.
-             /// @return A reference to \c this.
-            RecursionData& operator=( const RecursionData&  )                             = default;
-
-            /// Trivial default move assign operator.
-             /// @return A reference to \c this.
-            RecursionData& operator=(       RecursionData&& )           noexcept          = default;
-
-            /// Trival default destructor
-            ~RecursionData()                                            noexcept          = default;
-        }; // inner struct RecursionData
-
-      //#######  RecursiveIterator members     #####################################################
-        /// The \b %StringTree this iterator belongs to.
-        cmTree*                     tree                                                  = nullptr;
-
-        /// The pointer to the actual node.
-        cmNode*                     node;
-
-        /// A stack holding the recursive list of unsorted or sorted children and the
-        /// hook to the current child. Implemented as a vector in combination with member #actDepth,
-        /// to reuse allocated storage space during iteration and when this iterator is
-        /// re-used (freshly initialized).
-        std::vector<RecursionData>  stack;
-
-        /// The current depth of the iteration (and usage but not size of field #stack).
-        /// set to \c -1 to if iteration is finished, respectively this iterator was not
-        /// initialized.
-        size_t                      actDepth                                           = size_t(-1);
-
-        /// The path to the actual node (excluding the name of the actual node).
-        /// If this object is \e nulled, no paths are generated.
-        AString                     actPath;
-
-        /// The requested depth of iteration recursion.
-        unsigned int                recursionDepth      =(std::numeric_limits<unsigned int>::max)();
-
-        /// A pointer to a user-defined comparison function.
-        bool                        (*nextCustomSorter)(const cmCursor&, const cmCursor&) = nullptr;
-
-        /// Denotes if the children are iterated in a sorting fashion or not.
-        bool                        nextIsSorting                                           = false;
-
-        /// The sort order (used with built-in sorting by node name).
-        bool                        nextSortingIsDescending                                 = false;
-
-        /// The case sensitivity of the sort (used with built-in sorting by node name).
-        bool                        nextSortingIsCaseSensitive                              = false;
-
-    // ######## RecursiveIterator Constructor/Destructor    ########################################
-    public:
-        /// Default constructor.
-        TRecursiveIterator()                                                           = default;
-
-        /// Trivial copy constructor.
-        TRecursiveIterator( const TRecursiveIterator&  )                               = default;
-
-        /// Trivial default move constructor.
-        TRecursiveIterator(       TRecursiveIterator&& )                              = default;
-
-        /// Trivial default copy assign operator.
-        /// @return A reference to \c this.
-        TRecursiveIterator& operator=( const TRecursiveIterator&  )                   = default;
-
-        /// Trivial default move assign operator.
-        /// @return A reference to \c this.
-        TRecursiveIterator& operator=(       TRecursiveIterator&& )                   = default;
-
-
-        /// Destructor.
-        ~TRecursiveIterator()                                                         = default;
-
-      // ###### RecursiveIterator Interface      ###################################################
-        /// With this method, the assembly of a string representing the path from the
-        /// node used to initialize this iterator to the actual node, is activated or
-        /// deactivated.<br>
-        /// If activated, the path to the current node can be received using overloaded
-        /// methods #CurrentPath and #FullPath.
-        ///
-        /// The invocation of the method invalidates this iterator. Note that the
-        /// path generation can be enabled and disabled with the optional parameter
-        /// of the overloaded #Initialize methods.
-        ///
-        /// @param pathGeneration Denotes whether the path should be generated or not.
-        void SetPathGeneration( lang::Switch pathGeneration )
-        {
-            Invalidate();
-            actPath.Reset( pathGeneration == lang::Switch::On ? EMPTY_STRING
-                                                              : NULL_STRING  );
-        }
-
-        /// Resets this iterator to work with the given \b %StringTree.
-        /// Initializes recursive iteration to the tree's root node.
-        /// Optionally, a recursion depth can be set.
-        ///
-        /// @param pTree  The \b %StringTree to use.
-        /// @param depth  Sets the recursion depth.
-        ///               A depth of \c 0 iterates only the direct children of the root node.
-        ///               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
-        ///               for "unlimited" recursion.
-        void Initialize( cmTree&       pTree,
-                         unsigned int  depth= (std::numeric_limits<unsigned int>::max)() )
-        {
-            initialize( &pTree, &pTree.root.root, depth );
-        }
-
-        /// Resets this iterator to the first child of the node that the given cursor
-        /// object represents.
-        /// If the cursor is invalid, the root node of the tree it represents is used.
-        ///
-        /// If the given node has no children, this iterator is marked invalid when this
-        /// method returns.
-        ///
-        /// Optional parameter \p{depth} allows limiting the recursion depth.
-        ///
-        /// @param cursor The cursor to define the branch of the tree to iterate.
-        /// @param depth  Sets the recursion depth.
-        ///               A depth of \c 0 iterates only the direct children of the node
-        ///               represented by \p{cursor}.
-        ///               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
-        ///               for "unlimited" recursion.
-        void Initialize( cmCursor      cursor,
-                         unsigned int  depth= (std::numeric_limits<unsigned int>::max)()  )
-        {
-            initialize( static_cast<cmTree*>( cursor.tree ),
-                        cursor.IsValid() ?  cursor.node : &cursor.tree->root.root,
-                        depth                                                         );
-        }
-
-        /// Resets this iterator to the first child of the node that the given other iterator
-        /// currently refers to. The given iterator has to be in a valid state.
-        /// Optionally, a recursion depth can be set.
-        ///
-        /// @param other  The iterator whose current node becomes the start node for this
-        ///               iterator.
-        /// @param depth  Sets the recursion depth.
-        ///               A depth of \c 0 iterates only the direct children of the node
-        ///               represented by \p{other}.
-        ///               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
-        ///               for "unlimited" recursion.
-        void Initialize( const TRecursiveIterator&   other,
-                         unsigned int   depth= (std::numeric_limits<unsigned int>::max)() )
-        {
-            initialize( other.tree, other.node, depth );
-        }
-
-        /// Invalidates this object. After invoking this method, this iterator cannot be
-        /// used further, until one of the overloaded methods #Initialize is invoked.
-        /// After the invocation, method #IsValid will return \c false.
-        void Invalidate()
-        {
-            actDepth= size_t(-1);
-        }
-
-        /// Determines if this is a valid. \b RecursiveIterator instances may become invalid
-        /// after invocations of one of the methods #Next, #NextSibling or #NextParentSibling
-        /// (at the end of the iteration) and become valid with the invocation of one of the
-        /// overloaded methods #Initialize.
-        ///
-        /// @return \c true if this is a valid iterator. If invalid, \c false is returned and
-        ///         the iterator must not be evaluated before being initialized.
-        bool IsValid()                                                                     const
-        {
-            return actDepth != size_t(-1);
-        }
-
-        /// The negation of #IsValid.
-        ///
-        /// @return \c false if this is a valid iterator. If invalid, \c true is returned and
-        ///         the iterator must not be evaluated before being initialized.
-        bool IsInvalid()                                                                   const
-        {
-            return !IsValid();
-        }
-
-
-        /// Allows switching sorting on or off. If switched on, sorting is performed
-        /// by the node names in ascending order.
-        ///
-        /// This and the overloaded versions of this method may be invoked at any time,
-        /// even on invalid iterators and those that are not initialized.
-        /// All that the methods do is store the given parameters for future use.
-        /// Such a use happens whenever a recursive iteration over a list of child nodes is
-        /// started. At that moment the current configuration of sorting is applied to
-        /// the list of direct children.
-        ///
-        /// @param sorting  The switch value.
-        void SetSorting( lang::Switch sorting )
-        {
-            if( sorting == lang::Switch::Off )
-                nextIsSorting= false;
-            else
-                SetSorting(lang::SortOrder::Ascending, lang::Case::Ignore );
-        }
-
-        /// Sets the sorting of children by their path name, using the built-in comparison
-        /// methods, which in turn use method \alib{strings;TString::Equals;String::Equals}.
-        ///
-        /// \see
-        ///   For more details on sorting see method \ref SetSorting(lang::Switch sorting).
-        ///
-        ///
-        /// @param order         The sort order.
-        ///                      Defaults to \b %SortOrder::Ascending.
-        /// @param sensitivity   The case sensitivity when comparing path names.
-        ///                      Defaults to \b %Case::Ignore.
-        void SetSorting( lang::SortOrder order         = lang::SortOrder::Ascending,
-                         lang::Case      sensitivity   = lang::Case::Ignore            )
-        {
-            nextIsSorting             = true;
-            nextCustomSorter          = nullptr;
-            nextSortingIsDescending   =  ( order       == lang::SortOrder::Descending );
-            nextSortingIsCaseSensitive=  ( sensitivity == lang::     Case::Sensitive  );
-        }
-
-        /// Sets the sorting of children by their template value, using the given
-        /// callback function.
-        ///
-        /// \see
-        ///   For more details on sorting see method \ref SetSorting(lang::Switch sorting).
-        ///
-        /// @param customSorterFunction  A custom comparison method used for sorting the children
-        ///                      of nodes.
-        void SetSorting( bool (*customSorterFunction)(const Cursor&, const Cursor&) )
-        {
-            nextIsSorting     = true;
-            nextCustomSorter  = customSorterFunction;
-        }
-
-        /// Iterates to the first child of the current node. If no such child exists,
-        /// to the next sibling node. If also no sibling exists, iteration continues
-        /// with the next available node of a previous recursion level.
-        ///
-        /// @return \c true if a next node was found, \c false otherwise.
-        ///         If \c false is returned, this iterator is invalid after the call.
-        bool Next()                                                   {DCSSHRD return next(0); }
-
-        /// Omits recursion on the current node's children, even if the current depth
-        /// is lower than #RequestedDepth.<br>
-        ///
-        /// If no sibling exists, iteration continues with the next available node of a
-        /// previous recursion level.
-        ///
-        /// @return \c true if a next node was found, \c false otherwise.
-        ///         If \c false is returned, this iterator is invalid after the call.
-        bool NextSibling()                                            {DCSSHRD return next(1); }
-
-        /// Skips the remaining siblings of the current recursion level and continues with
-        /// the next available sibling of a previous level.
-        ///
-        /// @return \c true if a next node was found, \c false otherwise.
-        ///         If \c false is returned, this iterator is invalid after the call.
-        bool NextParentSibling()                                      {DCSSHRD return next(2); }
-
-
-        /// Retrieves the current path of walking as a string representation.
-        /// The path returned is relative to the start node and does not contain a leading
-        /// separator character. Also, it does not contain the name of the current node,
-        /// which can be received by invoking method #TCursor::Name on the cursor returned by
-        /// method #Node.
-        ///
-        /// Note that this method can be used only if path generation was activated
-        /// before the current iteration. Activation is performed with method
-        /// #SetPathGeneration.
-        ///
-        /// @return The path of the current node.
-        const NameType&    CurrentPath()                                                   const
-        {
-            ALIB_ASSERT_ERROR( actPath.IsNotNull(), "STRINGTREE", "Path generation not activated" )
-            return actPath;
-        }
-
-        /// Writes the results of #CurrentPath and #TCursor::Name, separated by the separator
-        /// character \p{TSeparator}.
-        ///
-        /// Note that this method can be used only if path generation was activated
-        /// before the current iteration. Activation is performed with method
-        /// #SetPathGeneration.
-        ///
-        /// @param target        The target to append the path to.
-        /// @param targetData    Denotes whether \p{target} should be cleared before
-        ///                      appending the path. Defaults to CurrentData::Clear.
-        /// @return The given string to allow concatenated operations
-        AString&    FullPath( AString&          target,
-                              lang::CurrentData targetData= lang::CurrentData::Clear )     const
-        {
-            ALIB_ASSERT_ERROR( actPath.IsNotNull(), "STRINGTREE", "Path generation not activated" )
-
-            if( targetData == lang::CurrentData::Clear )
-                target.Reset();
-
-            if( actPath.IsNotEmpty() )
-                target << actPath  << tree->separator;
-
-            return target << node->name.key;
-        }
-
-
-        /// Returns the requested maximum depth of iteration, set with #Initialize.
-        ///
-        /// @see For the current iteration depth, use #CurrentDepth.
-        ///
-        ///
-        /// @return The distance of the current node and the node of the start of the
-        ///         iteration.
-        int RequestedDepth()                              const  { return int(recursionDepth); }
-
-        /// Returns the depth of the current iteration. This is value is available to the
-        /// algorithm which means this method executes in constant time.
-        ///
-        /// To get the absolute depth of the current node, method #TCursor::Depth may be used.
-        ///
-        /// @return The distance of the current node and the node of the start of the
-        ///         iteration.
-        int CurrentDepth()                                                                 const
-        {
-            ALIB_ASSERT_ERROR( IsValid(), "STRINGTREE",
-                               "RecursiveIterator not initialized or exceeded (invalid)." )
-            return int(actDepth);
-        }
-
-        /// Returns the current node, encapsulated in a cursor object.
-        ///
-        /// \note
-        ///   It is \b not allowed to use method #TCursor::Delete on the node returned by
-        ///   this method. As a replacement, use method #DeleteNode implemented in this
-        ///   class.<br>
-        ///   However, methods #TCursor::DeleteChild and #TCursor::DeleteChildren are allowed
-        ///   to be invoked and therefore have no replacement in this class.
-        ///
-        /// @return An instance of the public node interface pointing to the currently
-        ///         referenced tree node.
-        cmCursor Node()                                                                    const
-        {
-            ALIB_ASSERT_ERROR( IsValid(), "STRINGTREE",
-                               "RecursiveIterator not initialized or exceeded (invalid)." )
-            return cmCursor( tree, node );
-        }
-
-      //######  node deletion (RecursiveIterator)  #############################################
-
-        /// Deletes the node that this iterator currently refers to from the tree.
-        /// After the operation, the iterator is moved forward to the next sibling
-        /// of the current node, respectively of the first sibling found in the
-        /// recursion stack.
-        ///
-        /// \note
-        ///   This method constitutes a legal alternative to method #TCursor::Delete, which is
-        ///   forbidden to be invoked on the node returned by method #Node as this would
-        ///   invalidate this iterator.<br>
-        ///
-        ///   Methods #TCursor::DeleteChild and #TCursor::DeleteChildren are allowed with this
-        ///   iterator type. Consequently, no replacement method for those is given with this
-        ///   class.
-        ///
-        /// @return The total number of nodes deleted.
-        uinteger DeleteNode()
-        {DCS
-            ALIB_ASSERT_ERROR( IsValid(), "STRINGTREE",
-                               "RecursiveIterator not initialized or exceeded (invalid)." )
-            auto& nodeToDelete= *node;
-            next( 1 ); // next sibling
-            return nodeToDelete.parent->deleteChild( tree, &nodeToDelete );
-        }
-
-      // ###### RecursiveIterator Internals      ###################################################
-      protected:
-        /// Resets this iterator to represent to the given node of the given tree.
-        ///
-        /// @param pTree   The tree to iterate on.
-        /// @param newnode The new node to start the iteration from.
-        /// @param depth   The requested recursion depth.
-        void initialize( cmTree* pTree, cmNode* newnode, unsigned int depth )
-        {
-            this->tree= pTree;
-            DCSSHRD
-            if( actPath.IsNotNull() )
-            {
-                actPath.Reset();
-                if( newnode->isRoot() )
-                    actPath << tree->separator;
-            }
-
-            node= newnode;
-            if( newnode->qtyChildren )
-            {
-                recursionDepth= depth;
-                actDepth= size_t(-1);
-                recursion();
-            }
-            else
-                actDepth= size_t( -1 );
-        }
-
-        /// Sets this iterator to point to the first child of the actual node.
-        /// If sorting is enabled, copies all children from the map to a vector and sorts
-        /// them there.
-        void  recursion()
-        {
-            ++actDepth;
-            if( stack.size() == actDepth )
-                stack.emplace_back();
-
-            auto& rd= stack[actDepth];
-            rd.customSorter          = nextCustomSorter;
-            rd.isSorting             = nextIsSorting;
-            rd.sortingIsDescending   = nextSortingIsDescending;
-            rd.sortingIsCaseSensitive= nextSortingIsCaseSensitive;
-
-            // no sorting: set link to node's child hook
-            if (!rd.isSorting)
-            {
-                rd.childrenUnsorted= &node->children;
-                node= static_cast<cmNode*>(rd.actChild.unsorted= rd.childrenUnsorted->first());
-                return;
-            }
-
-            // sorting: copy children to a sortable vector
-            rd.childrenSorted.clear();
-            rd.childrenSorted.reserve( size_t( node->qtyChildren ) );
-            auto* copyIt= node->children.first();
-            while( copyIt != &node->children.hook )
-            {
-                rd.childrenSorted.emplace_back( static_cast<cmNode*>(copyIt) );
-                copyIt= copyIt->next();
-            }
-
-            // sort
-            if( rd.customSorter )
-            {
-                std::sort( rd.childrenSorted.begin(), rd.childrenSorted.end(),
-                           [this,&rd]( cmNode* lhs,
-                                       cmNode* rhs  )
-                           {
-                                return rd.customSorter( cmCursor(tree, lhs),
-                                                        cmCursor(tree, rhs) );
-                           }
-                          );
-            }
-            else
-            {
-                std::sort( rd.childrenSorted.begin(), rd.childrenSorted.end(),
-                           [&rd]( cmNode* lhs, cmNode* rhs)
-                           {
-                                int compResult=  rd.sortingIsCaseSensitive
-                                   ? lhs->name.key. template CompareTo<CHK, lang::Case::Sensitive>(rhs->name.key)
-                                   : lhs->name.key. template CompareTo<CHK, lang::Case::Ignore   >(rhs->name.key);
-                                return rd.sortingIsDescending ? compResult > 0
-                                                              : compResult < 0;
-                           }
-                          );
-            }
-
-            // set to first child
-            rd.actChild.sorted= 0;
-            node= rd.childrenSorted[0];
-        }
-
-
-        /// Goes to the next node.
-        /// This method is used with interface methods #Next, #NextSibling and
-        /// #NextParentSibling, as well as with #DeleteNode}.
-        ///
-        /// @param skipMode   \c 0 iterates to the first child (if available),
-        ///                   \c 1 iterates to the next sibling (if available) and
-        ///                   \c 2 to the next available sibling of the parent, respectively the
-        ///                      current recursion stack.
-        /// @return \c true if this iterator is valid (a next node was found), \c false
-        ///         otherwise.
-        bool next(int skipMode)
-        {
-            ALIB_ASSERT_ERROR( actDepth != size_t(-1), "STRINGTREE", "Invalid iterator" )
-
-            // recursion to first child of actual node?
-            if( skipMode == 0
-                && static_cast<unsigned int>( actDepth ) < recursionDepth
-                && node->qtyChildren )
-            {
-                if( actPath.IsNotNull() )
-                {
-                    if(     actPath.IsNotEmpty()
-                        && (actPath.Length() != 1 || actPath.CharAtStart() != tree->separator ) )
-                        actPath << tree->separator;
-
-                    actPath << node->name.key;
-                }
-
-                // increase stack capacity
-                if( stack.size() == actDepth + 1 )
-                    stack.emplace_back();
-
-                recursion();
-
-                return true;
-            }
-
-            for(;;)
-            {
-                if( skipMode != 2 )
-                {
-                    // next sibling
-                    bool foundNextChild;
-                    {
-                        RecursionData& rd= stack[ actDepth ];
-                        if( rd.isSorting )
-                        {
-                            ++rd.actChild.sorted;
-
-                            if( (foundNextChild= rd.actChild.sorted < rd.childrenSorted.size())
-                                ==true )
-                                node= rd.childrenSorted[rd.actChild.sorted];
-                        }
-                        else
-                        {
-                            node      = static_cast<cmNode*>(rd.actChild.unsorted= rd.actChild.unsorted->next());
-                            foundNextChild= (node != &rd.childrenUnsorted->hook);
-                        }
-                    }
-
-                    if( foundNextChild )
-                        break;
-                }
-                skipMode= 0;
-
-                // climb down
-                if( actDepth > 0 )
-                {
-                    --actDepth;
-
-                    // remove separator from path
-                    if( actPath.IsNotEmpty() )
-                    {
-                        character lastChar;
-                        do
-                        {
-                            lastChar= actPath.CharAtEnd<NC>();
-                            actPath.DeleteEnd<NC>( 1 );
-                        }
-                        while( lastChar != tree->separator && actPath.IsNotEmpty() );
-                    }
-                }
-                else
-                {
-                    actDepth=  size_t(-1);
-                    ALIB_ASSERT(    actPath.IsEmpty()
-                                 || (actPath.Length() == 1 && actPath.CharAtStart() == tree->separator)
-                                 , "STRINGTREE" )
-                    break;
-                }
-            }
-
-           return actDepth != size_t(-1);
-        }
-    };  // inner class "TRecursiveIterator"
-
-    /// The mutable version of type \b TRecursiveIterator.
-    using RecursiveIterator       = TRecursiveIterator<false>;
-
-    /// The constant version of type \b TRecursiveIterator.
-    using ConstRecursiveIterator  = TRecursiveIterator<true>;
-
-
-    // #############################################################################################
-    // StringTree Main
-    // #############################################################################################
     #if !DOXYGEN
         #if ALIB_DEBUG_CRITICAL_SECTIONS
             #undef   DCS
@@ -2362,43 +1594,34 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         #endif
     #endif
 
-    //==============================================================================================
     /// Constructor.
     /// @param  allocator      The allocator instance to use.
     /// @param  pathSeparator  The separation character used with path strings.
-    //==============================================================================================
     StringTree( AllocatorType& allocator, CharacterType pathSeparator )
-    : basetree( allocator, pathSeparator )
-    {
+    : basetree( allocator, pathSeparator ) {
         #if ALIB_DEBUG_CRITICAL_SECTIONS
          basetree::nodeTable.dcs.DCSName= "StringTree";
         #endif
     }
 
-    //==============================================================================================
     /// Constructor taking a shared recycler.
     /// @param  pRecycler      The shared recycler.
     /// @param  pathSeparator  The separation character used with path strings.
-    //==============================================================================================
     template<typename TSharedRecycler= SharedRecyclerType>
     requires(!std::same_as<TSharedRecycler, void>)
     StringTree( CharacterType pathSeparator, TSharedRecycler& pRecycler )
-    : basetree( pRecycler, pathSeparator )
-    {
+    : basetree( pRecycler, pathSeparator ) {
         #if ALIB_DEBUG_CRITICAL_SECTIONS
          basetree::nodeTable.dcs.DCSName= "StringTree";
         #endif
     }
 
-    //==============================================================================================
     /// Destructor.
     /// Raises a warning if \alib{containers::StringTree;ConstructRootValue;a root value was} but
     /// not deleted accordingly.
-    //==============================================================================================
-    ~StringTree()
-    {
+    ~StringTree() {
         for( auto& node : basetree::nodeTable )
-            TNodeHandler::FreeNode( *this, *static_cast<baseNode*>(&node) );
+            TNodeHandler::FreeNode( *static_cast<baseNode*>(&node), *this );
 
         ALIB_ASSERT_WARNING( basetree::dbgRootDataSet == 0, "STRINGTREE",
           "Possible memory leak! The root node's value object was set but not deleted before\n"
@@ -2408,21 +1631,25 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
           "release-builds." )
     }
 
-    //==============================================================================================
     /// Shortcut to
     /// \alib{containers;HashTable::GetAllocator;NodeTable().GetAllocator()}.
     /// @return The allocator that was provided in the constructor and stored in the internal
     ///         #NodeTable.
-    //==============================================================================================
-    AllocatorType&        GetAllocator()                                                    noexcept
-    { return basetree::nodeTable.GetAllocator(); }
+    AllocatorType&        GetAllocator()     noexcept { return basetree::nodeTable.GetAllocator(); }
 
-    //==============================================================================================
+    #if ALIB_DEBUG_CRITICAL_SECTIONS
+    /// Returns the critical sections debug instance to allow taking ownership from external
+    /// code and increase the chance to detect the violation of critical sections.
+    /// For example, this method is used by class \alib{containers;StringTreeIterator}.
+    /// This method is available only if the compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS
+    /// is given.
+    /// @return The internal DCS.
+    lang::DbgCriticalSections& DbgGetDCS()                 const { return basetree::nodeTable.dcs; }
+    #endif
+    
     /// Returns the path separator character that this string tree works with.
     /// @return The path separator character.
-    //==============================================================================================
-    constexpr CharacterType Separator()                                               const noexcept
-    { return basetree::separator; }
+    constexpr CharacterType Separator()               const noexcept { return basetree::separator; }
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
     /// Sets the critical section name of this string tree. Empty and optimized out if compiler
@@ -2433,11 +1660,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     constexpr void DbgSetDCSName(const char*)                                               const {}
     #endif
 
-    //==============================================================================================
     /// Depending on the use case, it might be appropriate to attach a value of template type \p{T}
-    /// to the root node of the tree. If so, this can be done with this method. If not done, in debug
-    /// compilations, method #TCursor::Value will
-    /// raise an \alib assertion if called on the root node.
+    /// to the root node of the tree. If so, this can be done with this method. If not done, in
+    /// debug compilations, the method #TCursor::Value will
+    /// raise an \alib_assertion if called on the root node.
     ///
     /// Custom data that is explicitly attached to the root node with this method has to be
     /// deleted explicitly by calling #DestructRootValue before deletion of the tree.
@@ -2445,10 +1671,8 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     /// @tparam TArgs      Types of variadic parameters given with parameter \p{args}.
     /// @param  args       Variadic parameters to be forwarded to the constructor of custom
     ///                    type \p{T} of the child created.
-    //==============================================================================================
     template<typename... TArgs>
-    void    ConstructRootValue( TArgs&&...  args )
-    {
+    void    ConstructRootValue( TArgs&&...  args ) {
         #if ALIB_DEBUG
            ALIB_ASSERT_WARNING( basetree::dbgRootDataSet != 1, "STRINGTREE",
              "Root node value is set without prior deletion. Possible memory leak (depending on\n "
@@ -2459,14 +1683,11 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         new (&basetree::root.root.data) T( std::forward<TArgs>(args)... );
     }
 
-    //==============================================================================================
     /// Calls the destructor of the custom data object of type \p{T}, which may explicitly set using
     /// #ConstructRootValue.\n
-    /// If not done, in debug-compilations, an \alib warning is raised in the destructor
+    /// If not done, in debug-compilations, an \alib_warning is raised in the destructor
     /// of this tree.
-    //==============================================================================================
-    void    DestructRootValue()
-    {
+    void    DestructRootValue() {
         #if ALIB_DEBUG
             ALIB_ASSERT_ERROR( basetree::dbgRootDataSet != 0, "STRINGTREE",
               "Deletion of root node data without prior setting (or double deletion)." )
@@ -2475,7 +1696,6 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         basetree::root.root.data.~T();
     }
 
-    //==============================================================================================
     /// Removes all elements from this container. The use of this method is more efficient than
     /// deleting the children of the root node.
     ///
@@ -2484,12 +1704,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     /// allocated nodes will be preserved for "recycling" with future insertions.
     ///
     /// The custom data of the root node is preserved.
-    //==============================================================================================
-    void        Clear()
-    {DCS
+    void        Clear()                                                                         {DCS
         // clear the nodes in the table, then the table itself
         for( auto& node : basetree::nodeTable )
-            TNodeHandler::FreeNode( *this, *static_cast<baseNode*>(&node) );
+            TNodeHandler::FreeNode( *static_cast<baseNode*>(&node), *this );
         basetree::nodeTable.Clear();
 
         // re-initialize root node
@@ -2497,7 +1715,6 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         basetree::root.root.qtyChildren= 0;
     }
 
-    //==============================================================================================
     /// Clears all nodes and values. The use of this method is more efficient than deleting the
     /// children of the root node.<br>
     /// In addition, depending on template type \p{TNodeHandler}, it may also declare allocated
@@ -2510,12 +1727,10 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     /// all previously allocated recyclable instances of the internal element type are disposed.
     ///
     /// \note The value of the root-node, set with #ConstructRootValue is not deleted.
-    //==============================================================================================
-    void        Reset()
-    {
+    void        Reset() {
         {DCS
             for( auto& node : basetree::nodeTable )
-                TNodeHandler::FreeNode( *this, *static_cast<baseNode*>(&node) );
+                TNodeHandler::FreeNode( *static_cast<baseNode*>(&node), *this );
         }
         
         basetree::nodeTable.Reset();
@@ -2523,7 +1738,6 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
         basetree::root.root.qtyChildren= 0;
     }
 
-    //==============================================================================================
     /// Counts the number of currently allocated but unused (not contained) element nodes
     /// that will be recycled with upcoming insertions.
     ///
@@ -2535,30 +1749,21 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     ///   \alib{containers;Recycling;None}.
     ///
     /// @return The number of removed and not yet recycled elements.
-    //==============================================================================================
-    integer     RecyclablesCount()                                                             const
-    { return basetree::nodeTable.RecyclablesCount();  }
+    integer     RecyclablesCount()          const { return basetree::nodeTable.RecyclablesCount(); }
 
-    //==============================================================================================
     /// Returns the overall number of elements contained in this tree.
     ///
     /// \note
     ///   This method performs in constant time.
     ///
     /// @return The number elements contained in this tree.
-    //==============================================================================================
-    integer     Size()                                                                         const
-    { return basetree::nodeTable.Size();  }
+    integer     Size()                                  const { return basetree::nodeTable.Size(); }
 
-    //==============================================================================================
     /// Tests for emptiness.
     ///
     /// @return \c true if this tree is empty, \c false otherwise.
-    //==============================================================================================
-    bool        IsEmpty()                                                                      const
-    { return basetree::nodeTable.Size() == 0; }
+    bool        IsEmpty()                          const { return basetree::nodeTable.Size() == 0; }
 
-    //==============================================================================================
     /// Invokes \alib{containers;HashTable::ReserveRecyclables} on the internal hashtable.
     ///
     /// @see Chapter \ref alib_contmono_containers_recycling_reserving of the Programmer's
@@ -2568,55 +1773,42 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     ///                  this container.
     /// @param reference Denotes whether \p{qty} is meant as an absolute size or an
     ///                  increase.
-    //==============================================================================================
     void                ReserveRecyclables( integer qty, lang::ValueReference reference )
     { basetree::nodeTable.ReserveRecyclables( qty, reference );  }
 
-    //==============================================================================================
     /// Returns the internal \alib{containers;HashTable} used for storing the tree nodes.
     /// This may be used to manipulate load factors, for direct iteration over all nodes, etc.<br>
     /// \note The returned object should be used with caution to keep the tree and its data
     ///       consistent.
     /// @return The internal node table.
-    //==============================================================================================
-    auto&               NodeTable()
-    { return basetree::nodeTable; }
+    auto&               NodeTable()                                  { return basetree::nodeTable; }
 
-    //==============================================================================================
     /// Returns the internal \alib{containers;HashTable} used for storing the tree nodes.
     /// This may be used to manipulate load factors, for direct iteration over all nodes, etc.<br>
     /// \note The returned object should be used with caution to keep the tree and its data
     ///       consistent.
     /// @return The internal node table.
-    //==============================================================================================
-    const auto&         NodeTable()                                                            const
-    { return basetree::nodeTable; }
+    const auto&         NodeTable()                            const { return basetree::nodeTable; }
 
-    //==============================================================================================
     /// Creates a cursor instance representing the root node.
     /// @return A cursor pointing to the root node of this \b %StringTree.
-    //==============================================================================================
-    Cursor              Root()
-    { return Cursor( this, &(basetree::root.root) ); }
+    Cursor              Root()                      { return Cursor( &basetree::root.root, this ); }
 
-    //==============================================================================================
     /// Creates a \c const cursor instance representing the root node.
     /// @return A read-only pointer, pointing to the root node of this \b %StringTree.
-    //==============================================================================================
-    const ConstCursor   Root()                                                                 const
-    { return ConstCursor( this, &(basetree::root.root) ); }
+    const ConstCursor   Root()           const { return ConstCursor( &basetree::root.root, this ); }
 
     /// Imports a cursor previously exported with #TCursor::Export.
     /// @param handle The handle value.
     /// @return The imported cursor value.
     Cursor          ImportCursor( CursorHandle handle   )
-    { return Cursor( this, reinterpret_cast<typename basetree::Node*>(handle.value) );  }
+    { return Cursor( reinterpret_cast<typename basetree::Node*>(handle.value), this );  }
 
     /// Imports a cursor previously exported with #TCursor::Export.
     /// @param handle The handle value.
     /// @return The imported \c const cursor value.
-    ConstCursor     ImportCursor( ConstCursorHandle handle)
-    { return Cursor( this, reinterpret_cast<typename basetree::Node*>(handle.value) );  }
+    ConstCursor     ImportCursor( ConstCursorHandle handle)                                    const
+    { return ConstCursor( reinterpret_cast<typename basetree::Node*>(handle.value), this );  }
 
     #if !DOXYGEN
         #if ALIB_DEBUG_CRITICAL_SECTIONS
@@ -2626,8 +1818,6 @@ class StringTree : protected detail::StringTreeBase<TAllocator,T,TNodeHandler,TR
     #endif
 
 }; // StringTree
-
-
 
 } // namespace alib::[containers]
 

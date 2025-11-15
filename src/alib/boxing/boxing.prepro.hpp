@@ -12,9 +12,9 @@
 #   include "alib/alib.inl"
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Symbols/macros introduced by module ALib.Boxing
-// #################################################################################################
+//##################################################################################################
 #if !defined(ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS)
 #   define ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS     0
 #endif
@@ -110,19 +110,6 @@ extern ALIB_DLL VTable SNGLTN_ ## Identifier; }                                 
 template<> struct VTableOptimizationTraits< TMapped, true > {                                      \
 static constexpr detail::VTable* Get() { return  &detail:: SNGLTN_ ## Identifier;}  };   }         \
 
-#define ALIB_BOXING_VTABLE_DECLARE_NOEXPORT( TMapped, Identifier )                                 \
-namespace alib::boxing { namespace detail {                                                        \
-extern ALIB_DLL VTable SNGLTN_ ## Identifier; }                                                    \
-template<> struct VTableOptimizationTraits< TMapped, false > {                                     \
-static constexpr detail::VTable* Get() { return &detail:: SNGLTN_ ## Identifier; } };   }          \
-
-#define ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE_NOEXPORT( TMapped, Identifier )                       \
-namespace alib::boxing { namespace detail {                                                        \
-extern ALIB_DLL VTable SNGLTN_ ## Identifier; }                                                    \
-template<> struct VTableOptimizationTraits< TMapped, true > {                                      \
-static constexpr detail::VTable* Get() { return  &detail:: SNGLTN_ ## Identifier;}  };   }         \
-
-
 #define ALIB_BOXING_VTABLE_DEFINE( TMapped, Identifier )                                           \
 alib::boxing::detail::VTable alib::boxing::detail::SNGLTN_ ## Identifier                           \
 ( typeid(TMapped), typeid(void)  ,                                                                 \
@@ -173,4 +160,3 @@ alib::boxing::BootstrapRegister<alib::boxing::FAppend<xchar    , alib::lang::Hea
 
 #endif
 #endif // HPP_ALIB_BOXING_PP
-

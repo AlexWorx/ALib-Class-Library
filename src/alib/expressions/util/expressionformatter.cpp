@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions;
     import   ALib.Expressions.Impl;
@@ -27,7 +27,7 @@
 #   include "ALib.Expressions.Impl.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 /// Utility types of camp \alib_expressions.
 namespace alib::expressions::util {
 
@@ -37,8 +37,7 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
                                           character      separatorChar    )
 : compiler            ( pCompiler )
 , stdFormatter        ( formatter )
-, originalFormatString( pFormatString )
-{
+, originalFormatString( pFormatString ) {
     // use ALib standard formatter, if no dedicated instance was given.
     if(!formatter.Get())
         stdFormatter= Formatter::Default;
@@ -46,8 +45,7 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
     // parse format string
     integer nonExprPortionStart= 0;
     integer parsePos           = 0;
-    while(parsePos < originalFormatString.Length() )
-    {
+    while(parsePos < originalFormatString.Length() ) {
         // has next parse position?
         // Note: if bracket is found at the end of string, we just ignore this here. An according
         // exception is thrown in formatter later.
@@ -60,8 +58,7 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
 
         // double Escape character? -> ignore
         ++parsePos;
-        if( originalFormatString[parsePos] == A_CHAR('{') )
-        {
+        if( originalFormatString[parsePos] == A_CHAR('{') ) {
             ++parsePos;
             continue;
         }
@@ -92,13 +89,10 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
              e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
                     expressions.size() + 1, originalFormatString );
              throw;
-        }
-    }
-}
+}   }   }
 
 
-void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope )
-{
+void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope ) {
     // evaluate expressions and collect boxes
     auto& results= stdFormatter->GetArgContainer();
     results.Add( formatStringStripped );
@@ -124,8 +118,6 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
         e.Add( ALIB_CALLER_NULLED,  format::FMTExceptions::ErrorInResultingFormatString,
                originalFormatString );
         throw;
-    }
-}
+}   }
 
 } // namespace [alib::expressions::util]
-

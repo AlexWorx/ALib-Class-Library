@@ -18,7 +18,7 @@ ALIB_EXPORT namespace alib {  namespace boxing  {
 /// \ref alib_manual_appendix_tca "type traits", and thus the built-in defaulted behavior for a
 /// custom type can be changed.
 ///
-/// A thorough introduction to and documentation of all aspects of \alib_boxing_nl  is given
+/// A thorough introduction to and documentation of all aspects of \alib_boxing_nl is given
 /// with Programmer's Manual \alib_boxing.
 ///
 /// ## Functors In Namespace std ##
@@ -28,9 +28,9 @@ ALIB_EXPORT namespace alib {  namespace boxing  {
 class Box
 {
   protected:
-    // #############################################################################################
-    // protected fields and methods
-    // #############################################################################################
+  //################################################################################################
+  // protected fields and methods
+  //################################################################################################
 
     /// The singleton of a class derived from class \b %VTable which defines our type and
     /// behavior.
@@ -40,14 +40,14 @@ class Box
     Placeholder         data;
 
 
-    // #############################################################################################
-    // Two local macros that check whether T is a valid type to box, respectively unbox.
-    // For this, various different cases are (redundantly) checked to produce compiler
-    // errors that provide all necessary information about why the operation cannot be
-    // performed.
-    // Note: Using an empty templated method for this, produced the static assertion only after
-    //       other compiler errors. Therefore, a macro is used.
-    // #############################################################################################
+  //################################################################################################
+  // Two local macros that check whether T is a valid type to box, respectively unbox.
+  // For this, various different cases are (redundantly) checked to produce compiler
+  // errors that provide all necessary information about why the operation cannot be
+  // performed.
+  // Note: Using an empty templated method for this, produced the static assertion only after
+  //       other compiler errors. Therefore, a macro is used.
+  //################################################################################################
 
 #if !DOXYGEN
     #define ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_BOXING(TBoxable, valueBoxing)                     \
@@ -191,8 +191,7 @@ class Box
     /// @tparam TBoxable  The source type to receive the vtable for.
     /// @return The vtable singleton.
     template<typename TBoxable>
-    static constexpr detail::VTable* getVTable()
-    {
+    static constexpr detail::VTable* getVTable() {
         using TCV= std::remove_cv_t<TBoxable>;
         // not customized?
         if constexpr (std::same_as<typename BoxTraits<TCV>::Mapping, DefaultBoxingTag>)
@@ -211,9 +210,9 @@ class Box
     { BoxTraits<std::remove_cv_t<T>>::Write( data, const_cast<T const &>( src ) ); }
 
 
-  // #############################################################################################
+  //################################################################################################
   // Constructors
-  // #############################################################################################
+  //################################################################################################
   public:
 
     /// The type of type codes received with #ExportType.
@@ -246,7 +245,7 @@ class Box
     template <typename TBoxable>
     inline  constexpr Box(const  TBoxable& src ) noexcept;
   #else
-    // ##################################   Special types   #######################################
+  //######################################### Special types ########################################
 
     // Keyword 'nullptr'
     constexpr Box(const std::nullptr_t& )                              noexcept : vtable(nullptr) {}
@@ -254,8 +253,7 @@ class Box
     // C++ arrays
     template<typename T>
     requires std::is_array_v<T>
-    constexpr Box( T& src )                                                                 noexcept
-    {
+    constexpr Box( T& src )                                                               noexcept {
         using TElem= std::remove_cv_t<std::remove_pointer_t<std::decay_t<T>>>;
         vtable= VTableOptimizationTraits<TElem, true>::Get();
 
@@ -271,7 +269,7 @@ class Box
     : vtable( src.vtable )
     , data  ( src.data   )                                                                        {}
 
-    // ##########################     Boxing with BoxTraits   ##################################
+  //##################################### Boxing with BoxTraits ####################################
 
     // 0) Strings
     template<typename T>
@@ -279,20 +277,17 @@ class Box
     constexpr Box( const T& src )                                                         noexcept {
 
         ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_BOXING(T, true)
-        if constexpr ( characters::ArrayTraits  <T, nchar>::Access == characters::Policy::Implicit )
-        {
+        if constexpr ( characters::ArrayTraits  <T, nchar>::Access == characters::Policy::Implicit ) {
             vtable= VTableOptimizationTraits<nchar, true>::Get();
             data  = Placeholder( characters::ArrayTraits<std::remove_cv_t<T>, nchar>::Buffer( src ),
                                  characters::ArrayTraits<std::remove_cv_t<T>, nchar>::Length( src )  );
         }
-        else if constexpr ( characters::ArrayTraits  <T, wchar>::Access == characters::Policy::Implicit )
-        {
+        else if constexpr ( characters::ArrayTraits  <T, wchar>::Access == characters::Policy::Implicit ) {
             vtable= VTableOptimizationTraits<wchar, true>::Get();
             data  = Placeholder( characters::ArrayTraits<std::remove_cv_t<T>, wchar>::Buffer( src ),
                                  characters::ArrayTraits<std::remove_cv_t<T>, wchar>::Length( src )  );
         }
-        else if constexpr ( characters::ArrayTraits  <T, xchar>::Access == characters::Policy::Implicit )
-        {
+        else if constexpr ( characters::ArrayTraits  <T, xchar>::Access == characters::Policy::Implicit ) {
             vtable= VTableOptimizationTraits<xchar, true>::Get();
             data  = Placeholder( characters::ArrayTraits<std::remove_cv_t<T>, xchar>::Buffer( src ),
                                  characters::ArrayTraits<std::remove_cv_t<T>, xchar>::Length( src )  );
@@ -371,19 +366,19 @@ class Box
 
   #endif // DOXYGEN
 
-  // #############################################################################################
+  //################################################################################################
   // Interface
-  // #############################################################################################
+  //################################################################################################
     #if ALIB_DEBUG
-        /// Returns the \e vtable of this instance that is associated with the currently boxed
-        /// type.<br>
-        /// Available only with debug-builds.
-        ///
-        /// \see
-        ///    Manual chapter \ref alib_boxing_more_debug of the Programmer's Manual.
-        ///
-        /// @return The \e vtable of this instance.
-        const detail::VTable*    DbgGetVTable()                             const { return vtable; }
+    /// Returns the \e vtable of this instance that is associated with the currently boxed
+    /// type.<br>
+    /// Available only with debug-builds.
+    ///
+    /// \see
+    ///    Manual chapter \ref alib_boxing_more_debug of the Programmer's Manual.
+    ///
+    /// @return The \e vtable of this instance.
+    const detail::VTable*    DbgGetVTable()                                 const { return vtable; }
 
     #endif
 
@@ -413,95 +408,79 @@ class Box
     #else
         template<typename TBoxable>
         requires (  IsUnboxableStringType<TBoxable>)
-        bool IsType()                                                                          const
-        {
-        if constexpr ( characters::ArrayTraits  <TBoxable, nchar>::Access == characters::Policy::Implicit )
-            return vtable == VTableOptimizationTraits<nchar, true>::Get();
+    bool IsType()                                                                            const {
+    if constexpr ( characters::ArrayTraits  <TBoxable, nchar>::Access == characters::Policy::Implicit )
+        return vtable == VTableOptimizationTraits<nchar, true>::Get();
 
-        if constexpr ( characters::ArrayTraits  <TBoxable, wchar>::Access == characters::Policy::Implicit )
-            return vtable == VTableOptimizationTraits<wchar, true>::Get();
+    if constexpr ( characters::ArrayTraits  <TBoxable, wchar>::Access == characters::Policy::Implicit )
+        return vtable == VTableOptimizationTraits<wchar, true>::Get();
 
-        if constexpr ( characters::ArrayTraits  <TBoxable, xchar>::Access == characters::Policy::Implicit )
-            return vtable == VTableOptimizationTraits<xchar, true>::Get();
-        }
+    if constexpr ( characters::ArrayTraits  <TBoxable, xchar>::Access == characters::Policy::Implicit )
+        return vtable == VTableOptimizationTraits<xchar, true>::Get();
+    }
 
         template<typename TBoxable>
         requires (   !std::same_as<TBoxable, void>
                   && !IsUnboxableStringType<TBoxable>)
-        bool IsType()                                                                          const
-        {
-            ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TBoxable)
-            return vtable == getVTable<TBoxable>();
-        }
+    bool IsType()                                                                            const {
+        ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TBoxable)
+        return vtable == getVTable<TBoxable>();
+    }
 
         template<typename TBoxable>
         requires std::same_as<TBoxable, void>
-        bool IsType()                                        const { return vtable == nullptr; }
+    bool IsType()                                                const { return vtable == nullptr; }
     #endif
 
     #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS   || DOXYGEN
-        //======================================================================================
-        /// Tests if this box contains a signed integral type (one of the C++ fundamental
-        /// types of different sizes).
-        ///
-        /// With compilation that disables
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
-        /// simply returns <c>IsType<integer>()</c>.<br>
-        /// Otherwise this method will not be inlined and tests for the five different
-        /// integer sizes (\c int8_t, \c int16_t, \c int32_t, \c int64_t, and \alib{intGap_t}).
-        ///
-        /// @return \c true if this box contains a signed integral type, \c false otherwise.
-        //======================================================================================
-        bool        IsSignedIntegral()                      const { return IsType<integer >(); }
+    /// Tests if this box contains a signed integral type (one of the C++ fundamental
+    /// types of different sizes).
+    ///
+    /// With compilation that disables
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
+    /// simply returns <c>IsType<integer>()</c>.<br>
+    /// Otherwise this method will not be inlined and tests for the five different
+    /// integer sizes (\c int8_t, \c int16_t, \c int32_t, \c int64_t, and \alib{intGap_t}).
+    ///
+    /// @return \c true if this box contains a signed integral type, \c false otherwise.
+    bool        IsSignedIntegral()                              const { return IsType<integer >(); }
 
-        //======================================================================================
-        /// Tests if this box contains an unsigned integral type (one of the C++ fundamental
-        /// type of different sizes).
-        ///
-        /// With default library compilation that disables
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
-        /// simply returns <c>IsType<uinteger>()</c>.<br>
-        /// Otherwise this method will not be inlined and tests for the five different
-        /// integer sizes (\c uint8_t, \c uint16_t, \c uint32_t, \c uint64_t, and
-        /// \alib{uintGap_t}).
-        ///
-        /// @return \c true if this box contains an unsigned integral type, \c false otherwise.
-        //======================================================================================
-        bool        IsUnsignedIntegral()                    const { return IsType<uinteger>(); }
+    /// Tests if this box contains an unsigned integral type (one of the C++ fundamental
+    /// type of different sizes).
+    ///
+    /// With default library compilation that disables
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
+    /// simply returns <c>IsType<uinteger>()</c>.<br>
+    /// Otherwise this method will not be inlined and tests for the five different
+    /// integer sizes (\c uint8_t, \c uint16_t, \c uint32_t, \c uint64_t, and
+    /// \alib{uintGap_t}).
+    ///
+    /// @return \c true if this box contains an unsigned integral type, \c false otherwise.
+    bool        IsUnsignedIntegral()                            const { return IsType<uinteger>(); }
 
-        //======================================================================================
-        /// Unboxes a signed integral.
-        ///
-        /// With default library compilation that disables
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
-        /// simply returns <c>Unbox<integer>()</c>.<br>
-        /// Otherwise this method will not be inlined and tests for the five different
-        /// integer sizes (1, 2, 4, and 8 bytes size and the #alib::intGap_t) before
-        /// unboxing.
-        ///
-        /// @return The boxed signed integral value.
-        //======================================================================================
-        integer   UnboxSignedIntegral()                                                        const
-        {
-            return Unbox<integer >();
-        }
+    /// Unboxes a signed integral.
+    ///
+    /// With default library compilation that disables
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
+    /// simply returns <c>Unbox<integer>()</c>.<br>
+    /// Otherwise this method will not be inlined and tests for the five different
+    /// integer sizes (1, 2, 4, and 8 bytes size and the #alib::intGap_t) before
+    /// unboxing.
+    ///
+    /// @return The boxed signed integral value.
+    integer   UnboxSignedIntegral()                              const { return Unbox<integer >(); }
 
-        //======================================================================================
-        /// Unboxes an unsigned integral.
-        ///
-        /// With default library compilation that disables
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
-        /// simply returns <c>Unbox<uinteger>()</c>.<br>
-        /// Otherwise this method will not be inlined and tests for the five different
-        /// integer sizes (1, 2, 4, and 8 bytes size and the #alib::uintGap_t) before
-        /// unboxing.
-        ///
-        /// @return The boxed unsigned integral value.
-        //======================================================================================
-        uinteger  UnboxUnsignedIntegral()     const
-        {
-            return Unbox<uinteger >();
-        }
+    /// Unboxes an unsigned integral.
+    ///
+    /// With default library compilation that disables
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
+    /// simply returns <c>Unbox<uinteger>()</c>.<br>
+    /// Otherwise this method will not be inlined and tests for the five different
+    /// integer sizes (1, 2, 4, and 8 bytes size and the #alib::uintGap_t) before
+    /// unboxing.
+    ///
+    /// @return The boxed unsigned integral value.
+    uinteger  UnboxUnsignedIntegral()                           const { return Unbox<uinteger >(); }
     #else
         ALIB_DLL bool            IsSignedIntegral()           const;
         ALIB_DLL bool          IsUnsignedIntegral()           const;
@@ -511,35 +490,29 @@ class Box
 
 
     #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS  || DOXYGEN
-        /// Tests if this box contains one of types \c char, \c wchar_t, \c char8_t, \c char16_t,
-        /// or \c char32_t.
-        ///
-        /// With default library compilation that disables symbol
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS, this method will be inlined and
-        /// simply returns <c>IsType<wchar>()</c>.<br>
-        /// Otherwise, this method will not be inlined and tests for all five different
-        /// character types.
-        ///
-        /// @return \c true if this box contains a character type, \c false otherwise.
-        bool            IsCharacter()                                                          const
-        {
-            return IsType<wchar>();
-        }
+    /// Tests if this box contains one of types \c char, \c wchar_t, \c char8_t, \c char16_t,
+    /// or \c char32_t.
+    ///
+    /// With default library compilation that disables symbol
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS, this method will be inlined and
+    /// simply returns <c>IsType<wchar>()</c>.<br>
+    /// Otherwise, this method will not be inlined and tests for all five different
+    /// character types.
+    ///
+    /// @return \c true if this box contains a character type, \c false otherwise.
+    bool            IsCharacter()                                  const { return IsType<wchar>(); }
 
-        /// Unboxes one of the types \c char, \c wchar_t, \c char8_t, \c char16_t, or \c char32_t
-        /// and converts it to \alib{characters;wchar}.
-        ///
-        /// With default library compilation that disables
-        /// \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS, this method will be inlined and
-        /// simply returns <c>Unbox<wchar>()</c>.<br>
-        /// Otherwise, this method will not be inlined and tests for the five different
-        /// character types before unboxing.
-        ///
-        /// @return The stored character.
-        wchar           UnboxCharacter()                                                       const
-        {
-            return Unbox<wchar>();
-        }
+    /// Unboxes one of the types \c char, \c wchar_t, \c char8_t, \c char16_t, or \c char32_t
+    /// and converts it to \alib{characters;wchar}.
+    ///
+    /// With default library compilation that disables
+    /// \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS, this method will be inlined and
+    /// simply returns <c>Unbox<wchar>()</c>.<br>
+    /// Otherwise, this method will not be inlined and tests for the five different
+    /// character types before unboxing.
+    ///
+    /// @return The stored character.
+    wchar           UnboxCharacter()                                const { return Unbox<wchar>(); }
 
     #else
         ALIB_DLL bool   IsCharacter()                                                         const;
@@ -573,10 +546,7 @@ class Box
     /// #UnboxElement may be used to access elements of the array.
     ///
     /// @return \c true if this box represents an array, \c false otherwise.
-    bool            IsArray()                                                                  const
-    {
-        return vtable && vtable->IsArray();
-    }
+    bool            IsArray()                          const { return vtable && vtable->IsArray(); }
 
     /// Returns \c true if this objects represents an array and the element type
     /// equals template parameter \p{TElementType}.
@@ -585,29 +555,21 @@ class Box
     /// @return \c true if this box represents an array of given type, \c false otherwise.
     template<typename TElementType>
     bool            IsArrayOf()                                                                const
-    {
-        return      vtable && typeid(TElementType) == vtable->ElementType;
-    }
+    { return      vtable && typeid(TElementType) == vtable->ElementType; }
 
     /// Returns \c true if this box uses pointer-boxing, otherwise \c false.
     /// The default boxing of pointers will store the pointer to the boxed object
     /// in union \alib{boxing;Placeholder::VoidP}.
     ///
     /// @return \c true if this box contains an object boxed as pointer type, \c false otherwise.
-    bool            IsPointer()                                                                const
-    {
-        return vtable && vtable->IsPointer();
-    }
+    bool            IsPointer()                      const { return vtable && vtable->IsPointer(); }
 
     /// Returns \c true if this box contains an element of a scoped or non-scoped enum type.
     /// Enum element values are always boxed as type \alib{integer} stored in
     /// union field \alib{boxing;Placeholder}.
     ///
     /// @return \c true if this box contains an object boxed as pointer type, \c false otherwise.
-    bool            IsEnum()                                                                   const
-    {
-        return vtable && vtable->IsEnum();
-    }
+    bool            IsEnum()                            const { return vtable && vtable->IsEnum(); }
 
     /// Returns \c true if \p{other} and this object share the same boxed type.
     /// Note, if this box has void state (no value boxed), then this method returns
@@ -616,9 +578,7 @@ class Box
     /// @param other The box to compare our type with.
     /// @return \c true if this box has the same type like \p{other}, \c false otherwise.
     bool            IsSameType(const Box& other)                                               const
-    {
-        return  vtable && vtable == other.vtable;
-    }
+    { return  vtable && vtable == other.vtable; }
 
 
     /// This overload unboxes character string types that meet the concept
@@ -632,8 +592,7 @@ class Box
     /// @return The unboxed string instance.
     template<typename TValue>
     requires IsUnboxableStringType<TValue>
-    TValue          Unbox()                                                                const
-    {
+    TValue          Unbox()                                                                  const {
         ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TValue)
 
         ALIB_ASSERT_ERROR( vtable, "BOXING","Box not initialized. Unboxing is undefined behavior." )
@@ -659,7 +618,7 @@ class Box
     /// This overload of the method accepts only (non-const) value types.
     /// For details on unboxing values and pointers, see chapter
     /// \ref alib_boxing_classes_constant of the Programmer's Manual of this module \alib_boxing_nl.
-    ///   
+    ///
     /// With debug-builds, it is \ref ALIB_ASSERT_ERROR "asserted" that given \p{TBoxable}
     /// is mapped to the type stored, so that #IsType returned \c true for \p{TBoxable}.
     /// In release compilations, no checks are performed!
@@ -670,8 +629,7 @@ class Box
     template<typename TValue>
     requires (    !std::is_pointer_v<TValue>
                && !IsUnboxableStringType<TValue> )
-    TValue          Unbox()                                                                const
-    {
+    TValue          Unbox()                                                                  const {
         ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TValue)
 
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
@@ -701,8 +659,7 @@ class Box
     template<typename TPointer>
     requires (     std::is_pointer_v<TPointer>
                && !IsUnboxableStringType<TPointer> )
-    const std::remove_pointer_t<TPointer>*    Unbox()                                         const
-    {
+    const std::remove_pointer_t<TPointer>*    Unbox()                                        const {
         ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TPointer)
 
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior.")
@@ -724,8 +681,7 @@ class Box
     template <typename TPointer>
     requires std::is_pointer_v<TPointer>
     TPointer
-    UnboxMutable()                                                                             const
-    { return const_cast<std::remove_const_t<TPointer>>( Unbox<TPointer>() ); }
+    UnboxMutable()  const { return const_cast<std::remove_const_t<TPointer>>( Unbox<TPointer>() ); }
 
     /// Returns the "raw" placeholder of this box.
     ///
@@ -733,8 +689,7 @@ class Box
     /// "reinterpret" its contents in a custom way.
     ///
     /// @return The raw contents of this box.
-    const Placeholder&  Data()                                                                 const
-    {
+    const Placeholder&  Data()                                                               const {
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Cannot access placeholder." )
         return data;
     }
@@ -764,8 +719,7 @@ class Box
     ///   the existence of this method.
     ///
     /// @return The raw contents of this box.
-    unsigned int        GetPlaceholderUsageLength()                                            const
-    {
+    unsigned                GetPlaceholderUsageLength()                                      const {
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized." )
         return vtable->PlaceholderUsage;
     }
@@ -774,7 +728,7 @@ class Box
     /// to compare types of boxes later.
     ///
     /// @return An identifier of type of this box.
-    TypeCode                ExportType()                     const { return  uinteger(vtable); }
+    TypeCode                ExportType()                         const { return  uinteger(vtable); }
 
     /// Returns the type of this box as an integral value. This value might be stored and used
     /// to compare types of boxes later.
@@ -785,13 +739,12 @@ class Box
     ///   returned.
     ///
     /// @return An identifier of type of this box.
-    Placeholder             ExportValue()                                 const { return data; }
+    Placeholder             ExportValue()                                     const { return data; }
 
     /// Changes this box to use the given type code previously exported with #ExportType.
     /// The value of this box will be set to \c 0.
     /// @param typeCode The type code this box will be set to.
-    void                    Import(TypeCode typeCode)
-    {
+    void                    Import(TypeCode typeCode) {
         vtable= reinterpret_cast<detail::VTable*>(typeCode);
         data.Array.Pointer= nullptr;
         data.Array.Length = 0;
@@ -824,8 +777,7 @@ class Box
     ///   \c double of an arbitrary size was boxed, then <c>typeid(double[1])</c>is returned.
     ///
     /// @return The \c std::type_info of the mapped type.
-    const std::type_info&   TypeID()                                                           const
-    {
+    const std::type_info&   TypeID()                                                         const {
         debug::DbgCheckRegistration( vtable, true );
         return  vtable ? vtable->Type : typeid(void);
     }
@@ -837,8 +789,7 @@ class Box
     ///   In case this box is not of array type, <c>typeid(void)</c> is returned.
     ///
     /// @return The \c std::type_info of the mapped type.
-    const std::type_info&   ElementTypeID()                                                    const
-    {
+    const std::type_info&   ElementTypeID()                                                  const {
         ALIB_ASSERT_ERROR( vtable   , "BOXING", "Box not initialized. Cannot get type information.")
         return  vtable->ElementType;
     }
@@ -847,8 +798,7 @@ class Box
     /// For non-array types, \c 0 is returned.
     ///
     /// @return The size of elements in the array.
-    size_t           ArrayElementSize()                                                        const
-    {
+    size_t           ArrayElementSize()                                                      const {
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior.")
         return vtable->Mapping > 0 ? size_t( vtable->Mapping )
                                    : 0;
@@ -864,8 +814,7 @@ class Box
     /// @tparam TElementType The type of array elements
     /// @return A pointer to the first array element.
     template <typename TElementType>
-    TElementType*    UnboxArray()           const
-    {
+    TElementType*    UnboxArray()                                                            const {
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior.")
         ALIB_ASSERT_ERROR( IsArray(), "BOXING",
           "Box::UnboxArray() invoked on box of non-array type <{}>.", &vtable->Type )
@@ -890,8 +839,7 @@ class Box
     /// is given \ref alib_strings_details_signedlength "here".
     ///
     /// @return The length of the boxed object.
-    integer         UnboxLength()                                                              const
-    {
+    integer         UnboxLength()                                                            const {
         ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Cannot access placeholder." )
         return data.GetLength();
     }
@@ -908,8 +856,7 @@ class Box
     /// @param  idx      The index of the element to receive.
     /// @return The value of the element at \p{idx}.
     template <typename TElementType>
-    TElementType&    UnboxElement(integer idx)           const
-    {
+    TElementType&    UnboxElement(integer idx)                                               const {
         ALIB_ASSERT_ERROR( vtable, "BOXING",
             "Box is void (no contents). Unboxing is undefined behavior." )
         ALIB_ASSERT_ERROR( IsArray(), "BOXING",
@@ -978,8 +925,7 @@ class Box
     #else
     template <typename TFDecl>
     typename TFDecl::Signature    GetFunction( lang::Reach searchScope
-                                   ALIB_DBG( , bool isInvocation = false)    )                 const
-    {
+                                   ALIB_DBG( , bool isInvocation = false)    )               const {
         if( !vtable )
             return nullptr;
 
@@ -1036,8 +982,7 @@ class Box
     ///         this \b %Box.
     template <typename TFDecl,  typename... TArgs>
     decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
-    Call(TArgs&&... args)                                                                      const
-    {
+    Call(TArgs&&... args)                                                                    const {
         auto* func= GetFunction<TFDecl>( lang::Reach::Global    ALIB_DBG(, true) );
         if( func != nullptr )
             return reinterpret_cast<typename TFDecl::Signature>(func)
@@ -1060,8 +1005,7 @@ class Box
     ///         this \b %Box.
     template <typename TFDecl,  typename... TArgs>
     decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
-    CallDirect(typename TFDecl::Signature function, TArgs&&... args)                      const
-    {
+    CallDirect(typename TFDecl::Signature function, TArgs&&... args)                         const {
         ALIB_ASSERT_ERROR( vtable, "BOXING",
             "Box not initialized (does not contain value). Function call not allowed." )
         return reinterpret_cast<typename TFDecl::Signature>(function)
@@ -1086,8 +1030,7 @@ class Box
     ///         this \b %Box.
     template <typename TFDecl,  typename... TArgs>
     decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
-    Call(TArgs&&... args)
-    {
+    Call(TArgs&&... args) {
         ALIB_ASSERT_ERROR( vtable, "BOXING",
             "Box not initialized (does not contain value). Function call not allowed." )
         auto* func= GetFunction<TFDecl>( lang::Reach::Global ALIB_DBG(, true));
@@ -1112,8 +1055,7 @@ class Box
     ///         this \b %Box.
     template <typename TFDecl,  typename... TArgs>
     decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
-    CallDirect(typename TFDecl::Signature function, TArgs &&... args)
-    {
+    CallDirect(typename TFDecl::Signature function, TArgs &&... args) {
         ALIB_ASSERT_ERROR( vtable, "BOXING",
             "Box not initialized (does not contain value). Function call not allowed." )
         return reinterpret_cast<typename TFDecl::Signature>( function )
@@ -1123,19 +1065,16 @@ class Box
     /// Comparison operator. Returns the result of invocation of built-in boxing function
     /// \alib{boxing;FEquals}.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object equals \p{rhs}, \c false otherwise.
     ALIB_DLL
     bool  operator==(Box const& rhs)                                                          const;
 
     /// Comparison operator. Returns the negated result of #operator==.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object equals \p{rhs}, \c false otherwise.
-    bool  operator!=(const Box& rhs)                                                           const
-    {
-        return  ! ((*this) == rhs);
-    }
+    bool  operator!=(const Box& rhs)                           const { return  ! ((*this) == rhs); }
 
     /// Comparison operator. Returns the result of invocation of built-in box-function
     /// \alib{boxing;FIsLess}.
@@ -1143,33 +1082,30 @@ class Box
     /// \see
     ///   Sample code provided with documentation of box-function \alib{boxing;FIsLess}.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
     ALIB_DLL
     bool operator< (Box const& rhs)                                                           const;
 
     /// Comparison operator. Uses a combination of \c operator< and \c operator==.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
     ALIB_DLL
     bool operator<=(Box const& rhs)                                                           const;
 
     /// Comparison operator. Uses a combination of \c operator< and \c operator==.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
     ALIB_DLL
     bool operator> (Box const& rhs)                                                           const;
 
     /// Comparison operator. Returns the negated result of \c operator<.
     ///
-    /// @param rhs The right hand side argument of the comparison.
+    /// @param rhs The right-hand side argument of the comparison.
     /// @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
-    bool operator>= (Box const& rhs)                                                           const
-    {
-        return   !( (*this) < rhs);
-    }
+    bool operator>= (Box const& rhs)                           const { return   !( (*this) < rhs); }
 
     /// Explicit cast operator to \c bool. Returns the result of built-in box-function
     /// \alib{boxing;FIsTrue}.
@@ -1189,10 +1125,7 @@ class Box
     /// \alib{boxing;FIsNotNull}.
     ///
     /// @return \c true if this object represents a \e nulled object, \c false otherwise.
-    bool     IsNull()                                                                          const
-    {
-        return  !IsNotNull();
-    }
+    bool     IsNull()                                                const { return  !IsNotNull(); }
 
     /// Returns the result of invocation of built-in boxing function \alib{boxing;FHashcode}.
     ///
@@ -1222,7 +1155,7 @@ using     Box           =   boxing::Box;
 #include "ALib.Lang.CIFunctions.H"
 ALIB_EXPORT namespace alib::boxing {
 //==================================================================================================
-/// Registers  \ref alib_boxing_functions "box-function" \p{function} of type \p{TFDecl} for
+/// Registers \ref alib_boxing_functions "box-function" \p{function} of type \p{TFDecl} for
 /// boxes of mapped type \p{TMapping}.
 ///
 /// \attention
@@ -1251,8 +1184,7 @@ ALIB_EXPORT namespace alib::boxing {
 //==================================================================================================
 template<typename TFDecl, typename TMapped, bool TIsArray= false>
 inline
-void BootstrapRegister( typename TFDecl::Signature function )
-{
+void BootstrapRegister( typename TFDecl::Signature function ) {
     ALIB_ASSERT_ERROR(
         nullptr == VTableOptimizationTraits<TMapped ALIB_COMMA TIsArray>::Get()
                    ->Functions.template Get<TFDecl>(false),
@@ -1290,11 +1222,5 @@ void BootstrapRegister( typename TFDecl::Signature function )
 template<typename TFDecl>
 inline
 void BootstrapRegisterDefault( typename TFDecl::Signature function )
-{
-    detail::DEFAULT_FUNCTIONS.Set<TFDecl>( function );
-}
+{ detail::DEFAULT_FUNCTIONS.Set<TFDecl>( function ); }
 } // namespace [alib::boxing]
-
-
-
-

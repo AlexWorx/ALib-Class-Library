@@ -13,8 +13,7 @@ namespace alib::monomem {
 #include "ALib.Lang.CIFunctions.H"
 
 template<typename TAllocator>
-NAString DbgDumpStatistics(TMonoAllocator<TAllocator>& ma)
-{
+NAString DbgDumpStatistics(TMonoAllocator<TAllocator>& ma) {
     Statistics stats;
     ma.GetStatistics(stats);
 
@@ -59,4 +58,3 @@ NAString DbgDumpStatistics(TMonoAllocator<TAllocator>& ma)
 #include "ALib.Lang.CIMethods.H"
 } // namespace [alib::monomem]
 #endif // ALIB_STRINGS && ALIB_DEBUG
-

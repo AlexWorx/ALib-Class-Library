@@ -61,7 +61,7 @@ namespace ut_aworx
             CharTriv()  = default;
             CharTriv( char c ) : val( c )     {}
 
-            char Value()       const          { return val; }
+            char Value()       const { return val; }
         };
 
         class CharDyn
@@ -85,7 +85,7 @@ namespace ut_aworx
                 DBGOUT( "ca" )            *val = *c.val;
                 return *this;
             }
-//    CharDyn& operator= (       CharDyn&&  c) noexcept                                        {DBGOUT( "ma" ) delete val; val=  c.val; c.val= nullptr; return *this; }
+//    CharDyn& operator= (       CharDyn&&  c) noexcept {DBGOUT( "ma" ) delete val; val=  c.val; c.val= nullptr; return *this; }
 
             ~CharDyn()
             {
@@ -160,7 +160,7 @@ integer CharDyn::instCounter= 0;
     // ########################################################################################
 #if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
     template<typename TChar>
-    void testCharList( AWorxUnitTesting & ut, List<MonoAllocator, TChar> & list,
+    void testCharList( AWorxUnitTesting & ut, ListMA<TChar> & list,
                        const NString & exp, integer recyclablesCount )
     {
         UT_EQ( exp.Length(), list.size() )
@@ -240,18 +240,18 @@ integer CharDyn::instCounter= 0;
     {
         MonoAllocator ba(ALIB_DBG("UTList",) 1);
 
-        List<MonoAllocator, TChar> list( ba );
+        ListMA<TChar> list( ba );
         testCharList( ut, list, "", 0 );
 
         // iterator conversion
         {
-            typename List<MonoAllocator, TChar>::iterator it = list.begin();
-            typename List<MonoAllocator, TChar>::const_iterator cit = list.begin();
+            typename ListMA<TChar>::iterator it = list.begin();
+            typename ListMA<TChar>::const_iterator cit = list.begin();
             cit = it;
 
-            const List<MonoAllocator, TChar> *cp = &list;
+            const ListMA<TChar> *cp = &list;
             auto cit2 = cp->begin();
-            static_assert( std::same_as<decltype( cit2 ), typename List<MonoAllocator, TChar>::const_iterator>,
+            static_assert( std::same_as<decltype( cit2 ), typename ListMA<TChar>::const_iterator>,
                            "Error" );
         }
 
@@ -394,8 +394,8 @@ UT_METHOD(TestList)
     // test compatibility with std
     {
         // Create a list of integers
-        List<lang::HeapAllocator, int> numbers = {4, 1, 9, 2, 7, 5, 3};//{1, 2, 3, 4, 5, 7, 9 };
-        List<lang::HeapAllocator, int> result;
+        List<int> numbers = {4, 1, 9, 2, 7, 5, 3};//{1, 2, 3, 4, 5, 7, 9 };
+        List<int> result;
 
         // Display original list
         std::cout << "Original list: ";
@@ -437,14 +437,14 @@ UT_METHOD(TestList)
         std::cout << "\n";
 
         // std::adjacent_difference - Calculate differences between adjacent elements
-        List<lang::HeapAllocator, int> diffs;
+        List<int> diffs;
         std::adjacent_difference(numbers.begin(), numbers.end(),  std::back_inserter(diffs));
         std::cout << "Adjacent differences: ";
         std::copy(diffs.begin(), diffs.end(),  std::ostream_iterator<int>(std::cout, "  "));
         std::cout << "\n";
 
         // std::unique - Remove consecutive duplicates
-        List<lang::HeapAllocator, int> with_dupes = {1, 1, 2, 3, 3, 3, 4, 5, 5};
+        List<int> with_dupes = {1, 1, 2, 3, 3, 3, 4, 5, 5};
         with_dupes.erase(std::unique(with_dupes.begin(), with_dupes.end()), with_dupes.end());
 
         std::cout << "After unique: ";
@@ -452,9 +452,9 @@ UT_METHOD(TestList)
         std::cout << "\n";
 
         // std::merge - Merge two sorted lists
-        List<lang::HeapAllocator, int> list1 = {1, 3, 5, 7};
-        List<lang::HeapAllocator, int> list2 = {2, 4, 6, 8};
-        List<lang::HeapAllocator, int> merged;
+        List<int> list1 = {1, 3, 5, 7};
+        List<int> list2 = {2, 4, 6, 8};
+        List<int> merged;
 
         std::merge(list1.begin(), list1.end(),
                    list2.begin(), list2.end(), std::back_inserter(merged));
@@ -479,23 +479,23 @@ UT_METHOD(TestListRecycling)
     UT_INIT()
 
     {
-        static_assert(   sizeof(List<HeapAllocator, int, Recycling::None   >)
-                      <  sizeof(List<HeapAllocator, int, Recycling::Private>),
+        static_assert(   sizeof(List<int, Recycling::None   >)
+                      <  sizeof(List<int, Recycling::Private>),
                       "Size of non-recycling instance should be smaller than recycling" );
-        static_assert(   sizeof(List<HeapAllocator, int, Recycling::Private>)
-                      == sizeof(List<HeapAllocator, int, Recycling::Shared >),
+        static_assert(   sizeof(List<int, Recycling::Private>)
+                      == sizeof(List<int, Recycling::Shared >),
                       "Size of instances with private/public recycling should be equal" );
 
-        static_assert(   sizeof(List<HeapAllocator, int, Recycling::None   >)
-                      <  sizeof(List<MonoAllocator, int, Recycling::None   >),
+        static_assert(   sizeof(List<int, Recycling::None   >)
+                      <  sizeof(ListMA<int, Recycling::None   >),
                       "Size of list with heap allocator should be smaller than one with mono-allocator" );
 
-        static_assert(   sizeof(List<MonoAllocator, int, Recycling::None   >)
-                      == sizeof(List<PoolAllocator, int, Recycling::None   >),
+        static_assert(   sizeof(ListMA<int, Recycling::None   >)
+                      == sizeof(ListPA<int, Recycling::None   >),
                       "Size of lists with mono/pool allocators should be equal" );
 
-        static_assert(   sizeof(List<HeapAllocator, int, Recycling::Shared   >)
-                      == sizeof(List<MonoAllocator, int, Recycling::None   >),
+        static_assert(   sizeof(List<int, Recycling::Shared   >)
+                      == sizeof(ListMA<int, Recycling::None   >),
                       "These sizes should also be equal. The first adds a recycler reference, "
                       "the other a allocator  reference." );
     }
@@ -503,7 +503,7 @@ UT_METHOD(TestListRecycling)
     // List private
     {
         MonoAllocator ma(ALIB_DBG("UTListPrivate",) 1);
-        alib::List<MonoAllocator, int>   list( ma );
+        alib::ListMA<int>   list( ma );
 
                                 UT_EQ( 0, list.RecyclablesCount() )
         list.push_front(1);      UT_EQ( 0, list.RecyclablesCount() )
@@ -519,9 +519,9 @@ UT_METHOD(TestListRecycling)
     {
         MonoAllocator monoAllocator(ALIB_DBG("UTListShared",) 1);
 
-        List<MonoAllocator, int, Recycling::Shared>::SharedRecyclerType sharedRecycler(monoAllocator);
-        List<MonoAllocator, int, Recycling::Shared>  list1( sharedRecycler );
-        List<MonoAllocator, int, Recycling::Shared>  list2( sharedRecycler );
+        ListMA<int, Recycling::Shared>::SharedRecyclerType sharedRecycler(monoAllocator);
+        ListMA<int, Recycling::Shared>  list1( sharedRecycler );
+        ListMA<int, Recycling::Shared>  list2( sharedRecycler );
 
                                  UT_EQ( 0, list1.RecyclablesCount() )
                                  UT_EQ( 0, list2.RecyclablesCount() )
@@ -543,7 +543,7 @@ UT_METHOD(TestListRecycling)
     {
         MonoAllocator monoAllocator(ALIB_DBG("UTListNR",) 1);
 
-        List<MonoAllocator, int, Recycling::None>  list( monoAllocator );
+        ListMA<int, Recycling::None>  list( monoAllocator );
 
         list.push_front(1);
         list.pop_back();
@@ -552,7 +552,7 @@ UT_METHOD(TestListRecycling)
     //------------- The same once more, now with HeapAllocator --------------
     // List private
     {
-        alib::List<HeapAllocator, int>   list;
+        alib::List<int>   list;
 
                                 UT_EQ( 0, list.RecyclablesCount() )
         list.push_front(1);      UT_EQ( 0, list.RecyclablesCount() )
@@ -566,9 +566,9 @@ UT_METHOD(TestListRecycling)
 
     // List shared
     {
-        List<HeapAllocator, int, Recycling::Shared>::SharedRecyclerType sharedRecycler;
-        List<HeapAllocator, int, Recycling::Shared>  list1( sharedRecycler );
-        List<HeapAllocator, int, Recycling::Shared>  list2( sharedRecycler );
+        List<int, Recycling::Shared>::SharedRecyclerType sharedRecycler;
+        List<int, Recycling::Shared>  list1( sharedRecycler );
+        List<int, Recycling::Shared>  list2( sharedRecycler );
 
                                  UT_EQ( 0, list1.RecyclablesCount() )
                                  UT_EQ( 0, list2.RecyclablesCount() )
@@ -588,9 +588,9 @@ UT_METHOD(TestListRecycling)
 
     // List no recycling
     {
-        List<HeapAllocator, int, Recycling::None>  list;
+        List<int, Recycling::None>  list;
 
-        list.push_front(1);                                              UT_EQ( 0, list.RecyclablesCount() )
+        list.push_front(1);                                             UT_EQ( 0, list.RecyclablesCount() )
         list.pop_back();                                                UT_EQ( 0, list.RecyclablesCount() )
 
         UT_PRINT( "One warning should follow:" )
@@ -600,9 +600,9 @@ UT_METHOD(TestListRecycling)
     // List no recycling with pool allocator
     {
         PoolAllocatorHA heapPool;
-        List<PoolAllocatorHA, int, Recycling::None>  list(heapPool);
+        containers::List<int, PoolAllocatorHA, Recycling::None>  list(heapPool);
                                                                         UT_EQ( 0, list.RecyclablesCount() ) UT_EQ( 0, heapPool.GetPoolSize(sizeof(containers::detail::ListElement<int>)) )
-        list.push_front(1);                                              UT_EQ( 0, list.RecyclablesCount() ) UT_EQ( 0, heapPool.GetPoolSize(sizeof(containers::detail::ListElement<int>)) )
+        list.push_front(1);                                             UT_EQ( 0, list.RecyclablesCount() ) UT_EQ( 0, heapPool.GetPoolSize(sizeof(containers::detail::ListElement<int>)) )
         list.pop_back();                                                UT_EQ( 0, list.RecyclablesCount() ) UT_EQ( 1, heapPool.GetPoolSize(sizeof(containers::detail::ListElement<int>)) )
         UT_PRINT( "One warning should follow:" )
         list.ReserveRecyclables( 100, lang::ValueReference::Relative ); UT_EQ( 0, list.RecyclablesCount() ) UT_EQ( 1, heapPool.GetPoolSize(sizeof(containers::detail::ListElement<int>)) )

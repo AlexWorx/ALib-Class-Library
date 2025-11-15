@@ -109,113 +109,224 @@ UT_METHOD( Locks )
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
 
         { ALIB_LOCK_WITH(lock) }
-        { lang::OwnerTry<decltype(lock)> owner(lock                                   ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::Owner   <decltype(lock)      > owner(lock                                  ALIB_COMMA_CALLER_PRUNED); }
+        { lang::Owner   <decltype(lock), true> owner(lock                                  ALIB_COMMA_CALLER_PRUNED); }
+        { lang::Owner   <decltype(lock), true> owner(nullptr                               ALIB_COMMA_CALLER_PRUNED); }
+        
+        { lang::OwnerTry<decltype(lock)>       owner(lock                                  ALIB_COMMA_CALLER_PRUNED); UT_TRUE ( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock), true> owner(lock                                  ALIB_COMMA_CALLER_PRUNED); UT_TRUE ( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock), true> owner(nullptr                               ALIB_COMMA_CALLER_PRUNED); UT_TRUE ( owner.IsOwning() ) }
     }
     {  TimedLock lock;
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
         { ALIB_LOCK_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry  <decltype(lock)>      owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock), true>  owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock), true>  owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     {  RecursiveLock lock;
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
         { ALIB_LOCK_RECURSIVE_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerRecursive<decltype(lock)     > owner(lock              ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerRecursive<decltype(lock),true> owner(lock              ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerRecursive<decltype(lock),true> owner(nullptr           ALIB_COMMA_CALLER_PRUNED); }
     }
 
     {  RecursiveTimedLock lock;
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
         { ALIB_LOCK_RECURSIVE_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry  <decltype(lock)     > owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry  <decltype(lock),true> owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry  <decltype(lock),true> owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     {  SharedLock lock;
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
         { ALIB_LOCK_WITH(lock) }
         { ALIB_LOCK_SHARED_WITH(lock) }
-        { lang::OwnerTry      <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerShared   <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
-        { lang::OwnerTryShared<decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTry      <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerShared   <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
     }
 
     {  SharedTimedLock lock;
        ALIB_DBG(lock.Dbg.Name= "UTLock";)
         { ALIB_LOCK_WITH(lock) }
         { ALIB_LOCK_SHARED_WITH(lock) }
-        { lang::OwnerShared     <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
-        { lang::OwnerTry        <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTryShared  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared     <decltype(lock)>      owner(lock                                    ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTry        <decltype(lock)>      owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTryShared  <decltype(lock)>      owner(lock                                    ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared     <decltype(lock),true> owner(lock                                    ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTry        <decltype(lock),true> owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTryShared  <decltype(lock),true> owner(lock                                    ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared     <decltype(lock),true> owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTry        <decltype(lock),true> owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTryShared  <decltype(lock),true> owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); }
 
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     //==============================  The same with TSharedMonoVal of module Monomem!  ==============================
     #if ALIB_MONOMEM
     {  TSharedMonoVal<int, HeapAllocator, Lock> lock(1, 100);
         { ALIB_LOCK_WITH(lock) }
-        { lang::OwnerTry<decltype(lock)> owner(lock                                   ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock)>      owner(lock                              ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true> owner(lock                              ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true> owner(nullptr                           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
     {  TSharedMonoVal<int, HeapAllocator, TimedLock> lock(1, 100);
         { ALIB_LOCK_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock)>        owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true>   owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true>   owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     {  TSharedMonoVal<int, HeapAllocator, RecursiveLock> lock(1, 100);
         { ALIB_LOCK_RECURSIVE_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock)>      owner(lock                              ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true> owner(lock                              ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true> owner(nullptr                           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     {  TSharedMonoVal<int, HeapAllocator, RecursiveTimedLock> lock(1, 100);
         { ALIB_LOCK_RECURSIVE_WITH(lock) }
-        { lang::OwnerTry  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock)>        owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true>   owner(lock                                    ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry<decltype(lock),true>   owner(nullptr                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
 
     {  TSharedMonoVal<int, HeapAllocator, SharedLock> lock(1, 100);
         { ALIB_LOCK_WITH(lock) }
         { ALIB_LOCK_SHARED_WITH(lock) }
-        { lang::OwnerTry      <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerShared   <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
-        { lang::OwnerTryShared<decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTry      <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerShared   <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
+
     }
 
     {  TSharedMonoVal<int, HeapAllocator, SharedTimedLock> lock(1, 100);
         { ALIB_LOCK_WITH(lock) }
         { ALIB_LOCK_SHARED_WITH(lock) }
-        { lang::OwnerShared     <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
-        { lang::OwnerTry        <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTryShared  <decltype(lock)> owner(lock                                 ALIB_COMMA_CALLER_PRUNED); }
 
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerTimed      <decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
-        { lang::OwnerSharedTimed<decltype(lock)> owner(lock, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTry      <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerShared   <decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock)>      owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(lock            ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerShared   <decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
+        { lang::OwnerTryShared<decltype(lock),true> owner(nullptr         ALIB_COMMA_CALLER_PRUNED); }
+
+
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock)>      owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(lock   , (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerTimed      <decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, Ticks::Duration(1ms)           ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, 1ms                            ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, Ticks::Now() + 1ms             ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
+        { lang::OwnerSharedTimed<decltype(lock),true> owner(nullptr, (Ticks::Now() + 1ms).Export()  ALIB_COMMA_CALLER_PRUNED); UT_TRUE( owner.IsOwning() ) }
     }
     #endif // ALIB_MONOMEM
 
@@ -246,19 +357,19 @@ UT_METHOD( Locks )
     UT_PRINT("Class RecursiveLock")
     {
         RecursiveLock recursiveLock;
-        recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements ) )
-        recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements ) )
+        recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements.load() ) )
+        recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements.load() ) )
 
-        #if ALIB_DEBUG
+        #if ALIB_DEBUG && !defined(_LIBCPP_VERSION) // clang's lib will not proceed here rightfully
             UT_PRINT( "One error should follow: release without acquisition:" )
-            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_TRUE (  recursiveLock.Dbg.CntAcquirements < 0)
+            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_TRUE (  recursiveLock.Dbg.CntAcquirements.load() < 0)
 
-            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements )
-            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements )
-            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements )
-            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements )
-            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements )
-            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements )
+            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements.load() )
+            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements.load() )
+            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements.load() )
+            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements.load() )
+            recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements.load() )
+            recursiveLock.AcquireRecursive(ALIB_CALLER_PRUNED);   UT_EQ ( 1, recursiveLock.Dbg.CntAcquirements.load() )
             UT_PRINT( "One error should follow:destructing acquired lock" )
         #endif
     }
@@ -273,7 +384,7 @@ UT_METHOD( Locks )
         UT_TRUE ( recursiveLock.Dbg.CntAcquirements > 0 )
         for (int i= 0; i<20; ++i)
             recursiveLock.ReleaseRecursive(ALIB_CALLER_PRUNED);
-        UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements )
+        UT_EQ ( 0, recursiveLock.Dbg.CntAcquirements.load() )
     }
     #endif
 
@@ -281,25 +392,25 @@ UT_METHOD( Locks )
     {
       {
         SharedLock sharedLock;
-        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements ) )
-        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements.load() ) )
+        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
       }
       {
         SharedLock sharedLock;
-        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements ) )
-        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements.load() ) )
+        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
 
         #if ALIB_DEBUG
             UT_PRINT( "Two errors should follow: not acquired / not owned:" )
-            sharedLock.Release(ALIB_CALLER_PRUNED);   UT_TRUE (  sharedLock.Dbg.CntAcquirements < 0)
+            sharedLock.Release(ALIB_CALLER_PRUNED);   UT_TRUE (  sharedLock.Dbg.CntAcquirements.load() < 0)
         #endif
       }
       {
         SharedLock sharedLock;
         ALIB_DBG(sharedLock.Dbg.Name= "UTSharedLock");
-        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements ) )
-        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
-        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements.load() ) )
+        sharedLock.Release(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
+        sharedLock.Acquire(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements.load() ) )
 
         #if ALIB_DEBUG
           // this test must not be done, because under linux, after the exception  (which is disabled here)
@@ -312,14 +423,14 @@ UT_METHOD( Locks )
 
       {
         SharedLock sharedLock;
-        sharedLock.AcquireShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.AcquireShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
                                                          ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntSharedAcquirements.load() ) )
         UT_PRINT( "One error should follow: Destructing shared-acquired lock:" )
       }
 
       {
         SharedLock sharedLock;
-        sharedLock.Acquire(      ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.Acquire(      ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntAcquirements.load() ) )
 
         // we must not do this test: after the assertion (which is disabled here), it would go
         // to a blocking loop under linux.
@@ -329,13 +440,13 @@ UT_METHOD( Locks )
 
       {
         SharedLock sharedLock;
-        sharedLock.AcquireShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.AcquireShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
                                                          ALIB_DBG( UT_EQ ( 1, sharedLock.Dbg.CntSharedAcquirements.load() ) )
-        sharedLock.ReleaseShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.ReleaseShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
                                                          ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntSharedAcquirements.load() ) )
 
         UT_PRINT( "One error should follow: shared release without acquisition:" )
-        sharedLock.ReleaseShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements ) )
+        sharedLock.ReleaseShared(ALIB_CALLER_PRUNED);    ALIB_DBG( UT_EQ ( 0, sharedLock.Dbg.CntAcquirements.load() ) )
       }
     }
     assert::GetHaltFlagAndCounters().HaltOnErrors=false;

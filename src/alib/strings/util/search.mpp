@@ -14,17 +14,23 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
-#include <vector>
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+#   include <boost/regex.hpp>
+#   include <string>
+#endif
+
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_strings.
     export module ALib.Strings.Search;
     import        ALib.Lang;
     import        ALib.Strings;
@@ -33,10 +39,9 @@
 #   include "ALib.Strings.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 #include "alib/strings/util/search.inl"
-#include "alib/strings/util/regexmatcher.inl"
 #include "alib/strings/util/wildcardmatcher.inl"
-
-
-
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+#   include "alib/strings/util/regexmatcher.inl"
+#endif

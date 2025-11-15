@@ -26,7 +26,6 @@ namespace alib {  namespace cli {
 class CLIUtil
 {
     public:
-    //==============================================================================================
     /// Searches and if found, retrieves the declaration of the option identified by
     /// \p{identString} which, if it contains a single character is compared to the
     /// \alib{cli;OptionDecl::IdentifierChar}. Otherwise, matching is done case-insensitive and
@@ -47,11 +46,9 @@ class CLIUtil
     /// @param identString The identifier string of the option to search. If this is a single
     ///                    character, the short identifier is searched.
     /// @return The object of type \alib{cli;OptionDecl}. \c nullptr if not found.
-    //==============================================================================================
     static ALIB_DLL
     OptionDecl*     GetOptionDecl( CommandLine& cmdLine, const String& identString );
 
-    //==============================================================================================
     /// Searches and if found, retrieves the declaration of the command identified by
     /// \p{identString}. Matching is done case-insensitive and with respecting
     /// \alib{cli;CommandDecl::MinimumRecognitionLength}.
@@ -70,11 +67,9 @@ class CLIUtil
     /// @param cmdLine      The friend object we work on.
     /// @param identString The identifier of the command to search.
     /// @return The object of type \alib{cli;CommandDecl}. \c nullptr if not found.
-    //==============================================================================================
     static ALIB_DLL
     CommandDecl*    GetCommandDecl( CommandLine& cmdLine, const String& identString );
 
-    //==============================================================================================
     /// Searches and if found, retrieves the declaration of the parameter identified by
     /// \p{identString}. Matching is done case-insensitive and with respecting
     /// \alib{cli;CommandDecl::MinimumRecognitionLength}.
@@ -87,36 +82,30 @@ class CLIUtil
     /// @param cmdLine      The friend object we work on.
     /// @param identString The identifier of the command to search.
     /// @return The object of type \alib{cli;CommandDecl}. \c nullptr if not found.
-    //==============================================================================================
     static ALIB_DLL
     ParameterDecl*  GetParameterDecl( CommandLine& cmdLine, const String& identString );
 
 
-    //==============================================================================================
     /// Returns an AString providing a formatted help text on the defined command.
     /// @param cmdLine       The command line instance.
     /// @param commandDecl  The declaration of the command to get help on.
     /// @return The help text.
-    //==============================================================================================
     static ALIB_DLL
     AString         GetCommandUsageFormat( CommandLine& cmdLine, CommandDecl& commandDecl );
 
 #include "ALib.Lang.CIFunctions.H"
-    //==============================================================================================
     /// Translates exceptions thrown by the \alib_cli_nl library to exit codes defined with
     /// \alib{cli;CommandLine::DefineExitCodes}.
     ///
     /// If the code is not found, this indicates an error in the resource data, as an exit
     /// code corresponding to the \alib_cli_nl exceptions is obviously missing.
-    /// In this case, \c -1 is returned. With debug-builds an \alib assertion is raised.
+    /// In this case, \c -1 is returned. With debug-builds an \alib_assertion is raised.
     ///
     /// @param cmdLine     The friend object we work on.
     /// @param exception  The cli exception caught.
     /// @return The exit code to return to the caller. \c -1, if not found.
-    //==============================================================================================
     static ALIB_DLL
-    integer       GetExitCode( CommandLine& cmdLine, Exception& exception )
-    {
+    integer       GetExitCode( CommandLine& cmdLine, Exception& exception ) {
         auto element= exception.Type().Get<cli::Exceptions>();
         for( auto& exitCodeDecl : cmdLine.ExitCodeDecls )
             if( exitCodeDecl.second->AssociatedCLIException() == element )
@@ -126,7 +115,6 @@ class CLIUtil
     }
 #include "ALib.Lang.CIMethods.H"
 
-    //==============================================================================================
     /// Creates a help text from the resource strings.
     ///
     /// This method accepts either a command object or an option object that the command line
@@ -147,11 +135,9 @@ class CLIUtil
     /// @return \c true on success. \c false if an argument was given that is not recognized or
     ///         if a topic list was found in the next argument where only some of the topics
     ///         could be identified.
-    //==============================================================================================
     static ALIB_DLL
     bool GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, Paragraphs& text );
 
-    //==============================================================================================
     /// Reads a dry-run options and stores the result in \alib{cli;CommandLine::DryRun}.
     ///
     /// Option arguments as defined with records of enumeration \alib{cli;DryRunModes} are
@@ -181,11 +167,9 @@ class CLIUtil
     /// @param cmdLine   The command line instance.
     /// @param dryOpt    The option object parsed.
     /// @return \c true on success. \c false if an argument was given that is not recognized.
-    //==============================================================================================
     static ALIB_DLL
     bool GetDryOpt( CommandLine& cmdLine, Option& dryOpt );
 
-    //==============================================================================================
     /// Dumps the configuration.
     /// Shows which commands, options, parameters and errors are set with enums and their
     /// meta info.
@@ -195,11 +179,9 @@ class CLIUtil
     /// @param text      The target text.
     /// @return An internal \c AString object containing the dump text. (Beware of concurrent
     ///         debugging threads :-)
-    //==============================================================================================
     static ALIB_DLL
     AString&     DumpDeclarations( CommandLine& cmdLine, Paragraphs& text );
 
-    //==============================================================================================
     /// Write in human-readable form, which commands and options have been read from the
     /// command line.
     ///
@@ -215,7 +197,6 @@ class CLIUtil
     /// @param text      The target text.
     /// @returns Returns an internal \c AString object containing the dump text.
     ///          (Beware of concurrent debugging threads :-)
-    //==============================================================================================
     static ALIB_DLL
     AString&     DumpParseResults( CommandLine& cmdLine, Paragraphs& text );
 };
@@ -227,4 +208,3 @@ using     CLIUtil=           cli::CLIUtil;
 
 
 }  // namespace [alib]
-

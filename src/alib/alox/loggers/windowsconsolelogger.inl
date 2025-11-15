@@ -35,16 +35,16 @@ ALIB_EXPORT namespace alib {  namespace lox { namespace loggers {
 //==================================================================================================
 class WindowsConsoleLogger : public alib::lox::textlogger::TextLogger
 {
-    // #############################################################################################
-    // Internals
-    // #############################################################################################
+  //################################################################################################
+  // Internals
+  //################################################################################################
     protected:
         /// The attributes that were set on the windows console at the time this object was created.
         WORD        originalConsoleAttributes;
 
-    // #############################################################################################
-    // public fields
-    // #############################################################################################
+  //################################################################################################
+  // public fields
+  //################################################################################################
     public:
 
         /// The code page that is used for the console log output. For possible values refer to
@@ -63,28 +63,23 @@ class WindowsConsoleLogger : public alib::lox::textlogger::TextLogger
         textlogger::ColorfulLoggerParameters   CFP;
 
 
-    // #############################################################################################
-    // Constructor/destructor
-    // #############################################################################################
+  //################################################################################################
+  // Constructor/destructor
+  //################################################################################################
     public:
-        //==========================================================================================
         ///  Creates a WindowsConsoleLogger.
         /// @param name  (Optional) The name of the \e Logger, defaults to "WINDOWS_CONSOLE".
-        //==========================================================================================
         ALIB_DLL
         explicit            WindowsConsoleLogger( const NString& name= nullptr  );
 
-        //==========================================================================================
         /// Destructs a WindowsConsoleLogger
-        //==========================================================================================
         virtual            ~WindowsConsoleLogger()                                                {}
 
 
-    // #############################################################################################
-    // Abstract method implementations
-    // #############################################################################################
+  //################################################################################################
+  // Abstract method implementations
+  //################################################################################################
     protected:
-        //==========================================================================================
         ///  The implementation of the abstract method of parent class TextLogger.
         ///  Logs messages to the basic output stream 'cout' and sets windows console colors
         ///  by invoking corresponding Windows API methods..
@@ -96,21 +91,21 @@ class WindowsConsoleLogger : public alib::lox::textlogger::TextLogger
         /// @param scope       Information about the scope of the <em>Log Statement</em>..
         /// @param lineNumber  The line number of a multi-line message, starting with 0. For
         ///                    single line messages this is -1.
-        //==========================================================================================
+        /// @param isRecursion If \c true, a recursive logging operation was detected. A logger might
+        ///                    use this information, for example, to prevent recursive acquisitions
+        ///                    of resources.
         ALIB_DLL
         virtual void logText(  detail::Domain&     domain,
-                               Verbosity         verbosity,
-                               AString&          msg,
+                               Verbosity           verbosity,
+                               AString&            msg,
                                detail::ScopeInfo&  scope,
-                               int               lineNumber);
+                               int                 lineNumber,
+                               bool                isRecursion);
 
-        //==========================================================================================
         ///  Empty implementation, not needed for this class
-        //==========================================================================================
         ALIB_DLL
         virtual void notifyMultiLineOp (lang::Phase )    {}
 
-        //==========================================================================================
         /// Invokes parent method. Then reads and interprets configuration variable
         /// \ref alxcvALOX_CONSOLE_LIGHT_COLORS. Finally it is checked if variable
         /// \ref alxcvALOX_LOGGERNAME_FORMAT has priority of default values, and if yes, such
@@ -119,7 +114,6 @@ class WindowsConsoleLogger : public alib::lox::textlogger::TextLogger
         ///
         /// @param lox     The \b %Lox to acknowledge insertion or removal
         /// @param op      The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
-        //==========================================================================================
         ALIB_DLL
         virtual void AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )          override;
 
@@ -135,5 +129,3 @@ using     WindowsConsoleLogger=     lox::loggers::WindowsConsoleLogger;
 }  // namespace [alib]
 
 #endif // defined( _WIN32 )
-
-

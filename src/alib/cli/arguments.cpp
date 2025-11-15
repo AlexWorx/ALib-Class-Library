@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.CLI;
     import ALib.Characters.Functions;
@@ -27,24 +27,21 @@
 #   include "ALib.EnumRecords.Bootstrap.H"
 #   include "ALib.CLI.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 namespace alib {  namespace cli {
 
-// ##########################################################################################
+//##################################################################################################
 // ### Methods of Command, Option, etc.
-// ##########################################################################################
+//##################################################################################################
 
-void CommandDecl::addParamDecls()
-{
+void CommandDecl::addParamDecls() {
     Tokenizer tknzr( record.parameters , '/' );
-    while( tknzr.Next().IsNotEmpty() )
-    {
+    while( tknzr.Next().IsNotEmpty() ) {
 ALIB_DBG( bool found= false; )
 
         for( auto* paramDecl : CmdLine.ParameterDecls )
-            if( paramDecl->Name().StartsWith<CHK, lang::Case::Ignore>( tknzr.Actual ) )
-            {
+            if( paramDecl->Name().StartsWith<CHK, lang::Case::Ignore>( tknzr.Actual ) ) {
                 Parameters.push_back( paramDecl );
        ALIB_DBG(found= true; )
                 break;
@@ -53,11 +50,9 @@ ALIB_DBG( bool found= false; )
         ALIB_ASSERT_ERROR( found, "CLI",
            "Parameter named \"{}\" not found while loading resources of command \"{}\".",
            tknzr.Actual, Identifier()  )
-    }
-}
+}   }
 
-ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
-{
+ParameterDecl* CommandDecl::GetParameterDecl(const String& name ) {
     for( auto* param : Parameters )
         if( param->Name().Equals<NC>( name ) )
             return param;
@@ -66,8 +61,7 @@ ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
 }
 
 
-bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer argNo )
-{
+bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer argNo ) {
     String     identifier  = decl.Identifier();
     character  identifierC = decl.IdentifierChar();
     auto       argsExpected= decl.QtyExpectedArgsFollowing();
@@ -99,8 +93,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     // non-alphanumerical value.
     // (This is only allowed if separator was set in resource. But in this case, the flag will
     // never match, because of the code above...)
-    if( potentialIllegalContinuation )
-    {
+    if( potentialIllegalContinuation ) {
         auto nextChar= arg.CharAt<NC>( identifier.Length() );
         if( !isalnum( nextChar ) )
             throw Exception( ALIB_CALLER_NULLED, cli::Exceptions::IllegalOptionNameContinuation,
@@ -115,8 +108,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
 
 
     // store in-arg argument
-    if( valueSeparator > 0)
-    {
+    if( valueSeparator > 0) {
         Args.push_back( inArgArgument );
         if(argsExpected > 0 )
             --argsExpected;
@@ -137,8 +129,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     return true;
 }
 
-bool Command::Read( CommandDecl& decl )
-{
+bool Command::Read( CommandDecl& decl ) {
     auto&  identifier=  decl.Identifier();
     String arg       =  CmdLine->PeekArg();
 
@@ -155,12 +146,10 @@ bool Command::Read( CommandDecl& decl )
         return true;
 
     auto paramDeclIt= decl.Parameters.begin();
-    while( paramDeclIt != decl.Parameters.end() )
-    {
+    while( paramDeclIt != decl.Parameters.end() ) {
         Parameter param( CmdLine );
         bool continueReading= param.Read( **paramDeclIt );
-        if( param.ConsumedArguments )
-        {
+        if( param.ConsumedArguments ) {
             ConsumedArguments+= param.ConsumedArguments;
             Parameter* paramFound= CmdLine->allocator().New<Parameter>(param);
             if ( (*paramDeclIt)->IsOptional() )
@@ -182,13 +171,11 @@ bool Command::Read( CommandDecl& decl )
     return true;
 }
 
-Parameter* Command::GetParsedParameter(const String& name )
-{
+Parameter* Command::GetParsedParameter(const String& name ) {
     #if ALIB_DEBUG
         bool found= false;
         for( auto* paramDecl : Declaration->Parameters )
-            if( paramDecl->Name().Equals<NC>(name) )
-            {
+            if( paramDecl->Name().Equals<NC>(name) ) {
                 found = true;
                 break;
             }
@@ -206,16 +193,14 @@ Parameter* Command::GetParsedParameter(const String& name )
     return nullptr;
 }
 
-String Command::GetParsedParameterArg( const String& name )
-{
+String Command::GetParsedParameterArg( const String& name ) {
     Parameter* param= GetParsedParameter( name );
     return param && param->Args.IsNotEmpty() ? param->Args.front()
                                              : NULL_STRING;
 }
 
 
-bool Parameter::Read( ParameterDecl& decl )
-{
+bool Parameter::Read( ParameterDecl& decl ) {
     Substring arg=     CmdLine->PeekArg();
     if( arg.IsNull() )
         return false;
@@ -239,18 +224,13 @@ bool Parameter::Read( ParameterDecl& decl )
         CmdLine->PopArg();
         int argsExpected= decl.QtyExpectedArgsFollowing();
 
-        if( decl.Identifier().IsEmpty() )
-        {
+        if( decl.Identifier().IsEmpty() ) {
             Args.push_back( arg );
-        }
-        else
-        {
-            if( inArgArgument.IsNotEmpty() )
-            {
+        } else {
+            if( inArgArgument.IsNotEmpty() ) {
                 Args.push_back( inArgArgument );
                 --argsExpected;
-            }
-        }
+        }   }
 
         // stop command?
         if( argsExpected < 0 )
@@ -263,8 +243,7 @@ bool Parameter::Read( ParameterDecl& decl )
                              argsExpected, CmdLine->ArgsLeft.size() );
 
         // store arg strings
-        for( size_t i= 0; i < size_t( argsExpected ); ++i )
-        {
+        for( size_t i= 0; i < size_t( argsExpected ); ++i ) {
             Args.push_back( CmdLine->GetArg(*CmdLine->ArgsLeft.begin()) );
             CmdLine->ArgsLeft.erase( CmdLine->ArgsLeft.begin() );
         }
@@ -275,15 +254,13 @@ bool Parameter::Read( ParameterDecl& decl )
     return true;
 }
 
-void ERCommandDecl  ::Parse()
-{
+void ERCommandDecl  ::Parse() {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName          );
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::MinimumRecognitionLength );
     enumrecords::bootstrap::EnumRecordParser::Get( parameters                               , true );
 }
 
-void EROptionDecl   ::Parse()
-{
+void EROptionDecl   ::Parse() {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName          );
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::MinimumRecognitionLength );
     enumrecords::bootstrap::EnumRecordParser::Get( identifierChar                           );
@@ -292,8 +269,7 @@ void EROptionDecl   ::Parse()
     enumrecords::bootstrap::EnumRecordParser::Get( shortcutReplacementString                , true );
 }
 
-void ERParameterDecl::Parse()
-{
+void ERParameterDecl::Parse() {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName          );
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::MinimumRecognitionLength );
     enumrecords::bootstrap::EnumRecordParser::Get( identifier                               );
@@ -303,8 +279,7 @@ void ERParameterDecl::Parse()
     enumrecords::bootstrap::EnumRecordParser::Get( isOptional                               , true );
 }
 
-void ERExitCodeDecl ::Parse()
-{
+void ERExitCodeDecl ::Parse() {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName          );
                                   ERSerializable::MinimumRecognitionLength = 0;
     enumrecords::bootstrap::EnumRecordParser::Get( associatedCLIException                   , true );

@@ -24,4 +24,3 @@
 #endif
 
 #endif // H_ALIB_VARIABLES_PLUGINS
-

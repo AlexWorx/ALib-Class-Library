@@ -8,7 +8,7 @@
 #if !ALIB_SINGLE_THREADED
 ALIB_EXPORT namespace alib {  namespace threads {
 
-// =================================================================================================
+//==================================================================================================
 /// This class is a simple wrapper around C++ standard library type \c std::recursive_timed_mutex.
 /// Thus, it is used to implement <em>mutual exclusive access</em> to resources by protecting
 /// critical code sections from being executed in parallel in concurrent threads.<br>
@@ -41,9 +41,9 @@ ALIB_EXPORT namespace alib {  namespace threads {
 /// This type is not available if the compiler-symbol \ref ALIB_SINGLE_THREADED is set.
 ///
 /// @see
-///  - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
-///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
-// =================================================================================================
+///   - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
+///   - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+//==================================================================================================
 class RecursiveTimedLock
 #if ALIB_DEBUG_CRITICAL_SECTIONS
 : public lang::DbgCriticalSections::AssociatedLock
@@ -60,29 +60,21 @@ class RecursiveTimedLock
   #endif
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Destructor. With debug-compilations, asserts that this lock is not acquired.
-        ~RecursiveTimedLock() override
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
+    ALIB_DLL virtual bool DCSIsAcquired()                                            const override;
 
-        /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
-        ALIB_DLL virtual bool DCSIsAcquired()                                        const override;
-
-        /// @return \c true if the lock is shared-acquired (by at least any thread).
-        ///            Otherwise, returns \c false.
-        ALIB_DLL virtual bool DCSIsSharedAcquired()                                  const override;
-    #elif ALIB_DEBUG
-        ~RecursiveTimedLock()
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is shared-acquired (by at least any thread).
+    ///            Otherwise, returns \c false.
+    ALIB_DLL virtual bool DCSIsSharedAcquired()                                      const override;
     #endif
 
-  // ###############################################################################################
+  //################################################################################################
   // Interface
-  // ###############################################################################################
+  //################################################################################################
   public:
 
   #if ALIB_DEBUG || DOXYGEN
-    //==============================================================================================
-    /// Thread which invokes this method gets registered  as the current owner of this object,
+    /// Thread which invokes this method gets registered as the current owner of this object,
     /// until the same thread releases the ownership invoking #ReleaseRecursive.
     /// In the case that this object is already owned by another thread, the invoking thread is
     /// suspended until ownership can be gained.
@@ -91,7 +83,6 @@ class RecursiveTimedLock
     ///
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-    //==============================================================================================
     ALIB_DLL
     void        AcquireRecursive( ALIB_DBG_TAKE_CI );
 
@@ -187,5 +178,3 @@ using     RecursiveTimedLock=   threads::RecursiveTimedLock;
 
 } // namespace [alib]
 #endif // !ALIB_SINGLE_THREADED
-
-

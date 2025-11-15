@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::detail - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,14 +11,14 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 #include "alib/camp/camp.prepro.hpp"
 #include "alib/alox/alox.prepro.hpp"
 
 #include "ALib.Strings.Vector.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.ALox;
@@ -45,7 +45,7 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 
 namespace alib {
@@ -62,16 +62,14 @@ lox::ALoxCamp ALOX;
 namespace lox {
 
 ALoxCamp::ALoxCamp()
-: Camp( "ALOX" )
-{
+: Camp( "ALOX" ) {
     #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
       ALIB_ASSERT_ERROR( this == &ALOX, "ALOX",
           "Instances of class ALox must not be created. Use singleton alib::ALOX" )
     #endif
 }
 
-void  ALoxCamp::Reset()
-{
+void  ALoxCamp::Reset() {
     #if ALOX_DBG_LOG
         if (Log::DebugLogger != nullptr )
             Log_RemoveDebugLogger()
@@ -86,9 +84,9 @@ void  ALoxCamp::Reset()
     #endif
 }
 
-// #################################################################################################
+//##################################################################################################
 // Compilation Flags
-// #################################################################################################
+//##################################################################################################
 
 // check the compiler-symbols, give warning once (therefore not in HPP)
 #if !ALOX_DBG_LOG && ALOX_DBG_LOG_CI
@@ -98,14 +96,12 @@ void  ALoxCamp::Reset()
 #   pragma message ( "Warning: ALox compiler-symbol mismatch: ALOX_REL_LOG_CI is true, while ALOX_REL_LOG is false" )
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // ALox module initialization
-// #################################################################################################
+//##################################################################################################
 
-void  ALoxCamp::Bootstrap()
-{
-    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
-    {
+void  ALoxCamp::Bootstrap() {
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources ) {
 #if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
@@ -152,7 +148,7 @@ DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
                          A_CHAR(   ",\033c0,\033c3,,\033c8,\033[0m"  )           ,
 
         "Var_D22",       A_CHAR("yyyy-MM-dd,HH:mm:ss, Days ")                      ,
-        "Var_D23",       A_CHAR("2,ALox: Multi line message follows: ,> ,,nulled,\\r")   ,
+        "Var_D23",       A_CHAR("2,ALox: Multi-line message follows: ,> ,,nulled,\\r")   ,
 
 
         "Var_D24",       A_CHAR("1000"  ",---   "  ", ns"  ", \u00B5s" )
@@ -223,7 +219,7 @@ DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
                            "(Only used on Windows OS)" ),
         #endif
 
-        //######################################    Enums    #######################################
+      //########################################### Enums ##########################################
         "Verbosity",        A_CHAR("0,Verbose,1,"
                                  "1,Info,1,"
                                  "2,Warning,1,"
@@ -262,7 +258,7 @@ DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
                           "2,ForeGround,1,"
                           "3,BackGround,1"  ),
 
-        //#####################################    Various    ######################################
+      //########################################## Various #########################################
         "VVEA",               A_CHAR("ExportAll" ), // Variable VERBOSITIES keyword 'ExportAll'
         "TLFmtExc",           A_CHAR("\nAn exception occurred during formatting ALox logables:\n" ),
 
@@ -281,8 +277,7 @@ DOX_MARKER([DOX_VARIABLES_REPLACEMENTS1])
 DOX_MARKER([DOX_VARIABLES_DEFINETYPE3])
 //...
 //...
-else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )
-{
+else if( GetBootstrapState() == BootstrapPhases::PrepareConfig ) {
     ALIB_VARIABLES_REGISTER_TYPE( FormatMetaInfo )
     //...
     //...
@@ -310,22 +305,18 @@ DOX_MARKER([DOX_VARIABLES_DEFINETYPE3])
         config->PreloadVariables<lox::Variables>();
     }
 
-    else if( GetBootstrapState() == BootstrapPhases::Final )
-    {
+    else if( GetBootstrapState() == BootstrapPhases::Final ) {
         #if ALOX_DBG_LOG
             if ( !DEBUG_LOX )
                 DEBUG_LOX=monomem::GLOBAL_ALLOCATOR().New<Lox>("LOG");
         #endif
-    }
-}
+}   }
 
 
-void ALoxCamp::Shutdown( ShutdownPhases phase )
-{
+void ALoxCamp::Shutdown( ShutdownPhases phase ) {
     (void) phase;
     #if ALOX_DBG_LOG
-    if( phase == ShutdownPhases::Destruct )
-    {
+    if( phase == ShutdownPhases::Destruct ) {
         if ( Log::DebugLogger != nullptr )
             Log_RemoveDebugLogger()
 
@@ -342,8 +333,8 @@ void ALoxCamp::Shutdown( ShutdownPhases phase )
 
 #if !DOXYGEN
 namespace alib {  namespace strings {
-void    AppendableTraits<Scope,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const lox::Scope src )
-{
+void    AppendableTraits<Scope,nchar, lang::HeapAllocator>::operator()( NAString&        target,
+                                                                        const lox::Scope src ) {
     Scope scope= src;
     int pathLevel= int( scope - Scope::Path );
     if(pathLevel > 0 )
@@ -355,18 +346,18 @@ void    AppendableTraits<Scope,nchar, lang::HeapAllocator>::operator()( TAString
         target << '+' << pathLevel;
 }
 
-void AppendableTraits<Pair<Verbosity, Priority>,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const Pair<Verbosity, Priority>& src )
-{
+void AppendableTraits<Pair<Verbosity, Priority>,nchar, lang::HeapAllocator>::operator()(
+                                          NAString& target, const Pair<Verbosity, Priority>& src ) {
     target._( NField( src.First, 7, lang::Alignment::Left) );
     target._( '(' )._( src.Second );
-    target.InsertAt( ")", target.LastIndexOfAny<lang::Inclusion::Exclude>( NDEFAULT_WHITESPACES )  + 1 );
+    target.InsertAt(")",target.LastIndexOfAny<lang::Inclusion::Exclude>(NDEFAULT_WHITESPACES) + 1 );
 }
 }}
 
 // CVVerbosities
 namespace alib::variables::detail {
-ALIB_DLL void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const StringEscaper& esc, const String& src)
-{
+ALIB_DLL void  VMeta_CVVerbosities::imPort(VDATA*              data, Configuration&,
+                                          const StringEscaper& esc , const String& src) {
     auto& cvVerbosities= data->As<alib::lox::CVVerbosities>();
     auto& exportAllKeyWord= alib::ALOX.GetResource("VVEA");
     cvVerbosities.ExportAll= false;
@@ -375,33 +366,29 @@ ALIB_DLL void  VMeta_CVVerbosities::imPort(VDATA* data, Configuration&, const St
     StringVectorMA results(la);
     esc.UnescapeTokens(results, src, A_CHAR(";"));
     cvVerbosities.Clear();
-    for( auto& it : results )
-    {
+    for( auto& it : results ) {
         Substring value= it;
         value.ConsumeChar('\n');
         value.ConsumeChar('\r');
         value.ConsumeCharFromEnd('\n');
         value.ConsumeCharFromEnd('\r');
 
-        if( value.Equals<CHK, lang::Case::Ignore>(exportAllKeyWord) )
-        {
+        if( value.Equals<CHK, lang::Case::Ignore>(exportAllKeyWord) ) {
             cvVerbosities.ExportAll= true;
             continue;
         }
         cvVerbosities.Add( value );
-    }
-}
+}   }
 
-ALIB_DLL void  VMeta_CVVerbosities::exPort(VDATA* data, Configuration&, const StringEscaper& esc, AString& dest)
-{
+ALIB_DLL void  VMeta_CVVerbosities::exPort( VDATA*               data, Configuration&,
+                                            const StringEscaper& esc , AString&        dest) {
     auto& cvVerbosities= data->As<alib::lox::CVVerbosities>();
     auto& exportAllKeyWord= alib::ALOX.GetResource("VVEA");
     if( cvVerbosities.ExportAll)
         dest << exportAllKeyWord << " ;" << NEW_LINE;
 
     if( !cvVerbosities.IsEmpty()) // well, this can only be empty if a user makes mistakes
-        for( auto it= cvVerbosities.begin() ;; )
-        {
+        for( auto it= cvVerbosities.begin() ;; ) {
             esc.Escape(*it, dest, A_CHAR(";"));
 
             if( ++it == cvVerbosities.end() )
@@ -409,9 +396,7 @@ ALIB_DLL void  VMeta_CVVerbosities::exPort(VDATA* data, Configuration&, const St
 
             dest << " ;";
             dest << NEW_LINE;
-        }
-}
+}       }
 } //namespace [alib::variables::detail]
 
 #endif // !DOXYGEN
-

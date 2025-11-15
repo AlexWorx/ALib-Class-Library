@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/system/system.prepro.hpp"
 #if !DOXYGEN
 #   if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__ANDROID_NDK__)
@@ -28,7 +28,7 @@
 #   endif
 #   include <fstream>
 #endif // !DOXYGEN
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.System;
     import   ALib.Lang;
@@ -46,18 +46,16 @@
 #   include "ALib.Strings.Tokenizer.H"
 #   include "ALib.System.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace system {
 
 // static instance representing current process
 ProcessInfo    ProcessInfo::current;
 
 #   include "ALib.Lang.CIFunctions.H"
-const ProcessInfo&    ProcessInfo::Current()
-{
+const ProcessInfo&    ProcessInfo::Current() {
     IF_ALIB_THREADS( static Lock   lock; ALIB_DBG(lock.Dbg.Name= "ProcessInfo";) )
-    if( current.PID == 0 )
-    {
+    if( current.PID == 0 ) {
         // Own global lock and check if still nulled.
         // (If not, this was a very unlikely parallel access )
         ALIB_LOCK_WITH( lock )
@@ -70,104 +68,97 @@ const ProcessInfo&    ProcessInfo::Current()
 
 
 #if defined(__GLIBC__) && defined(__unix__) || defined(__ANDROID_NDK__)
-    bool readProcFile( const NCString& fileName, AString& result  );
-    bool readProcFile( const NCString& fileName, AString& result  )
+bool readProcFile( const NCString& fileName, AString& result  );
+bool readProcFile( const NCString& fileName, AString& result  ) {
+    std::ifstream file( fileName );
+
+    std::string buffer;
+    getline(file, buffer);
+
+    // spaces are replaced with '\0'. Revert this.
+    if (buffer.size() > 2 )
+        for( size_t i= 0 ; i < buffer.size() -2 ; ++i )
+            if ( buffer[i] == '\0' )
+                buffer[i]= ' ';
+
+    result.Reset( buffer.c_str() );
+    file.close();
+    return true;
+}
+
+bool ProcessInfo::getStatField( int fieldNo, AString& target) {
+    Tokenizer tknzr( Stat, ' ');
+    bool result= true;
+    while ( --fieldNo >= 0 && (result= tknzr.HasNext()) )
+        tknzr.Next();
+
+    target.Reset( tknzr.Next() );
+    return result;
+}
+
+bool ProcessInfo::get( uinteger pid ) {
+    // use current thread if no PID given
+    uinteger newPID= 0;
+    if ( pid == 0 ) {
+        auto np= getpid();
+        if(np > 0 )
+            newPID= uinteger( np );
+    }
+    else
+        newPID= pid;
+
+    if ( newPID == 0 )
+        return false;
+
+
+    PID= newPID;
+
+    // cmdline, stat from proc
+    NString64 procDir("/proc/");  procDir._<NC>( PID )._( '/' );
+    integer    procPathLen= procDir.Length();
     {
-        std::ifstream file( fileName );
-
-        std::string buffer;
-        getline(file, buffer);
-
-        // spaces are replaced with '\0'. Revert this.
-        if (buffer.size() > 2 )
-            for( size_t i= 0 ; i < buffer.size() -2 ; ++i )
-                if ( buffer[i] == '\0' )
-                    buffer[i]= ' ';
-
-        result.Reset( buffer.c_str() );
-        file.close();
-        return true;
+        // read things
+        procDir << "cmdline"; readProcFile( procDir,  CmdLine  );  procDir.ShortenTo(procPathLen);
+        procDir << "stat";    readProcFile( procDir,  Stat     );  procDir.ShortenTo(procPathLen);
     }
 
-    bool ProcessInfo::getStatField( int fieldNo, AString& target)
-    {
-        Tokenizer tknzr( Stat, ' ');
-        bool result= true;
-        while ( --fieldNo >= 0 && (result= tknzr.HasNext()) )
-            tknzr.Next();
+    getStatField( 3, Name ); // PPID
+    PPID= uinteger( Name.ParseInt() );
+    getStatField( 1, Name );
+    ALIB_ASSERT_ERROR(                 Name.IsEmpty()
+                            ||   (     Name.Length() >= 2
+                                    && Name.CharAtStart<NC>()=='('
+                                    && Name.CharAtEnd  <NC>()==')' ),
+                            "CAMP", "Error reading process Info"         )
 
-        target.Reset( tknzr.Next() );
-        return result;
+    if ( Name.CharAtEnd  () == ')' ) Name.DeleteEnd  <NC>( 1 );
+    if ( Name.CharAtStart() == '(' ) Name.DeleteStart<NC>( 1 );
+    getStatField( 2, StatState );
+    getStatField( 4, StatPGRP );
+
+    // get executable path and name
+    ExecFileName.Reset();
+    ExecFilePath.Reset();
+
+    procDir << A_CHAR("exe");
+        nchar buffer[2048];
+        ssize_t length= readlink( procDir, buffer, 2048 );
+    procDir.ShortenTo(procPathLen);
+
+    if( length > 0 ) {
+        ExecFilePath.Append( buffer, length );
+        integer idx= ExecFilePath.LastIndexOf( '/' );
+        ALIB_ASSERT_ERROR( idx>= 0, "CAMP",
+            "Executable path does not contain directory separator character.\n"
+            "  Path: {}", ExecFilePath )
+        ExecFileName._( ExecFilePath, idx + 1 );
+        ExecFilePath.ShortenTo( idx );
+    } else {
+        // obviously no rights to read the link. We use the process name
+        ExecFileName._( Name );
     }
-
-    bool ProcessInfo::get( uinteger pid )
-    {
-        // use current thread if no PID given
-        uinteger newPID= 0;
-        if ( pid == 0 )
-        {
-            auto np= getpid();
-            if(np > 0 )
-                newPID= uinteger( np );
-        }
-        else
-            newPID= pid;
-
-        if ( newPID == 0 )
-            return false;
-
-
-        PID= newPID;
-
-        // cmdline, stat from proc
-        NString64 procDir("/proc/");  procDir._<NC>( PID )._( '/' );
-        integer    procPathLen= procDir.Length();
-        {
-            // read things
-            procDir << "cmdline"; readProcFile( procDir,  CmdLine  );  procDir.ShortenTo(procPathLen);
-            procDir << "stat";    readProcFile( procDir,  Stat     );  procDir.ShortenTo(procPathLen);
-        }
-
-        getStatField( 3, Name ); // PPID
-        PPID= uinteger( Name.ParseInt() );
-        getStatField( 1, Name );
-        ALIB_ASSERT_ERROR(                 Name.IsEmpty()
-                                ||   (     Name.Length() >= 2
-                                        && Name.CharAtStart<NC>()=='('
-                                        && Name.CharAtEnd  <NC>()==')' ),
-                                "CAMP", "Error reading process Info"         )
-
-        if ( Name.CharAtEnd  () == ')' ) Name.DeleteEnd  <NC>( 1 );
-        if ( Name.CharAtStart() == '(' ) Name.DeleteStart<NC>( 1 );
-        getStatField( 2, StatState );
-        getStatField( 4, StatPGRP );
-
-        // get executable path and name
-        ExecFileName.Reset();
-        ExecFilePath.Reset();
-
-        procDir << A_CHAR("exe");
-            nchar buffer[2048];
-            ssize_t length= readlink( procDir, buffer, 2048 );
-        procDir.ShortenTo(procPathLen);
-
-        if( length > 0 )
-        {
-            ExecFilePath.Append( buffer, length );
-            integer idx= ExecFilePath.LastIndexOf( '/' );
-            ALIB_ASSERT_ERROR( idx>= 0, "CAMP",
-                "Executable path does not contain directory separator character.\n"
-                "  Path: {}", ExecFilePath )
-            ExecFileName._( ExecFilePath, idx + 1 );
-            ExecFilePath.ShortenTo( idx );
-        }
-        else
-        {
-            // obviously no rights to read the link. We use the process name
-            ExecFileName._( Name );
-        }
-        return true;
-    }
+    return true;
+}
 
 #elif defined (__APPLE__)
 

@@ -88,4 +88,3 @@ inline void BootstrapQTStringBoxing()
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
 
 #endif // HPP_ALIB_COMPATIBILITY_BOXING_QT
-

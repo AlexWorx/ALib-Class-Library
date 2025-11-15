@@ -23,7 +23,7 @@ enum class BootstrapPhases
     /// Camps are requested to
     /// \alib{variables;Configuration::RegisterType;register application-specific variable types} in
     /// this phase. Furthermore modifications on the configuration object itself might be performed,
-    /// for example \alib{variables;ConfigurationPlugin;custom plugins} might be added to a
+    /// for example, \alib{variables;ConfigurationPlugin;custom plugins} might be added to a
     /// configuration or configurable options of default plug-ins can be set.<br>
     /// Finally, this is the right phase to
     /// \alib{variables;Configuration::PreloadVariables;declare variables} which have a resourced
@@ -57,7 +57,7 @@ namespace camp {
 ///
 /// Typically, every "bigger" and "higher level" \alibmod disposes of a type derived from this
 /// class. The singleton instances of these types are collected in namespace \ref alib and are named
-/// in capital letters, for example \ref alib::ALOX, \ref alib::EXPRESSIONS, etc.
+/// in capital letters, for example, \ref alib::ALOX, \ref alib::EXPRESSIONS, etc.
 ///
 /// Types found in an \alibmod_nl, will use methods \alib{camp::Camp;GetResourcePool} and
 /// \alib{camp::Camp;GetConfig} of that singleton to access resources and to read and write
@@ -103,48 +103,46 @@ class Camp
     /// Access to the field is provided with method #GetConfig.
     SharedConfiguration config;
 
-   // ##############################################################################################
+   //###############################################################################################
    // Public fields
-   // ##############################################################################################
+   //###############################################################################################
    public:
     /// The name of the resource category of externalized string resources defined and used by
     /// this \alibcamp.<br>
     /// Special camp \alib{BASECAMP} uses "ALIB". Other \alibcamps_nl use a short unique name.
-     NCString           ResourceCategory;
+    NCString           ResourceCategory;
 
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
+  //################################################################################################
+  // Constructor/Destructor
+  //################################################################################################
     /// Constructor.
     /// @param resourceCategory  Value for field #ResourceCategory.
     Camp( const NCString& resourceCategory )
-    : ResourceCategory(resourceCategory)
-    {}
+    : ResourceCategory(resourceCategory)                                                          {}
 
     /// Deleted copy constructor.
-    Camp( const Camp& )                                                                = delete;
+    Camp( const Camp& )                                                                     =delete;
 
     /// Deleted move constructor.
-    Camp( Camp&& )                                                                     = delete;
+    Camp( Camp&& )                                                                          =delete;
 
     /// Deleted copy assignment.
-    void operator=( const Camp& )                                                      = delete;
+    void operator    =( const Camp& )                                                       =delete;
 
     /// Deleted move assignment.
-    void operator=(  Camp&& )                                                          = delete;
+    void operator    =(  Camp&& )                                                           =delete;
 
 
     /// Virtual destructor to satisfy C++ abstract type rules.
-    virtual ~Camp()
-    {
+    virtual ~Camp() {
         ALIB_ASSERT_WARNING(    bootstrapState == -int(ShutdownPhases::Destruct)
                              || bootstrapState == 0, "CAMPS",
           "Destructing a non-terminated camp. Camp Resource category is: \"{}\"", ResourceCategory )
     }
 
-  // ###############################################################################################
+  //################################################################################################
   // Bootstrap/Shutdown()
-  // ###############################################################################################
+  //################################################################################################
   public:
 
     /// Abstract method which is invoked during bootstrapping by function<br>
@@ -157,7 +155,7 @@ class Camp
     ///
     /// For details on bootstrapping\alibcamps, see the detailed explanations in the
     /// \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
-    virtual void    Bootstrap()                                                                 = 0;
+    virtual void    Bootstrap()                                                                  =0;
 
     /// Abstract method which is invoked during bootstrapping by function<br>
     /// \doxlinkproblem{namespacealib.html;a4374717714582ef1a859b773367ec5d9;alib::Shutdown(ShutdownPhases targetPhase, camp::Camp* targetCamp)}
@@ -169,10 +167,10 @@ class Camp
     /// For details on bootstrapping \alibcamps, see the detailed explanations in the
     /// \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
     /// @param phase  The termination level to perform.
-    virtual void    Shutdown( ShutdownPhases   phase )                                          = 0;
+    virtual void    Shutdown( ShutdownPhases   phase )                                           =0;
 
     /// Returns the bootstrap state of this camp.
-    ///  @return The internal state flag.
+    /// @return The internal state flag.
     BootstrapPhases GetBootstrapState()                  { return BootstrapPhases(bootstrapState); }
 
     /// Sets the (next) bootstrap phase to perform.
@@ -180,18 +178,17 @@ class Camp
     void            BootstrapSetPhase(BootstrapPhases phase)         { bootstrapState= int(phase); }
 
     /// Tests if this \alibcamp was completely initialized.
-    ///  @return
-    ///    \c true if the initialization state is either \alib{BootstrapPhases::Final}
-    ///    or \alib{ShutdownPhases::Announce}, \c false otherwise.
+    /// @return \c true if the initialization state is either \alib{BootstrapPhases::Final}
+    ///         or \alib{ShutdownPhases::Announce}, \c false otherwise.
     bool            IsBootstrapped()
     {
         return     bootstrapState ==  int(BootstrapPhases::Final)
                 || bootstrapState == -int(ShutdownPhases::Announce);
     }
 
-    // #############################################################################################
-    // Other public interface methods
-    // #############################################################################################
+  //################################################################################################
+  // Other public interface methods
+  //################################################################################################
     /// Sets the configuration instance of this camp.
     ///
     /// \attention
@@ -202,8 +199,7 @@ class Camp
     /// @see Chapter \ref alib_mod_bs_customize of the Programmer's Manual of module
     ///      \alib_bootstrap.
     /// @param pConfig   The configuration to use.
-    void            BootstrapSetConfig( const SharedConfiguration& pConfig )
-    {
+    void            BootstrapSetConfig( const SharedConfiguration& pConfig ) {
         ALIB_ASSERT_WARNING( (config == nullptr) != (pConfig == nullptr), "CAMPS",
           "Double setting or removing a camp's configuration instance.\n"
           "Note: A custom configuration must be set before camp initialization." )
@@ -229,8 +225,7 @@ class Camp
     /// (to separate the resources of this camp from lower level camps), a
     /// \ref alib_mod_bs_customize "further customized bootstrap strategy" has to be implemented.
     /// @param pResourcePool  The resource pool to use.
-    void                      BootstrapSetResourcePool( const SPResourcePool& pResourcePool )
-    {
+    void                      BootstrapSetResourcePool( const SPResourcePool& pResourcePool ) {
         ALIB_ASSERT_WARNING( (resourcePool == nullptr) != (pResourcePool == nullptr), "CAMPS",
           "Double setting or removing a camp's resource pool instance.\n"
           "Note: A custom resource pool must be set before camp initialization." )
@@ -330,7 +325,7 @@ void Bootstrap( camp::Camp&        camp,
                 const NString&     name,
                 character          innerDelim= ',' ,
                 character          outerDelim= ','    )
-{ Bootstrap<TEnum>( *camp.GetResourcePool(), camp.ResourceCategory, name, innerDelim, outerDelim ); }
+{ Bootstrap<TEnum>(*camp.GetResourcePool(), camp.ResourceCategory, name, innerDelim, outerDelim); }
 
 } // namespace [alib::enumrecords::bootstrap]
 
@@ -391,8 +386,7 @@ variables::Variable CampVariable(camp::Camp& camp, const Declaration* decl) {
 /// @param  Enum   Element of an enum type that represents resourced configuration variables.
 /// @return The variable created.
 template<typename TEnum>
-variables::Variable CampVariable(camp::Camp& camp, TEnum Enum )
-{
+variables::Variable CampVariable(camp::Camp& camp, TEnum Enum ) {
     ALIB_LOCK_WITH(camp.GetConfig())
     auto var= CampVariable(camp);
     var.Declare( Declaration::Get( Enum ) );
@@ -413,8 +407,7 @@ variables::Variable CampVariable(camp::Camp& camp, TEnum Enum )
 /// @return The variable created.
 template<typename TEnum>
 requires std::is_enum_v<TEnum>
-variables::Variable CampVariable(camp::Camp& camp, TEnum Enum, const Box replacements )
-{
+variables::Variable CampVariable(camp::Camp& camp, TEnum Enum, const Box replacements ) {
     ALIB_LOCK_WITH(camp.GetConfig())
     auto var= CampVariable(camp);
     var.Declare( camp.GetConfig()->StoreDeclaration( Declaration::Get( Enum ), replacements ) );
@@ -422,5 +415,3 @@ variables::Variable CampVariable(camp::Camp& camp, TEnum Enum, const Box replace
 }
 } // namespace [alib::camp]
 #include "ALib.Lang.CIMethods.H"
-
-

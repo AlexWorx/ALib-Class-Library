@@ -55,8 +55,7 @@ class ScopeDump
     : targetBuffer(target)
     , noKey(noKeyHashKey)
     , maximumKeyLength(maxKeyLength)
-    IF_ALIB_THREADS(, threadDict(threadDictionary) )
-    {}
+    IF_ALIB_THREADS(, threadDict(threadDictionary) )                                              {}
   #endif
 
     /// Writes hash tables stored in a ScopeStore. Keys are Strings.
@@ -76,9 +75,9 @@ class ScopeDump
     ALIB_DLL
     int writeStore( ScopeStore<T,  true>* store, int indentSpaces );
 
-  // #############################################################################################
+  //################################################################################################
   // Internals
-  // #############################################################################################
+  //################################################################################################
   protected:
     /// Helper method to #writeStoreMap.
     /// @param map       The map to use
@@ -115,4 +114,3 @@ extern template   int ScopeDump::writeStoreMap( ScopeStore<SSMap<Box>* , false>*
 
 
 }}} // namespace [alib::lox::detail]
-

@@ -33,7 +33,7 @@ class ScopeStore;
 /// @tparam T                    The stored object type.
 /// @tparam TStackedThreadValues If true, values stored for thread scopes will be always replaced
 ///                              instead of appended.
-///                              This is for example \c false for <em>Log Data</em> and
+///                              This is, for example, \c false for <em>Log Data</em> and
 ///                              <em>Log Once</em> and \c true for <em>Scope Domains</em>
 ///                              and <em>Prefix Logables</em>.
 template<typename T, bool TStackedThreadValues>
@@ -73,7 +73,7 @@ template<typename T                           > struct ScopeStoreHelper<T, true>
 /// @tparam T                    The stored object type.
 /// @tparam TStackedThreadValues If true, values stored for thread scopes will be always replaced
 ///                              instead of appended.
-///                              This is for example \c false for <em>Log Data</em> and
+///                              This is, for example, \c false for <em>Log Data</em> and
 ///                              <em>Log Once</em> and \c true for <em>Scope Domains</em>
 ///                              and <em>Prefix Logables</em>.
 //==================================================================================================
@@ -97,7 +97,7 @@ class ScopeStore
     /// The type of object stored for the thread values. This depends on whether multiple
     /// (a stack of) values can be stored, which is not true for log data and log once, as
     /// those operate with hash maps.
-    using TThreadMapValue= std::conditional_t<TStackedThreadValues, StdVectorMono<T>, T>;
+    using TThreadMapValue= std::conditional_t<TStackedThreadValues, StdVectorMA<T>, T>;
 
     /// The value of the global scope.
     T                                       globalStore;
@@ -115,8 +115,7 @@ class ScopeStore
         /// Calculates a hash code.
         /// @param src The object to hash.
         /// @return The hash code.
-        std::size_t operator()(const std::pair<bool, threads::ThreadID>& src)              const
-        {
+        std::size_t operator()(const std::pair<bool, threads::ThreadID>& src)                const {
             return src.first ? std::size_t( src.second * 282312799l  )
                              : std::size_t( src.second * 573292817l  ) ^ std::size_t(-1);
         }
@@ -130,9 +129,9 @@ class ScopeStore
 #endif
 
 
-  // #############################################################################################
+  //################################################################################################
   // Protected fields
-  // #############################################################################################
+  //################################################################################################
   protected:
 
     /// ScopeInfo of 'our' lox.
@@ -167,9 +166,9 @@ class ScopeStore
     /// The list of values of \e Scope::ThreadOuter/Inner during a walk.
     TThreadMapValue*                        walkThreadValues;
 
-  // #############################################################################################
+  //################################################################################################
   // Public interface
-  // #############################################################################################
+  //################################################################################################
   public:
 
     /// Constructor
@@ -197,23 +196,16 @@ class ScopeStore
     /// Stores a new value.
     /// @param value      The value to set.
     /// @return Returns the previous value stored.
-    T Store    ( T value )
-    {
-        ALIB_ASSERT( value != nullptr, "ALOX" )
-        return access( 0, value );
-    }
+    T Store    ( T value )    { ALIB_ASSERT( value != nullptr, "ALOX" ) return access( 0, value ); }
 
     /// Removes a value.
     /// @param value      The value to remove (must only be given for thread-related \e Scopes).
     /// @return Returns the previous value stored.
-    T Remove   ( T value )                                        { return access( 1, value ); }
+    T Remove   ( T value )                                            { return access( 1, value ); }
 
     /// Retrieves the value.
     /// @return Returns the current value stored.
-    T Get      ()
-    {
-        return access( 2, nullptr );
-    }
+    T Get      ()                                                   { return access( 2, nullptr ); }
 
     /// Initializes a scope 'walk' by storing the given scope information and
     /// setting fields of our walk 'state-machine' to proper start values.
@@ -227,11 +219,11 @@ class ScopeStore
     /// Searches next value in the actual scope. While not found, moves walk state to next outer
     /// state and continues there.
     /// @return The next object found in the current or any next outer scope.
-    T   Walk() { return ScopeStoreHelper<T, TStackedThreadValues>().doWalk(*this); }
+    T   Walk()                 { return ScopeStoreHelper<T, TStackedThreadValues>().doWalk(*this); }
 
-   // #############################################################################################
+   //###############################################################################################
    // Internals
-   // #############################################################################################
+   //###############################################################################################
    protected:
     /// Retrieves and optionally creates an entry in the map that stores language-related
     /// scope information. The result is stored in field #actStringTreeNode.
@@ -242,8 +234,8 @@ class ScopeStore
     /// @param cmd        0= insert, 1= remove, 2= get.
     /// @param value      The new value or the one to be removed.
     /// @return Returns the previous value stored.
-    T access( int cmd, T value ) { return ScopeStoreHelper<T, TStackedThreadValues>()
-                                          .doAccess( *this, cmd, value ); }
+    T access( int cmd, T value )
+    { return ScopeStoreHelper<T, TStackedThreadValues>().doAccess( *this, cmd, value ); }
 }; // ScopeStore
 
 

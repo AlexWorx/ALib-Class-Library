@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include <cstring>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings;
     import   ALib.Lang;
@@ -26,7 +26,7 @@
 #   include "ALib.Camp.Base.H"
 #   include "ALib.Strings.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 #define ALIB_STRINGS_TASTRING_INSTANTIATION
 #   include "alib/strings/detail/tastringimpl.inl"
@@ -75,5 +75,4 @@ DOX_MARKER( [DT_UNITS_DEFAULTS])
 
     ALIB_STRINGS_APPENDABLE_TYPE_DEF_W(alib::threads::Thread,
     { target << src.GetName()  << '(' << src.GetID() << ')';} )
-#endif 
-
+#endif

@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,23 +11,22 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings.Search;
 #else
 #   include "ALib.Strings.Search.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace strings { namespace util  {
 
 #define    STRING    -1
 #define    ASTERISK  -2
 
 template<typename TChar>
-void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
-{
+void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern ) {
     // Note: The following invariants will be true in the command vector:
     //       - A String-entry will be a non-empty string
     //       - No two * follow each other"
@@ -36,11 +35,9 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
     commands.clear();
 
     TSubstring<TChar> parser= pattern;
-    while( parser.IsNotEmpty() )
-    {
+    while( parser.IsNotEmpty() ) {
         // *
-        if(parser.CharAtStart() == '*' )
-        {
+        if(parser.CharAtStart() == '*' ) {
             // add if empty or last is not * already.
              if(   commands.size() == 0
                 || commands.back().first != ASTERISK ) commands.emplace_back( ASTERISK, nullptr  );
@@ -54,8 +51,7 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
         while( parser.ConsumeChar('?') )
             ++qtyQ;
 
-        if( qtyQ )
-        {
+        if( qtyQ ) {
             // previous is "*" ?
             if(     commands.size() > 1
                     &&  (commands.end()-1)->first == ASTERISK )
@@ -91,8 +87,7 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
 }
 
 template<typename TChar>
-bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case sensitivity  )
-{
+bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case sensitivity  ) {
     if( commands.size() == 0 )
         return true;
 
@@ -104,13 +99,11 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
     size_t  lastCmd= size_t( commands.size() - 1 );
     bool    lastWasAsterisk= false;
 
-    for( actCmd= 0; actCmd <= lastCmd ; ++actCmd )
-    {
+    for( actCmd= 0; actCmd <= lastCmd ; ++actCmd ) {
         auto& cmd= commands[actCmd];
 
         // ?
-        if( cmd.first > 0 )
-        {
+        if( cmd.first > 0 ) {
             if ( haystack.Length() < cmd.first )
                 return false;
             haystack.template ConsumeChars<NC>( cmd.first );
@@ -118,8 +111,7 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
         }
 
         // *
-        if( cmd.first == ASTERISK )
-        {
+        if( cmd.first == ASTERISK ) {
             if ( actCmd == lastCmd )
                 return true;
 
@@ -131,8 +123,7 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
         if( cmd.second.Length() > haystack.Length() )
             return false;
 
-        if( lastWasAsterisk )
-        {
+        if( lastWasAsterisk ) {
             integer idx= sensitivity==lang::Case::Sensitive  ?  haystack.template IndexOf<NC, lang::Case::Sensitive>( cmd.second, 0, haystack.Length() - cmd.second.Length() + 1 )
                                                              :  haystack.template IndexOf<NC, lang::Case::Ignore   >( cmd.second, 0, haystack.Length() - cmd.second.Length() + 1 );
             if( idx < 0 )
@@ -160,4 +151,3 @@ template bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>& haystack, 
 #undef   STRING
 #undef   ASTERISK
 }}} // namespace [alib::strings::util]
-

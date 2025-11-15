@@ -8,10 +8,10 @@
 ALIB_EXPORT namespace alib {  namespace bitbuffer {
 
 /// This sub-namespace of \alib_bitbuffer provides algorithms to compress integral arrays.
-/// Classes \alib{bitbuffer;ac_v1::ArrayCompressor} and  \alib{bitbuffer;ac_v1::HuffmanEncoder} implement
-/// some data formats defined on bit-streams, which, in future versions of \alib, may be changed.
-/// With such future changes, theses classes will be published in a next enumerated namespace,
-/// parallel to this one.<br>
+/// Classes \alib{bitbuffer;ac_v1::ArrayCompressor} and \alib{bitbuffer;ac_v1::HuffmanEncoder}
+/// implement some data formats defined on bit-streams, which, in future versions of \alib, may be
+/// changed. With such future changes, theses classes will be published in a next enumerated
+/// namespace, parallel to this one.<br>
 /// This approach will allow software to read existing datasets from files (explicitly using
 /// older versions of the classes by selecting them via the namespace) and convert the data to the
 /// new binary format.
@@ -86,7 +86,7 @@ class ArrayCompressor
         TUI     minDec;     ///< Minimum decrease between two adjacent values.
 
         #if !DOXYGEN && ALIB_DEBUG_ARRAY_COMPRESSION
-            bool dbgIsCheckRead= false;
+        bool dbgIsCheckRead                                                                  =false;
         #endif
 
         /// This constructor may (and must only) be used when the data is stored in simple
@@ -94,8 +94,7 @@ class ArrayCompressor
         /// @param arrayStart    Pointer to the first value of the array.
         /// @param length        The length of the array
         Array( const TIntegral* arrayStart, size_t length )
-        : len(length)
-        {
+        : len(length) {
             firstVal= const_cast<char*>(
                         reinterpret_cast<const char*>(arrayStart) );
             distance= sizeof(TUI);
@@ -114,8 +113,7 @@ class ArrayCompressor
         /// @param secondValue   Pointer to the second value of the array
         /// @param length        The length of the array
         Array( const TIntegral& firstValue, const TIntegral& secondValue, size_t length )
-        : len(length)
-        {
+        : len(length) {
             firstVal= const_cast<char*>(
                         reinterpret_cast<const char*>(&firstValue) );
             distance= size_t(   reinterpret_cast<const char*>(&secondValue)
@@ -128,35 +126,28 @@ class ArrayCompressor
 
         /// Returns the constant array length, given on construction.
         /// @return The length of the array to compress/decompress
-        size_t  length()                                         const
-        {
-            return len;
-        }
+        size_t  length()                                                       const { return len; }
 
         /// Returns the value at the given index as an unsigned integer value (for arrays of
         /// signed values, zig-zag encoding is performed)
         /// @param idx The index of the value in the array to retrieve.
-        /// @return An unsigned representation of the value at the given \p index.
-        TUI  get(size_t idx)                                 const
-        {
+        /// @return An unsigned representation of the value at the given \p{idx}.
+        TUI  get(size_t idx)                                                                 const {
             ALIB_ASSERT_ERROR( idx < len, "BITBUFFER/AC", "Array compression: Index out of bounds" )
 
             if constexpr ( std::is_unsigned<TIntegral>::value )
                 return *(reinterpret_cast<TUI*>(firstVal + idx * distance));
-            else
-            {
+            else {
                 TIntegral val= *(reinterpret_cast<TIntegral*>(firstVal + idx * distance));
                 return val >= 0 ? TUI(    val      << 1      )
                                 : TUI( ((-val - 1) << 1) | 1 );
-            }
-        }
+        }   }
 
         /// Writes the given value at the given idx as an unsigned integer value (for arrays
         /// of signed values, zig-zag encoding is performed)
         /// @param idx   The index of the value in the array to set.
         /// @param value The value to set.
-        void    set(size_t idx, TUI value)
-        {
+        void    set(size_t idx, TUI value) {
             #if ALIB_DEBUG_ARRAY_COMPRESSION
             TUI oldVal= 0;
             if( dbgIsCheckRead )
@@ -167,11 +158,10 @@ class ArrayCompressor
 
             if constexpr ( std::is_unsigned<TIntegral>::value )
                 *(reinterpret_cast<TIntegral*>(firstVal + idx * distance))= TIntegral(value);
-            else
-            {
+            else {
                 *(reinterpret_cast<TIntegral*>(firstVal + idx * distance)) =
-                    (value & 1) == 0 ?    TIntegral( value >> 1)
-                                     : -( TIntegral( value >> 1) + 1 );
+                    (value & 1) == 0 ? TIntegral(                 value >> 1)
+                                     : TIntegral(   -( TIntegral( value >> 1) + 1 ) );
             }
 
             #if ALIB_DEBUG_ARRAY_COMPRESSION
@@ -183,8 +173,7 @@ class ArrayCompressor
 
         /// Loops over the data and stores minimum and maximum values as well as minimum
         /// and maximum value distances.
-        void calcMinMax()
-        {
+        void calcMinMax() {
             // already done?
             if( max >= min )
                 return;
@@ -193,8 +182,7 @@ class ArrayCompressor
             maxDec= 0;
 
             // zero-length array
-            if( !len )
-            {
+            if( !len ) {
                 minInc= 0;
                 minDec= 0;
                 return;
@@ -208,19 +196,15 @@ class ArrayCompressor
             min= (std::min)( min, prevVal );
             max= (std::max)( max, prevVal );
 
-            for(size_t i= 1; i < len; ++i)
-            {
+            for(size_t i= 1; i < len; ++i) {
                 TUI val= get(i);
                 min= (std::min)( min, val );
                 max= (std::max)( max, val );
 
-                if(val >= prevVal)
-                {
+                if(val >= prevVal) {
                     minInc= (std::min)( minInc, TUI( val - prevVal) );
                     maxInc= (std::max)( maxInc, TUI( val - prevVal) );
-                }
-                else
-                {
+                } else {
                     minDec= (std::min)( minDec, TUI( prevVal - val) );
                     maxDec= (std::max)( maxDec, TUI( prevVal - val) );
                 }
@@ -241,8 +225,7 @@ class ArrayCompressor
     ///   enum suposes over enum records of type \alib{enumrecords;ERSerializable}.
     ///   If furthermore module \alib_camp is included, such records are
     ///   \ref alib_resources_details_data "resourced" in class \alib{camp;Basecamp}.
-    enum class Algorithm
-    {
+    enum class Algorithm {
         /// No compression method selected.
         NONE               =   0,
 
@@ -317,10 +300,8 @@ class ArrayCompressor
         /// Adds another statistic object to this one.
         /// @param other The statistics to add to this one.
         /// @return A reference to this object.
-        Statistics& operator += (const Statistics& other)
-        {
-            for( int algoNo= 0; algoNo < NumberOfAlgorithms ; ++algoNo )
-            {
+        Statistics& operator += (const Statistics& other) {
+            for( int algoNo= 0; algoNo < NumberOfAlgorithms ; ++algoNo ) {
                 writeTimes        [algoNo]+= other.writeTimes        [algoNo];
                 readTimes         [algoNo]+= other.readTimes         [algoNo];
                 ctdReads          [algoNo]+= other.ctdReads          [algoNo];
@@ -336,23 +317,23 @@ class ArrayCompressor
 
 
         #if ALIB_FORMAT
-            /// Writes compression statistics to the given string buffer.
-            /// \par Availability
-            ///   This method is included only if module \alib_format is included in the
-            ///   \alibbuild.
-            ///
-            /// @param result      A string buffer to collect the dump results.
-            /// @param headline    A headline to integrate into the result table.
-            /// @param printTotals Determines if a summary line with summed up values should be
-            ///                    written.
-            ALIB_DLL
-            void Print( AString& result, const String& headline, bool printTotals);
+        /// Writes compression statistics to the given string buffer.
+        /// \par Availability
+        ///   This method is included only if module \alib_format is included in the
+        ///   \alibbuild.
+        ///
+        /// @param result      A string buffer to collect the dump results.
+        /// @param headline    A headline to integrate into the result table.
+        /// @param printTotals Determines if a summary line with summed up values should be
+        ///                    written.
+        ALIB_DLL
+        void Print( AString& result, const String& headline, bool printTotals);
         #endif
     };
 
 
     /// Deleted default constructor (this class cannot be created)
-    ArrayCompressor() = delete;
+    ArrayCompressor()                                                                       =delete;
 
 
 // clang 14.0.6 (as of today 221216) falsely reports:
@@ -360,70 +341,70 @@ class ArrayCompressor
 #if !DOXYGEN
     ALIB_WARNINGS_IGNORE_DOCS
 #endif
-        /// Compresses the given array and writes the data into the given bit writer.
-        /// Each algorithm included in parameter \p algorithmsToTry are executed and finally that
-        /// one with the best compression result is chosen. Before the usage data, some bits that
-        /// determine the chosen algorithm are written, to enable method #Decompress
-        /// to deserialize the data.
-        ///
-        /// To gain efficiency, the number of probed algorithms can be narrowed by setting a
-        /// corresponding mask in \p algorithmsToTry. However, in many use case scenarios, the
-        /// execution time is a less critical design factor than the compression factor reached.
-        /// The decompression speed is solely dependent on the algorithm finally chosen, not on
-        /// the number of algorithms tested on compression.
-        ///
-        /// \attention
-        ///   If only one algorithm is specified in parameter \p algorithmsToTry, then no
-        ///   meta-information about the algorithm chosen is written. Consequently, when reading
-        ///   back the data using #Decompress, the same single algorithm has to be provided.
-        ///
-        /// @tparam TValue    The integral type of array data to compress.
-        /// @param  bitWriter A bit writer to compress the data to.
-        /// @param  data      The array to compress.
-        /// @param  algorithmsToTry The set of algorithms to be tried on compression for best
-        ///                         efficiency.<br>
-        ///                         Defaults to \ref Algorithm::ALL.
-        /// @param statistics Pointer a struct to collect statistics for the efficiency of array
-        ///                   compression related to given user data. If set, methods #Compress and
-        ///                   #Decompress will measure execution performance and compression rates
-        ///                   for each algorithm. With that, software may collect information about
-        ///                   which algorithm is most efficient for typical datasets found and
-        ///                   a programmer may, based on such heuristics decide to exclude certain
-        ///                   algorithms not efficient in a use case.
-        /// @return A pair of value containing the resulting size in bits and the algorithm
-        ///         chosen.
+    /// Compresses the given array and writes the data into the given bit writer.
+    /// Each algorithm included in parameter \p{algorithmsToTry} are executed and finally that
+    /// one with the best compression result is chosen. Before the usage data, some bits that
+    /// determine the chosen algorithm are written, to enable method #Decompress
+    /// to deserialize the data.
+    ///
+    /// To gain efficiency, the number of probed algorithms can be narrowed by setting a
+    /// corresponding mask in \p{algorithmsToTry}. However, in many use case scenarios, the
+    /// execution time is a less critical design factor than the compression factor reached.
+    /// The decompression speed is solely dependent on the algorithm finally chosen, not on
+    /// the number of algorithms tested on compression.
+    ///
+    /// \attention
+    ///   If only one algorithm is specified in parameter \p{algorithmsToTry}, then no
+    ///   meta-information about the algorithm chosen is written. Consequently, when reading
+    ///   back the data using #Decompress, the same single algorithm has to be provided.
+    ///
+    /// @tparam TValue    The integral type of array data to compress.
+    /// @param  bitWriter A bit writer to compress the data to.
+    /// @param  data      The array to compress.
+    /// @param  algorithmsToTry The set of algorithms to be tried on compression for best
+    ///                         efficiency.<br>
+    ///                         Defaults to \ref Algorithm::ALL.
+    /// @param statistics Pointer a struct to collect statistics for the efficiency of array
+    ///                   compression related to given user data. If set, methods #Compress and
+    ///                   #Decompress will measure execution performance and compression rates
+    ///                   for each algorithm. With that, software may collect information about
+    ///                   which algorithm is most efficient for typical datasets found and
+    ///                   a programmer may, based on such heuristics decide to exclude certain
+    ///                   algorithms not efficient in a use case.
+    /// @return A pair of value containing the resulting size in bits and the algorithm
+    ///         chosen.
 
-        template <typename TValue>
-        static
-        std::pair<size_t, Algorithm>    Compress  ( BitWriter&      bitWriter,
-                                                    Array<TValue>&  data,
-                                                    Algorithm       algorithmsToTry = Algorithm::ALL,
-                                                    Statistics*     statistics      = nullptr
-                                                    );
+    template <typename TValue>
+    static
+    std::pair<size_t, Algorithm>    Compress  ( BitWriter&      bitWriter,
+                                                Array<TValue>&  data,
+                                                Algorithm       algorithmsToTry = Algorithm::ALL,
+                                                Statistics*     statistics      = nullptr
+                                                );
 
 
-        /// Decompresses an integral array from the given bit reader, which previously was encoded
-        /// with methods #Compress.
-        /// The integral data type has to be the same as with encoding.
-        /// \attention
-        ///   If compression was performed with specifying only one algorithm in parameter
-        ///   \p algorithmsToTry, then the same algorithm has to be exclusively set on decompression,
-        ///   because in this case no meta-information about the compression algorithm is stored
-        ///   in the bit stream.
-        /// @tparam TValue     The integral type of array data to decompress.
-        /// @param  bitReader  A bit reader to read the data from.
-        /// @param  data       The array to decompress data to.
-        /// @param  algorithm  The algorithm to use for read back. Must only be given, in case
-        ///                    that compression was performed using a single algorithm of choice.
-        ///                    Defaults to \ref Algorithm::ALL.
-        /// @param  statistics An optional statistics record to store the measured de-compression
-        ///                    time. See method #Compress for more information.
-        template <typename TValue>
-        static
-        void                            Decompress( BitReader&      bitReader,
-                                                    Array<TValue>&  data,
-                                                    Algorithm       algorithm    = Algorithm::ALL,
-                                                    Statistics*     statistics   = nullptr);
+    /// Decompresses an integral array from the given bit reader, which previously was encoded
+    /// with methods #Compress.
+    /// The integral data type has to be the same as with encoding.
+    /// \attention
+    ///   If compression was performed with specifying only one algorithm in parameter
+    ///   \p{algorithmsToTry}, then the same algorithm has to be exclusively set on decompression,
+    ///   because in this case no meta-information about the compression algorithm is stored
+    ///   in the bit stream.
+    /// @tparam TValue     The integral type of array data to decompress.
+    /// @param  bitReader  A bit reader to read the data from.
+    /// @param  data       The array to decompress data to.
+    /// @param  algorithm  The algorithm to use for read back. Must only be given, in case
+    ///                    that compression was performed using a single algorithm of choice.
+    ///                    Defaults to \ref Algorithm::ALL.
+    /// @param  statistics An optional statistics record to store the measured de-compression
+    ///                    time. See method #Compress for more information.
+    template <typename TValue>
+    static
+    void                            Decompress( BitReader&      bitReader,
+                                                Array<TValue>&  data,
+                                                Algorithm       algorithm    = Algorithm::ALL,
+                                                Statistics*     statistics   = nullptr);
 
 ALIB_WARNINGS_RESTORE
 
@@ -436,7 +417,7 @@ ALIB_WARNINGS_RESTORE
 #endif
 ALIB_ENUMS_MAKE_BITWISE(  alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm )
 ALIB_ENUMS_MAKE_ITERABLE( alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm,
-                          alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm::END_OF_ENUM )
+                      alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm::END_OF_ENUM )
 
 
 #include "alib/bitbuffer/ac_v1/acalgos.inl.inl"
@@ -448,154 +429,142 @@ ALIB_EXPORT namespace alib {  namespace bitbuffer { namespace ac_v1 {
 #include "ALib.Lang.CIFunctions.H"
 template <typename TValue>
 std::pair<size_t, ArrayCompressor::Algorithm> ArrayCompressor::Compress(
-                                                    BitWriter&      bw,
-                                                    Array<TValue>&  data,
-                                                    Algorithm       algorithmsToTry,
-                                                    Statistics*     statistics          )
-{
-    ALIB_ASSERT_ERROR( data.length() * bitsof(TValue) < bw.RemainingSize(), "BITBUFFER/AC",
-        "BitBuffer is smaller than uncompressed data."
-        " No buffer overflow checks are performed during compression." )
-    ALIB_ASSERT_WARNING( data.length() * bitsof(TValue) * 2 < bw.RemainingSize(), "BITBUFFER/AC",
-        "BitBuffer remaining size should be twice as large as uncompressed data."
-        " No buffer overflow checks are performed during compression." )
+                                                BitWriter&      bw,
+                                                Array<TValue>&  data,
+                                                Algorithm       algorithmsToTry,
+                                                Statistics*     statistics          ) {
+ALIB_ASSERT_ERROR( data.length() * bitsof(TValue) < bw.RemainingSize(), "BITBUFFER/AC",
+    "BitBuffer is smaller than uncompressed data."
+    " No buffer overflow checks are performed during compression." )
+ALIB_ASSERT_WARNING( data.length() * bitsof(TValue) * 2 < bw.RemainingSize(), "BITBUFFER/AC",
+    "BitBuffer remaining size should be twice as large as uncompressed data."
+    " No buffer overflow checks are performed during compression." )
 
-    auto initialBufferState= bw.GetIndex();
-    auto initialBufferFill = bw.Usage();
-    int  multipleAlgorithms= CountElements(algorithmsToTry) > 1;
-    ALIB_ASSERT_ERROR(int(algorithmsToTry) != 0, "BITBUFFER/AC", "No algorithms to check given" )
+auto initialBufferState= bw.GetIndex();
+auto initialBufferFill = bw.Usage();
+int  multipleAlgorithms= CountElements(algorithmsToTry) > 1;
+ALIB_ASSERT_ERROR(int(algorithmsToTry) != 0, "BITBUFFER/AC", "No algorithms to check given" )
 
-    auto bestAlgo  = ArrayCompressor::Algorithm::NONE;
-    auto bestAlgoNo= (std::numeric_limits<int>::max)();
-    auto lastAlgo  = ArrayCompressor::Algorithm::NONE;
-    auto leastBits = (std::numeric_limits<size_t>::max)();
+auto bestAlgo  = ArrayCompressor::Algorithm::NONE;
+auto bestAlgoNo= (std::numeric_limits<int>::max)();
+auto lastAlgo  = ArrayCompressor::Algorithm::NONE;
+auto leastBits = (std::numeric_limits<size_t>::max)();
 
-    bool    isFirstAlgo = true;
-    int algoNo= -1;
-    for( ArrayCompressor::Algorithm algo :  enumops::EnumIterator<ArrayCompressor::Algorithm>() )
+bool    isFirstAlgo = true;
+int algoNo= -1;
+for( ArrayCompressor::Algorithm algo :  enumops::EnumIterator<ArrayCompressor::Algorithm>() ) {
+    algoNo++;
+
+    // included in write (test)?
+    if ( !HasBits(algorithmsToTry, algo ) )
+        continue;
+    if(!isFirstAlgo) {
+        bw.Reset(initialBufferState);
+    }
+    isFirstAlgo= false;
+
+    // write algo number
+    if( multipleAlgorithms )
+        bw.Write<3>( algoNo );
+        Ticks tm;
+    ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+    switch( lastAlgo= algo ) {
+        case Algorithm::Uncompressed: writeUncompressed(bw, data); break;
+        case Algorithm::MinMax:       writeMinMax      (bw, data); break;
+        case Algorithm::Sparse:       writeSparse      (bw, data); break;
+        case Algorithm::VerySparse:   writeVerySparse  (bw, data); break;
+        case Algorithm::Incremental:  writeIncremental (bw, data); break;
+        case Algorithm::Huffman:      writeHuffman     (bw, data); break;
+        default:  ALIB_ERROR("BITBUFFER/AC",
+                         "Internal error: Unknown compression algorithm number read")   break;
+    }
+    ALIB_WARNINGS_RESTORE
+    auto bufferFill= bw.Usage();
+
+    if( statistics ) {
+        statistics->writeTimes   [algoNo]+= tm.Age();
+        statistics->sumCompressed[algoNo]+= (bufferFill - initialBufferFill)/8;
+    }
+
+    ALIB_ASSERT_ERROR( bufferFill > initialBufferFill, "BITBUFFER/AC",
+                       "Array compression: Nothing written")
+    if( leastBits > bufferFill - initialBufferFill ) {
+        leastBits= bufferFill - initialBufferFill;
+        bestAlgo  = algo;
+        bestAlgoNo= algoNo;
+    }
+
+    // DEBUG-Test: Read back values right away and check for equal data
+    #if ALIB_DEBUG_ARRAY_COMPRESSION
     {
-        algoNo++;
-
-        // included in write (test)?
-        if ( !HasBits(algorithmsToTry, algo ) )
-            continue;
-        if(!isFirstAlgo)
-        {
-            bw.Reset(initialBufferState);
-        }
-        isFirstAlgo= false;
-
-        // write algo number
-        if( multipleAlgorithms )
-            bw.Write<3>( algoNo );
-            Ticks tm;
-        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
-        switch( lastAlgo= algo )
-        {
-            case Algorithm::Uncompressed: writeUncompressed(bw, data); break;
-            case Algorithm::MinMax:       writeMinMax      (bw, data); break;
-            case Algorithm::Sparse:       writeSparse      (bw, data); break;
-            case Algorithm::VerySparse:   writeVerySparse  (bw, data); break;
-            case Algorithm::Incremental:  writeIncremental (bw, data); break;
-            case Algorithm::Huffman:      writeHuffman     (bw, data); break;
-            default:  ALIB_ERROR("BITBUFFER/AC",
-                             "Internal error: Unknown compression algorithm number read")   break;
-        }
-        ALIB_WARNINGS_RESTORE
-        auto bufferFill= bw.Usage();
-
-        if( statistics )
-        {
-            statistics->writeTimes   [algoNo]+= tm.Age();
-            statistics->sumCompressed[algoNo]+= (bufferFill - initialBufferFill)/8;
+        bw.Flush();
+        BitReader br(bw.GetBuffer(), initialBufferState);
+        if( multipleAlgorithms ) {
+            auto readBackAlgo=  Algorithm( 1 << br.Read<3>() );
+            ALIB_ASSERT_ERROR( readBackAlgo == algo, "BITBUFFER/AC",
+                               "Wrong algorithm id was read back. This must never happen." )
         }
 
-        ALIB_ASSERT_ERROR( bufferFill > initialBufferFill, "BITBUFFER/AC",
-                           "Array compression: Nothing written")
-        if( leastBits > bufferFill - initialBufferFill )
-        {
-            leastBits= bufferFill - initialBufferFill;
-            bestAlgo  = algo;
-            bestAlgoNo= algoNo;
-        }
+        data.dbgIsCheckRead= true;
 
-        // DEBUG-Test: Read back values right away and check for equal data
-        #if ALIB_DEBUG_ARRAY_COMPRESSION
-        {
-            bw.Flush();
-            BitReader br(bw.GetBuffer(), initialBufferState);
-            if( multipleAlgorithms )
-            {
-                auto readBackAlgo=  Algorithm( 1 << br.Read<3>() );
-                ALIB_ASSERT_ERROR( readBackAlgo == algo, "BITBUFFER/AC",
-                                   "Wrong algorithm id was read back. This must never happen." )
+            ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+            switch( algo ) {
+                case Algorithm::Uncompressed:   readUncompressed(br, data ); break;
+                case Algorithm::MinMax:         readMinMax      (br, data ); break;
+                case Algorithm::Sparse:         readSparse      (br, data ); break;
+                case Algorithm::VerySparse:     readVerySparse  (br, data ); break;
+                case Algorithm::Incremental:    readIncremental (br, data ); break;
+                case Algorithm::Huffman:        readHuffman     (br, data ); break;
+                default:   ALIB_ERROR("BITBUFFER",
+                              "Internal error: Unknown compression algorithm number read")
+                           break;
             }
+            ALIB_WARNINGS_RESTORE
 
-            data.dbgIsCheckRead= true;
-
-                ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
-                switch( algo )
-                {
-                    case Algorithm::Uncompressed:   readUncompressed(br, data ); break;
-                    case Algorithm::MinMax:         readMinMax      (br, data ); break;
-                    case Algorithm::Sparse:         readSparse      (br, data ); break;
-                    case Algorithm::VerySparse:     readVerySparse  (br, data ); break;
-                    case Algorithm::Incremental:    readIncremental (br, data ); break;
-                    case Algorithm::Huffman:        readHuffman     (br, data ); break;
-                    default:   ALIB_ERROR("BITBUFFER",
-                                  "Internal error: Unknown compression algorithm number read")
-                               break;
-                }
-                ALIB_WARNINGS_RESTORE
-
-            data.dbgIsCheckRead= false;
-        }
-        #endif
-
-        if( !multipleAlgorithms )
-            break;
-    } // loop over algorithms
-
-    if( statistics )
-    {
-        statistics->ctdCompressions++;
-        statistics->sumUncompressed+= data.length() * sizeof(TValue);
-        statistics->ctdWins           [bestAlgoNo]++;
-        statistics->sumCompressedWon  [bestAlgoNo]+= leastBits/8;
-        statistics->sumUnCompressedWon[bestAlgoNo]+= data.length() * sizeof(TValue);
+        data.dbgIsCheckRead= false;
     }
+    #endif
+
+    if( !multipleAlgorithms )
+        break;
+} // loop over algorithms
+
+if( statistics ) {
+    statistics->ctdCompressions++;
+    statistics->sumUncompressed+= data.length() * sizeof(TValue);
+    statistics->ctdWins           [bestAlgoNo]++;
+    statistics->sumCompressedWon  [bestAlgoNo]+= leastBits/8;
+    statistics->sumUnCompressedWon[bestAlgoNo]+= data.length() * sizeof(TValue);
+}
 
 
-    // write with best algorithm found (if this was not the last one anyhow)
-    if( multipleAlgorithms && (bestAlgo != lastAlgo) )
-    {
-        bw.Reset( initialBufferState );
-        bw.Write<3>( bestAlgoNo );
-        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
-        switch( bestAlgo )
-        {
-            case Algorithm::Uncompressed: writeUncompressed(bw, data); break;
-            case Algorithm::MinMax:       writeMinMax      (bw, data); break;
-            case Algorithm::Sparse:       writeSparse      (bw, data); break;
-            case Algorithm::VerySparse:   writeVerySparse  (bw, data); break;
-            case Algorithm::Incremental:  writeIncremental (bw, data); break;
-            case Algorithm::Huffman:      writeHuffman     (bw, data); break;
-            default:  ALIB_ERROR("BITBUFFER/AC", "Internal error: Unknown compression "
-                                                 "algorithm number read")   break;
-        }
-        ALIB_WARNINGS_RESTORE
+// write with best algorithm found (if this was not the last one anyhow)
+if( multipleAlgorithms && (bestAlgo != lastAlgo) ) {
+    bw.Reset( initialBufferState );
+    bw.Write<3>( bestAlgoNo );
+    ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+    switch( bestAlgo ) {
+        case Algorithm::Uncompressed: writeUncompressed(bw, data); break;
+        case Algorithm::MinMax:       writeMinMax      (bw, data); break;
+        case Algorithm::Sparse:       writeSparse      (bw, data); break;
+        case Algorithm::VerySparse:   writeVerySparse  (bw, data); break;
+        case Algorithm::Incremental:  writeIncremental (bw, data); break;
+        case Algorithm::Huffman:      writeHuffman     (bw, data); break;
+        default:  ALIB_ERROR("BITBUFFER/AC", "Internal error: Unknown compression "
+                                             "algorithm number read")   break;
     }
+    ALIB_WARNINGS_RESTORE
+}
 
-    bw.Flush();
-    return std::make_pair( leastBits, bestAlgo );
+bw.Flush();
+return std::make_pair( leastBits, bestAlgo );
 }
 
 template <typename TValue>
 void ArrayCompressor::Decompress(   BitReader&      br,
                                     Array<TValue>&  data,
                                     Algorithm       algorithmsToTry,
-                                    Statistics*     statistics          )
-{
+                                    Statistics*     statistics          ) {
     ALIB_ASSERT_ERROR(algorithmsToTry != Algorithm::NONE, "BITBUFFER/AC",
                       "No algorithms to check given" )
     bool multipleAlgorithms= CountElements(algorithmsToTry) > 1;
@@ -604,8 +573,7 @@ void ArrayCompressor::Decompress(   BitReader&      br,
     auto algo=  multipleAlgorithms  ?  Algorithm( 1 << br.Read<3>() )
                                     :  algorithmsToTry;
     ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
-    switch( algo )
-    {
+    switch( algo ) {
         case Algorithm::Uncompressed:   readUncompressed(br, data ); break;
         case Algorithm::MinMax:         readMinMax      (br, data ); break;
         case Algorithm::Sparse:         readSparse      (br, data ); break;
@@ -617,16 +585,12 @@ void ArrayCompressor::Decompress(   BitReader&      br,
     }
     ALIB_WARNINGS_RESTORE
 
-    if( statistics )
-    {
+    if( statistics ) {
         auto algoNo= ToSequentialEnumeration( algo );
         statistics->readTimes[algoNo]+= tm.Age();
         statistics->ctdReads [algoNo]++;
-    }
-}
+}   }
 
 #include "ALib.Lang.CIMethods.H"
     
 }}} // namespace [alib::bitbuffer::ac_v1]
-
-

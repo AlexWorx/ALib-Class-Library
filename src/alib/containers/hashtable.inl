@@ -38,7 +38,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// In many cases, the use of one of these definitions is more convenient than instantiating this
 /// type directly. The meaning of these types is discussed in the next section.
 ///
-///  \I{#############################################################################################}
+/// \I{#############################################################################################}
 /// \anchor alib_ns_containers_hashtable_setandmap
 /// # 2. Hash Sets vs. Hash Maps#
 /// A <em>"hash set"</em> is commonly understood as a type that contains custom values of
@@ -81,11 +81,11 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// which enables the extraction of the key and mapped portions of the stored type.
 /// The following table summarizes this:
 ///
-///   Working Mode              | Type to Use                         |  Value Descriptor Type
-///  ---------------------------|-------------------------------------|-------------------------
-///  Hash Set                   |\alib{containers;HashSet} (A type definition on \b %HashTable)  | Automaticly chosen as built-in \alib{containers;TIdentDescriptor}
-///  Hash Map                   |\alib{containers;HashMap} (A type definition on \b %HashTable)  | Automaticly chosen as built-in \alib{containers;TPairDescriptor}
-///  Hash Set with embedded Key |\alib{containers;HashTable} (The original type)                 | A <b>custom type</b> has to be provided
+///  Working Mode              | Type to Use                         |  Value Descriptor Type
+/// ---------------------------|-------------------------------------|-------------------------
+/// Hash Set                   |\alib{containers;HashSet} (A type definition on \b %HashTable)  | Automaticly chosen as built-in \alib{containers;TIdentDescriptor}
+/// Hash Map                   |\alib{containers;HashMap} (A type definition on \b %HashTable)  | Automaticly chosen as built-in \alib{containers;TPairDescriptor}
+/// Hash Set with embedded Key |\alib{containers;HashTable} (The original type)                 | A <b>custom type</b> has to be provided
 ///
 /// \note The hash-table implementations of the standard C++ library do not support a similar
 ///       approach. While with the provision of customized hash- and comparison-functors, of course
@@ -154,7 +154,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// - #InsertIfNotExistent / #EmplaceIfNotExistent
 ///
 /// In contrast to this, methods #Insert and #Emplace (and their overloads) will insert
-/// an equal value without giving further notice (for example by providing a special return value
+/// an equal value without giving further notice (for example, by providing a special return value
 /// that indicates if the inserted key existed before).<br>
 /// Method #EraseUnique(const KeyType&) is more efficient than #erase(const KeyType&)
 /// and a further advantage is that it asserts (in debug-compilations) that not more than one
@@ -205,7 +205,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// elements to be inserted is known upfront, the use of method #Reserve, respectively
 /// #ReserveRecyclables is the preferred approach.
 ///
-///  \I{############################################################################################}
+/// \I{############################################################################################}
 /// \anchor alib_ns_containers_hashtable_iterators
 /// # 5. Iterators #
 /// ## 5.1 Iterator Types ##
@@ -284,7 +284,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// operations with the same key are performed. For example:
 /// - Insertions of multiple objects with the same key.
 /// - Insertions of an object into multiple hash tables.
-/// - Situations where the result of a find operation may may lead to further operations with the
+/// - Situations where the result of a find operation may lead to further operations with the
 ///   same object.
 ///
 ///\I{#############################################################################################}
@@ -335,7 +335,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// For advanced usage, it is advisable to fully understand the concept of monotonic allocation
 /// implemented with this module \alib_containers.
 ///
-///  \I{############################################################################################}
+/// \I{############################################################################################}
 /// \anchor alib_ns_containers_hashtable_comparison
 /// # 8. Comparison To Standard Library Hash-Types #
 /// In the previous sections, it was already referred several times to types
@@ -394,14 +394,15 @@ ALIB_EXPORT namespace alib { namespace containers {
 ///   instance to another).
 ///
 /// @see
-///  - Chapter \ref alib_contmono_containers_types of the joint Programmer's Manuals of modules
-///    \alib_containers and \alib_monomem.
-///  - Chapter \ref alib_threads_intro_assert_entry of the Programmer's Manual of module
-///    \alib_threads for information about debugging multithreaded access on instances of this type.
+///   - Chapter \ref alib_contmono_containers_types of the joint Programmer's Manuals of modules
+///     \alib_containers and \alib_monomem.
+///   - Chapter \ref alib_threads_intro_assert_entry of the Programmer's Manual of module
+///     \alib_threads for information about debugging multithreaded access on instances of this
+///     type.
 ///\I{#############################################################################################}
 /// \anchor alib_ns_containers_hashtable_referencedoc
 /// # Reference Documentation #
-/// @tparam TAllocator       The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator       The \alib{lang;Allocator;allocator type} to use.
 /// @tparam TValueDescriptor Defines the #StoredType, #KeyType and #MappedType. Furthermore has to
 ///                          proving methods that to extract key- and mapped values out of the
 ///                          stored type.<br>
@@ -435,7 +436,7 @@ template< typename      TAllocator,
           Recycling     TRecycling   = Recycling::Private >
 class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,THash,TEqual,THashCaching,TRecycling>
 {
-    public:
+  public:
     #if !DOXYGEN
         #if ALIB_DEBUG_CRITICAL_SECTIONS
             mutable lang::DbgCriticalSections   dcs;
@@ -461,9 +462,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
 
   public:
 
-    //##############################################################################################
-    // Types and Constants
-    //##############################################################################################
+  //################################################################################################
+  // Types and Constants
+  //################################################################################################
     /// Type definition publishing template parameter  \p{TAllocator}.
     using AllocatorType = TAllocator;
 
@@ -510,7 +511,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// Determines whether the used recycler type is in fact recycling elements.
     /// @return \c false if template parameter \p{TRecycling} equals
     ///         \alib{containers;Recycling;None}, \c true otherwise.
-    static constexpr bool IsRecycling()                    { return recyclerType::IsRecycling(); }
+    static constexpr bool IsRecycling()                      { return recyclerType::IsRecycling(); }
 
     /// Denotes whether hash codes are cached or not.
     static constexpr bool CachedHashCodes = base::Element::CachedHashCodes;
@@ -543,89 +544,78 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
             friend class HashTable;
         #endif
 
-        private:
-            HashTable*  table;     ///< The table we belong to.
-            Element*    element;   ///< The extracted element.
+      private:
+        HashTable*  table;     ///< The table we belong to.
+        Element*    element;   ///< The extracted element.
 
-            /// Constructor setting fields #table and #element.
-            /// @param pTable    The table we belong to.
-            /// @param pElement  The extracted element.
-            ElementHandle( HashTable*  pTable, Element* pElement )
-            : table  ( pTable   )
-            , element( pElement )
-            {}
+        /// Constructor setting fields #table and #element.
+        /// @param pTable    The table we belong to.
+        /// @param pElement  The extracted element.
+        ElementHandle( HashTable*  pTable, Element* pElement )
+        : table  ( pTable   )
+        , element( pElement )                                                                     {}
 
-        public:
-            /// Move constructor setting the moved object to emtpy.
-            /// @param other The handle to move.
-            ElementHandle( ElementHandle&& other )
-            : table  ( other.table     )
-            , element( other.element )
-            {
-                other.element= nullptr;
-            }
+      public:
+        /// Move constructor setting the moved object to emtpy.
+        /// @param other The handle to move.
+        ElementHandle( ElementHandle&& other )
+        : table  ( other.table     )
+        , element( other.element )                                       { other.element= nullptr; }
 
-            /// Default constructor creating and empty handle.
-            ElementHandle()
-            : element( nullptr )
-            {}
+        /// Default constructor creating and empty handle.
+        ElementHandle()
+        : element( nullptr )                                                                      {}
 
-            /// Deleted copy constructor.
-            ElementHandle( ElementHandle& other )                        = delete;
+        /// Deleted copy constructor.
+        ElementHandle( ElementHandle& other )                                               =delete;
 
-            /// Deleted copy assignment operator.
-            ElementHandle& operator=( const ElementHandle&  other )      = delete;
+        /// Deleted copy assignment operator.
+        ElementHandle& operator                      =( const ElementHandle&  other )       =delete;
 
-            /// Move assignment. Disposes any current content, and moves \p{other} into this.
-            /// @param other The handle to move into this object.
-            /// @return A reference to <c>this</c>.
-            ElementHandle& operator=(       ElementHandle&& other )
-            {
-                if( element != nullptr )
-                    table->recyclerType::Recycle(element);
-                table  = other.table;
-                element= other.element;
-                other.element= nullptr;
+        /// Move assignment. Disposes any current content, and moves \p{other} into this.
+        /// @param other The handle to move into this object.
+        /// @return A reference to <c>this</c>.
+        ElementHandle& operator=(       ElementHandle&& other ) {
+            if( element != nullptr )
+                table->recyclerType::Recycle(element);
+            table  = other.table;
+            element= other.element;
+            other.element= nullptr;
 
-                return *this;
-            }
+            return *this;
+        }
 
-            /// Destructor. If this handle is not empty, the allocated storage of the
-            /// represented element is added to the list of recyclable objects.
-            ~ElementHandle()
-            {
-                if( element != nullptr )
-                    table->recyclerType::Recycle(element);
-            }
+        /// Destructor. If this handle is not empty, the allocated storage of the
+        /// represented element is added to the list of recyclable objects.
+        ~ElementHandle()         { if( element != nullptr ) table->recyclerType::Recycle(element); }
 
-            /// Determines if this is a "valid" handle.
-            /// @return Returns \c true if this objects represents a valid element, \c false
-            ///        otherwise.
-            bool        IsEmpty()       const   { return element == nullptr;    }
+        /// Determines if this is a "valid" handle.
+        /// @return Returns \c true if this objects represents a valid element, \c false
+        ///        otherwise.
+        bool        IsEmpty()                                   const { return element == nullptr; }
 
-            /// Returns a mutable reference to this element's data.
-            /// Must not be invoked on empty instances.
-            /// @return Returns a mutable reference to value of the represented element.
-            StoredType& Value  ()       const   { return element->value;    }
+        /// Returns a mutable reference to this element's data.
+        /// Must not be invoked on empty instances.
+        /// @return Returns a mutable reference to value of the represented element.
+        StoredType& Value  ()                                       const { return element->value; }
 
-            /// Returns a mutable reference to the <em>key-portion</em> of this element's data.
-            /// Must not be invoked on empty instances.
-            /// @return Returns a mutable reference to the <em>key-portion</em> of the represented
-            ///         element.
-            KeyType&    Key    ()       const   { return TValueDescriptor().Key( element->value ); }
+        /// Returns a mutable reference to the <em>key-portion</em> of this element's data.
+        /// Must not be invoked on empty instances.
+        /// @return Returns a mutable reference to the <em>key-portion</em> of the represented
+        ///         element.
+        KeyType&    Key    ()             const { return TValueDescriptor().Key( element->value ); }
 
-            /// Returns a mutable reference to the <em>mapped-portion</em> of this element's data.
-            /// Must not be invoked on empty instances.
-            /// @return Returns a mutable reference to the mapped object.
-            MappedType& Mapped ()       const   { return TValueDescriptor().Mapped( element->value );   }
+        /// Returns a mutable reference to the <em>mapped-portion</em> of this element's data.
+        /// Must not be invoked on empty instances.
+        /// @return Returns a mutable reference to the mapped object.
+        MappedType& Mapped ()          const { return TValueDescriptor().Mapped( element->value ); }
 
     }; // class ElementHandle
 
-    //##############################################################################################
-    // Construction/Destruction And Allocator Access
-    //##############################################################################################
+  //################################################################################################
+  // Construction/Destruction And Allocator Access
+  //################################################################################################
 
-    //==============================================================================================
     /// Constructor.
     /// \note
     ///   This constructor is not available if the template argument \p{TRecycling} equals
@@ -635,7 +625,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  pAllocator       The allocator to use.
     /// @param  pBaseLoadFactor  The base load factor. Defaults to <c>1.0</c>.
     /// @param  pMaxLoadFactor   The maximum load factor. Defaults to <c>2.0</c>.
-    //==============================================================================================
     template<bool TRequires= TRecycling!= Recycling::Shared>
     requires TRequires
     explicit
@@ -648,7 +637,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     #endif
     {}
 
-    //==============================================================================================
     /// Constructor.
     /// \note
     ///   This constructor is not available if the template argument \p{TRecycling} equals
@@ -659,7 +647,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @tparam TRequires        Defaulted template parameter. Must not be specified.
     /// @param  pBaseLoadFactor  The base load factor. Defaults to <c>1.0</c>.
     /// @param  pMaxLoadFactor   The maximum load factor. Defaults to <c>2.0</c>.
-    //==============================================================================================
     template<bool TRequires= TRecycling!= Recycling::Shared>
     requires TRequires
     explicit
@@ -672,7 +659,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     {}
 
 
-    //==============================================================================================
     /// Constructor taking a shared recycler.
     /// @param pAllocator       The allocator to use.
     /// @param pSharedRecycler  The shared recycler.
@@ -681,7 +667,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param pMaxLoadFactor   The maximum load factor. See method #MaxLoadFactor for details.
     ///                         Defaults to <c>2.0</c>.
     /// @tparam TSharedRecycler  Used to select this constructor. Deduced by the compiler.
-    //==============================================================================================
     template<typename TSharedRecycler= SharedRecyclerType>
     requires (!std::same_as<TSharedRecycler, void>)
     HashTable( AllocatorType&    pAllocator,
@@ -694,7 +679,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     #endif
     {}
 
-    //==============================================================================================
     /// Constructor taking a shared recycler.
     /// @param pSharedRecycler  The shared recycler.
     /// @param pBaseLoadFactor  The base load factor. See method #BaseLoadFactor for details.
@@ -702,7 +686,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param pMaxLoadFactor   The maximum load factor. See method #MaxLoadFactor for details.
     ///                         Defaults to <c>2.0</c>.
     /// @tparam TSharedRecycler  Used to select this constructor. Deduced by the compiler.
-    //==============================================================================================
     template<typename TSharedRecycler= SharedRecyclerType>
     requires (!std::same_as<TSharedRecycler, void>)
     HashTable( TSharedRecycler&  pSharedRecycler,
@@ -714,29 +697,23 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     #endif
     {}
 
-    //==============================================================================================
     /// Returns the allocator of this object. Usually the allocator might be used to perform
     /// allocations in respect to data found in objects stored in this object.
     /// However, such allowance is dependent on the use case and not part of this class's
     /// contract.
     ///
     /// @return The allocator that was provided in the constructor.
-    //==============================================================================================
-    AllocatorType&  GetAllocator()                                                          noexcept
-    { return base::base::GetAllocator();  }
+    AllocatorType&  GetAllocator()                   noexcept { return base::base::GetAllocator(); }
 
 
     //##############################################################################################
     /// @name Size and Capacity
     //##############################################################################################
 
-    //==============================================================================================
     /// Destructs and removes all elements from this hash table. The allocated space
     /// of the elements will be preserved and "recycled" with future insertions.
-    //==============================================================================================
-    void            Clear()                                 { DCS base::clear(); }
+    void            Clear()                                                   { DCS base::clear(); }
 
-    //==============================================================================================
     /// Same as clear, but does not recycle internal nodes. Furthermore, all recyclables
     /// are deleted. The latter is done only if template parameter \p{TRecycling} is not
     /// \alib{containers;Recycling;Shared}. In this case, the elements are still recycled.
@@ -751,9 +728,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// - Create a snapshot of the \b MonoAllocator.
     /// - Use the \b HashTable.
     /// - Reset the \b HashTable and right afterwards the \b MonoAllocator to the snapeshot taken.
-    //==============================================================================================
-    void            Reset()
-    {
+    void            Reset() {
         recyclerType oldRecycler(*this);
         auto   baseLoadFactor = base::baseLoadFactor;
         auto   maxLoadFactor  = base::maxLoadFactor ;
@@ -769,31 +744,23 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// Returns the number of stored elements. Note that this method runs in constant time, as
     /// the number of elements is kept counted during operation.
     /// @return The number of elements stored in the hash table.
-    integer         Size()                                                            const noexcept
-    { return base::size; }
+    integer         Size()                                     const noexcept { return base::size; }
 
-    //==============================================================================================
     /// Invokes #Size and compares result with \c 0.
     /// @return \c true if this list is empty, \c false otherwise.
-    //==============================================================================================
-    bool            IsEmpty()                                                         const noexcept
-    { return base::size == 0; }
+    bool            IsEmpty()                             const noexcept { return base::size == 0; }
 
-    //==============================================================================================
     /// Reserves space for at least the given number of elements.
     /// This might re-hash this table.
     /// \see Method #ReserveRecyclables.
     /// @param qty       The expected number or increase of elements to be stored in the hash table.
     /// @param reference Denotes whether \p{expected} is meant as an absolute size or an increase.
-    //==============================================================================================
-    void            Reserve( integer qty, lang::ValueReference reference )
-    {DCS
+    void            Reserve( integer qty, lang::ValueReference reference )                      {DCS
         float expectedSize= float(  qty +  (reference == lang::ValueReference::Relative ? Size()
                                                                                         : 0     ) );
         return base::rehash( uinteger(std::ceil(  expectedSize / base::baseLoadFactor)) );
     }
 
-    //==============================================================================================
     /// Same as #Reserve but in addition also already allocates the required space for the number
     /// of additional elements expected.
     ///
@@ -804,9 +771,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///                  this container.
     /// @param reference Denotes whether \p{qty} is meant as an absolute size or an
     ///                  increase.
-    //==============================================================================================
-    void            ReserveRecyclables( integer qty, lang::ValueReference reference )
-    {
+    void            ReserveRecyclables( integer qty, lang::ValueReference reference ) {
         Reserve( qty, reference );
         {DCS
             auto requiredRecyclables= ( qty - (reference == lang::ValueReference::Absolute ? Size()
@@ -814,10 +779,8 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
                                             - base::recyclerType::Count();
             if( requiredRecyclables > 0 )
                 recyclerType::Reserve( requiredRecyclables );
-        }
-    }
+    }   }
 
-    //==============================================================================================
     /// Counts the number of currently allocated but unused (not contained) element nodes
     /// that will be recycled with upcoming insertions.
     ///
@@ -828,7 +791,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   that specify template parameter \p{TRecycling} as \alib{containers;Recycling;None}.
     ///
     /// @return The number of removed and not yet recycled elements.
-    //==============================================================================================
     integer         RecyclablesCount()                                                const noexcept
     {DCSSHRD   return base::recyclerType::Count(); }
 
@@ -836,7 +798,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @name Hash Policy
     //##############################################################################################
 
-    //==============================================================================================
     /// Sets a new value for the "base load factor" used with this container.
     /// The base load factor determines the minimum number of buckets
     /// when re-hashing is performed.
@@ -856,11 +817,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   \ref alib_ns_containers_hashtable_rehashing "4. Re-Hashing".
     ///
     /// @param newBaseLoadFactor The new base load factor to use when a rehash is performed.
-    //==============================================================================================
     void            BaseLoadFactor( float newBaseLoadFactor )                               noexcept
     { base::baseLoadFactor= newBaseLoadFactor; }
 
-    //==============================================================================================
     /// Returns the actual base load factor.
     ///
     /// \see
@@ -868,12 +827,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   \ref alib_ns_containers_hashtable_rehashing "4. Re-Hashing".
     ///
     /// @return The current value of the base load factor.
-    //==============================================================================================
-    float           BaseLoadFactor()                                                  const noexcept
-    { return base::baseLoadFactor; }
+    float           BaseLoadFactor()                 const noexcept { return base::baseLoadFactor; }
 
 
-    //==============================================================================================
     /// Sets a new value for the "maximum load factor" which is the average number of elements
     /// per bucket.
     ///
@@ -892,11 +848,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   \ref alib_ns_containers_hashtable_rehashing "4. Re-Hashing".
     ///
     /// @param newMaxLoadFactor The maximum load factor used to determine the need of re-hashing.
-    //==============================================================================================
     void            MaxLoadFactor( float newMaxLoadFactor )                                 noexcept
     { base::setMaxLoadFactor( newMaxLoadFactor ); }
 
-    //==============================================================================================
     /// Returns the actual maximum load factor.
     ///
     /// \see
@@ -904,57 +858,44 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   \ref alib_ns_containers_hashtable_rehashing "4. Re-Hashing".
     ///
     /// @return The current value of the maximum load factor.
-    //==============================================================================================
-    float          MaxLoadFactor()                                                    const noexcept
-    { return base::maxLoadFactor; }
+    float          MaxLoadFactor()                    const noexcept { return base::maxLoadFactor; }
 
     //##############################################################################################
     /// @name Bucket Interface
     //##############################################################################################
 
-    //==============================================================================================
     /// Returns the number of "buckets" that this hash table currently uses.
     ///
     /// @return The size of the array of hash buckets.
-    //==============================================================================================
-    uinteger        BucketCount()                                                     const noexcept
-    { return base::bucketCount; }
+    uinteger        BucketCount()                       const noexcept { return base::bucketCount; }
 
-    //==============================================================================================
     /// Returns the number of entries stored in the bucket with the given number.
     ///
     /// @param bucketNumber  The number of the bucket to receive the size for.
     /// @return The number of entries in the specified bucket.
-    //==============================================================================================
-    uinteger        BucketSize( uinteger bucketNumber )                               const noexcept
-    {DCSSHRD
+    uinteger        BucketSize( uinteger bucketNumber )                      const noexcept {DCSSHRD
         ALIB_ASSERT_ERROR(  bucketNumber <  base::bucketCount, "MONOMEM/HASHTABLE",
                     "Bucket number out of range. {}>={}", bucketNumber, base::bucketCount )
         return uinteger(base::buckets[bucketNumber].count());
     }
 
-    //==============================================================================================
     /// Returns the number of the bucket corresponding to \p{key}.
     ///
     /// @param key  The key to evaluate the bucket number for.
     /// @return The bucket number that \p{key} is assigned to.
-    //==============================================================================================
     uinteger        BucketNumber( const KeyType& key )                                const noexcept
     { return THash{}(key) % base::bucketCount; }
 
     //##############################################################################################
     /// @name Element Insertion
     //##############################################################################################
-    //==============================================================================================
     /// See #Insert(StoredType&&) which is invoked with a copy of \p{value}.
     ///
     /// @param  value   A value to copy and insert.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        Insert( const StoredType& value)
-    { return Insert( value, THash{}( TValueDescriptor().Key( reinterpret_cast<StoredType&>(value)) ) ); }
+    { return Insert(value, THash{}(TValueDescriptor().Key(reinterpret_cast<StoredType&>(value)))); }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;Insert(const StoredType&)} which
     /// accepts the \p{hashCode} of the given \p{value} as a second parameter.
     ///
@@ -964,11 +905,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  value    A value to copy and insert.
     /// @param  hashCode Pre-calculated hash code of \p{value}.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        Insert( const StoredType& value, size_t hashCode )
     { return Insert(value, hashCode ); }
 
-    //==============================================================================================
     /// Moves the given value into this table.<br>
     /// Existing iterators remain valid.
     ///
@@ -981,14 +920,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///
     /// @param  value   A rvalue reference of contained type \p{StoredType} to insert.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        Insert( StoredType&& value )
     {
         auto   hashCode = THash{}( TValueDescriptor().Key( reinterpret_cast<StoredType&>(value)) );
         return Insert( std::move(value), hashCode );
     }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;Insert(StoredType&&)} which
     /// accepts the \p{hashCode} of the given \p{value} as a second parameter.
     ///
@@ -998,9 +935,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  value    An rvalue reference of contained type \p{StoredType} to insert.
     /// @param  hashCode Pre-calculated hash code of \p{value}.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
-    Iterator        Insert( StoredType&& value, size_t hashCode )
-    {DCS
+    Iterator        Insert( StoredType&& value, size_t hashCode )                               {DCS
         // Recycle node or create a new one
         Element* element= base::allocElement(hashCode);
 
@@ -1013,7 +948,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return Iterator( this, bucketIdx, element);
     }
 
-    //==============================================================================================
     /// Inserts the element contained in the given \alib{containers::HashTable;ElementHandle}
     /// into the hash table.
     ///
@@ -1033,9 +967,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  handle   A reference to a handle to an element,  previously received with #Extract.
     /// @return On success, returns an iterator that refers to the inserted element.
     ///         On failure (if parameter \p{handle} was empty), the returned iterator equals #end.
-    //==============================================================================================
-    Iterator        Insert( ElementHandle& handle )
-    {DCS
+    Iterator        Insert( ElementHandle& handle )                                             {DCS
         if( handle.IsEmpty() )
             return end();
 
@@ -1048,17 +980,14 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return Iterator( this, bucketIdx, element );
     }
 
-    //==============================================================================================
     /// See #InsertUnique(StoredType&&) which is invoked with a copy of \p{value}.
     ///
     /// @param  value   An element to insert whose <em>key-portion</em> has to be different to
     ///                 all currently contained elements.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        InsertUnique( const StoredType& value )
     { return InsertUnique(std::move(StoredType( value )) ); }
 
-    //==============================================================================================
     /// Overloaded version of method
     /// \alib{containers::HashTable;InsertUnique(const StoredType&)} which accepts the
     /// \p{hashCode} of the given \p{key} as a second parameter.
@@ -1070,11 +999,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///                  all currently contained elements.
     /// @param  hashCode Pre-calculated hash code of \p{value}.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        InsertUnique( const StoredType& value, size_t hashCode )
     { return InsertUnique( StoredType( value ), hashCode ); }
 
-    //==============================================================================================
     /// Moves the given value into this table without checking to place it in the right
     /// position in respect to existing elements with the same <em>key-portion</em>.
     ///
@@ -1086,7 +1013,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   after the operation. I.e., method #EqualRange will discontinue to function properly.
     ///
     /// \attention
-    ///   In debug-compilations, an \alib assertion is raised, if an equal element exists.
+    ///   In debug-compilations an \alib_assertion is raised if an equal element exists.
     ///   For this reason, performance differences to method #Insert will be seen only with
     ///   release-compilations.
     ///
@@ -1099,14 +1026,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  value   An element to insert whose <em>key-portion</em> has to be different to
     ///                 all currently contained elements.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     Iterator        InsertUnique(StoredType&& value)
     {
         auto   hashCode = THash{}( TValueDescriptor().Key( reinterpret_cast<StoredType&>(value)) );
         return InsertUnique(std::move(value), hashCode );
     }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;InsertUnique(StoredType&&)}
     /// which accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1117,9 +1042,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///                  all currently contained elements.
     /// @param  hashCode Pre-calculated hash code of \p{value}.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
-    Iterator        InsertUnique( StoredType&& value, size_t hashCode )
-    {DCS
+    Iterator        InsertUnique( StoredType&& value, size_t hashCode )                         {DCS
         Element* element  = base::allocElement( hashCode );
 
         base::increaseSize( 1 );
@@ -1132,8 +1055,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
             //Check that this was the first of
             auto it= ConstLocalIterator( bucketIdx, base::buckets[bucketIdx].first() ); // cbegin(bucketIdx);
             ALIB_ASSERT( it.element == element, "MONOMEM/HASHTABLE" ) // has to be the first inserted
-            while( ++it != cend(bucketIdx) )
-            {
+            while( ++it != cend(bucketIdx) ) {
                 ALIB_ASSERT_ERROR( !base::areEqual(element, it.element ), "MONOMEM/HASHTABLE",
                      "InsertUnique used while element with same key-portion existed!" )
             }
@@ -1143,7 +1065,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     }
 
 
-    //==============================================================================================
     /// See #InsertOrAssign(const KeyType&, MappedType&&) which is invoked with a copy of \p{mapped}.
     ///
     /// \par Availability
@@ -1158,13 +1079,11 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referencing the element added.
     ///         The bool component is \c true if the insertion took place and \c false if the
     ///         assignment took place.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool> InsertOrAssign( const KeyType& key, const MappedType& mapped)
     { return InsertOrAssign( key, MappedType(mapped) );  }
 
-    //==============================================================================================
     /// Replaces an existing, respectively inserts a new element into this hash table.
     ///
     /// \note
@@ -1185,16 +1104,14 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referring to the element added.
     ///         The bool component is \c true if the insertion took place and \c false if the
     ///         assignment took place.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool>  InsertOrAssign( const KeyType& key, MappedType&& mapped )
     { return InsertOrAssign( key, std::move(mapped), THash{}(key) ); }
 
-    //==============================================================================================
     /// Overloaded version of method
     /// \alib{containers::HashTable;InsertOrAssign(const KeyType&; MappedType&&)} which
-    /// accepts the \p{hashCode} of the given \p{key} as a third  parameter.
+    /// accepts the \p{hashCode} of the given \p{key} as a third parameter.
     ///
     /// @see Use cases of this method are discussed in reference documentation section
     ///      \ref alib_ns_containers_hashtable_hashprecalc "6.2 Hash Code Pre-calculation".
@@ -1212,7 +1129,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referring to the element added.
     ///         The bool component is \c true if the insertion took place and \c false if the
     ///         assignment took place.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool> InsertOrAssign( const KeyType& key, MappedType&& mapped, size_t hashCode )
@@ -1233,7 +1149,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return result;
     }
 
-    //==============================================================================================
     /// See #InsertIfNotExistent(const KeyType&, MappedType&&) which is invoked with a copy of
     /// \p{mapped}.
     ///
@@ -1249,13 +1164,11 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referencing either the element found or the new
     ///         element added. The bool component is \c true if the insertion took place and \c false
     ///         if nothing was changed.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool> InsertIfNotExistent( const KeyType& key, const MappedType& mapped)
     { return InsertIfNotExistent( key, MappedType(mapped) );  }
 
-    //==============================================================================================
     /// Overloaded version of method
     /// \alib{containers::HashTable;InsertIfNotExistent(const KeyType&,MappedType&&)} which
     /// accepts the \p{hashCode} of the given \p{key} as a third parameter.
@@ -1276,7 +1189,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referencing either the element found or the new
     ///         element added. The bool component is \c true if the insertion took place and \c false
     ///         if nothing was changed.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool> InsertIfNotExistent( const KeyType& key, MappedType&& mapped, size_t hashCode)
@@ -1297,7 +1209,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return result;
     }
 
-    //==============================================================================================
     /// Inserts a new mapped object only if no other object is contained that is associated
     /// already with the same key as given \p{key}.
     ///
@@ -1319,24 +1230,20 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @return A pair containing an iterator referencing either the element found or the new
     ///         element added. The bool component is \c true if the insertion took place and \c false
     ///         if nothing was changed.
-    //==============================================================================================
     template<typename TRequires= MappedType>
     requires(!std::same_as<TRequires, StoredType>)
     std::pair<Iterator, bool> InsertIfNotExistent( const KeyType& key, MappedType&& mapped)
     { return InsertIfNotExistent( key, std::move(mapped), THash{}(key) ); }
 
-    //==============================================================================================
     /// See #InsertIfNotExistent(StoredType&&) which is invoked with a copy of \p{value}.
     ///
     /// @param  value    The value to copy and insert.
     /// @return A pair containing an iterator referencing either the element found or the new
     ///         element added. The bool component is \c true if the insertion took place and \c false
     ///         if nothing was changed.
-    //==============================================================================================
     std::pair<Iterator, bool>    InsertIfNotExistent( const StoredType& value )
     { return InsertIfNotExistent( StoredType(value) ); }
 
-    //==============================================================================================
     /// Inserts a new mapped object only if no other object is contained that is associated
     /// already with the same key as given \p{key}.
     ///
@@ -1351,14 +1258,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         element added.
     ///         The bool component is \c true if the insertion took place and \c false if nothing
     ///         was changed.
-    //==============================================================================================
     std::pair<Iterator, bool>    InsertIfNotExistent( StoredType&& value )
     {
         auto hashCode=  THash{}( TValueDescriptor().Key(value) );
         return InsertIfNotExistent(std::move(value), hashCode);
     }
 
-    //==============================================================================================
     /// Overloaded version of method
     /// \alib{containers::HashTable;InsertIfNotExistent(StoredType&&)} which accepts the
     /// \p{hashCode} of the given \p{key} as a second parameter.
@@ -1372,9 +1277,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         element added.
     ///         The bool component is \c true if the insertion took place and \c false if nothing
     ///         was changed.
-    //==============================================================================================
-    std::pair<Iterator, bool>    InsertIfNotExistent( StoredType&& value, size_t hashCode )
-    {DCS
+    std::pair<Iterator, bool>    InsertIfNotExistent( StoredType&& value, size_t hashCode )     {DCS
         // search element
         std::pair<Iterator, bool> result= base::insertIfNotExists( TValueDescriptor().Key(value), hashCode );
 
@@ -1388,7 +1291,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return result;
     }
 
-    //==============================================================================================
     /// Inserts the element contained in the given \alib{containers::HashTable;ElementHandle} into
     /// this table, if no equal element exists. In the unsuccessful case, the given
     /// \b %ElementHandle remains set and can be reused.<br>
@@ -1414,9 +1316,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         element is returned and the given \p{handle} is emptied.<br>
     ///         If an equal element existed, the returned iterator refers to the existing element
     ///         and the \p{handle} remains set (not empty).
-    //==============================================================================================
-    Iterator    InsertIfNotExistent( ElementHandle& handle )
-    {DCS
+    Iterator    InsertIfNotExistent( ElementHandle& handle )                                    {DCS
         if( handle.IsEmpty() )
             return Iterator( this, base::bucketCount, nullptr ); //end();
 
@@ -1436,7 +1336,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return Iterator( this, bucketIdx, element);
     }
 
-    //==============================================================================================
     /// Constructs a new element within this container.
     ///
     /// \note
@@ -1450,10 +1349,8 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  args   Variadic parameters to be forwarded to the constructor of the inserted
     ///                instance of type #StoredType.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     template<typename... TArgs>
-    Iterator        Emplace( TArgs&&... args )
-    {DCS
+    Iterator        Emplace( TArgs&&... args )                                                  {DCS
         // Recycle node or create a new one
         Element* element= base::allocElement( 0 );
 
@@ -1470,7 +1367,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return Iterator( this, bucketIdx, element);
     }
 
-    //==============================================================================================
     /// Constructs a value within this container without checking to place it in the right
     /// position in respect to existing elements with the same <em>key-portion</em>.
     ///
@@ -1482,7 +1378,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///   after the operation. I.e., method #EqualRange will discontinue to function properly.
     ///
     /// \attention
-    ///   In debug-compilations, an \alib assertion is raised, if an equal element exists.
+    ///   In debug-compilations, an \alib_assertion is raised if an equal element exists.
     ///   For this reason, performance differences to method #Insert will be seen only with
     ///   release-compilations.
     ///
@@ -1496,10 +1392,8 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///                element to insert whose <em>key-portion</em> has to be different to
     ///                all currently contained elements.
     /// @return An iterator referring to the element added.
-    //==============================================================================================
     template<typename... TArgs>
-    Iterator        EmplaceUnique( TArgs&&... args )
-    {DCS
+    Iterator        EmplaceUnique( TArgs&&... args )                                            {DCS
         // Recycle node or create a new one
         Element* element= base::allocElement(0);
 
@@ -1562,8 +1456,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
 #else
     template<typename TRequires= MappedType, typename... TArgs>
     requires(!std::same_as<TRequires, StoredType>)
-    std::pair<Iterator, bool> EmplaceOrAssign( const KeyType& key, TArgs&&... args)
-    {DCS
+    std::pair<Iterator, bool> EmplaceOrAssign( const KeyType& key, TArgs&&... args)             {DCS
         // insert to hash table
         std::pair<Iterator, bool> result= base::insertOrGet( key, THash{}(key) );
 
@@ -1587,8 +1480,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
               && std::is_constructible< StoredType,
                                         const KeyType&,
                                         TArgs&&...     >::value )
-    std::pair<Iterator, bool> EmplaceOrAssign( const KeyType& key, TArgs&&... args)
-    {DCS
+    std::pair<Iterator, bool> EmplaceOrAssign( const KeyType& key, TArgs&&... args)             {DCS
         // insert to hash table
         std::pair<Iterator, bool> result= base::insertOrGet( key, THash{}(key) );
 
@@ -1603,7 +1495,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     }
 #endif
 
-    //==============================================================================================
     /// Inserts a new element only if no other element is contained equals to the one
     /// that is constructed by \p{args}.
     ///
@@ -1640,17 +1531,15 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         element added.
     ///         The bool component is \c true if the insertion took place and \c false nothing
     ///         was changed.
-    //==============================================================================================
     template<typename TRequires= MappedType, typename... TArgs>
     requires (     std::same_as<TRequires, StoredType>
                 && std::is_move_constructible<StoredType>::value )
-    std::pair<Iterator, bool> EmplaceIfNotExistent( TArgs&&... args)
-    {DCS
+    std::pair<Iterator, bool> EmplaceIfNotExistent( TArgs&&... args)                            {DCS
         StoredType value( std::forward<TArgs>( args)... );
 
         // search element
         std::pair<Iterator, bool> result= base::insertIfNotExists( TValueDescriptor().Key(value),
-                                                                   THash{}(TValueDescriptor().Key(value)) );
+                                                           THash{}(TValueDescriptor().Key(value)) );
 
         // existed? Do nothing
         if( result.second == false )
@@ -1694,8 +1583,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
 #else
     template<typename... TArgs>
     requires( !std::is_constructible< StoredType, const KeyType&, TArgs&&...     >::value )
-    std::pair<Iterator, bool> EmplaceIfNotExistent( const KeyType& key, TArgs&&... args)
-    {DCS
+    std::pair<Iterator, bool> EmplaceIfNotExistent( const KeyType& key, TArgs&&... args)        {DCS
         // search element
         std::pair<Iterator, bool> result= base::insertIfNotExists( key, THash{}(key) );
 
@@ -1714,8 +1602,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
 
     template<typename... TArgs>
     requires(std::is_constructible< StoredType, const KeyType&, TArgs&&...>::value )
-    std::pair<Iterator, bool> EmplaceIfNotExistent( const KeyType& key, TArgs&&... args)
-    {DCS
+    std::pair<Iterator, bool> EmplaceIfNotExistent( const KeyType& key, TArgs&&... args)        {DCS
         // search element
         std::pair<Iterator, bool> result= base::insertIfNotExists( key, THash{}(key) );
 
@@ -1733,7 +1620,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     //##############################################################################################
     /// @name Element Search
     //##############################################################################################
-    //==============================================================================================
     /// Returns an iterator pointing to the first element of equal key value.
     ///
     /// \note
@@ -1749,30 +1635,24 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  key   The key to search for.
     /// @return An iterator pointing to the first element found with equal <em>key-portion</em>,
     ///         respectively, one being equal to #end, if no element was found with \p{key}.
-    //==============================================================================================
-    Iterator        Find( const KeyType& key )
-    {DCSSHRD
+    Iterator        Find( const KeyType& key )                                              {DCSSHRD
         auto     hashCode = THash{}(key);
         auto     bucketIdx= hashCode % base::bucketCount;
         Element* elem     = base::findElement( bucketIdx, key, hashCode );
         return Iterator( this, elem == nullptr ? base::bucketCount : bucketIdx, elem );
     }
 
-    //==============================================================================================
     /// Searches an element.
     /// @param  key   The key to search for.
     /// @return An iterator pointing to the first element found with equal <em>key-portion</em>,
     ///         respectively, one being equal to #end, if no element was found with \p{key}.
-    //==============================================================================================
-    ConstIterator   Find( const KeyType& key )                                                 const
-    {DCSSHRD
+    ConstIterator   Find( const KeyType& key )                                        const {DCSSHRD
         auto     hashCode = THash{}(key);
         auto     bucketIdx= hashCode % base::bucketCount;
         Element* elem     = base::findElement( bucketIdx, key, hashCode );
         return ConstIterator( this, elem == nullptr ? base::bucketCount : bucketIdx, elem );
     }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;Find(const KeyType&)} which
     /// accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1783,15 +1663,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  hashCode Pre-calculated hash code of \p{key}.
     /// @return An iterator pointing to the first element found with equal <em>key-portion</em>,
     ///         respectively, one being equal to #end, if no element was found with \p{key}.
-    //==============================================================================================
-    Iterator        Find( const KeyType& key, size_t hashCode )
-    {DCSSHRD
+    Iterator        Find( const KeyType& key, size_t hashCode )                             {DCSSHRD
         auto     bucketIdx= hashCode % base::bucketCount;
         Element* elem     = base::findElement( bucketIdx, key, hashCode );
         return Iterator( this, elem == nullptr ? base::bucketCount : bucketIdx, elem );
     }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;Find(const KeyType&)const} which
     /// accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1802,28 +1679,22 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  hashCode Pre-calculated hash code of \p{key}.
     /// @return An iterator pointing to the first element found with equal <em>key-portion</em>,
     ///         respectively, one being equal to #end, if no element was found with \p{key}.
-    //==============================================================================================
-    ConstIterator   Find( const KeyType& key, size_t hashCode )                                const
-    {DCSSHRD
+    ConstIterator   Find( const KeyType& key, size_t hashCode )                       const {DCSSHRD
         auto     bucketIdx= hashCode % base::bucketCount;
         Element* elem     = base::findElement( bucketIdx, key, hashCode );
         return ConstIterator( this, elem == nullptr ? base::bucketCount : bucketIdx, elem );
     }
 
-    //==============================================================================================
     /// Tests if an element with given \p{key} is stored in this container.
     /// @param  key   The key to search for.
     /// @return \c true if this hash table contains at least one element with given
     ///         <em>key-portion</em> \p{key}, \c false otherwise.
-    //==============================================================================================
-    bool            Contains( const KeyType& key )                                             const
-    {DCSSHRD
+    bool            Contains( const KeyType& key )                                    const {DCSSHRD
         auto hashCode= THash{}(key);
         return  base::findElement(hashCode % base::bucketCount, key, hashCode )
                 != nullptr;
     }
 
-    //==============================================================================================
     /// Searches a key and returns a pair of iterators. The first is pointing to the first
     /// element of the range, the second is pointing to the first element past the range.
     ///
@@ -1831,11 +1702,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///
     /// @param  key   The key to search for.
     /// @return A pair of iterators defining the range of elements with key \p{key}.
-    //==============================================================================================
     std::pair<Iterator,Iterator>                EqualRange(const KeyType& key )
     {DCSSHRD return base::findRange( key ); }
 
-    //==============================================================================================
     /// Searches a key and returns a pair of iterators. The first is pointing to the first
     /// element of the range, the second is pointing to the first element past the range.
     ///
@@ -1843,14 +1712,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///
     /// @param  key   The key to search for.
     /// @return A pair of iterators defining the range of elements with key \p{key}.
-    //==============================================================================================
     std::pair<ConstIterator,ConstIterator>      EqualRange(const KeyType& key )                const
     {DCSSHRD return base::findRange( key ); }
 
     //##############################################################################################
     /// @name Element Removal
     //##############################################################################################
-    //==============================================================================================
     /// Extracts the first element found with the given key from the hash table and returns a
     /// handle to it.<br>
     /// Extracting an element invalidates only the iterators to the extracted element and preserves
@@ -1864,11 +1731,8 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         Changes may include the <em>key-portion</em> of the data stored.
     ///         Handles may be passed to one of the overloaded insert methods.
     ///         If no element was found, the returned handle is empty.
-    //==============================================================================================
-    ElementHandle      Extract(const KeyType& key )
-    { return Extract( key, THash{}(key) ); }
+    ElementHandle      Extract(const KeyType& key )         { return Extract( key, THash{}(key) ); }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;Extract(const KeyType&)} which
     /// accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1881,9 +1745,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         Changes may include the <em>key-portion</em> of the data stored.
     ///         Handles may be passed to one of the overloaded insert methods.
     ///         If no element was found, the returned handle is empty.
-    //==============================================================================================
-    ElementHandle      Extract(const KeyType& key, size_t hashCode )
-    {DCS
+    ElementHandle      Extract(const KeyType& key, size_t hashCode )                            {DCS
         Node* previous= base::findElementBefore( hashCode % base::bucketCount, hashCode, key );
         if( previous == nullptr )
             return ElementHandle(this, nullptr);
@@ -1894,11 +1756,10 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return ElementHandle( this, element );
     }
 
-    //==============================================================================================
     /// Extracts the first element found with the given key from the hash table and returns a
     /// handle to it.<br>
     /// If the iterator was not valid (i.e., #end), the method has undefined behavior.
-    /// With debug-builds an \alib assertion is raised.
+    /// With debug-builds an \alib_assertion is raised.
     ///
     /// Extracting a element invalidates only the iterators to the extracted element, and preserves
     /// the relative order of the elements that are not extracted.
@@ -1911,9 +1772,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///         Changes may include the <em>key-portion</em> of the data stored.
     ///         Handles may be passed to one of the overloaded insert methods.
     ///         If no element was found, the returned handle is empty.
-    //==============================================================================================
-    ElementHandle      Extract( ConstIterator pos )
-    {DCS
+    ElementHandle      Extract( ConstIterator pos )                                             {DCS
         ALIB_ASSERT_ERROR(    pos.element        != nullptr
                            && pos.table          != nullptr   ,
                            "MONOMEM/HASHTABLE", "Illegal iterator." )
@@ -1927,16 +1786,12 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return ElementHandle( this, pos.element );
     }
 
-    //==============================================================================================
     /// Erases all elements stored with the given key.
     ///
     /// @param  key   The key to search elements for deletion.
     /// @return The number of elements removed.
-    //==============================================================================================
-    integer             erase(const KeyType& key )
-    { return Erase( key, THash{}(key) ); }
+    integer             erase(const KeyType& key )            { return Erase( key, THash{}(key) ); }
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;erase(const KeyType&)}
     /// which accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1946,9 +1801,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  key      The key to search elements for deletion.
     /// @param  hashCode Pre-calculated hash code of \p{key}.
     /// @return The number of elements removed.
-    //==============================================================================================
-    integer             Erase(const KeyType& key, size_t hashCode )
-    {DCS
+    integer             Erase(const KeyType& key, size_t hashCode )                             {DCS
         // search start
         Node* beforeFirst= base::findElementBefore( hashCode % base::bucketCount, hashCode, key );
         if( beforeFirst == nullptr )
@@ -1967,7 +1820,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
         return result.second;
     }
 
-    //==============================================================================================
     /// Erases the unique element with the given key.
     ///
     /// \note
@@ -1982,12 +1834,9 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     ///
     /// @param  key   The key to search elements for deletion.
     /// @return \c true if an element was found and removed, \c false otherwise.
-    //==============================================================================================
-    bool             EraseUnique( const KeyType& key )
-    { return EraseUnique( key, THash{}(key) ); }
+    bool             EraseUnique( const KeyType& key )  { return EraseUnique( key, THash{}(key) ); }
 
 
-    //==============================================================================================
     /// Overloaded version of method \alib{containers::HashTable;EraseUnique(const KeyType&)} which
     /// accepts the \p{hashCode} of the given \p{key} as a second parameter.
     ///
@@ -1997,9 +1846,7 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     /// @param  key      The key to search elements for deletion.
     /// @param  hashCode Pre-calculated hash code of \p{key}.
     /// @return \c true if an element was found and removed, \c false otherwise.
-    //==============================================================================================
-    bool             EraseUnique( const KeyType& key, size_t hashCode )
-    {DCS
+    bool             EraseUnique( const KeyType& key, size_t hashCode )                         {DCS
         Node* before= base::findElementBefore( hashCode % base::bucketCount, hashCode, key );
         if( before == nullptr )
             return false;
@@ -2016,19 +1863,16 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     }
 
 
-    //==============================================================================================
     /// Removes an element specified by an iterator.<br>
     /// If the iterator was not valid (i.e #end), the method has undefined behavior.
-    /// With debug-builds an \alib assertion is raised.
+    /// With debug-builds an \alib_assertion is raised.
     ///
     /// The order of the elements that are not erased is preserved, what makes it possible to
     /// erase individual elements while iterating through the container.
     ///
     /// @param  pos The iterator to the element to remove.
     /// @return An iterator following the removed element.
-    //==============================================================================================
-    Iterator            erase( ConstIterator pos )
-    {DCS
+    Iterator            erase( ConstIterator pos )                                              {DCS
         ALIB_ASSERT_ERROR(    pos.element        != nullptr
                            && pos.table          != nullptr ,
                            "MONOMEM/HASHTABLE", "Illegal iterator." )
@@ -2050,7 +1894,6 @@ class HashTable : protected detail::HashTableBase<TAllocator,TValueDescriptor,TH
     }
 
 ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
-    //==============================================================================================
     /// Removes all elements from the given position \p{start} to the element
     /// before given position \p{end}.
     ///
@@ -2060,9 +1903,7 @@ ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
     /// @param  start The iterator to the element to remove.
     /// @param  end   The first element not to remove.
     /// @return An iterator following the last removed element.
-    //==============================================================================================
-    Iterator            erase( ConstIterator start, ConstIterator end )
-    {DCS
+    Iterator            erase( ConstIterator start, ConstIterator end )                         {DCS
         ALIB_ASSERT_ERROR(    start.element        != nullptr
                            && start.table          != nullptr ,
                            "MONOMEM/HASHTABLE", "Illegal iterator." )
@@ -2074,49 +1915,40 @@ ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
             return Iterator(this, start.bucketIdx, start.element );
 
         // loop over all buckets in question
-        for( uinteger bucketIdx= start.bucketIdx; bucketIdx <= end.bucketIdx; ++bucketIdx )
-        {
+        for( uinteger bucketIdx= start.bucketIdx; bucketIdx <= end.bucketIdx; ++bucketIdx ) {
             // end of buckets? Return iterator that marks hashtable end
             if( bucketIdx == base::bucketCount )
                 return HashTable::end();
 
             // find the previous pointer to the start node:
             Node* previous;
-            if( bucketIdx == start.bucketIdx ) // With the first bucket in the loop, this has to be searched...
-            {
+            if( bucketIdx == start.bucketIdx )  { // With the first bucket in the loop, this has to be searched...
                 // search pointer to element before start
                 previous= base::buckets[start.bucketIdx].findLastBefore( start.element );
                 ALIB_ASSERT_ERROR( previous != nullptr, "MONOMEM/HASHTABLE",
                                                         "Illegal iterator: Element not found." )
             }
-            else                              // ...afterwards, its of course just the bucket that points to it
-            {
+            else { // ...afterwards, its of course just the bucket that points to it
                 if( base::buckets[bucketIdx].isEmpty() )
                     continue;
                 previous= &base::buckets[bucketIdx];
             }
 
             // destruct either to end of list or to end-iterator element
-            if ( bucketIdx < end.bucketIdx )
-            {
+            if ( bucketIdx < end.bucketIdx ) {
                 base::size-= previous->count();
                 base::recyclerType::RecycleList( previous->next() );
                 previous->next( nullptr );
-            }
-            else
-            {
+            } else {
                 auto pair= base::recyclerType::RecycleList(previous->next(), end.element );
                 previous->next(  end.element );
                 base::size-= pair.second;
 
                 return Iterator( this, bucketIdx, end.element );
-            }
-        }
-    }
+    }   }   }
 ALIB_WARNINGS_RESTORE
 
 
-    //==============================================================================================
     /// Removes an element specified by a bucket iterator.
     /// Bucket iterators are receivable using overloaded methods #begin(uinteger) and
     /// \alib{containers::HashTable;cbegin(uinteger)const;cbegin(uinteger)}.
@@ -2126,9 +1958,7 @@ ALIB_WARNINGS_RESTORE
     ///
     /// @param  pos The iterator to the element to remove.
     /// @return An iterator following the removed element.
-    //==============================================================================================
-    LocalIterator       erase( ConstLocalIterator pos )
-    {DCS
+    LocalIterator       erase( ConstLocalIterator pos )                                         {DCS
         ALIB_ASSERT_ERROR( pos.element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
 
         LocalIterator result( pos.bucketIdx, pos.element->next() );
@@ -2141,7 +1971,6 @@ ALIB_WARNINGS_RESTORE
         return result;
     }
 
-    //==============================================================================================
     /// Removes all element from the given bucket iterator position \p{start} to the element
     /// before given position \p{end}.
     ///
@@ -2151,9 +1980,7 @@ ALIB_WARNINGS_RESTORE
     /// @param  start The bucket iterator to the element to remove.
     /// @param  end   The bucket iterator to the first element not to remove.
     /// @return An iterator following the last removed element.
-    //==============================================================================================
-    LocalIterator       erase( ConstLocalIterator start, ConstLocalIterator end )
-    {DCS
+    LocalIterator       erase( ConstLocalIterator start, ConstLocalIterator end )               {DCS
         ALIB_ASSERT_ERROR( start.element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
 
         Node* previous= base::buckets[start.bucketIdx].findLastBefore( start.element );
@@ -2175,37 +2002,33 @@ ALIB_WARNINGS_RESTORE
 
     /// Returns an iterator referring to a mutable element at the start of this table.
     /// @return The first of element in this container.
-    Iterator            begin()         { return Iterator     ( this, 0 );     }
+    Iterator           begin()                                       { return Iterator( this, 0 ); }
 
     /// Returns an iterator referring to a mutable, non-existing element.
     /// @return The end of the list of elements in this container.
-    Iterator            end()           {DCSSHRD
-                                          return Iterator    ( this, base::bucketCount, nullptr ); }
+    Iterator           end()        { DCSSHRD return Iterator( this, base::bucketCount, nullptr ); }
 
     /// Returns an iterator referring to a constant element at the start of this container.
     /// @return The first of element in this container.
-    ConstIterator       begin()   const { return ConstIterator( this, 0 ); }
+    ConstIterator      begin()                            const { return ConstIterator( this, 0 ); }
 
     /// Returns an iterator referring to a constant, non-existing element.
     /// @return The end of the list of elements in this container.
-    ConstIterator       end()     const {DCSSHRD
-                                          return ConstIterator( this, base::bucketCount, nullptr); }
+    ConstIterator      end() const  {DCSSHRD return ConstIterator(this,base::bucketCount,nullptr); }
 
     /// Returns an iterator referring to a constant element at the start of this container.
     /// @return The first of element in this container.
-    ConstIterator       cbegin()  const { return ConstIterator( this, 0 ); }
+    ConstIterator      cbegin()                           const { return ConstIterator( this, 0 ); }
 
     /// Returns an iterator referring to a constant, non-existing element.
     /// @return The end of the list of elements in this container.
-    ConstIterator       cend()    const {DCSSHRD
-                                          return ConstIterator( this, base::bucketCount, nullptr); }
+    ConstIterator      cend() const {DCSSHRD return ConstIterator(this,base::bucketCount,nullptr); }
 
     /// Returns an iterator referring to a mutable element at the start of bucket of index
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The first element in bucket \p{bucketNumber}.
-    LocalIterator       begin( uinteger bucketNumber )
-    {DCSSHRD
+    LocalIterator      begin( uinteger bucketNumber )                                       {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return LocalIterator( bucketNumber, base::buckets[bucketNumber].first() );
@@ -2215,8 +2038,7 @@ ALIB_WARNINGS_RESTORE
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The end of the list of elements in bucket \p{bucketNumber}.
-    LocalIterator       end( uinteger bucketNumber )
-    {DCSSHRD
+    LocalIterator      end( uinteger bucketNumber )                                         {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return LocalIterator( bucketNumber, nullptr );
@@ -2226,8 +2048,7 @@ ALIB_WARNINGS_RESTORE
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The first element in bucket \p{bucketNumber}.
-    ConstLocalIterator  begin( uinteger bucketNumber )                                         const
-    {DCSSHRD
+    ConstLocalIterator begin( uinteger bucketNumber )                                 const {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return ConstLocalIterator( bucketNumber, base::buckets[bucketNumber].first() );
@@ -2237,8 +2058,7 @@ ALIB_WARNINGS_RESTORE
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The end of the list of elements in bucket \p{bucketNumber}.
-    ConstLocalIterator  end( uinteger bucketNumber )                                           const
-    {DCSSHRD
+    ConstLocalIterator end( uinteger bucketNumber )                                   const {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return ConstLocalIterator( bucketNumber, nullptr );
@@ -2248,8 +2068,7 @@ ALIB_WARNINGS_RESTORE
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The first element in bucket \p{bucketNumber}.
-    ConstLocalIterator  cbegin( uinteger bucketNumber )                                        const
-    {DCSSHRD
+    ConstLocalIterator cbegin( uinteger bucketNumber )                                const {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return ConstLocalIterator( bucketNumber, base::buckets[bucketNumber].first() );
@@ -2259,8 +2078,7 @@ ALIB_WARNINGS_RESTORE
     /// \p{bucketNumber}.
     /// @param bucketNumber The bucket to iterate on.
     /// @return The end of the list of elements in bucket \p{bucketNumber}.
-    ConstLocalIterator  cend( uinteger bucketNumber )                                          const
-    {DCSSHRD
+    ConstLocalIterator cend( uinteger bucketNumber )                                  const {DCSSHRD
         ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
                            "Bucket number out of range: {}>={}.", bucketNumber, base::bucketCount )
         return ConstLocalIterator( bucketNumber, nullptr );
@@ -2268,11 +2086,11 @@ ALIB_WARNINGS_RESTORE
 };  // class Hashtable
 
 
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 // Debug Functions
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 #if ALIB_DEBUG_CONTAINERS
 #include "ALib.Lang.CIFunctions.H"
 /// Generates statistics on the given hash table. The meanings of the returned tuple are:
@@ -2329,7 +2147,7 @@ DbgGetHashTableDistribution(const THashtable& hashtable )
 #endif //ALIB_DEBUG_CONTAINERS
 
 //==================================================================================================
-//=====================================     HashSet    =============================================
+//============================================= HashSet ============================================
 //==================================================================================================
 
 /// This type definition is a shortcut to \alib{containers;HashTable}, usable if the full
@@ -2349,7 +2167,7 @@ DbgGetHashTableDistribution(const THashtable& hashtable )
 ///   \alib{containers;HashTable}, as well as alternative type definition
 ///   \alib{containers;HashMap}.
 ///
-/// @tparam TAllocator   The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator   The \alib{lang;Allocator;allocator type} to use.
 /// @tparam T            The element type stored with this container.
 ///                      This type is published as \alib{containers;HashTable::StoredType}
 ///                      and type definition \alib{containers;HashTable::KeyType} becomes
@@ -2380,7 +2198,7 @@ using HashSet= HashTable< TAllocator,
                           TRecycling                  >;
 
 //==================================================================================================
-//===================================     HashMap     ==============================================
+//============================================= HashMap ============================================
 //==================================================================================================
 
 /// This type definition is a shortcut to \alib{containers;HashTable}, usable if data
@@ -2395,7 +2213,7 @@ using HashSet= HashTable< TAllocator,
 ///   \alib{containers;HashTable}, as well as alternative type definition
 ///   \alib{containers;HashSet}.
 ///
-/// @tparam TAllocator   The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator   The \alib{lang;Allocator;allocator type} to use.
 /// @tparam TKey         The type of the <em>key-portion</em> of the inserted data.<br>
 ///                      This type is published as \alib{containers;HashTable::KeyType}.
 /// @tparam TMapped      The type of the <em>mapped-portion</em> of the inserted data.<br>
@@ -2462,5 +2280,3 @@ using HashMap= containers::HashMap<TAllocator,TKey,TMapped,THash,TEqual,THashCac
 #   undef  DCS
 #   undef  DCSSHRD
 #endif
-
-

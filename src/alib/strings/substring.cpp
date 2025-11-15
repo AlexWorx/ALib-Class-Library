@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include <locale.h>
 #include <cstdint>
 #include <typeinfo>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings;
     import   ALib.Lang;
@@ -24,7 +24,7 @@
 #   include "ALib.Lang.H"
 #   include "ALib.Strings.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 // Windows.h might bring in max/min macros
 #if defined( max )
     #undef max
@@ -34,12 +34,10 @@
 namespace alib {  namespace strings {
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result )
-{
+bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result ) {
     integer idx= 0;
     result=  detail::ParseDecDigits( *this, idx );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -47,15 +45,13 @@ bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result )
 }
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeIntImpl( int64_t& result, TNumberFormat<TChar>* numberFormat )
-{
+bool   TSubstring<TChar>::consumeIntImpl( int64_t& result, TNumberFormat<TChar>* numberFormat ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseInt( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -63,15 +59,13 @@ bool   TSubstring<TChar>::consumeIntImpl( int64_t& result, TNumberFormat<TChar>*
 }
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeDecImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
-{
+bool   TSubstring<TChar>::consumeDecImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseDec( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -79,15 +73,13 @@ bool   TSubstring<TChar>::consumeDecImpl( uint64_t& result, TNumberFormat<TChar>
 }
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeBinImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
-{
+bool   TSubstring<TChar>::consumeBinImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseBin( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -95,15 +87,13 @@ bool   TSubstring<TChar>::consumeBinImpl( uint64_t& result, TNumberFormat<TChar>
 }
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeHexImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
-{
+bool   TSubstring<TChar>::consumeHexImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseHex( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -111,15 +101,13 @@ bool   TSubstring<TChar>::consumeHexImpl( uint64_t& result, TNumberFormat<TChar>
 }
 
 template<typename TChar>
-bool   TSubstring<TChar>::consumeOctImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
-{
+bool   TSubstring<TChar>::consumeOctImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseOct( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -128,15 +116,13 @@ bool   TSubstring<TChar>::consumeOctImpl( uint64_t& result, TNumberFormat<TChar>
 
 template<typename TChar>
 bool   TSubstring<TChar>::ConsumeFloat( double&                result,
-                                        TNumberFormat<TChar>*  numberFormat   )
-{
+                                        TNumberFormat<TChar>*  numberFormat   ) {
     if ( numberFormat == nullptr )
         numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
     result=  detail::ParseFloat( *this, idx, *numberFormat );
-    if( idx > 0 )
-    {
+    if( idx > 0 ) {
         ConsumeChars<NC>( idx );
         return true;
     }
@@ -169,4 +155,3 @@ template bool  TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberForma
 template bool  TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
 }} // namespace [alib::strings]
-

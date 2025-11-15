@@ -12,22 +12,21 @@ ALIB_EXPORT namespace alib { namespace resources {
 /// and <em>"resource name"</em>. The latter are of narrow string-type.
 ///
 /// \see
-///  For detailed documentation on when and how this interface is used, please consult the
-///  \ref alib_mod_resources "Programmer's Manual" of this module \alib_resources_nl.
+///   For detailed documentation on when and how this interface is used, please consult the
+///   \ref alib_mod_resources "Programmer's Manual" of this module \alib_resources_nl.
 ///
 /// \see
-///  Two built-in implementations of this pure abstract interface are provided with
-///  \alib{resources;LocalResourcePool} and \alib{variables;ConfigResourcePool}.
-///  Please consult their reference documentation for further details.
+///   Two built-in implementations of this pure abstract interface are provided with
+///   \alib{resources;LocalResourcePool} and \alib{variables;ConfigResourcePool}.
+///   Please consult their reference documentation for further details.
 //==================================================================================================
 class ResourcePool
 {
-    public:
+  public:
 
     /// Virtual destructor.
-    virtual ~ResourcePool()                                                               = default;
+    virtual ~ResourcePool()                                                                =default;
 
-    //==============================================================================================
     /// Used to store a resource string.
     ///
     /// In the context of \alibmods, which usually are the only areas where instances of this
@@ -49,11 +48,9 @@ class ResourcePool
     /// @param name       Name string of the resource.
     /// @param data       The resource data.
     /// @return \c true if the resource did exist and was replaced, \c false if it was an insertion.
-    //==============================================================================================
     virtual
-    bool BootstrapAddOrReplace(const NString& category, const NString& name, const String& data)= 0;
+    bool BootstrapAddOrReplace(const NString& category, const NString& name, const String& data) =0;
 
-    //==============================================================================================
     /// Simple inline method that invokes virtual method #BootstrapAddOrReplace.
     /// In debug-compilations, it is asserted that a resource with the given key did not exist
     /// already.
@@ -63,10 +60,8 @@ class ResourcePool
     /// @param category   Category string of the resource to add.
     /// @param name       Name string of the resource.
     /// @param data       The resource data.
-    //==============================================================================================
     inline
-    void Bootstrap( const NString& category, const NString& name, const String& data )
-    {
+    void Bootstrap( const NString& category, const NString& name, const String& data ) {
         #if ALIB_DEBUG
             bool result=
         #endif
@@ -76,7 +71,6 @@ class ResourcePool
             "Doubly defined resource \"{}\" in category \"{}\".",  category, name )
     }
 
-    //==============================================================================================
     /// Same as #Bootstrap but accepts an array of name/value pairs to be filled into
     /// the given parameter \p{category}.
     ///
@@ -106,9 +100,8 @@ class ResourcePool
     /// @param category  The category of the resources given.
     /// @param ...       A list of pairs of <b>const nchar*</b> and <b>const character*</b>
     ///                  keys and data, including a terminating \c nullptr value.
-    //==============================================================================================
     virtual
-    void BootstrapBulk( const nchar* category, ... )                                            = 0;
+    void BootstrapBulk( const nchar* category, ... )                                             =0;
 
 #if DOXYGEN
     //==============================================================================================
@@ -133,7 +126,7 @@ class ResourcePool
     const String&   Get( const NString& category, const NString& name, bool dbgAssert )         = 0;
 #else
     virtual
-    const String&   Get( const NString& category, const NString& name ALIB_DBG(,bool dbgAssert))= 0;
+    const String&   Get( const NString& category, const NString& name ALIB_DBG(,bool dbgAssert)) =0;
 #endif
 
 #if DOXYGEN
@@ -186,7 +179,7 @@ class ResourcePool
         /// \attention
         ///   This method is implemented only with the default pool instance of type
         ///   \alib{resources;LocalResourcePool}.
-        ///   Other implementations raise an \alib warning and return an empty vector.
+        ///   Other implementations raise an \alib_warning and return an empty vector.
         ///
         /// \see
         ///   Methods #DbgGetCategories and #DbgDump.
@@ -206,7 +199,7 @@ class ResourcePool
         /// \attention
         ///   This method is implemented only with the default pool instance of type
         ///   \alib{resources;LocalResourcePool}.
-        ///   Other implementations raise an \alib warning and return an empty vector.
+        ///   Other implementations raise an \alib_warning and return an empty vector.
         ///
         /// \see
         ///   Methods #DbgGetList and #DbgDump.
@@ -226,27 +219,27 @@ class ResourcePool
 /// type. Specializations need to extend <c>std::true_type</c> instead.
 ///
 /// \see
-///  - Helper macros \ref ALIB_RESOURCED and ALIB_RESOURCED_IN_MODULE that specialize this struct.
-///  - Helper-type \alib{resources;ResourcedType}.
-///  - Manual chapter \ref alib_resources_t_resourced "3.5. Indirect Resource Access"
-///    of the Programmer's Manual of this module.
+/// - Helper macros \ref ALIB_RESOURCED and ALIB_RESOURCED_IN_MODULE that specialize this struct.
+/// - Helper-type \alib{resources;ResourcedType}.
+/// - Manual chapter \ref alib_resources_t_resourced "3.5. Indirect Resource Access"
+///   of the Programmer's Manual of this module.
 ///
 /// @tparam T   The type to define resource information for.
 //==================================================================================================
 template<typename T>
 struct ResourcedTraits : std::false_type
 {
-    ///  Returns a pointer to the resource pool associated with \p{T}.
-    ///  @return The resource pool of \p{T}.
-    static constexpr  ResourcePool* Pool()     { return nullptr;       }
+    /// Returns a pointer to the resource pool associated with \p{T}.
+    /// @return The resource pool of \p{T}.
+    static constexpr  ResourcePool* Pool()                                       { return nullptr; }
 
-    ///  Returns a resource category associated with \p{T}.
-    ///  @return The resource category.
-    static constexpr  NString       Category() { return NULL_NSTRING; }
+    /// Returns a resource category associated with \p{T}.
+    /// @return The resource category.
+    static constexpr  NString       Category()                              { return NULL_NSTRING; }
 
-    ///  Returns a resource name associated with \p{T}.
-    ///  @return The resource category.
-    static constexpr  NString       Name()     { return NULL_NSTRING; }
+    /// Returns a resource name associated with \p{T}.
+    /// @return The resource category.
+    static constexpr  NString       Name()                                  { return NULL_NSTRING; }
 };
 
 ALIB_WARNINGS_IGNORE_DOCS
@@ -265,9 +258,9 @@ ALIB_WARNINGS_RESTORE
 /// the type trait \alib{resources;ResourcedTraits}.
 ///
 /// @see
-///  - Type trait \alib{resources;ResourcedTraits}
-///  - Manual chapter \ref alib_resources_t_resourced_resourced of the
-///   Programmer's Manual of this module.
+///   - Type trait \alib{resources;ResourcedTraits}
+///   - Manual chapter \ref alib_resources_t_resourced_resourced of the
+///    Programmer's Manual of this module.
 ///
 /// @tparam T  A type equipped with resource information by a specialization of
 ///            \alib{resources;ResourcedTraits}.
@@ -308,11 +301,11 @@ struct ResourcedType
     #else
         template<typename TRequires= T>
         requires alib::resources::HasResources<TRequires>
-        static const String&    Get( const NString& name  ALIB_DBG(, bool dbgAssert) )  {
-            return ResourcedTraits<T>::Pool()->Get( ResourcedTraits<T>::Category(),
-                                                    name
-                                                    ALIB_DBG(, dbgAssert) );
-        }
+    static const String&    Get( const NString& name  ALIB_DBG(, bool dbgAssert) )  {
+        return ResourcedTraits<T>::Pool()->Get( ResourcedTraits<T>::Category(),
+                                                name
+                                                ALIB_DBG(, dbgAssert) );
+    }
     #endif
 
     #if DOXYGEN
@@ -353,7 +346,7 @@ struct ResourcedType
     /// The prefix is tried to be retrieved by extending the resource name returned by the method
     /// \alib{resources;ResourcedTraits::Name} by character <c>'<'</c>.
     ///
-    /// \alib uses this method internally, for example with specializations
+    /// \alib uses this method internally, for example, with specializations
     /// \alib{strings::APPENDABLES;AppendableTraits<TEnum,TChar,TAllocator>;AppendableTraits<TEnum,TChar,TAllocator>}
     /// \alib{strings::APPENDABLES;AppendableTraits<TBitwiseEnum,TChar,TAllocator>;AppendableTraits<TBitwiseEnum,TChar,TAllocator>}
     /// used to write element names of enum types.
@@ -362,10 +355,8 @@ struct ResourcedType
     /// or a resource named \"\p{name}<b>\></b>\" is not found, an empty string is returned.<br>
     ///
     /// @return The prefix string.
-    static const String&    TypeNamePrefix()
-    {
-        if constexpr( HasResources<T> )
-        {
+    static const String&    TypeNamePrefix() {
+        if constexpr( HasResources<T> ) {
             NString256 resourceName( ResourcedTraits<T>::Name() );
                        resourceName << "<";
             auto& pf= ResourcedTraits<T>::Pool()->Get( ResourcedTraits<T>::Category(), resourceName
@@ -381,11 +372,9 @@ struct ResourcedType
     /// Consequently, extends the resource string's name searched by character <c>'>'</c>.
     ///
     /// @return The postfix string.
-    static const String&    TypeNamePostfix()
-    {
+    static const String&    TypeNamePostfix() {
         ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
-        if constexpr( HasResources<T> )
-        {
+        if constexpr( HasResources<T> ) {
             NString256 resourceName( ResourcedTraits<T>::Name() );
                        resourceName << ">";
             auto& pf= ResourcedTraits<T>::Pool()->Get( ResourcedTraits<T>::Category(), resourceName
@@ -417,7 +406,7 @@ struct ResourceInfo
     NString         Name;
 
     /// Defaulted constructor leaving the fields uninitialized.
-    ResourceInfo()                                                              noexcept  = default;
+    ResourceInfo()                                                                noexcept =default;
 
     /// Constructor setting the fields of this object as given.
     ///
@@ -445,8 +434,7 @@ struct ResourceInfo
     /// @param pool     The resource pool.
     /// @param category The resource category.
     /// @param name     The resource name.
-    void    Set( resources::ResourcePool* pool, NString category, NString name )
-    {
+    void    Set( resources::ResourcePool* pool, NString category, NString name ) {
         Pool =  pool;
         Category  =  category;
         Name      =  name;
@@ -461,8 +449,7 @@ struct ResourceInfo
     ///               deduce type \p{T} (otherwise ignored).
     template<typename T>
     requires alib::resources::HasResources<T>
-    void Set(const T& sample)
-    {
+    void Set(const T& sample) {
         (void) sample;
         Pool    =  ResourcedTraits<T>::Pool();
         Category=  ResourcedTraits<T>::Category();
@@ -574,12 +561,10 @@ void Bootstrap( resources::ResourcePool& pool,
                 const NString&           category,
                 const NString&           name,
                 character                innerDelim= ',',
-                character                outerDelim= ','     )
-{
+                character                outerDelim= ','     ) {
     // resources given in the standard, non-indexed way?
     String input= pool.Get( category, name  ALIB_DBG(, false) );
-    if( input.IsNotNull() )
-    {
+    if( input.IsNotNull() ) {
         // Note:
         //  The parser is initialized here already. The "inner" call to Bootstrap() will not have
         //  the resource information otherwise.
@@ -616,17 +601,14 @@ void Bootstrap( resources::ResourcePool& pool,
 
     // check if there are more coming (a gap in numbered definition)
     #if ALIB_DEBUG
-        for( int i= 0 ; i < 35 ; ++i )
-        {
+        for( int i= 0 ; i < 35 ; ++i ) {
             ++nr;
-            if( pool.Get( category, nameNr.Reset( name)._( nr) ALIB_DBG(, false)).IsNotNull() )
-            {
+            if( pool.Get( category, nameNr.Reset( name)._( nr) ALIB_DBG(, false)).IsNotNull() ) {
                 ALIB_ERROR( "ENUMS",
                  "Detected a \"gap\" in numbering of enum records for type <{}>: "
                  "From index {} to {}.\n  Resource: {}/{}",
                  &typeid(TEnum), nr - i - 1, nr - 1, category, name  )
-            }
-        }
+        }   }
     #endif
 }
 
@@ -647,8 +629,7 @@ void Bootstrap( resources::ResourcePool& pool,
 ///                   Defaults to <c>','</c>.
 template<typename TEnum>
 requires alib::enumrecords::HasRecords<TEnum>
-void Bootstrap( character innerDelim=',', character outerDelim= ',' )
-{
+void Bootstrap( character innerDelim=',', character outerDelim= ',' ) {
     static_assert( resources::HasResources<TEnum>,
                    "No specialization for ResourcedTraits<TEnum> given. Method not applicable." );
 

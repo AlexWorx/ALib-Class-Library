@@ -11,7 +11,7 @@ class DWManager;
 //==================================================================================================
 /// \attention This class belongs to module \alib_threadmodel, which is not in a stable and
 ///            consistent state, yet.
-///            Also this type is considered experimental.
+///            Also, this type is considered experimental.
 ///
 /// This \alib{singletons;Singleton;singleton-class} manages worker threads of type
 /// \alib{threadmodel;DedicatedWorker}.
@@ -35,7 +35,7 @@ class DWManager :  public  singletons::Singleton<DWManager>
     PoolAllocator                           pool;
 
     /// The list of workers.
-    List<MonoAllocator, DedicatedWorker*>   workers;
+    ListMA<DedicatedWorker*>   workers;
 
   private:
     /// Constructor.
@@ -57,7 +57,7 @@ class DWManager :  public  singletons::Singleton<DWManager>
     /// Remove a previously added worker.
     /// The thread is stopped by invoking \alib{threadmodel;DedicatedWorker::ScheduleStop} using the given
     /// priority. It is waited until it exits, and finally the thread is joined.<br>
-    /// With debug-compilations, an \alib warning is raised every second if the thread
+    /// With debug-compilations, an \alib_warning is raised every second if the thread
     /// does not stop.
     /// @param thread       The thread to remove.
     /// @param stopPriority The priority passed to <b>DedicatedWorker::ScheduleStop</b>.
@@ -80,12 +80,11 @@ class DWManager :  public  singletons::Singleton<DWManager>
     bool                    WaitForAllIdle( Ticks::Duration timeout,
                                             Ticks::Duration dbgWarnAfter );
     #else
-      ALIB_DLL bool WaitForAllIdle( Ticks::Duration timeout
-                         ALIB_DBG(, Ticks::Duration dbgWarnAfter) );
-      bool WaitForAllIdle( Ticks::Duration::TDuration timeout
-                ALIB_DBG(, Ticks::Duration::TDuration dbgWarnAfter)  )
-                { return WaitForAllIdle( Ticks::Duration(timeout)
-                              ALIB_DBG(, Ticks::Duration(dbgWarnAfter) ) ); }
+    ALIB_DLL bool WaitForAllIdle( Ticks::Duration timeout
+                       ALIB_DBG(, Ticks::Duration dbgWarnAfter) );
+    bool WaitForAllIdle( Ticks::Duration::TDuration timeout
+              ALIB_DBG(, Ticks::Duration::TDuration dbgWarnAfter)  )
+    { return WaitForAllIdle( Ticks::Duration(timeout) ALIB_DBG(,Ticks::Duration(dbgWarnAfter))); }
 
     #endif
 
@@ -95,7 +94,7 @@ class DWManager :  public  singletons::Singleton<DWManager>
     /// After this method has been invoked, no further commands should be scheduled, even if
     /// the given priority equals \b Lowest. This <b>should be assured</b> by the using code.
     ///
-    /// With debug-compilations, an \alib warning is raised every second until all managed
+    /// With debug-compilations, an \alib_warning is raised every second until all managed
     /// threads stopped.
     /// @param stopPriority The priority passed to <b>DedicatedWorker::ScheduleStop</b>.
     ///                     Use \b Lowest (the default) to ensure that all other commands are duly
@@ -162,7 +161,7 @@ class DWManager :  public  singletons::Singleton<DWManager>
 ///          There, deferred-deletion has a huge negative impact on performance of the pool.
 ///          With type \b %DedicatedWorker, the negative impact of deferred deletion is negligible.
 ///    <br><br>
-///    
+///
 /// 5. The custom types \b %Job types have to likewise fulfill a few contractual rules.
 ///    Those are given with the type's \alib{threadmodel;Job;reference documentation}.
 ///
@@ -171,7 +170,7 @@ class DWManager :  public  singletons::Singleton<DWManager>
 /// conventional methods to start and stop a thread are hidden.<br>
 /// Starting and stopping a \b %DedicatedWorker is instead performed by adding, respectively
 /// removing an instance of this type to singleton class \alib{threadmodel;DWManager}.
-/// 
+///
 /// ### Triggering: ###
 /// This type implements abstract interface \alib{threadmodel;Triggered}.
 /// If this is considered useful by a derived type, then three things have to be performed:
@@ -190,16 +189,15 @@ class DedicatedWorker : protected alib::Thread
     friend class DWManager;
     friend struct threads::TCondition<DedicatedWorker>;
 
-  
   protected:
     friend class lang::Owner<DedicatedWorker&>; /// needed as we inherit TCondition
 
-    //==============================================================================================
-    // Fields
-    //==============================================================================================
+  //================================================================================================
+  // Fields
+  //================================================================================================
 
     /// Reference to \b %DWManager instance.
-    DWManager&			manager;
+    DWManager&          manager;
 
     /// Statistical information: Point in time of last job execution.
     /// In case no job was executed, yet, this is the creation time of the object.
@@ -218,9 +216,9 @@ class DedicatedWorker : protected alib::Thread
     /// Defaults to one second, which usually is changed by a derived type.
     Ticks::Duration     triggerDuration                           = Ticks::Duration::FromSeconds(1);
 
-    //==============================================================================================
-    // The queue
-    //==============================================================================================
+  //================================================================================================
+  // The queue
+  //================================================================================================
     /// Container element of the queue.
     struct QueueElement
     {
@@ -234,7 +232,7 @@ class DedicatedWorker : protected alib::Thread
     /// This is a simple list, instead of a 'real' priority queue.
     /// This design decision was taken because there should never be too many jobs queued
     /// and the naive iteration is more efficient than using a 'real' priority queue type.
-    List<HeapAllocator, QueueElement>  queue;
+    List<QueueElement>  queue;
 
     /// The current number of jobs in the queue.
     int                                length;
@@ -247,7 +245,7 @@ class DedicatedWorker : protected alib::Thread
     /// When invoked, the thread-manager as well as this instance are both locked.
     /// @param jobInfo  The job, the priority, and a flag if this job is to be deleted
     ///                 automatically.
-	ALIB_DLL
+    ALIB_DLL
     void        pushAndRelease(QueueElement&& jobInfo);
 
     /// Moves the job of highest priority out of the queue.
@@ -255,9 +253,9 @@ class DedicatedWorker : protected alib::Thread
     /// @return The job with the highest priority.
     std::pair<Job*, bool>      pop();
 
-    //==============================================================================================
-    // Inner Job types
-    //==============================================================================================
+  //================================================================================================
+  // Inner Job types
+  //================================================================================================
     /// The stop job sent by method #ScheduleStop.
     struct JobStop          : Job
     {
@@ -279,7 +277,7 @@ class DedicatedWorker : protected alib::Thread
 
         /// Overrides the parent function as necessary.
         /// @return The sizeof this derived type.
-        virtual size_t  SizeOf()                            override  { return sizeof(JobDeleter); }
+        virtual size_t  SizeOf()                             override { return sizeof(JobDeleter); }
     };
 
     /// The job sent if (optional) trigger-interface \alib{threadmodel;Triggered::trigger}
@@ -296,7 +294,7 @@ class DedicatedWorker : protected alib::Thread
     /// Those are typically short inline methods, which/ are optimized out by C++ compilers.
     /// @tparam TJob The job type as well as the job's shared data type.
     /// @tparam TArgs       Types of the variadic arguments \p{args} that construct \p{TJob}.
-    /// @param  priority    The priority of the job. 
+    /// @param  priority    The priority of the job.
     /// @param  keepJob     Denotes whether the job should be deleted after execution or not.
     /// @param  args        Variadic arguments forwarded to the constructor of \p{TJob}.
     /// @return The shared data. Deletion of the object is the responsibility of the caller and
@@ -306,19 +304,18 @@ class DedicatedWorker : protected alib::Thread
     [[nodiscard]]
     TJob&        schedule( Priority   priority,
                            bool       keepJob,
-                           TArgs&&... args      )
-    {
+                           TArgs&&... args      ) {
         manager.Acquire(ALIB_CALLER_PRUNED);
         TJob* job= manager.GetPoolAllocator()().New<TJob>( std::forward<TArgs>(args)... );
         manager.Release(ALIB_CALLER_PRUNED);
-        ALIB_ASSERT_ERROR( job->SizeOf()==sizeof(TJob), "MGTHR",
+        ALIB_ASSERT_ERROR( job->SizeOf()==sizeof(TJob), "TMOD",
             "Error in DedicatedWorker::schedule: Job size mismatch. Expected {} "
             "while virtual method SizeOf returns {}.\n"
             "Override this method for job-type <{}>",
             sizeof(TJob), job->SizeOf(), &typeid(*job) )
 
         ALIB_ASSERT_ERROR(     GetState() == State::Started
-                            || GetState() == State::Running, "MGTHR",
+                            || GetState() == State::Running, "TMOD",
             "Error in DedicatedWorker::schedule: Job pushed while this thread was not started, yet. "
             "State: ", GetState() )
 
@@ -351,9 +348,9 @@ class DedicatedWorker : protected alib::Thread
     { (void) schedule<TJob, TArgs...>( priority,  false, std::forward<TArgs>(args)... ); }
 
 
-    //==============================================================================================
-    // Triggered interface implementation
-    //==============================================================================================
+  //================================================================================================
+  // Triggered interface implementation
+  //================================================================================================
     /// Return the sleep time, between two trigger events.
     /// Precisely, this method is called after #trigger has been executed and defines the
     /// next sleep time.
@@ -362,12 +359,12 @@ class DedicatedWorker : protected alib::Thread
 
     /// Schedules \alib{threadmodel::DedicatedWorker;JobTrigger} need to implement this function and
     /// perform their trigger actions here.
-    virtual void            trigger()  override
+    virtual void            trigger()                                                       override
     { (void) schedule<JobTrigger>( Priority::Low, false ); }
 
-    //==============================================================================================
-    // Protected virtual execution methods
-    //==============================================================================================
+  //================================================================================================
+  // Protected virtual execution methods
+  //================================================================================================
     /// This implementation of method \alib{threads;Thread::Run} constitutes a very simple loop
     /// that waits for jobs in the #queue and passes them to likewise virtual method #process.
     /// The (only) condition to continuing the loop is that the flag #stopJobExecuted is \c false.
@@ -406,40 +403,38 @@ class DedicatedWorker : protected alib::Thread
     #endif
 
 
-    //==============================================================================================
-    // Construction/Destruction
-    //==============================================================================================
+  //================================================================================================
+  // Construction/Destruction
+  //================================================================================================
     /// Constructor taking a thread name that is passed to parent class \alib{threads;Thread}.
     /// @param threadName    The name of this thread.
     DedicatedWorker(const character* threadName)
     : Thread       ( threadName )
-#if ALIB_STRINGS
-    , Triggered    ( threadName )
-#endif
+    #if ALIB_STRINGS
+      , Triggered  ( threadName )
+    #endif
     , TCondition   ( ALIB_DBG(threadName) )
     , manager      { DWManager::GetSingleton() }
     , statLastJobExecution(lang::Initialization::Nulled )
     , length       {0}
-    ALIB_DBG(,DbgMaxQueuelength{0})
-    {}
+    ALIB_DBG(,DbgMaxQueuelength{0})                                                               {}
 
     /// Destructor.
-    ~DedicatedWorker()                                                                      override
-    {
+    ~DedicatedWorker()                                                                    override {
         #if ALIB_STRINGS
-            ALIB_ASSERT_WARNING( Load() == 0, "MGTHR",
+            ALIB_ASSERT_WARNING( Load() == 0, "TMOD",
              "DedicatedWorker \"{}\" destructed, while job-queue is not empty.", GetName()  )
         #else
-            ALIB_ASSERT_WARNING( Load() == 0, "MGTHR",
+            ALIB_ASSERT_WARNING( Load() == 0, "TMOD",
              "DedicatedWorker destructed, while job-queue is not empty.")
         #endif
     }
 
     using Thread::GetName;
     
-    //==============================================================================================
-    // Load/Stop
-    //==============================================================================================
+  //================================================================================================
+  // Load/Stop
+  //================================================================================================
     /// Returns the current number of jobs in the queue.
     /// @return The number of jobs to process, including any currently processed one.
     int             Load()                                                  const { return length; }
@@ -453,9 +448,9 @@ class DedicatedWorker : protected alib::Thread
     bool            StopIsExecuted()                                     { return stopJobExecuted; }
 
 
-    //==============================================================================================
-    // Job Interface
-    //==============================================================================================
+  //================================================================================================
+  // Job Interface
+  //================================================================================================
     /// Schedules a stop job into this thread's job queue.
     /// When this job is processed from the queue, this thread will exit.
     /// @param priority The priority of the job. Use \b Lowest if it is assured that no
@@ -483,8 +478,7 @@ class DedicatedWorker : protected alib::Thread
     ///   the result. For this case, the alternative method # DeleteJobDeferred is given.
     ///
     /// @param  job  The job returned when scheduling a command.
-    void        DeleteJob(Job& job)
-    {
+    void        DeleteJob(Job& job) {
         ALIB_LOCK_WITH(manager)
             auto size= job.SizeOf();
             job.~Job();
@@ -523,4 +517,3 @@ using      DWManager        = threadmodel::DWManager;
 #if ALIB_ENUMRECORDS
     ALIB_ENUMS_ASSIGN_RECORD(alib::threadmodel::Priority, ERSerializable)
 #endif
-

@@ -14,7 +14,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/enumops/enumops.prepro.hpp"
 #include "alib/enumrecords/enumrecords.prepro.hpp"
@@ -25,14 +25,16 @@
 #   include <errno.h>
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_system.
     export module ALib.System;
     import        ALib.Lang;
     import        ALib.EnumOps;
@@ -42,9 +44,9 @@
 #  if ALIB_BOXING
     import        ALib.Boxing;
 #  endif
-#  if ALIB_STRINGS
     import        ALib.Strings;
-#  endif
+    import        ALib.Strings.Tokenizer;
+    import        ALib.Strings.Vector;
     import        ALib.EnumRecords;
 #  if ALIB_CAMP
      import        ALib.Exceptions; // only if CAMP is available
@@ -53,16 +55,17 @@
 #   include "ALib.Lang.H"
 #   include "ALib.Boxing.H"
 #   include "ALib.Strings.H"
+#   include "ALib.Strings.Tokenizer.H"
+#   include "ALib.Strings.Vector.H"
 #   include "ALib.Monomem.H"
 #   include "ALib.EnumRecords.H"
 #   include "ALib.Exceptions.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 #include "alib/system/console.inl"
 #include "alib/system/environment.inl"
 #include "alib/system/systemerrors.inl"
 #include "alib/system/path.inl"
 #include "alib/system/processinfo.inl"
-
-
+#include "alib/system/shellcommand.inl"

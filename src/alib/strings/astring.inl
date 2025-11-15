@@ -25,6 +25,3 @@
 
 #undef ALIB_STRINGS_TASTRING_INSTANTIATION
 #endif //if !DOXYGEN
-
-
-

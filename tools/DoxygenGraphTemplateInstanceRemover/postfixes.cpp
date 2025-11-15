@@ -20,6 +20,7 @@
 #include "ALib.Files.H"
 #include "ALib.Files.Expressions.H"
 #include "ALib.Files.TextFile.H"
+#include "ALib.Containers.StringTreeIterator.H"
 
 using namespace alib;
 using namespace std;
@@ -216,21 +217,23 @@ int postProcessHTMLFiles(const String& srcDir)
 
     //----------------- get recursive iterator from fileTree and iterate -----------------
     Path                      filePath;
-    FTree::RecursiveIterator  rit;
+    StringTreeIterator<FTree> fit;
 
     int sumFiles       = 0;
     int sumFixedFiles  = 0;
     int sumFixedAnchors= 0;
-    rit.SetPathGeneration(lang::Switch::On);
+    fit.SetPathGeneration(lang::Switch::On);
     auto snapshot= ma.TakeSnapshot();
-    for( rit.Initialize(*fileTree.Get()) ; rit.IsValid() ; rit.Next() )
+    for(  fit.Initialize(fileTree.Get()->Root().AsCursor(), lang::Inclusion::Exclude)
+        ; fit.IsValid()
+        ; fit.Next() )
     {
-        if( rit.Node()->Type() != alib::files::FInfo::Types::REGULAR )
+        if( fit.Node()->Type() != alib::files::FInfo::Types::REGULAR )
             continue;
 
         TextFile file( ma );
         ++sumFiles;
-        rit.FullPath(filePath);
+        filePath.Reset( fit.Path() );
         file.Read( filePath );
 
         //int cntReplacements= fixHTMLAnchors(file, filePath);

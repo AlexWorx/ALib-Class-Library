@@ -97,7 +97,7 @@ ALIB_EXPORT namespace alib {  namespace strings::util  {
 /// any custom string to be written.
 ///
 /// ### Rollback: ####
-/// \e CamelCase supports a simple "rollback" mechanism, which is needed for example for token
+/// \e CamelCase supports a simple "rollback" mechanism, which is needed, for example, for token
 ///
 ///      "SystemTemperature Ignore 1 1 0"
 ///
@@ -168,7 +168,7 @@ class Token
     String      definitionName;
 
     /// The tokens' optional explicit export name.
-    String      exportName                  = NULL_STRING;
+    String      exportName                                                             =NULL_STRING;
 
 
     /// Defines the "case type" as well as the letter case sensitivity of this token.
@@ -177,18 +177,18 @@ class Token
     /// The minimum abbreviation length per segment. If only one is given (second is \c -1), then
     /// the field #format indicates normal tokens.
     /// Otherwise, the token is either snake_case, kebab-case or CamelCase.
-    int8_t      minLengths[7]               = {0,0,0,0,0,0,0};
+    int8_t      minLengths[7]                                                      ={0,0,0,0,0,0,0};
 
     /// Letter case sensitivity. This is combined with the format bits.
     static constexpr Formats   ignoreCase    = Formats(1);
 
-  // ###############################################################################################
+  //################################################################################################
   //  Constructors
-  // ###############################################################################################
+  //################################################################################################
   public:
     /// Parameterless constructor. Creates an "undefined" token.
     Token()
-    : format(Formats( ALIB_REL_DBG( Formats::Normal, DbgDefinitionError::EmptyName ) ))       {}
+    : format(Formats( ALIB_REL_DBG( Formats::Normal, DbgDefinitionError::EmptyName ) ))           {}
 
     /// Constructor used with function names that do not contain snake_case, kebab-case or
     /// CamelCase name scheme.
@@ -227,40 +227,40 @@ class Token
            int8_t minLength6= -1, int8_t minLength7= -1                                 );
 
     #if ALIB_ENUMRECORDS
-        /// Constructor using a (usually resourced) string to read the definitions.
-        /// Invokes #Define.
-        ///
-        /// \par Availability
-        ///   This method is available only if the module \alib_enumrecords is included in
-        ///   the \alibbuild.
-        /// @param definitionSrc  The input string.
-        /// @param separator      Separation character used to parse the input.
-        ///                       Defaults to <c>';'</c>.
-        Token( const String& definitionSrc, character separator = ';'  )
-        { Define( definitionSrc, separator ); }
+    /// Constructor using a (usually resourced) string to read the definitions.
+    /// Invokes #Define.
+    ///
+    /// \par Availability
+    ///   This method is available only if the module \alib_enumrecords is included in
+    ///   the \alibbuild.
+    /// @param definitionSrc  The input string.
+    /// @param separator      Separation character used to parse the input.
+    ///                       Defaults to <c>';'</c>.
+    Token( const String& definitionSrc, character separator = ';'  )
+    { Define( definitionSrc, separator ); }
     #endif
 
-  // ###############################################################################################
+  //################################################################################################
   //  Interface
-  // ###############################################################################################
+  //################################################################################################
   public:
     #if ALIB_DEBUG
-        /// Tests if this token was well defined.
-        ///
-        /// \note
-        ///   This method is only available in debug-compilations.
-        ///   Definition strings are considered static data (preferably resourced).
-        ///   Therefore, in debug-compilations, this method should be invoked and with that,
-        ///   the consistency of the resources be tested. In the case of failure, a debug
-        ///   assertion should be raised.
-        ///
-        /// @return \alib{strings::util::Token;DbgDefinitionError::OK}, if this token is well
-        ///         defined, a different error code otherwise.
-        DbgDefinitionError DbgGetError()
-        {
-            return  int(format) >= 0 ?  DbgDefinitionError::OK
-                                     :  DbgDefinitionError(format);
-        }
+    /// Tests if this token was well defined.
+    ///
+    /// \note
+    ///   This method is only available in debug-compilations.
+    ///   Definition strings are considered static data (preferably resourced).
+    ///   Therefore, in debug-compilations, this method should be invoked and with that,
+    ///   the consistency of the resources be tested. In the case of failure, a debug
+    ///   assertion should be raised.
+    ///
+    /// @return \alib{strings::util::Token;DbgDefinitionError::OK}, if this token is well
+    ///         defined, a different error code otherwise.
+    DbgDefinitionError DbgGetError()
+    {
+        return  int(format) >= 0 ?  DbgDefinitionError::OK
+                                 :  DbgDefinitionError(format);
+    }
     #endif
 
     /// Returns the definition name used for parsing the token.
@@ -271,8 +271,7 @@ class Token
     ///   instance of type \alib{strings;TAString;AString}.
     ///
     /// @return This token's #definitionName.
-    const String&   GetDefinitionName()                                                    const
-    {
+    const String&   GetDefinitionName()                                                      const {
         ALIB_ASSERT_ERROR( int8_t(format) >= 0, "STRINGS/TOK",
           "Error {} in definition of token \"{}\". Use DbgGetError() in debug-compilations!",
           int8_t(format), definitionName)
@@ -295,16 +294,15 @@ class Token
     ///
     /// @param target The \b AString that method \b Append was invoked on.
     ALIB_DLL
-    void            GetExportName(AString& target)                                        const;
+    void            GetExportName(AString& target)                                            const;
 
     /// Returns the format of this token.
     ///
     /// \note Same as methods #Sensitivity and #GetMinLength, this method is usually not
     ///       of interest to standard API usage.
     ///       These three informational methods are rather provided to support the unit tests.
-    /// @return This token's format,  used with method #Match.
-    Formats         GetFormat()                                                            const
-    {
+    /// @return This token's format, used with method #Match.
+    Formats         GetFormat()                                                              const {
         ALIB_ASSERT_ERROR( int8_t(format) >= 0, "STRINGS/TOK",
           "Error {} in definition of token \"{}\". Use DbgGetError() in debug-compilations!",
           int8_t(format), definitionName)
@@ -317,7 +315,7 @@ class Token
     ///       of interest to standard API usage.
     ///       These three informational methods are rather provided to support the unit tests.
     /// @return The letter case sensitivity used with method #Match.
-    lang::Case            Sensitivity()                                                    const
+    lang::Case            Sensitivity()                                                        const
     {             return (int(format) & 1 ) == 1 ? lang::Case::Ignore : lang::Case::Sensitive; }
 
     /// Returns the minimum length to be read. In case that this token is not of
@@ -336,49 +334,48 @@ class Token
     ///       These three informational methods are rather provided to support the unit tests.
     ///
     /// @return The minimum length of segment number \p{idx}.
-    int8_t          GetMinLength( int idx )                                                const
-    {
+    int8_t          GetMinLength( int idx )                                                  const {
         ALIB_ASSERT_ERROR( idx >= 0 && idx <= 6 , "STRINGS/TOK", "Index {} out of range.", idx  )
 
         return (idx >= 0 && idx <= 6) ? minLengths[idx] : -1;
     }
 
     #if ALIB_ENUMRECORDS
-        /// Defines or redefines this token by parsing the attributes from the given substring.
-        /// This method is usually invoked by code that loads tokens and other data from
-        /// \alib{resources;ResourcePool;resources} of \alib {lang;Camp} objects.
-        ///
-        /// The expected format is defined as a list of the following values, separated by
-        /// the character given with parameter \p{separator}:
-        /// - The #definitionName of the token. Even if the letter case is ignored, this should
-        ///   contain the name in "normalized" format, as it may be used with #GetExportName,
-        ///   if no specific name to export is given.
-        /// - Letter case sensitivity. This can be "Sensitive" or "Ignore"
-        ///   (respectively, what is defined with resourced
-        ///   \ref alib_enums_records "ALib Enum Records" of type \alib{lang::Case}),
-        ///   can be abbreviated to just one character (i.e., <c>'s'</c> and
-        ///   <c>'i'</c>) and itself is not parsed taking the letter-case into account.
-        /// - Optionally, the standard export string is used with the method #GetExportName, and
-        ///   when appended to an \b AString. Output names defined with this function must not start
-        ///   with a digit, because a digit in this position of \p{definition}, indicates that
-        ///   no export name is given.
-        /// - The list of minimum length for each segment of the name. The number of values have
-        ///   to match the number of segments. A value of \c 0 specifies that no abbreviation
-        ///   must be done and therefore is the same as specifying the exact length of the segment.
-        ///
-        /// \note The given \p{definition} string has to survive the use of the token, which
-        ///       is naturally true if the string resides in resources.
-        ///       (String contents are not copied. Instead, this class later refers to substrings
-        ///       of the given \p{definition}.)
-        ///
-        /// \par Availability
-        ///   This method is available only if the module \alib_enumrecords is included in
-        ///   the \alibbuild.
-        /// @param definition  The input string.
-        /// @param separator   Separation character used to parse the input.
-        ///                    Defaults to <c>';'</c>.
-        ALIB_DLL
-        void            Define( const String& definition, character separator = ';' );
+    /// Defines or redefines this token by parsing the attributes from the given substring.
+    /// This method is usually invoked by code that loads tokens and other data from
+    /// \alib{resources;ResourcePool;resources} of \alib {lang;Camp} objects.
+    ///
+    /// The expected format is defined as a list of the following values, separated by
+    /// the character given with parameter \p{separator}:
+    /// - The #definitionName of the token. Even if the letter case is ignored, this should
+    ///   contain the name in "normalized" format, as it may be used with #GetExportName,
+    ///   if no specific name to export is given.
+    /// - Letter case sensitivity. This can be "Sensitive" or "Ignore"
+    ///   (respectively, what is defined with resourced
+    ///   \ref alib_enums_records "ALib Enum Records" of type \alib{lang::Case}),
+    ///   can be abbreviated to just one character (i.e., <c>'s'</c> and
+    ///   <c>'i'</c>) and itself is not parsed taking the letter-case into account.
+    /// - Optionally, the standard export string is used with the method #GetExportName, and
+    ///   when appended to an \b AString. Output names defined with this function must not start
+    ///   with a digit, because a digit in this position of \p{definition}, indicates that
+    ///   no export name is given.
+    /// - The list of minimum length for each segment of the name. The number of values have
+    ///   to match the number of segments. A value of \c 0 specifies that no abbreviation
+    ///   must be done and therefore is the same as specifying the exact length of the segment.
+    ///
+    /// \note The given \p{definition} string has to survive the use of the token, which
+    ///       is naturally true if the string resides in resources.
+    ///       (String contents are not copied. Instead, this class later refers to substrings
+    ///       of the given \p{definition}.)
+    ///
+    /// \par Availability
+    ///   This method is available only if the module \alib_enumrecords is included in
+    ///   the \alibbuild.
+    /// @param definition  The input string.
+    /// @param separator   Separation character used to parse the input.
+    ///                    Defaults to <c>';'</c>.
+    ALIB_DLL
+    void            Define( const String& definition, character separator = ';' );
     #endif
 
     /// Matches a given string with this token. See this class's description for details.
@@ -407,15 +404,15 @@ namespace alib {  namespace strings {
 #if DOXYGEN
 namespace APPENDABLES {
 #endif
-    /// Specialization of functor \alib{strings;AppendableTraits} for type \alib{strings::util;Token}.
-    template<typename TAllocator> struct AppendableTraits<strings::util::Token, alib::character,TAllocator>
-    {
-        /// Appends the result of \alib{strings::util;Token::GetExportName} to the \p{target}.
-        /// @param target The \b AString that method \b Append was invoked on.
-        /// @param src    The \b Token to append.
-        inline void operator()( strings::TAString<character,TAllocator>& target, const strings::util::Token& src )
-        { src.GetExportName(target); }
-    };
+/// Specialization of functor \alib{strings;AppendableTraits} for type \alib{strings::util;Token}.
+template<typename TAllocator> struct AppendableTraits<strings::util::Token, alib::character,TAllocator>
+{
+    /// Appends the result of \alib{strings::util;Token::GetExportName} to the \p{target}.
+    /// @param target The \b AString that method \b Append was invoked on.
+    /// @param src    The \b Token to append.
+    inline void operator()( strings::TAString<character,TAllocator>& target, const strings::util::Token& src )
+    { src.GetExportName(target); }
+};
 #if DOXYGEN
 }   // namespace alib::strings[::APPENDABLES]
 #endif
@@ -423,4 +420,3 @@ namespace APPENDABLES {
 
 
 ALIB_ENUMS_MAKE_BITWISE( alib::strings::util::Token::Formats )
-

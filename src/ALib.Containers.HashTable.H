@@ -18,10 +18,9 @@
 #   if ALIB_C20_MODULES && !DOXYGEN
         import ALib.Containers.HashTable;
 #   elif !defined(ALIB_INC_CONTAINERS_HASHTABLE_MPP)
-#       define ALIB_INC_CONTAINERS_HASHTABLE_MPP
+#       define    ALIB_INC_CONTAINERS_HASHTABLE_MPP
 #       include "alib/containers/hashtable.mpp"
 #   endif
 #endif
 
 #endif // H_ALIB_CONTAINERS_HASHTABLE
-

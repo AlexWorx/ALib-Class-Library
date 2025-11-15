@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Format.FormatterJavaStyle;
     import   ALib.Lang;
@@ -30,14 +30,13 @@
 #   include "ALib.Characters.Functions.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib::strings;
 namespace alib::format {
 
 
 FormatterJavaStyle::FormatterJavaStyle()
-: FormatterStdImpl( A_CHAR( "FormatterJavaStyle" ) )
-{
+: FormatterStdImpl( A_CHAR( "FormatterJavaStyle" ) ) {
     // arguments are counted starting with 1.
     argumentCountStartsWith1 = true;
 
@@ -58,8 +57,7 @@ FormatterJavaStyle::FormatterJavaStyle()
 }
 
 
-SPFormatter   FormatterJavaStyle::Clone()
-{
+SPFormatter   FormatterJavaStyle::Clone() {
     SPFormatter clone;
     clone.InsertDerived<FormatterJavaStyle>();
     
@@ -75,8 +73,7 @@ SPFormatter   FormatterJavaStyle::Clone()
 
 
 
-void FormatterJavaStyle::resetPlaceholder()
-{
+void FormatterJavaStyle::resetPlaceholder() {
     // first invoke parent's setting...
     FormatterStdImpl::resetPlaceholder();
 
@@ -94,8 +91,7 @@ void FormatterJavaStyle::resetPlaceholder()
 }
 
 
-integer FormatterJavaStyle::findPlaceholder()
-{
+integer FormatterJavaStyle::findPlaceholder() {
     integer idx= 0;
     while(     (idx= parser.IndexOf('%', idx )) >= 0
            &&  (    parser.CharAt( idx + 1 ) == '%'
@@ -108,8 +104,7 @@ integer FormatterJavaStyle::findPlaceholder()
 }
 
 
-void    FormatterJavaStyle::writeStringPortion( integer length )
-{
+void    FormatterJavaStyle::writeStringPortion( integer length ) {
     if( length == 0)
         return;
 
@@ -120,8 +115,7 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
 
     character c1;
     character c2= *src;
-    while( length > 1 )
-    {
+    while( length > 1 ) {
         c1= c2;
         c2= *++src;
 
@@ -129,8 +123,7 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
             ||    c1 == '\\'                     )
         {
             if(  c1 == '\\' )
-                switch(c2)
-                {
+                switch(c2) {
                     case 'r': c1= '\r' ; break;
                     case 'n': c1= '\n' ; break;
                     case 't': c1= '\t' ; break;
@@ -145,8 +138,7 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
             c2= *++src;
             --length;
         }
-        else if( c1 == '%' && c2 =='n' )
-        {
+        else if( c1 == '%' && c2 =='n' ) {
             c1= '\n';
             ++src;
             --length;
@@ -165,8 +157,7 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
 
 
 
-bool FormatterJavaStyle::parsePlaceholder()
-{
+bool FormatterJavaStyle::parsePlaceholder() {
     enum states
     {
         POSITION        =  1,
@@ -181,32 +172,25 @@ bool FormatterJavaStyle::parsePlaceholder()
     states  state= POSITION;
     #define NEXTSTATE(s) { state= s; continue; }
 
-    while( true )
-    {
+    while( true ) {
         // switch over state. With 'break' we consume one character (kind of success) while
         // with 'continue' we keep the current character (and go to another state)
-        switch ( state )
-        {
+        switch ( state ) {
             case POSITION:
             {
                 int argNo= -1;
-                if ( parser.ConsumeChar('<') )
-                {
+                if ( parser.ConsumeChar('<') ) {
                     argNo= placeholder.PreviousArgIdx + 1;
-                }
-                else
-                {
+                } else {
                     integer i= 0;
                     while(    i < parser.Length()
                            && isdigit( parser.CharAt<NC>(i) ) )
                          ++i;
 
-                    if(  i > 0 &&  parser.CharAt<NC>(i) == '$')
-                    {
+                    if(  i > 0 &&  parser.CharAt<NC>(i) == '$') {
                         parser.ConsumeDecDigits( argNo );    ALIB_ASSERT_RESULT_EQUALS(
                         parser.ConsumeChar('$')                                        , true )
-                    }
-                }
+                }   }
                 if( argNo >= 0 )
                     setArgument( argNo );
 
@@ -216,10 +200,8 @@ bool FormatterJavaStyle::parsePlaceholder()
             case FLAGS:
             {
                 bool flagsDone= false;
-                while(!flagsDone)
-                {
-                    switch ( parser.CharAtStart() )
-                    {
+                while(!flagsDone) {
+                    switch ( parser.CharAtStart() ) {
                         case '-':
                             placeholder.ValueAlignment= lang::Alignment::Left;
                             placeholder.AlignmentSpecified= true;
@@ -292,8 +274,7 @@ bool FormatterJavaStyle::parsePlaceholder()
 
                 character typeCharLower= characters::ToLower( placeholder.TypeCode );
 
-                if ( typeCharLower == 'a' )
-                {
+                if ( typeCharLower == 'a' ) {
                     throw Exception(ALIB_CALLER_NULLED, FMTExceptions::HexadecimalFloatFormatNotSupported,
                                     formatString, formatString.Length() - parser.Length() - 1 );
                 }
@@ -303,8 +284,7 @@ bool FormatterJavaStyle::parsePlaceholder()
                                     placeholder.TypeCode,
                                     formatString, formatString.Length() - parser.Length() - 1 );
 
-                if( String(A_CHAR( "seg" )).IndexOf( placeholder.TypeCode ) >= 0 )
-                {
+                if( String(A_CHAR( "seg" )).IndexOf( placeholder.TypeCode ) >= 0 ) {
                     if( placeholder.TypeCode != 's' )
                         placeholder.NF.ExponentSeparator= AlternativeNumberFormat.ExponentSeparator;
                     placeholder.NF.INFLiteral=            AlternativeNumberFormat.INFLiteral;
@@ -326,8 +306,7 @@ bool FormatterJavaStyle::parsePlaceholder()
                 else if( placeholder.TypeCode == 'x' || placeholder.TypeCode == 'h' )   placeholder.NF.HexLiteralPrefix= AlternativeNumberFormat.HexLiteralPrefix;
 
 
-                switch ( typeCharLower )
-                {
+                switch ( typeCharLower ) {
                     case 's':   placeholderJS.Precision=   -1;
                                 break;
 
@@ -346,8 +325,7 @@ bool FormatterJavaStyle::parsePlaceholder()
 
                     case 't':   placeholderJS.DateTime= parser.CharAtStart();
                                 parser.ConsumeChars( 1 );
-                                switch( placeholderJS.DateTime )
-                                {
+                                switch( placeholderJS.DateTime ) {
                                     case 'H': placeholder.FormatSpec= A_CHAR( "HH" )  ; break;
                                     case 'k': placeholder.FormatSpec= A_CHAR( "H"  )  ; break;
                                     case 'I': placeholder.FormatSpec= A_CHAR( "KK" )  ; break;
@@ -415,19 +393,16 @@ bool FormatterJavaStyle::parsePlaceholder()
 }
 
 
-bool    FormatterJavaStyle::preAndPostProcess( integer startIdx, AString* target )
-{
+bool    FormatterJavaStyle::preAndPostProcess( integer startIdx, AString* target ) {
     if( startIdx >= 0 && placeholderJS.ConversionUpper && target == nullptr )
         targetString->ToUpper( startIdx );
     return true;
 }
 
 
-bool  FormatterJavaStyle::checkStdFieldAgainstArgument()
-{
+bool  FormatterJavaStyle::checkStdFieldAgainstArgument() {
     bool wasFloat= placeholder.Type == PHTypes::Float;
-    if( wasFloat )
-    {
+    if( wasFloat ) {
         if ( placeholderJS.Precision >= 0 )
             placeholder.NF.FractionalPartWidth= placeholderJS.Precision;
         else if( placeholder.NF.FractionalPartWidth < 0 )
@@ -436,8 +411,7 @@ bool  FormatterJavaStyle::checkStdFieldAgainstArgument()
 
     bool result= FormatterStdImpl::checkStdFieldAgainstArgument();
 
-    if( !wasFloat && placeholder.Type == PHTypes::Float )
-    {
+    if( !wasFloat && placeholder.Type == PHTypes::Float ) {
         if ( placeholderJS.Precision >= 0 )
             placeholder.NF.FractionalPartWidth= placeholderJS.Precision;
     }
@@ -446,4 +420,3 @@ bool  FormatterJavaStyle::checkStdFieldAgainstArgument()
 }
 
 } // namespace [alib::format]
-

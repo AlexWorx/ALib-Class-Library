@@ -17,22 +17,22 @@
 #define INL_ALIB 1
 #pragma once
 
-#define ALIB_VERSION    2510
+#define ALIB_VERSION    2511
 #define ALIB_REVISION   0
 
 #ifndef DOXYGEN
 #   define DOXYGEN 0
 #endif
 
+#include <version>
 #include <concepts>
 #include <type_traits>
 
-
 #if !DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // Single-threaded library?
-// #################################################################################################
+//##################################################################################################
 #if !defined( ALIB_SINGLE_THREADED   )
 #   define  ALIB_SINGLE_THREADED   0
 #endif
@@ -44,9 +44,9 @@
 #   define  IFNOT_ALIB_SINGLE_THREADED(...)      __VA_ARGS__
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // No module selection symbol given but threads? -> choose ALL
-// #################################################################################################
+//##################################################################################################
 #if     !defined( ALIB_ALOX          )       \
      && !defined( ALIB_BITBUFFER     )       \
      && !defined( ALIB_BOXING        )       \
@@ -132,9 +132,9 @@
 #   define  ALIB_THREADMODEL        0
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Resolve module dependencies
-// #################################################################################################
+//##################################################################################################
 #if ALIB_EXPRESSIONS
 #    undef  ALIB_CAMP
 #    define ALIB_CAMP               1
@@ -216,9 +216,9 @@
 #    define ALIB_SINGLETONS         1
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // if !DOXYGEN
-// #################################################################################################
+//##################################################################################################
 #else
 #define ALIB_ALOX                     1
 #define ALIB_BITBUFFER                1
@@ -240,9 +240,9 @@
 #define ALIB_THREADMODEL              1
 #endif //!DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // Macros for checking availability of modules
-// #################################################################################################
+//##################################################################################################
 #define  ALIB_DOCUMENTATION_URL   "https://alib.dev/"
 
 #define ALIB_ASSERT_MODULE(modulename)                                                             \
@@ -250,9 +250,9 @@ static_assert( ALIB_ ## modulename,                                             
                "This module is not included in the ALib Build. "                                   \
                "See " ALIB_DOCUMENTATION_URL "alib_manual.html for more information" );            \
 
-// #################################################################################################
+//##################################################################################################
 // Macros to select code (without using #if/#endif)
-// #################################################################################################
+//##################################################################################################
 #if ALIB_ALOX
 #   define  IF_ALIB_ALOX(...)              __VA_ARGS__
 #   define  IFNOT_ALIB_ALOX(...)
@@ -405,9 +405,9 @@ static_assert( ALIB_ ## modulename,                                             
 #   define  IFNOT_ALIB_THREADS(...)        __VA_ARGS__
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Compiler detection and specifics
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
     #define  DOX_MARKER(marker)
 #endif
@@ -480,7 +480,14 @@ static_assert( ALIB_ ## modulename,                                             
 #   define ALIB_CPP_BEFORE_23(...) __VA_ARGS__
 #endif
 
-// Check if modules are enabled and define C++-module related macros
+// Disallow C++-module compilation (deprecated)
+#if defined(ALIB_C20_MODULES) || DOXYGEN
+#   if ALIB_C20_MODULES != 0
+#       error "Symbol ALIB_C20_MODULES must not be specified. C+20 module support is deprecated."
+#   endif
+#else
+#   define ALIB_C20_MODULES 0
+#endif
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
 #endif
@@ -567,6 +574,9 @@ static_assert( ALIB_ ## modulename,                                             
         _Pragma("GCC diagnostic push")                                          \
 
     #define ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE                              \
+        _Pragma("GCC diagnostic push")                                          \
+
+    #define ALIB_WARNINGS_IGNORE_NOT_ELIDING_COPY_ON_RETURN                     \
         _Pragma("GCC diagnostic push")                                          \
 
     #define ALIB_WARNINGS_IGNORE_NOTHING_RETURNED                               \
@@ -678,7 +688,11 @@ static_assert( ALIB_ ## modulename,                                             
         _Pragma("clang diagnostic push")                                        \
         _Pragma("clang diagnostic ignored \"-Wunused-template\"")               \
 
-    #define ALIB_WARNINGS_IGNORE_NOTHING_RETURNED                               \
+    #define ALIB_WARNINGS_IGNORE_NOT_ELIDING_COPY_ON_RETURN                     \
+        _Pragma("clang diagnostic push")                                        \
+        _Pragma("clang diagnostic ignored \"-Wnrvo\"")                          \
+
+        #define ALIB_WARNINGS_IGNORE_NOTHING_RETURNED                           \
         _Pragma("clang diagnostic push")                                        \
         _Pragma("clang diagnostic ignored \"-Wreturn-type\"")                   \
 
@@ -769,6 +783,9 @@ static_assert( ALIB_ ## modulename,                                             
     #define ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE                              \
         __pragma(warning( push ))                                               \
 
+    #define ALIB_WARNINGS_IGNORE_NOT_ELIDING_COPY_ON_RETURN                     \
+        __pragma(warning( push ))                                               \
+
     #define ALIB_WARNINGS_IGNORE_NOTHING_RETURNED                               \
         __pragma(warning( push ))                                               \
         __pragma(warning( disable : 4715 ))                                     \
@@ -807,11 +824,11 @@ static_assert( ALIB_ ## modulename,                                             
     #define ALIB_FALLTHROUGH
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Availability of external libraries
-// #################################################################################################
+//##################################################################################################
 #if !defined(ALIB_EXT_LIB_THREADS_AVAILABLE)
-#	define ALIB_EXT_LIB_THREADS_AVAILABLE   1
+#   define ALIB_EXT_LIB_THREADS_AVAILABLE   1
 #endif
 #if ALIB_EXT_LIB_THREADS_AVAILABLE
 #   include <thread>
@@ -821,9 +838,9 @@ static_assert( ALIB_ ## modulename,                                             
 #   define   ALIB_FEAT_BOOST_REGEX          0
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Debug or release compilation
-// #################################################################################################
+//##################################################################################################
 #if !defined(ALIB_DEBUG)
 #   if  !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
 #       define ALIB_DEBUG 1
@@ -844,11 +861,11 @@ static_assert( ALIB_ ## modulename,                                             
 
 
 
-// #################################################################################################
+//##################################################################################################
 // ALib Feature detection
 // (Note: this has to be done outside the module code, because the features are used with
 //        the compilation verification flags below)
-// #################################################################################################
+//##################################################################################################
 
 // ALIB_CHARACTERS_WIDE, ALIB_SIZEOF_WCHAR_T
 #if defined(__WCHAR_MAX__)
@@ -912,9 +929,9 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #endif
 
 
-// #################################################################################################
+//##################################################################################################
 // Preprocessor tools
-// #################################################################################################
+//##################################################################################################
 #if DOXYGEN
 #   define     ALIB_NSTRINGIFY(a)
 #   define     ALIB_STRINGIFY(a)
@@ -960,7 +977,7 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
   static_assert( CondVariable, Message );   }                                                      \
 
 //==================================================================================================
-///  Used with macro \ref ALIB_ASSERT_GLOBAL_NAMESPACE for testing.
+/// Used with macro \ref ALIB_ASSERT_GLOBAL_NAMESPACE for testing.
 //==================================================================================================
 struct ALibTestGlobalNamespace;
 #define ALIB_ASSERT_GLOBAL_NAMESPACE                                                               \
@@ -969,9 +986,9 @@ static_assert(std::is_same<ALibTestGlobalNamespace, ::ALibTestGlobalNamespace>::
               "This is not the global namespace!");
 
 
-// #################################################################################################
+//##################################################################################################
 // Other tools
-// #################################################################################################
+//##################################################################################################
 #define ALIB_STACK_ALLOCATED_TYPE(T)                                                               \
 private:    void* operator new  (size_t);                                                          \
             void* operator new  (size_t, void*);                                                   \
@@ -1027,10 +1044,10 @@ private:    void* operator new  (size_t);                                       
 #   define ALIB_DBG_TAKE_CI
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Debug Messages and Assertions
-// #################################################################################################
-#if ALIB_DEBUG 
+//##################################################################################################
+#if ALIB_DEBUG
 #   if !defined(ALIB_DEBUG_ASSERTION_PRINTABLES)
 #      define ALIB_DEBUG_ASSERTION_PRINTABLES 0
 #   endif
@@ -1074,10 +1091,10 @@ private:    void* operator new  (size_t);                                       
     #define ALIB_ASSERT_RESULT_LESS_THAN(   func, value ) { func; }
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by lang::integer, and similar basics
-// #################################################################################################
-//------------- One of the 5 symbols given from outside? ---------------------
+//##################################################################################################
+//----------------------------- One of the 5 symbols given from outside? ---------------------------
 #if         defined(ALIB_SIZEOF_INTEGER   )          \
         ||  defined(ALIB_SIZEOF_INTGAP    )          \
         ||  defined(ALIB_INTGAP_TYPE      )          \
@@ -1101,7 +1118,7 @@ is given (instead of letting ALib detect them), then the whole group has to be g
     #endif
 
 
-//------------- None of the 5 symbols given from outside: Platform detection ---------------------
+//------------------- None of the 5 symbols given from outside: Platform detection -----------------
 #else
 
     // 64-Bit platforms
@@ -1190,9 +1207,9 @@ as documented with ALib User Manual at https://alib.dev"
     #endif
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by alib::characters
-// #################################################################################################
+//##################################################################################################
 #if defined(ALIB_CHARACTERS_NATIVE_WCHAR)
 #   error "Preprocessor symbol ALIB_CHARACTERS_NATIVE_WCHAR must not be passed to the compiler. It is deduced in ALib headers."
 #endif
@@ -1250,7 +1267,7 @@ as documented with ALib User Manual at https://alib.dev"
 #define ALIB_CHAR_TYPE_ID_X   3
 
 
-//#####################  Helper macros to specialize ArrayTraits/ZTArrayTraits  ####################
+//###################### Helper macros to specialize ArrayTraits/ZTArrayTraits #####################
 #if !DOXYGEN
 #define ALIB_CHARACTER_ARRAY_internal( PREFIX, T, TChar, Const, pAccess, pConstruction)            \
 template<>  struct      PREFIX ## ArrayTraits<T, TChar>                                      {     \
@@ -1307,9 +1324,9 @@ integer      ZTArrayTraits<T,TChar>::Length( T      &  src ) { __VA_ARGS__ }
     T  ZTArrayTraits<T,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
 
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by lang::Owner
-// #################################################################################################
+//##################################################################################################
 #define   ALIB_OWN(          ownable) alib::lang::Owner         <decltype(ownable)> ALIB_IDENTIFIER(owner) (ownable ALIB_COMMA_CALLER_PRUNED);
 #define   ALIB_OWN_RECURSIVE(ownable) alib::lang::OwnerRecursive<decltype(ownable)> ALIB_IDENTIFIER(owner) (ownable ALIB_COMMA_CALLER_PRUNED);
 #define   ALIB_OWN_SHARED(   ownable) alib::lang::OwnerShared   <decltype(ownable)> ALIB_IDENTIFIER(owner) (ownable ALIB_COMMA_CALLER_PRUNED);
@@ -1366,9 +1383,9 @@ ALIB_OWN(dbgRecursionDetection);
 #   define    ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by lang::DbgCriticalSections
-// #################################################################################################
+//##################################################################################################
 
 #if ALIB_DEBUG
 #   if !ALIB_SINGLE_THREADED && ALIB_DEBUG_CRITICAL_SECTIONS

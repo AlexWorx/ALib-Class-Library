@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,26 +11,25 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include <locale.h>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings;
 #else
 #   include "ALib.Strings.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace strings {
 
 #if !DOXYGEN
-// #################################################################################################
+//##################################################################################################
 //  Set methods
-// #################################################################################################
+//##################################################################################################
 
 template<typename TChar>
-void TNumberFormat<TChar>::SetFromLocale()
-{
+void TNumberFormat<TChar>::SetFromLocale() {
     struct lconv * lc=localeconv();
 
     DecimalPointChar=       static_cast<TChar>(  *(lc->decimal_point)  );
@@ -38,8 +37,7 @@ void TNumberFormat<TChar>::SetFromLocale()
 }
 
 template<typename TChar>
-void TNumberFormat<TChar>::Set( TNumberFormat* other )
-{
+void TNumberFormat<TChar>::Set( TNumberFormat* other ) {
     if ( other == nullptr )
         other= &Global;
 
@@ -49,42 +47,40 @@ void TNumberFormat<TChar>::Set( TNumberFormat* other )
 
 namespace {
     template<typename TChar>
-    void setComputational( TNumberFormat<TChar>& nf )
-    {
-        nf.Flags                      = NumberFormatFlags::ForceDecimalPoint;
-        nf.DecimalPointChar           = '.';
-        nf.Whitespaces                = CStringConstantsTraits<TChar>::DefaultWhitespaces();
-        nf.PlusSign                   = '\0';
+void setComputational( TNumberFormat<TChar>& nf ) {
+    nf.Flags                      = NumberFormatFlags::ForceDecimalPoint;
+    nf.DecimalPointChar           = '.';
+    nf.Whitespaces                = CStringConstantsTraits<TChar>::DefaultWhitespaces();
+    nf.PlusSign                   = '\0';
 
-        // automatic field width (->minimum size of maximum accuracy)
-        nf.DecMinimumFieldWidth=
-        nf.BinFieldWidth=
-        nf.HexFieldWidth=
-        nf.OctFieldWidth=
-        nf.IntegralPartMinimumWidth=
-        nf.FractionalPartWidth=            -1;
+    // automatic field width (->minimum size of maximum accuracy)
+    nf.DecMinimumFieldWidth=
+    nf.BinFieldWidth=
+    nf.HexFieldWidth=
+    nf.OctFieldWidth=
+    nf.IntegralPartMinimumWidth=
+    nf.FractionalPartWidth=            -1;
 
-        // group characters
-        nf.LeadingGroupCharReplacement=    ' ';
+    // group characters
+    nf.LeadingGroupCharReplacement=    ' ';
 
-        nf.ThousandsGroupChar=             ',';
+    nf.ThousandsGroupChar=             ',';
 
-        nf.BinNibbleGroupChar=
-        nf.HexWordGroupChar=
-        nf.HexWord32GroupChar=
-        nf.OctGroupChar=                   '\'';
+    nf.BinNibbleGroupChar=
+    nf.HexWordGroupChar=
+    nf.HexWord32GroupChar=
+    nf.OctGroupChar=                   '\'';
 
-        nf.HexByteGroupChar=               '\0';
-        nf.BinByteGroupChar=               '-';
-        nf.BinWordGroupChar=               '=';
-        nf.BinWord32GroupChar=             '#';
+    nf.HexByteGroupChar=               '\0';
+    nf.BinByteGroupChar=               '-';
+    nf.BinWordGroupChar=               '=';
+    nf.BinWord32GroupChar=             '#';
 
-    }
+}
 }
 
 template<>
-void TNumberFormat<nchar>::SetComputational()
-{
+void TNumberFormat<nchar>::SetComputational() {
     setComputational( *this );
 
     ExponentSeparator       =          "E"     ;
@@ -96,8 +92,7 @@ void TNumberFormat<nchar>::SetComputational()
 }
 
 template<>
-void TNumberFormat<wchar>::SetComputational()
-{
+void TNumberFormat<wchar>::SetComputational() {
     setComputational( *this );
 
     ExponentSeparator       = A_WCHAR( "E"   ) ;
@@ -109,8 +104,7 @@ void TNumberFormat<wchar>::SetComputational()
 }
 
 template<>
-void TNumberFormat<xchar>::SetComputational()
-{
+void TNumberFormat<xchar>::SetComputational() {
     setComputational( *this );
 
     ExponentSeparator       = A_XCHAR( "E"   ) ;
@@ -132,4 +126,3 @@ template void     TNumberFormat<xchar>::SetFromLocale   ( );
 #endif // !DOXYGEN
 
 }} // namespace [alib::strings]
-

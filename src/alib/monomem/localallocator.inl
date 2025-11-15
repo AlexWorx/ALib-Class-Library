@@ -47,7 +47,7 @@ class TLocalAllocator : public TMonoAllocator<TAllocator>
     ///                               of a next buffer size in respect to its previous size.
     ///                               Defaults to \c 200, which doubles buffer size with each
     ///                               next internal buffer allocation.
-    TLocalAllocator(unsigned int pBufferGrowthInPercent= 200)
+    TLocalAllocator(unsigned pBufferGrowthInPercent= 200)
     : base( ALIB_DBG("LocalAllocator",)
             new (localMemory) detail::Buffer( TCapacityInKB*1024),
             TCapacityInKB,
@@ -59,7 +59,7 @@ class TLocalAllocator : public TMonoAllocator<TAllocator>
     ///                               of a next buffer size in respect to its previous size.
     ///                               Defaults to \c 200, which doubles buffer size with each
     ///                               next internal buffer allocation.
-    TLocalAllocator(TAllocator& pAllocator, unsigned int pBufferGrowthInPercent= 200)
+    TLocalAllocator(TAllocator& pAllocator, unsigned pBufferGrowthInPercent= 200)
     : base( ALIB_DBG("LocalAllocator",)
             pAllocator,
             new (localMemory) detail::Buffer( TCapacityInKB*1024),
@@ -67,18 +67,15 @@ class TLocalAllocator : public TMonoAllocator<TAllocator>
             pBufferGrowthInPercent)                                                               {}
 
     /// Destructor. Calls \alib{monomem;MonoAllocator::destructWithExternalBuffer}.
-    ~TLocalAllocator()
-    {
-        base::destructWithExternalBuffer();
-    }
-
+    ~TLocalAllocator()                                       { base::destructWithExternalBuffer(); }
 
     /// Convenience method that returns <c>*this</c> statically cast to base type
     /// \b %MonoAllocator. This is primarily needed in situations where overload resolution
     /// of methods fails, if not exactly this base type is given. A prominent sample for this is
     /// the constructor of type \alib{AStringMA}.
     /// @return A reference to \p{*this} as \b its base type.
-    MonoAllocator& AsMonoAllocator() { return static_cast<MonoAllocator&>(*this); }
+    MonoAllocator& AsMonoAllocator()                  { return static_cast<MonoAllocator&>(*this); }
+
 }; // class TLocalAllocator
 
 }  // namespace alib[::monomem]
@@ -96,4 +93,3 @@ using     LocalAllocator32K =   monomem::TLocalAllocator<32>;  ///< Type alias i
 using     LocalAllocator64K =   monomem::TLocalAllocator<64>;  ///< Type alias in namespace \b alib. Allocates 64kB of stack memory.
 
 } // namespace [alib]
-

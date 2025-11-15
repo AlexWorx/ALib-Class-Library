@@ -3,7 +3,6 @@
   <component name="BackendCodeEditorSettings">
     <option name="/Default/CodeInspection/CppInitialization/PreferUniformInitializationInNSDMIs/@EntryValue" value="true" type="bool" />
     <option name="/Default/CodeInspection/CppInitialization/UseUniformInitializationInMemberInitializers/@EntryValue" value="true" type="bool" />
-    <option name="/Default/CodeInspection/Highlighting/InspectionSeverities/=CppClassCanBeFinal/@EntryIndexedValue" value="DO_NOT_SHOW" type="string" />
     <option name="/Default/CodeInspection/Highlighting/InspectionSeverities/=CppDefinitionsOrder/@EntryIndexedValue" value="HINT" type="string" />
     <option name="/Default/CodeInspection/Highlighting/InspectionSeverities/=CppDeprecatedOverridenMethod/@EntryIndexedValue" value="WARNING" type="string" />
     <option name="/Default/CodeInspection/Highlighting/InspectionSeverities/=CppModulePartitionWithSeveralPartitionUnits/@EntryIndexedValue" value="WARNING" type="string" />

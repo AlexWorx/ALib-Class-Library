@@ -6,61 +6,60 @@
 /// Published under \ref mainpage_license "Boost Software License".
 //==================================================================================================
 ALIB_EXPORT namespace alib {  namespace characters {
-//==============================================================================================
+//==================================================================================================
 /// Converts a character to upper case.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param c    The character to convert
 /// @return The upper case version of the given character.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 TChar       ToUpper( TChar c );
 
-//==============================================================================================
+//==================================================================================================
 /// Converts a character sequence to upper case.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param src     Pointer to the character array.
 /// @param length  The length of the array.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        ToUpper( TChar* src, integer length );
 
-//==============================================================================================
+//==================================================================================================
 /// Converts a character to lower case.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param c    The character to convert
 /// @return The lower case version of the given character.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 TChar       ToLower( TChar c );
 
-//==============================================================================================
+//==================================================================================================
 /// Converts a character sequence to lower case.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param src     Pointer to the character array.
 /// @param length  The length of the array.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        ToLower( TChar* src, integer length );
 
-//==============================================================================================
+//==================================================================================================
 /// Compares two characters of arbitrary types.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @tparam sensitivity Letter case sensitivity of the comparison.
-/// @tparam TRhs        The type of the right hand side letter to compare.
+/// @tparam TRhs        The type of the right-hand side letter to compare.
 /// @param  lhs         The left-hand side character to compare of class template
 ///                     type \p{TChar}.
 /// @param  rhs         The right-hand side character to compare of method template
 ///                     type \p{TCharRhs} .
 /// @return \c true if the given characters are equal, \c false otherwise.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar, lang::Case sensitivity, typename TRhs >
-bool Equal( TChar lhs, TRhs rhs )
-{
+bool Equal( TChar lhs, TRhs rhs ) {
     using TLhs= TChar;
     bool sensitive=  (sensitivity == lang::Case::Sensitive);
 
@@ -77,78 +76,69 @@ bool Equal( TChar lhs, TRhs rhs )
                           :  ToUpper(                   lhs ) == ToUpper(static_cast<TLhs>(rhs));
 }
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the length of a zero-terminated "c-style" character array.
 ///
-/// Note: This method is implemented as an inlined, direct direct call to
-/// \c std::char_traits::length.
+/// Note: This method is implemented as an inlined, direct call to \c std::char_traits::length.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param cstring         Pointer to a zero-terminated character array.
 /// @return The length of the string.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer     Length( const TChar* cstring )
-{
-    return integer( std::char_traits<TChar>::length(cstring) );
-}
+{ return integer( std::char_traits<TChar>::length(cstring) ); }
 
-//==============================================================================================
+//==================================================================================================
 /// Copies the contents of a character array into another, non-overlapping (!) array.
 ///
-/// Note: This method is implemented as an inlined, direct direct call to
-/// \c std::char_traits::copy.
+/// Note: This method is implemented as an inlined, direct call to \c std::char_traits::copy.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param src     Pointer to the source array.
 /// @param length  The length to copy.
 /// @param dest    Pointer to the destination array.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        Copy( const TChar* src, integer length, TChar* dest )
-{
-    std::char_traits<TChar>::copy( dest, src, size_t(length) );
-}
+{ std::char_traits<TChar>::copy( dest, src, size_t(length) ); }
 
-//==============================================================================================
+//==================================================================================================
 /// Copies the contents of a character array into another, possibly overlapping array.
 ///
-/// Note: This method is implemented as an inlined, direct direct call to
-/// \c std::char_traits::move.
+/// Note: This method is implemented as an inlined, direct call to \c std::char_traits::move.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param src     Pointer to the source array.
 /// @param length  The length to copy.
 /// @param dest    Pointer to the destination array, optionally within source.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        Move( const TChar* src, integer length, TChar* dest )
-{
-    std::char_traits<TChar>::move( dest, src, size_t(length) );
-}
+{ std::char_traits<TChar>::move( dest, src, size_t(length) ); }
 
-//==============================================================================================
+//==================================================================================================
 /// Sets all elements of the given character array to value \p{value}.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param dest      Pointer to the destination array.
 /// @param length    The length to fill.
 /// @param value     The value to fill the array with.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        Fill( TChar* dest, integer length, TChar value );
 
-//==============================================================================================
+//==================================================================================================
 /// Reverses the order of the characters.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param src     Pointer to the character array.
 /// @param length  The length of the array.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 void        Reverse( TChar* src, integer length );
 
-//==============================================================================================
+//==================================================================================================
 /// Searches the character. Returns a pointer to the location of \p{needle} in \p{haystack},
 /// respectively \c nullptr if not found.
 ///
@@ -162,14 +152,12 @@ void        Reverse( TChar* src, integer length );
 ///
 /// @return The pointer to the first occurrence of \p{needle} respectively \c nullptr if
 ///         not found.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 const TChar* Search( const TChar* haystack, integer haystackLength, TChar needle )
-{
-    return std::char_traits<TChar>::find( haystack, size_t(haystackLength), needle );
-}
+{ return std::char_traits<TChar>::find( haystack, size_t(haystackLength), needle ); }
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the index of the first character in \p{haystack} which is included in a given set
 /// of \p{needles}.
 ///
@@ -189,12 +177,12 @@ const TChar* Search( const TChar* haystack, integer haystackLength, TChar needle
 ///
 /// @return The index of the first character found that is included in \p{needles}.
 ///         If no character of haystack is included in \p{needles}, \c -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer IndexOfAnyIncluded( const TChar*  haystack,   integer  haystackLength,
                             const TChar*  needles,    integer  needlesLength     );
 
-//==============================================================================================
+//==================================================================================================
 /// Same as #IndexOfAnyIncluded(const TChar*,integer,const TChar*,integer) but works on
 /// zero-terminated strings.
 ///
@@ -204,11 +192,11 @@ integer IndexOfAnyIncluded( const TChar*  haystack,   integer  haystackLength,
 ///
 /// @return The index of the first character found that is included in \p{needles}.
 ///         If no character of haystack is included in \p{needles}, \c -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer IndexOfAnyIncludedZT( const TChar* haystack, const TChar* needles );
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the index of the first character in \p{haystack} which is not included in a given
 /// set of \p{needles}.
 ///
@@ -228,13 +216,13 @@ integer IndexOfAnyIncludedZT( const TChar* haystack, const TChar* needles );
 ///
 /// @return The index of the first character that is not included in \p{needles}.
 ///         If all characters of haystack are included in \p{needles}, \c -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer IndexOfAnyExcluded( const TChar*  haystack,   integer  haystackLength,
                             const TChar*  needles,    integer  needlesLength     );
 
 
-//==============================================================================================
+//==================================================================================================
 /// Same as #IndexOfAnyExcluded(const TChar*,integer,const TChar*,integer) but works on
 /// zero-terminated strings.
 ///
@@ -244,11 +232,11 @@ integer IndexOfAnyExcluded( const TChar*  haystack,   integer  haystackLength,
 ///
 /// @return The index of the first character that is not included in \p{needles}.
 ///         If all characters of haystack are included in \p{needles}, \c -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer IndexOfAnyExcludedZT( const TChar* haystack, const TChar* needles );
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the index of the last character in \p{haystack} which is included in a given set
 /// of \p{needles}.
 ///
@@ -265,12 +253,12 @@ integer IndexOfAnyExcludedZT( const TChar* haystack, const TChar* needles );
 ///
 /// @return The index of the first character found which is included in the given set
 ///         of characters. If nothing is found, -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer LastIndexOfAnyInclude( const TChar*  haystack,    integer  startIdx,
                                const TChar*  needles,     integer  needlesLength );
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the index of the last character in \p{haystack} which is not included in a given
 /// set of \p{needles}.
 ///
@@ -287,12 +275,12 @@ integer LastIndexOfAnyInclude( const TChar*  haystack,    integer  startIdx,
 ///
 /// @return The index of the first character found which is included in the given set
 ///         of characters. If nothing is found, -1 is returned.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer LastIndexOfAnyExclude( const TChar*  haystack,    integer  startIdx,
                                const TChar*  needles,     integer  needlesLength );
 
-//==============================================================================================
+//==================================================================================================
 /// Returns the index of the first character which is not equal within two strings.
 /// If \p{haystack} starts with \p{needle}, then the length of \p{needle} is returned.
 ///
@@ -309,13 +297,13 @@ integer LastIndexOfAnyExclude( const TChar*  haystack,    integer  startIdx,
 ///                        or not.
 ///
 /// @return The index of the first character found which is not equal in given strings.
-//==============================================================================================
+//==================================================================================================
 template<typename TChar>
 integer IndexOfFirstDifference( const TChar*  haystack,   integer  haystackLength,
                                 const TChar*  needle,     integer  needleLength,
                                 lang::Case    sensitivity                         );
 
-//==============================================================================================
+//==================================================================================================
 /// Searches for a difference in two character arrays of equal length.
 ///
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
@@ -323,15 +311,13 @@ integer IndexOfFirstDifference( const TChar*  haystack,   integer  haystackLengt
 /// @param rhs       The second array to compare.
 /// @param cmpLength The number of characters to compare.
 ///
-/// @return  \c true if the string arrays have identical contents, \c false otherwise.
-//==============================================================================================
+/// @return \c true if the string arrays have identical contents, \c false otherwise.
+//==================================================================================================
 template<typename TChar>
 bool Equal( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
-{
-    return  ::memcmp( lhs, rhs, size_t(cmpLength) * sizeof(TChar) ) == 0;
-}
+{ return  ::memcmp( lhs, rhs, size_t(cmpLength) * sizeof(TChar) ) == 0; }
 
-//==============================================================================================
+//==================================================================================================
 /// Compares up to \p{cmpLength} characters of two character arrays.
 /// Comparison stops if termination character \c '\0' is found in one of the arrays.
 ///
@@ -340,73 +326,57 @@ bool Equal( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
 /// @param rhs       The second array to compare.
 /// @param cmpLength The number of characters to compare.
 ///
-/// @return  Negative value if lhs appears before rhs in lexicographical order.
-///          \c 0 if lhs and rhs are equal.
-///          Positive value if lhs appears after rhs in lexicographical order.
-//==============================================================================================
+/// @return Negative value if lhs appears before rhs in lexicographical order.
+///         \c 0 if lhs and rhs are equal.
+///         Positive value if lhs appears after rhs in lexicographical order.
+//==================================================================================================
 template<typename TChar>
 int Compare( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
-{
-    return std::char_traits<TChar>::compare( lhs, rhs, size_t(cmpLength) );
-}
+{ return std::char_traits<TChar>::compare( lhs, rhs, size_t(cmpLength) ); }
 
-//==============================================================================================
+//==================================================================================================
 /// Compares two character arrays of equal length ignoring letter case.
 /// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
 /// @param lhs      The first array to compare.
 /// @param rhs      The second array to compare.
 /// @param cmpLength The number of characters to compare.
 ///
-/// @return  Negative value if lhs appears before rhs in lexicographical order.
-///          \c 0 if lhs and rhs are equal.
-///          Positive value if lhs appears after rhs in lexicographical order.
-//==============================================================================================
+/// @return Negative value if lhs appears before rhs in lexicographical order.
+///         \c 0 if lhs and rhs are equal.
+///         Positive value if lhs appears after rhs in lexicographical order.
+//==================================================================================================
 template<typename TChar>
 int CompareIgnoreCase( const TChar* lhs,  const TChar* rhs, integer cmpLength  );
 
 
 
 //! @cond NO_DOX
-// #################################################################################################
+//##################################################################################################
 // Narrow character specifics
-// #################################################################################################
+//##################################################################################################
 template<> inline void    Fill<nchar>( nchar* dest, integer length, nchar c )
-{
-    memset( dest, c, size_t(length) );
-}
+{ memset( dest, c, size_t(length) ); }
 
-template<> inline nchar   ToUpper<nchar>(nchar c)
-{
-    return static_cast<nchar>( toupper(c) );
-}
+template<> inline nchar   ToUpper<nchar>(nchar c)       { return static_cast<nchar>( toupper(c) ); }
 
-template<> inline nchar   ToLower<nchar>(nchar c)
-{
-    return static_cast<nchar>( tolower(c) );
-}
+template<> inline nchar   ToLower<nchar>(nchar c)       { return static_cast<nchar>( tolower(c) ); }
 
-template<> inline void    ToUpper<nchar>(nchar* src, integer length)
-{
+template<> inline void    ToUpper<nchar>(nchar* src, integer length) {
     nchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToUpper<nchar>( *src );
         ++src;
-    }
-}
+}   }
 
-template<> inline void    ToLower<nchar>(nchar* src, integer length)
-{
+template<> inline void    ToLower<nchar>(nchar* src, integer length) {
     nchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToLower<nchar>( *src );
         ++src;
-    }
-}
+}   }
 
-template<> inline int     CompareIgnoreCase<nchar>( const nchar* lhs,  const nchar* rhs, integer cmpLength  )
-{
+template<> inline int     CompareIgnoreCase<nchar>( const nchar* lhs,  const nchar* rhs,
+                                                    integer cmpLength  ) {
     #if defined (__GLIBCXX__)  || defined(_LIBCPP_VERSION) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return  ::strncasecmp( lhs, rhs, size_t(cmpLength) );
     #elif defined ( _WIN32 )
@@ -416,17 +386,15 @@ template<> inline int     CompareIgnoreCase<nchar>( const nchar* lhs,  const nch
     #endif
 }
 
-template<> inline integer IndexOfAnyIncludedZT   <nchar>( const nchar* haystack, const nchar* needles )
-{
+template<> inline integer IndexOfAnyIncludedZT   <nchar>( const nchar* haystack,
+                                                          const nchar* needles ) {
     const nchar* result= std::strpbrk(haystack, needles);
     return result ? result - haystack
                   : -1;
 }
 
 template<> inline integer IndexOfAnyExcludedZT<nchar>( const nchar* haystack, const nchar* needles )
-{
-    return integer( std::strspn(haystack, needles) );
-}
+{ return integer( std::strspn(haystack, needles) ); }
 
 
 
@@ -438,47 +406,35 @@ extern template ALIB_DLL integer IndexOfFirstDifference<nchar>(const nchar*,inte
 extern template ALIB_DLL void    Reverse               <nchar>(      nchar*,integer );
 
 
-// #################################################################################################
+//##################################################################################################
 // Wide character specifics
-// #################################################################################################
+//##################################################################################################
 template<> inline wchar   ToUpper<wchar>(wchar c)
-{
-    return static_cast<wchar>(towupper(static_cast<wint_t>(c)));
-}
+{ return static_cast<wchar>(towupper(static_cast<wint_t>(c))); }
 
 template<> inline wchar   ToLower<wchar>(wchar c)
-{
-    return static_cast<wchar>(towlower(static_cast<wint_t>(c)));
-}
+{ return static_cast<wchar>(towlower(static_cast<wint_t>(c))); }
 
-template<> inline void    ToUpper<wchar>(wchar* src, integer length)
-{
+template<> inline void    ToUpper<wchar>(wchar* src, integer length) {
     wchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToUpper<wchar>( *src );
         ++src;
-    }
-}
+}   }
 
-template<> inline void    ToLower<wchar>(wchar* src, integer length)
-{
+template<> inline void    ToLower<wchar>(wchar* src, integer length) {
     wchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToLower<wchar>( *src );
         ++src;
-    }
-}
+}   }
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> inline void    Fill<wchar>( wchar* dest, integer length, wchar c )
-{
-    wmemset( dest, c, size_t(length) );
-}
+{ wmemset( dest, c, size_t(length) ); }
 
-template<> inline int     CompareIgnoreCase<wchar>( const wchar* lhs,  const wchar* rhs, integer cmpLength  )
-{
+template<> inline int     CompareIgnoreCase<wchar>( const wchar* lhs,  const wchar* rhs,
+                                                    integer cmpLength  ) {
     #if defined ( _WIN32 )
         return  _wcsnicmp  ( lhs, rhs, size_t(cmpLength)  );
     #elif defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
@@ -488,16 +444,13 @@ template<> inline int     CompareIgnoreCase<wchar>( const wchar* lhs,  const wch
     #endif
 }
 
-template<> inline integer IndexOfAnyIncludedZT   <wchar>( const wchar* haystack, const wchar* needles )
-{
+template<> inline integer IndexOfAnyIncludedZT<wchar>(const wchar* haystack, const wchar* needles) {
     const wchar* result= std::wcspbrk(haystack, needles);
     return result ? result - haystack
                   : -1;
 }
-template<> inline integer IndexOfAnyExcludedZT<wchar>( const wchar* haystack, const wchar* needles )
-{
-    return integer( std::wcsspn(haystack, needles) );
-}
+template<> inline integer IndexOfAnyExcludedZT<wchar>(const wchar* haystack, const wchar* needles)
+{ return integer( std::wcsspn(haystack, needles) ); }
 
 
 #else
@@ -517,38 +470,28 @@ extern template ALIB_DLL void    Reverse               <wchar>(      wchar*,inte
 
 
 
-// #################################################################################################
+//##################################################################################################
 // Strange character specifics
-// #################################################################################################
+//##################################################################################################
 template<> inline xchar     ToUpper<xchar>(xchar c)
-{
-    return static_cast<xchar>(towupper(static_cast<wint_t>(c)));
-}
+{ return static_cast<xchar>(towupper(static_cast<wint_t>(c))); }
 
 template<> inline xchar     ToLower<xchar>(xchar c)
-{
-    return static_cast<xchar>(towlower(static_cast<wint_t>(c)));
-}
+{ return static_cast<xchar>(towlower(static_cast<wint_t>(c))); }
 
-template<> inline void    ToUpper<xchar>(xchar* src, integer length)
-{
+template<> inline void    ToUpper<xchar>(xchar* src, integer length) {
     xchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToUpper<xchar>( *src );
         ++src;
-    }
-}
+}   }
 
-template<> inline void    ToLower<xchar>(xchar* src, integer length)
-{
+template<> inline void    ToLower<xchar>(xchar* src, integer length) {
     xchar* end= src  + length;
-    while( src != end )
-    {
+    while( src != end ) {
         *src=  ToLower<xchar>( *src );
         ++src;
-    }
-}
+}   }
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> ALIB_DLL void    Fill<xchar>( xchar* dest, integer length, xchar c );
@@ -592,9 +535,9 @@ extern template ALIB_DLL integer IndexOfFirstDifference<xchar>(const xchar*,inte
 extern template ALIB_DLL void    Reverse               <xchar>(      xchar*,integer );
 //! @endcond
 
-// #################################################################################################
+//##################################################################################################
 // struct AlignedCharArray
-// #################################################################################################
+//##################################################################################################
 /// Encapsulates a fixed-size character buffer.
 /// The character type and the buffer's length are templated.
 /// Furthermore the buffer, and with it this type, is aligned to \c 8 bytes on 64-bit machines and
@@ -634,14 +577,14 @@ struct AlignedCharArray {
     alignas(Alignment) TChar buffer[TLength];
 
     /// Default constructor. Leaves the characters uninitialized.
-    constexpr               AlignedCharArray()                              noexcept= default;
+    constexpr               AlignedCharArray()                                    noexcept =default;
 
     /// Constructor taking a character to initialize the buffer with.
     /// @param fillChar The character to fill this local buffer with.
-    constexpr               AlignedCharArray( TChar fillChar )  noexcept { Fill( fillChar ); }
+    constexpr               AlignedCharArray( TChar fillChar )        noexcept { Fill( fillChar ); }
 
     /// Returns a pointer to the internal buffer.
-    /// @return A mutable pointer  to the characters.
+    /// @return A mutable pointer to the characters.
     constexpr TChar*        Buffer()                                     noexcept { return buffer; }
 
     /// Returns a pointer to the internal buffer.
@@ -667,5 +610,3 @@ struct AlignedCharArray {
 using AlignedCharArray=   characters::AlignedCharArray<>;
 
 } // namespace [alib::character]
-
-

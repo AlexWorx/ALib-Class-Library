@@ -15,7 +15,7 @@ ALIB_EXPORT namespace alib { namespace  format {
 ///
 /// For this, the format string definition of \alib {format;Formatter}
 /// types is extended to support identifiers,
-/// which act as placeholders for object values. The  identifiers placed in the string have to match
+/// which act as placeholders for object values. The identifiers placed in the string have to match
 /// to the normal formatting placeholders in respect to their total number and value type.
 ///
 /// \note
@@ -187,80 +187,76 @@ ALIB_EXPORT namespace alib { namespace  format {
 //==================================================================================================
 class PropertyFormatter
 {
-    public:
+  public:
         /// The signature of the callback functions.
         /// See \ref alib_ns_strings_propertyformatter_callbacks for more information.
         using TCallback=   Box (*)(const Box&, AString&);
 
-        /// The entry type of translation table.
-        struct IdentifierEntry
-        {
-            /// The identifier string to search in the original format string.
-            String      Name;
+    /// The entry type of translation table.
+    struct IdentifierEntry
+    {
+        /// The identifier string to search in the original format string.
+        String      Name;
 
-            /// The minimum characters of the identifier to read in the format string.
-            ///  If less or equal to zero, abbreviations are not allowed.
-            int         MinimumRecognitionLength;
+        /// The minimum characters of the identifier to read in the format string.
+        /// If less or equal to zero, abbreviations are not allowed.
+        int         MinimumRecognitionLength;
 
-            /// The callback function for this identifier.
-            ///  See \ref alib_ns_strings_propertyformatter_callbacks.
-            TCallback   Callback;
-        };
+        /// The callback function for this identifier.
+        /// @see \ref alib_ns_strings_propertyformatter_callbacks.
+        TCallback   Callback;
+    };
 
         /// Type definition of the callback table.
         using TCallbackTable=       std::vector<IdentifierEntry>;
 
 
-    protected:
+  protected:
         /// Internal type definition for the list of callback table entries collected in the
         /// constructor by parsing the extended format string.
         using TCallbackResultTable= std::vector<const IdentifierEntry*>;
 
-        /// The formatter (as given in the constructor).
-        SPFormatter             stdFormatter;
+    /// The formatter (as given in the constructor).
+    SPFormatter             stdFormatter;
 
-        /// The original format string. Used only for exception information.
-        AString                 propertyFormatString;
+    /// The original format string. Used only for exception information.
+    AString                 propertyFormatString;
 
-        /// The resulting format string passed to \alib formatters.
-        AString                 formatString;
+    /// The resulting format string passed to \alib formatters.
+    AString                 formatString;
 
-        /// The callback functions to receive the format data.
-        TCallbackResultTable    callBacks;
+    /// The callback functions to receive the format data.
+    TCallbackResultTable    callBacks;
 
-    public:
+  public:
 
-        //==========================================================================================
-        /// Constructor. Processes the given format string and builds internal structures
-        /// which are then used with invocations of method #Format.
-        ///
-        /// @param customFormatString  The format string as described in the class documentation.
-        /// @param propertyTable       Table with property identifier names and callback functions
-        ///                            to retrieve the property values.
-        /// @param formatter           The formatter to use. Defaults to \c nullptr which selects
-        ///                            the \alib{format;Formatter::Default;default formatter}.
-        /// @param ESCCharacter        The prefix used to search identifiers in
-        ///                            \p{customFormatString}.<br>
-        ///                            Defaults to <c>'@'</c>.
-        ///
-        /// @throws Exception \alib{format;FMTExceptions;FMTExceptions::UnknownPropertyInFormatString}.
-        //==========================================================================================
-        ALIB_DLL
-        PropertyFormatter( const String             customFormatString,
-                           const TCallbackTable&    propertyTable,
-                           SPFormatter              formatter            = nullptr,
-                           character                ESCCharacter         = '@'       );
+    /// Constructor. Processes the given format string and builds internal structures
+    /// which are then used with invocations of method #Format.
+    ///
+    /// @param customFormatString  The format string as described in the class documentation.
+    /// @param propertyTable       Table with property identifier names and callback functions
+    ///                            to retrieve the property values.
+    /// @param formatter           The formatter to use. Defaults to \c nullptr which selects
+    ///                            the \alib{format;Formatter::Default;default formatter}.
+    /// @param ESCCharacter        The prefix used to search identifiers in
+    ///                            \p{customFormatString}.<br>
+    ///                            Defaults to <c>'@'</c>.
+    ///
+    /// @throws Exception \alib{format;FMTExceptions;FMTExceptions::UnknownPropertyInFormatString}.
+    ALIB_DLL
+    PropertyFormatter( const String             customFormatString,
+                       const TCallbackTable&    propertyTable,
+                       SPFormatter              formatter            = nullptr,
+                       character                ESCCharacter         = '@'       );
 
-        //==========================================================================================
-        /// Writes the formatted output of the properties of the given \p{TFormattable} object
-        /// to a given \p{target} string.
-        ///
-        /// @param target    The target string to write into.
-        /// @param src       The custom object which is passed to the callback methods to collect
-        ///                  the formatter arguments.
-        //==========================================================================================
-        ALIB_DLL
-        void    Format( AString& target, const Box&  src );
+    /// Writes the formatted output of the properties of the given \p{TFormattable} object
+    /// to a given \p{target} string.
+    ///
+    /// @param target    The target string to write into.
+    /// @param src       The custom object which is passed to the callback methods to collect
+    ///                  the formatter arguments.
+    ALIB_DLL
+    void    Format( AString& target, const Box&  src );
 }; // class PropertyFormatter
 
 } // namespace alib[::format]
@@ -269,4 +265,3 @@ class PropertyFormatter
 using PropertyFormatter  =     format::PropertyFormatter;
 
 } // namespace [alib]
-

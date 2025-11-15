@@ -36,28 +36,20 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 //==================================================================================================
 struct ElvisOperator   :  public CompilerPlugin
 {
-    //==============================================================================================
     /// Constructor.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
     ALIB_DLL        ElvisOperator( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor.
-    //==============================================================================================
-    virtual        ~ElvisOperator()                                                         override
-    {}
+    virtual        ~ElvisOperator()                                                      override {}
 
-    //==============================================================================================
     /// Compiles binary elvis operator <c>A ?: B</c> if terms \c 'A' and \c 'B' share the same type.
     ///
     /// @param[in,out]  ciBinaryOp  The compilation info struct.
     /// @return \c true if an entry was found. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIBinaryOp& ciBinaryOp )                               override;
 
 };
 
 }}} // namespace [alib::expressions::detail]
-

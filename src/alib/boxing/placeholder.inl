@@ -58,8 +58,8 @@ struct StructArray
 /// Collects scalar integrals and arrays of those.
 union  UnionIntegrals
 {
-     int8_t          Int8   ;   ///<  8-bit signed integral.
-    uint8_t         UInt8   ;   ///<  8-bit unsigned integral.
+      int8_t         Int8   ;   ///< 8-bit signed integral.
+     uint8_t        UInt8   ;   ///< 8-bit unsigned integral.
      int16_t         Int16  ;   ///< 16-bit signed integral.
     uint16_t        UInt16  ;   ///< 16-bit unsigned integral.
 
@@ -79,8 +79,8 @@ union  UnionIntegrals
      integer         Int    ;   ///< Signed integral of platform-dependent size.
     uinteger        UInt    ;   ///< Unsigned integral of platform-dependent size.
 
-     int8_t          Array8  [2 * sizeof(void*) / sizeof( int8_t  )]; ///< Array of  8-bit signed integrals of length 16 on 64-bit platform, 8 on a 32-bit platform.
-     int16_t         Array16 [2 * sizeof(void*) / sizeof( int16_t )]; ///< Array of 16-bit signed integrals of length  8 on 64-bit platform, 4 on a 32-bit platform.
+     int8_t          Array8  [2 * sizeof(void*) / sizeof( int8_t  )]; ///< Array of 8-bit signed integrals of length 16 on 64-bit platform, 8 on a 32-bit platform.
+     int16_t         Array16 [2 * sizeof(void*) / sizeof( int16_t )]; ///< Array of 16-bit signed integrals of length 8 on 64-bit platform, 4 on a 32-bit platform.
 
   #if DOXYGEN
      int32_t         Array32 [2 * sizeof(void*) / sizeof( int32_t )]; ///< Array of 32-bit signed integrals of length 4 on a 64-bit platform. Not available on 32-bit platforms.
@@ -92,8 +92,8 @@ union  UnionIntegrals
      int64_t         Array64 [2 * sizeof(void*) / sizeof( int64_t )];
   #endif
 
-     integer          Array  [ 2                                      ]; ///< Array of 64-bit signed integrals of length  2 on 64-bit platform, 1 on a 32-bit platform.
-    uinteger         UArray  [ 2                                      ]; ///< Array of 64-bit unsigned integrals of length  2 on 64-bit platform, 1 on a 32-bit platform.
+     integer          Array  [ 2                                   ]; ///< Array of 64-bit signed integrals of length two on 64-bit platform, one on a 32-bit platform.
+    uinteger         UArray  [ 2                                   ]; ///< Array of 64-bit unsigned integrals of length two on 64-bit platform, one on a 32-bit platform.
 
 
     /// Constructor allowing \c constexpr initialization.
@@ -139,42 +139,42 @@ union  UnionIntegrals
 
 
   #if   ALIB_SIZEOF_INTGAP == 2
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     (  intGap_t   value )                   :  Int16    { value }  {}
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt16    { value }  {}
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     (  intGap_t   value )                   :  Int16    { value }  {}
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt16    { value }  {}
   #elif ALIB_SIZEOF_INTGAP == 4
-      #if  ALIB_SIZEOF_INTEGER != 4
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     (  intGap_t   value )                   :  Int32    { value }  {}
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt32    { value }  {}
-      #else
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     (  intGap_t   value )                   :  Int      { value }  {}
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt      { value }  {}
-      #endif
+    #if  ALIB_SIZEOF_INTEGER != 4
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     (  intGap_t   value )                   :  Int32    { value }  {}
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt32    { value }  {}
+    #else
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     (  intGap_t   value )                   :  Int      { value }  {}
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt      { value }  {}
+    #endif
   #elif ALIB_SIZEOF_INTGAP == 8
-      #if  ALIB_SIZEOF_INTEGER != 8
-      constexpr UnionIntegrals     (  intGap_t   value )                   :  Int64    { value }  {}
-      constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt64    { value }  {}
-      #else
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     (  intGap_t   value )                   :  Int      { value }  {}
-      /// Constructor allowing \c constexpr initialization.
-      /// @param value The value to store.
-      constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt      { value }  {}
-      #endif
+    #if  ALIB_SIZEOF_INTEGER != 8
+    constexpr UnionIntegrals     (  intGap_t   value )                   :  Int64    { value }  {}
+    constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt64    { value }  {}
+    #else
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     (  intGap_t   value )                   :  Int      { value }    {}
+    /// Constructor allowing \c constexpr initialization.
+    /// @param value The value to store.
+    constexpr UnionIntegrals     ( uintGap_t   value )                   : UInt      { value }    {}
+    #endif
   #else
-      #error "ALIB_SIZEOF_INTGAP not matched. Supported sizes are 2, 4 and 8."
+    #error "ALIB_SIZEOF_INTGAP not matched. Supported sizes are 2, 4 and 8."
   #endif
 };
 
@@ -187,18 +187,18 @@ union  UnionFloatingPoints
     float           Float  ;   ///< A \c float value.
     double          Double ;   ///< A \c double value.
 
-    /// Array of \c float.  The Length is usually  4 on 64-bit platform, 2 on a 32-bit platform.
+    /// Array of \c float. The Length is usually four on 64-bit platform, two on a 32-bit platform.
     float           FloatArray  [2 * sizeof(void*) / sizeof(float      )];
 
-    /// Array of \c double. The Length is usually 2 on 64-bit platform, 1 on a 32-bit platform.
+    /// Array of \c double. The Length is usually two on 64-bit platform, one on a 32-bit platform.
     double          DoubleArray [2 * sizeof(void*) / sizeof(double     )];
 
     /// Constructor allowing \c constexpr initialization.
     /// @param value The value to store.
-    constexpr UnionFloatingPoints( float       value )     : Float     { value }  {}
+    constexpr UnionFloatingPoints( float       value )     : Float     { value }                  {}
     /// Constructor allowing \c constexpr initialization.
     /// @param value The value to store.
-    constexpr UnionFloatingPoints( double      value )     : Double    { value }  {}
+    constexpr UnionFloatingPoints( double      value )     : Double    { value }                  {}
 };
 
 
@@ -209,23 +209,23 @@ union  UnionFloatingPoints
 /// Consequently, this union does not provide \c constexpr constructors.
 union  UnionBytes
 {
-    std::array<char,    1>   C1;   ///< 1 bytes.
-    std::array<char,    2>   C2;   ///< 2 bytes.
-    std::array<char,    3>   C3;   ///< 3 bytes.
-    std::array<char,    4>   C4;   ///< 4 bytes.
-    std::array<char,    5>   C5;   ///< 5 bytes.
-    std::array<char,    6>   C6;   ///< 6 bytes.
-    std::array<char,    7>   C7;   ///< 7 bytes.
-    std::array<char,    8>   C8;   ///< 8 bytes.
+    std::array<char,  1>   C1;  ///< 1 bytes.
+    std::array<char,  2>   C2;  ///< 2 bytes.
+    std::array<char,  3>   C3;  ///< 3 bytes.
+    std::array<char,  4>   C4;  ///< 4 bytes.
+    std::array<char,  5>   C5;  ///< 5 bytes.
+    std::array<char,  6>   C6;  ///< 6 bytes.
+    std::array<char,  7>   C7;  ///< 7 bytes.
+    std::array<char,  8>   C8;  ///< 8 bytes.
     #if  ALIB_SIZEOF_INTEGER == 8
-      std::array<char,  9>   C9;   ///< 9 bytes.
-      std::array<char, 10>   C10;  ///< 10 bytes.
-      std::array<char, 11>   C11;  ///< 11 bytes.
-      std::array<char, 12>   C12;  ///< 12 bytes.
-      std::array<char, 13>   C13;  ///< 13 bytes.
-      std::array<char, 14>   C14;  ///< 14 bytes.
-      std::array<char, 15>   C15;  ///< 15 bytes.
-      std::array<char, 16>   C16;  ///< 16 bytes.
+    std::array<char,  9>   C9;  ///< 9 bytes.
+    std::array<char, 10>  C10;  ///< 10 bytes.
+    std::array<char, 11>  C11;  ///< 11 bytes.
+    std::array<char, 12>  C12;  ///< 12 bytes.
+    std::array<char, 13>  C13;  ///< 13 bytes.
+    std::array<char, 14>  C14;  ///< 14 bytes.
+    std::array<char, 15>  C15;  ///< 15 bytes.
+    std::array<char, 16>  C16;  ///< 16 bytes.
     #endif
 };
 
@@ -261,7 +261,7 @@ union  UnionBytes
 /// - arrays.
 ///
 /// For these types, the default implementation of \b BoxTraits::Write and \b Read, as given
-/// for example with macro \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING often is all that is needed.
+/// for example, with macro \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING often is all that is needed.
 ///
 /// ####Custom Boxing####
 /// Custom implementations of boxing and unboxing may read from and write to the union data
@@ -301,8 +301,8 @@ union Placeholder
     detail::UnionBytes          Bytes;              ///< Byte arrays of different length.
     void*                       VoidP;              ///< Just a void pointer.
     #if ALIB_DEBUG
-        character*              Debugger_String;   ///< This union field was inserted only for debug display.
-        integer                 Debugger_Integral; ///< This union field was inserted only for debug display.
+    character*              Debugger_String;   ///< This union field was inserted only for debug display.
+    integer                 Debugger_Integral; ///< This union field was inserted only for debug display.
     #endif
 
     /// Default constructor. Leaves everything uninitialized.
@@ -313,28 +313,29 @@ union Placeholder
 
     // Pointer construction
     template<typename TPointer>
-    constexpr Placeholder( const TPointer* p )  : PointerPair( p )    {}
+    constexpr Placeholder( const TPointer* p )  : PointerPair( p )                                {}
 
     template<typename TP1, typename TP2>
-    constexpr Placeholder( const TP1* p1, const TP2* p2 )  : PointerPair( p1, p2 )    {}
+    constexpr Placeholder( const TP1* p1, const TP2* p2 )  : PointerPair( p1, p2 )                {}
 
     // Integral construction
     template<typename TI>
     requires std::is_integral_v<TI>
-    constexpr Placeholder(  TI     value )  : Integrals      ( value )  {}
+    constexpr Placeholder(  TI     value )  : Integrals      ( value )                            {}
 
     template<typename TI1, typename TI2>
     requires (std::is_integral_v<TI1> && std::is_integral_v<TI2> )
-    constexpr Placeholder( TI1 word1, TI2 word2 ) : Integrals( word1, word2 )      {}
+    constexpr Placeholder( TI1 word1, TI2 word2 ) : Integrals( word1, word2 )                     {}
 
     // Float construction
-    constexpr Placeholder( float       value )  : FloatingPoints ( value )  {}
-    constexpr Placeholder( double      value )  : FloatingPoints ( value )  {}
+    constexpr Placeholder( float       value )  : FloatingPoints ( value )                        {}
+    constexpr Placeholder( double      value )  : FloatingPoints ( value )                        {}
 
     // Array construction
     template<typename TArray, typename TIntegral>
     requires std::is_integral_v<TIntegral>
-    constexpr Placeholder( const TArray* tpointer, TIntegral length ) : Array( tpointer, integer(length)) {}
+    constexpr Placeholder( const TArray* tpointer, TIntegral length )
+              : Array( tpointer, integer(length))                                                 {}
 
     #endif
 
@@ -346,23 +347,21 @@ union Placeholder
     /// @tparam TReturn The requested pointer type
     /// @return The pointer stored.
     template<typename TReturn>
-    TReturn*  GetPointer    ()  const
-    { return reinterpret_cast<TReturn*>(PointerPairMutable.P1); }
+    TReturn*  GetPointer    ()   const { return reinterpret_cast<TReturn*>(PointerPairMutable.P1); }
 
     /// Returns a pointer of type \p{TReturn}.
     /// @tparam TReturn The requested pointer type
     /// @return The pointer stored.
     template<typename TReturn>
-    TReturn*  GetPointer2   ()  const
-    { return reinterpret_cast<TReturn*>(PointerPairMutable.P2); }
+    TReturn*  GetPointer2   ()   const { return reinterpret_cast<TReturn*>(PointerPairMutable.P2); }
 
     /// Sets a pointer of type \c char*.
     /// @param value The value to set.
-    constexpr void            SetPointer    ( void* value )         { PointerPair.P1= value; }
+    constexpr void            SetPointer    ( void* value )               { PointerPair.P1= value; }
 
     /// Returns the length of a stored array (the second word stored).
     /// @return The length stored.
-    constexpr integer         GetLength ()                           const { return Array.Length;  }
+    constexpr integer         GetLength ()                            const { return Array.Length; }
 
     /// Clears this box data.
     ///
@@ -374,9 +373,8 @@ union Placeholder
     /// For efficiency reasons, the rest should not be cleared.
     ///
     /// @tparam UsageLength The number of bytes to clear.
-    template<unsigned int UsageLength>
-    constexpr void    Clear()
-    {
+    template<unsigned UsageLength>
+    constexpr void    Clear() {
         static_assert( UsageLength > 0 && ( UsageLength <= 2 * sizeof(void*) ),
                        "Invalid usage length given" );
 
@@ -385,9 +383,9 @@ union Placeholder
             PointerPair.P2= nullptr;
     }
 
-    // #############################################################################################
-    // #########################             Boxing            #####################################
-    // #############################################################################################
+  //################################################################################################
+  //############################################# Boxing ###########################################
+  //################################################################################################
 
     /// This version of the overloaded method writes integral values.
     /// @tparam  TIntegral The integral type to store.
@@ -400,7 +398,7 @@ union Placeholder
 
                  if constexpr( sizeof(TIntegral) ==  1 )    Integrals.Int8  =  int8_t (value);
             else if constexpr( sizeof(TIntegral) ==  2 )    Integrals.Int16 =  int16_t(value);
-          #if  ALIB_SIZEOF_INTEGER == 4                                                     
+          #if  ALIB_SIZEOF_INTEGER == 4
             else if constexpr( sizeof(TIntegral) ==  4 )    Integrals.Int   =  integer(value);
             else if constexpr( sizeof(TIntegral) ==  8 )    Integrals.Int64 =  int64_t(value);
           #else
@@ -417,8 +415,7 @@ union Placeholder
             else if constexpr( sizeof(TIntegral) ==  4 )    Integrals.UInt32= uint32_t(value);
             else if constexpr( sizeof(TIntegral) ==  8 )    Integrals.UInt  = uinteger(value);
           #endif
-        }
-    }
+    }   }
 
     /// This version of the overloaded method writes floating-point values.
     /// @tparam  TFloat The integral type to store.
@@ -563,7 +560,7 @@ union Placeholder
 
     /// This version of the overloaded method is selected when the type \p{TPointer} is not
     /// trivially copyable, still fits into the placeholder of size <c>2 * sizeof(void*)</c>, and
-    /// furthermore does not directly match other overloaded versions.  
+    /// furthermore does not directly match other overloaded versions.
     ///
     /// The copying is performed using \c memcpy.
     /// This is necessary to avoid de-referencing type-punned pointers which would
@@ -582,9 +579,9 @@ union Placeholder
     void Write( const TPointer& value )
     { std::memcpy( &PointerPair.P1, &value, sizeof(TPointer) ); }
 
-    // #############################################################################################
-    // #########################            Unboxing           #####################################
-    // #############################################################################################
+  //################################################################################################
+  //############################################ Unboxing ##########################################
+  //################################################################################################
     /// Templated read method for value types that fit into this placeholder, which are not
     /// pointers, and furthermore which are not trivially copyable.
     ///
@@ -592,34 +589,34 @@ union Placeholder
     /// \c reinterpret_cast. With that, this overload is never \c constexpr and thus not marked
     /// so.
     ///
-    /// @tparam  TMapped  The value type to unbox.
-    /// @return  The value stored.
+    /// @tparam TMapped  The value type to unbox.
+    /// @return The value stored.
     template<typename TMapped>
     requires(  !(    std::is_trivially_copyable_v<TMapped>
                  && (sizeof(TMapped) <= 2 * sizeof(void*)) )
                  && !std::is_pointer_v<TMapped>
             )
-    TMapped Read() const { return *reinterpret_cast<const TMapped*>( this ); }
+    TMapped Read()                       const { return *reinterpret_cast<const TMapped*>( this ); }
 
     /// Templated method to read pointer types from this placeholder.
     /// The pointer is changed to the desired type using \c reinterpret_cast.
     /// Only if <c>void*</c> is requested, this method can be \c constexpr.
-    /// @tparam  TPointer The pointer-type to unbox.
-    /// @return  The value stored.
+    /// @tparam TPointer The pointer-type to unbox.
+    /// @return The value stored.
     template<typename TPointer>
     requires  std::is_pointer_v<TPointer>
-    constexpr TPointer Read() const {
+    constexpr TPointer Read()                                                                const {
         if constexpr (std::same_as<TPointer, void*>)
             return VoidP;
         return reinterpret_cast<TPointer>( VoidP );
     }
 
     /// Templated method to read integral types from this placeholder.
-    /// @tparam  TIntegral The integral type to unbox.
-    /// @return  The value stored.
+    /// @tparam TIntegral The integral type to unbox.
+    /// @return The value stored.
     template<typename TIntegral>
     requires(  std::is_integral_v<TIntegral> )
-    constexpr TIntegral Read() const {
+    constexpr TIntegral Read()                                                               const {
 
         if constexpr( std::is_signed_v<TIntegral>) {
 
@@ -642,22 +639,21 @@ union Placeholder
             else if constexpr( sizeof(TIntegral) ==  4 )    return TIntegral(Integrals.UInt32);
             else if constexpr( sizeof(TIntegral) ==  8 )    return TIntegral(Integrals.UInt  );
           #endif
-        }
-    }
+    }   }
 
     /// Templated method to read integral types from this placeholder.
-    /// @tparam  TFloat The integral type to unbox.
-    /// @return  The value stored.
+    /// @tparam TFloat The integral type to unbox.
+    /// @return The value stored.
     template<typename TFloat>
     requires(  std::is_floating_point_v<TFloat> )
-    constexpr TFloat Read() const {
+    constexpr TFloat Read()                                                                  const {
              if constexpr( std::same_as<TFloat, float > )    return TFloat(FloatingPoints.Float );
         else if constexpr( std::same_as<TFloat, double> )    return TFloat(FloatingPoints.Double);
     }
 
     /// Templated method to read trivially copyable types that fits into the placeholder.
-    /// @tparam  TTrivial The type to read from this placeholder.
-    /// @return  The stored value.
+    /// @tparam TTrivial The type to read from this placeholder.
+    /// @return The stored value.
     template<typename TTrivial>
     requires(    std::is_trivially_copyable_v<TTrivial>
               && (sizeof(TTrivial) <= 2 * sizeof(void*))
@@ -665,7 +661,7 @@ union Placeholder
               && !std::is_integral_v<TTrivial>
               && !std::is_floating_point_v<TTrivial>
              )
-    constexpr TTrivial Read() const {
+    constexpr TTrivial Read()                                                                const {
 
              if constexpr( sizeof(TTrivial) ==  1 )    return std::bit_cast<TTrivial>(Bytes.C1);
         else if constexpr( sizeof(TTrivial) ==  2 )    return std::bit_cast<TTrivial>(Bytes.C2);
@@ -699,7 +695,7 @@ union Placeholder
               && std::is_trivially_copyable_v<TTrivial2> && !std::is_pointer_v<TTrivial2>
               && ( sizeof(TTrivial1) + sizeof(TTrivial2) <= 2 * sizeof(void*) )
             )
-    constexpr void Read(TTrivial1& v1, TTrivial2& v2) const {
+    constexpr void Read(TTrivial1& v1, TTrivial2& v2)                                        const {
 
         // Ensure the packed structure has no gaps.
         #pragma pack(push, 1)

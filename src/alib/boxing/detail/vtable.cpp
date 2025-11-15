@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #if ALIB_MONOMEM && ALIB_CONTAINERS
 #include "alib/boxing/boxing.prepro.hpp"
@@ -24,7 +24,7 @@
 #   include <vector>
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Boxing;
 #  if ALIB_DEBUG && ALIB_MONOMEM && ALIB_CONTAINERS
@@ -39,12 +39,12 @@
 #      include "ALib.Monomem.H"
 #   endif
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace boxing { namespace detail {
 
-// #################################################################################################
+//##################################################################################################
 // Custom function hash map implementation
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 #if ALIB_MONOMEM && ALIB_CONTAINERS
 HashMap           < MonoAllocator,
@@ -70,8 +70,7 @@ std::unordered_map< CustomFunctionKey, CustomFunctionMapped,
 #endif
 
 IF_ALIB_THREADS( namespace { RecursiveLock dbgLock; } )
-void DbgLockMaps( bool doLock )
-{
+void DbgLockMaps( bool doLock ) {
     #if ALIB_SINGLE_THREADED
         (void) doLock;
         assert::SingleThreaded();
@@ -90,14 +89,13 @@ void DbgLockMaps( bool doLock )
 
 #endif // !DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // struct Functions
-// #################################################################################################
+//##################################################################################################
 FunctionTable DEFAULT_FUNCTIONS;
 
 #if (ALIB_MONOMEM && ALIB_CONTAINERS && ALIB_DEBUG)
-void FunctionTable::Shutdown()
-{
+void FunctionTable::Shutdown() {
     #if ALIB_MONOMEM && ALIB_DEBUG_BOXING
         debug::DbgKnownCustomFunctions.Reset();
         debug::DbgKnownVTables        .Reset();
@@ -108,15 +106,13 @@ void FunctionTable::Shutdown()
 #endif
 
 
-void* FunctionTable::getCustom( const std::type_info& rtti ALIB_DBG(, bool isInvocation) )     const
-{
+void* FunctionTable::getCustom( const std::type_info& rtti ALIB_DBG(, bool isInvocation) )   const {
 #if ALIB_MONOMEM && ALIB_CONTAINERS
     auto it= customFunctionMap.Find( CustomFunctionKey(this, rtti) );
 #else
     auto it= customFunctionMap.find( CustomFunctionKey(this, rtti) );
 #endif
-    if ( it != customFunctionMap.end() )
-    {
+    if ( it != customFunctionMap.end() ) {
         ALIB_DBG(   if( isInvocation )
                         ++it->second.DbgCntInvocations;      )
         return it->second.Implementation;
@@ -124,8 +120,7 @@ void* FunctionTable::getCustom( const std::type_info& rtti ALIB_DBG(, bool isInv
     return nullptr;
 }
 
-void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
-{
+void  FunctionTable::setCustom( const std::type_info& rtti, void* impl ) {
     #if ALIB_DEBUG_BOXING
         debug::DbgLockMaps(true);
             #if ALIB_MONOMEM
@@ -151,10 +146,10 @@ void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
 
 using namespace detail;
 
-// #################################################################################################
+//##################################################################################################
 // Debug Function Lists Implementation
 // (located here due to anonymous function table)
-// #################################################################################################
+//##################################################################################################
 #if ALIB_DEBUG_BOXING
 std::vector<detail::VTable*>  debug::GetKnownVTables()
 {
@@ -239,5 +234,3 @@ void debug::getFunctionTypes( const detail::FunctionTable&                      
 #endif // ALIB_DEBUG_BOXING
 
 }} // namespace [alib::boxing]
-
-

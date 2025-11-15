@@ -1,4 +1,4 @@
-﻿//==================================================================================================
+//==================================================================================================
 /// \file
 /// This header-file is part of module \alib_alox of the \aliblong.
 ///
@@ -34,13 +34,13 @@ ALIB_EXPORT namespace alib {  namespace lox { namespace loggers {
 ///
 /// There is not 100% match between the ANSI sequences and the definitions in
 /// \ref alib::lox::ESC "ESC".
-/// For example ESC does not provide all ANSI colors and no blinking. On the other hand,
+/// For example, ESC does not provide all ANSI colors and no blinking. On the other hand,
 /// ANSI does not allow to reset the style without resetting the colors.
 /// Of course, it is no problem to log other ANSI codes directly into an \b %AnsiLogger.
 /// In this case, other Loggers that might be attached to the same Lox and that do not
 /// support ANSI must be equipped with corresponding replacement information.
 /// In other words: To support the same log output into different loggers, it is
-/// recommended to use \ref alib::lox::ESC "ESC"  sequences instead of
+/// recommended to use \ref alib::lox::ESC "ESC" sequences instead of
 /// directly using ANSI codes.
 ///
 /// The ANSI codes used by this class are exposed through a list of fields.
@@ -51,10 +51,10 @@ ALIB_EXPORT namespace alib {  namespace lox { namespace loggers {
 //==================================================================================================
 class AnsiLogger : public alib::lox::textlogger::TextLogger
 {
-    // #############################################################################################
-    // ANSI Escape Code definitions
-    // #############################################################################################
-    public:
+  //################################################################################################
+  // ANSI Escape Code definitions
+  //################################################################################################
+  public:
     static constexpr character ANSI_RED             [6]  { A_CHAR("\033[31m")      }; ///< Select red as foreground color
     static constexpr character ANSI_GREEN           [6]  { A_CHAR("\033[32m")      }; ///< Select green as foreground color
     static constexpr character ANSI_YELLOW          [6]  { A_CHAR("\033[33m")      }; ///< Select yellow as foreground color
@@ -102,161 +102,132 @@ class AnsiLogger : public alib::lox::textlogger::TextLogger
 
 
 
-    // #############################################################################################
-    // protected fields
-    // #############################################################################################
-    protected:
-        /// Encapsulates \c std::cout, \c std::wcout or the output stream provided in the
-        /// corresponding constructor.
-        StringWriter      writer;
+  //################################################################################################
+  // protected fields
+  //################################################################################################
+  protected:
+    /// The output stream to use, provided with construction.
+    std::ostream&       os;
 
-    // #############################################################################################
-    // public fields
-    // #############################################################################################
-    public:
+  //################################################################################################
+  // public fields
+  //################################################################################################
+  public:
 
-        /// As of today, this parameter struct has only one value of type
-        /// \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage}. With this logger,
-        /// this flag is used as follows.
-        ///
-        /// Foreground and background colors chosen by this class might differ in their intensity.
-        /// This increases the overall readability by increasing the contrast.
-        /// If the background color of a console window is dark, then the background colors of
-        /// colored log output should be darker colors than the foreground colors - and vice versa.
-        ///
-        /// Depending on the setting of this field, \alox
-        /// \ref alib::lox::ESC "escape codes" for colors are translated to normal ANSI colors or
-        /// lighter ones:
-        /// - If this field evaluates to
-        ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Never}, light colors
-        ///   are never used.
-        /// - If this field is
-        ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Foreground},
-        ///   colors will be light colors and background colors dark ones. This is the default.
-        /// - With
-        ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Background},
-        ///   background colors will be light colors and foreground colors dark ones.
-        ///
-        /// The configuration variable \ref alxcvALOX_CONSOLE_LIGHT_COLORS allows externally
-        /// modifying this flag. It is read once within the constructor.
-        textlogger::ColorfulLoggerParameters   CFP;
+    /// As of today, this parameter struct has only one value of type
+    /// \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage}. With this logger,
+    /// this flag is used as follows.
+    ///
+    /// Foreground and background colors chosen by this class might differ in their intensity.
+    /// This increases the overall readability by increasing the contrast.
+    /// If the background color of a console window is dark, then the background colors of
+    /// colored log output should be darker colors than the foreground colors - and vice versa.
+    ///
+    /// Depending on the setting of this field, \alox
+    /// \ref alib::lox::ESC "escape codes" for colors are translated to normal ANSI colors or
+    /// lighter ones:
+    /// - If this field evaluates to
+    ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Never}, light colors
+    ///   are never used.
+    /// - If this field is
+    ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Foreground},
+    ///   colors will be light colors and background colors dark ones. This is the default.
+    /// - With
+    ///   \alib{lox::textlogger::ColorfulLoggerParameters;LightColorUsage;Background},
+    ///   background colors will be light colors and foreground colors dark ones.
+    ///
+    /// The configuration variable \ref alxcvALOX_CONSOLE_LIGHT_COLORS allows externally
+    /// modifying this flag. It is read once within the constructor.
+    textlogger::ColorfulLoggerParameters   CFP;
 
-    // #############################################################################################
-    // Constructor/destructor
-    // #############################################################################################
-    public:
-        //==========================================================================================
-        /// Creates an AnsiLogger using \c std::cout respectively \c std::wcout.
-        /// @param name           The name of the \e Logger, defaults to what is provided with
-        ///                       parameter \p{typeName}.
-        /// @param typeName       The type of the \e Logger, defaults to "ANSI".
-        //==========================================================================================
-        ALIB_DLL explicit
-        AnsiLogger( const NString& name= nullptr, const NString& typeName= "ANSI" )
-        : TextLogger( name, typeName, true )                                                      {}
+  //################################################################################################
+  // Constructor/destructor
+  //################################################################################################
+  public:
+    /// Creates an AnsiLogger using the given output stream.
+    /// @param pOStream       The output stream to write into. Defaults to \c std::cout.
+    /// @param name           The name of the \e Logger, defaults to what is provided with
+    ///                       parameter \p{typeName}.
+    /// @param typeName       The type of the \e Logger, defaults to "ANSI".
+    ALIB_DLL explicit
+    AnsiLogger( std::ostream&  pOStream = std::cout,
+                const NString& name     = nullptr,
+                const NString& typeName = "ANSI"     )
+    : TextLogger( name, typeName )
+    , os(pOStream)                                                                                {}
 
-        //==========================================================================================
-        /// Creates an AnsiLogger using the given output stream.
-        /// \note If \c std::cout respectively \c std::wcout must not be provided here. Instead, the
-        ///       alternative constructor omitting parameter \p{pOStream} is to be used.
-        /// @param pOStream       The output stream to write into.
-        /// @param name           The name of the \e Logger, defaults to what is provided with
-        ///                       parameter \p{typeName}.
-        /// @param typeName       The type of the \e Logger, defaults to "ANSI".
-        //==========================================================================================
-        ALIB_DLL explicit
-        AnsiLogger( std::ostream*  pOStream,
-                    const NString& name     = nullptr,
-                    const NString& typeName = "ANSI"     )
-        : TextLogger( name, typeName, false )                      { writer.SetStream( pOStream ); }
+    /// Destructs an AnsiLogger
+    virtual        ~AnsiLogger()                                                         override {}
 
+  //################################################################################################
+  // Interface
+  //################################################################################################
+  public:
 
-        //==========================================================================================
-        /// Destructs an AnsiLogger
-        //==========================================================================================
-        ALIB_DLL
-        virtual        ~AnsiLogger()                                                       override;
+  //################################################################################################
+  // Abstract method implementations
+  //################################################################################################
+  protected:
+    /// Implementation of the abstract method of parent class TextLogger.
+    /// Logs messages to the basic output stream provided in the constructor. Replaces
+    /// \alox ESC escape sequences with ANSI escape sequences.
+    ///
+    /// @param domain      The <em>Log Domain</em>.
+    /// @param verbosity   The verbosity. This has been checked to be active already on this
+    ///                    stage and is provided to be able to be logged out only.
+    /// @param msg         The log message.
+    /// @param scope       Information about the scope of the <em>Log Statement</em>..
+    /// @param lineNumber  The line number of a multi-line message, starting with 0. For
+    ///                    single line messages this is -1.
+    /// @param isRecursion If \c true, a recursive logging operation was detected. A logger might
+    ///                    use this information, for example, to prevent recursive acquisitions
+    ///                    of resources.
+    ALIB_DLL
+    virtual void logText(  detail::Domain&      domain,
+                           Verbosity            verbosity,
+                           AString&             msg,
+                           detail::ScopeInfo&   scope,
+                           int                  lineNumber,
+                           bool                 isRecursion    )                           override;
 
-    // #############################################################################################
-    // Interface
-    // #############################################################################################
-    public:
-
-    // #############################################################################################
-    // Abstract method implementations
-    // #############################################################################################
-    protected:
-        //==========================================================================================
-        /// Implementation of the abstract method of parent class TextLogger.
-        /// Logs messages to the basic output stream provided in the constructor. Replaces
-        /// \alox ESC escape sequences with ANSI escape sequences.
-        ///
-        /// @param domain      The <em>Log Domain</em>.
-        /// @param verbosity   The verbosity. This has been checked to be active already on this
-        ///                    stage and is provided to be able to be logged out only.
-        /// @param msg         The log message.
-        /// @param scope       Information about the scope of the <em>Log Statement</em>..
-        /// @param lineNumber  The line number of a multi-line message, starting with 0. For
-        ///                    single line messages this is -1.
-        //==========================================================================================
-        ALIB_DLL
-        virtual void logText(  detail::Domain&      domain,
-                               Verbosity            verbosity,
-                               AString&             msg,
-                               detail::ScopeInfo&   scope,
-                               int                  lineNumber)                            override;
-
-        //==========================================================================================
-        /// Empty implementation.
-        //==========================================================================================
-        virtual void notifyMultiLineOp ( lang::Phase )                                  override  {}
+    /// Empty implementation.
+    void notifyMultiLineOp ( lang::Phase )                                               override {}
 
 
-        //==========================================================================================
-        /// Invokes parent method. Then reads and interprets configuration variable
-        /// \ref alxcvALOX_CONSOLE_LIGHT_COLORS. Finally it is checked if variable
-        /// \ref alxcvALOX_LOGGERNAME_FORMAT has priority of default values, and if yes, such
-        /// values are overwritten to include ANSI color codes. These color codes are retrieved from
-        /// resources named <c>"Var_D21A"</c>.
-        ///
-        /// @param lox     The \b %Lox to acknowledge insertion or removal
-        /// @param op      The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
-        //==========================================================================================
-        ALIB_DLL
-        virtual void AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )          override;
-
+    /// Invokes parent method. Then reads and interprets configuration variable
+    /// \ref alxcvALOX_CONSOLE_LIGHT_COLORS. Finally it is checked if variable
+    /// \ref alxcvALOX_LOGGERNAME_FORMAT has priority of default values, and if yes, such
+    /// values are overwritten to include ANSI color codes. These color codes are retrieved from
+    /// resources named <c>"Var_D21A"</c>.
+    ///
+    /// @param lox     The \b %Lox to acknowledge insertion or removal
+    /// @param op      The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
+    ALIB_DLL
+    void AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )                      override;
 
 }; // class AnsiLogger
 
 //==================================================================================================
-/// A #AnsiLogger that logs all messages to the standard output <em>cout</em>.
+/// A #AnsiLogger that logs all messages to <em>std::cout</em>.
 /// The name of the \e Logger defaults to "ANSI_CONSOLE".
-///
-/// Provides 'cout' to the constructor of its parent class %AnsiLogger.
-/// See class #AnsiLogger for more information on ANSI escape sequences and their use.
 ///
 /// \note To avoid misunderstandings: This class cannot enable the output console (which receives
 ///       \alox log data) to support ANSI Escape Codes. The opposite is right: this class should be
 ///       used only if the console supports ANSI Escape Codes.
+///
+/// \see Class #AnsiLogger for more information on ANSI escape sequences and their use.
 //==================================================================================================
 class AnsiConsoleLogger : public AnsiLogger
 {
-    // #############################################################################################
-    // Constructor/destructor
-    // #############################################################################################
-    public:
-        //==========================================================================================
-        /// Creates an AnsiConsoleLogger.
-        /// @param name     (Optional) The name of the \e Logger, defaults to "CONSOLE".
-        //==========================================================================================
-        ALIB_DLL
-        explicit            AnsiConsoleLogger( const NString& name= nullptr  );
+  public:
+    /// Creates an AnsiConsoleLogger.
+    /// @param name  The name of the \e Logger. Optional and defaults to the logger type name.
+    ///              "ANSI_CONSOLE".
+    explicit            AnsiConsoleLogger( const NString& name= nullptr  )
+    : AnsiLogger( std::cout, name, "ANSI_CONSOLE" )                                               {}
 
-        //==========================================================================================
-        /// Destructs an AnsiConsoleLogger
-        //==========================================================================================
-        ALIB_DLL
-        virtual            ~AnsiConsoleLogger()                                            override;
+    /// Destructs an AnsiConsoleLogger
+    virtual            ~AnsiConsoleLogger()                                              override {}
 }; // class AnsiConsoleLogger
 
 

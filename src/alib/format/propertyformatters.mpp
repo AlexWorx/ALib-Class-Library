@@ -14,19 +14,21 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
 #if ALIB_VARIABLES
 #   include <unordered_map>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_format.
     export module ALib.Format.PropertyFormatters;
     #if ALIB_VARIABLES
         import    ALib.Lang;
@@ -49,7 +51,7 @@
 #   endif
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 #if ALIB_VARIABLES
 ALIB_EXPORT namespace alib { namespace  format {
 
@@ -175,8 +177,8 @@ class PropertyFormatters
         /// Constructor storing arguments in fields.
         /// All variables are declared within the given \p{configuration} and defined with their
         /// default values given with their declaration records (associated with \p{TVariables})
-        /// and thus - if exported to a write-enabled external configuration source like
-        /// for example \alib{variables;IniFileFeeder} - can be noted by the end-user to be
+        /// and thus - if exported to a write-enabled external configuration source like,
+        /// for example, \alib{variables;IniFileFeeder} - can be noted by the end-user to be
         /// configurable.
         ///
         /// Parameter \p{formatter} defaults to \c nullptr, which causes this constructor to create
@@ -294,9 +296,9 @@ struct PropertyFormatterMapAppendable
 }; // struct PropertyFormatterMapAppendable
 
 
-// #################################################################################################
+//##################################################################################################
 // ##### AppendableTraits specialization
-// #################################################################################################
+//##################################################################################################
 
 } namespace strings {
 
@@ -354,5 +356,3 @@ using PropertyFormatters=  format::PropertyFormatters<TFormattable, TOptionEnum>
 }  // namespace [alib]
 
 #endif // ALIB_VARIABLES
-
-

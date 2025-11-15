@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions.Impl;
     import   ALib.Characters.Functions;
@@ -22,7 +22,7 @@
 #else
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -38,8 +38,7 @@
 namespace alib {  namespace expressions { namespace plugins {
 
 AutoCast::AutoCast( Compiler& compiler )
-: CompilerPlugin( "ALib Auto Cast", compiler, CompilePriorities::AutoCast )
-{}
+: CompilerPlugin( "ALib Auto Cast", compiler, CompilePriorities::AutoCast )                       {}
 
 namespace {
 
@@ -52,8 +51,7 @@ enum class SortedTypes
     String      =   8,
 };
 
-SortedTypes   SortedType( Type type )
-{
+SortedTypes   SortedType( Type type ) {
     if( type.IsType<bool     >() )      return SortedTypes::Bool;
     if( type.IsType<integer>() )      return SortedTypes::Integer;
     if( type.IsType<double   >() )      return SortedTypes::Float;
@@ -69,11 +67,10 @@ FUNC( castB2I     , return integer( BOL(ARG0));   )
 } // anonymous namespace
 
 
-// #################################################################################################
+//##################################################################################################
 // ### AutoCast - TryCompilation
-// #################################################################################################
-bool AutoCast::TryCompilation( CIAutoCast& ciAutoCast )
-{
+//##################################################################################################
+bool AutoCast::TryCompilation( CIAutoCast& ciAutoCast ) {
     // we do not work on unary ops
     if ( ciAutoCast.ArgsBegin + 1 >= ciAutoCast.ArgsEnd )
         return false;
@@ -94,16 +91,14 @@ bool AutoCast::TryCompilation( CIAutoCast& ciAutoCast )
     ALIB_DBG( const char*  upgradeCastDBG; )
 
     // we can cast every type to string
-    if( major == SortedTypes::String )
-    {
+    if( major == SortedTypes::String ) {
         upgradeCast             =  CBToString;
         decompileFunctionCall   =     A_CHAR("String");
 ALIB_DBG(upgradeCastDBG         = "CBToString"; )
     }
 
     // integer to float?
-    else if( major == SortedTypes::Float && minor == SortedTypes::Integer )
-    {
+    else if( major == SortedTypes::Float && minor == SortedTypes::Integer ) {
         upgradeCast             =  castI2F;
         decompileFunctionCall   =  A_CHAR("Float");
 ALIB_DBG(upgradeCastDBG         = "castI2F"; )
@@ -111,8 +106,7 @@ ALIB_DBG(upgradeCastDBG         = "castI2F"; )
     }
 
     // bool to float?
-    else if( major == SortedTypes::Float && minor == SortedTypes::Bool    )
-    {
+    else if( major == SortedTypes::Float && minor == SortedTypes::Bool    ) {
         upgradeCast             =  castB2F;
         decompileFunctionCall   =  A_CHAR("Float");
 ALIB_DBG(upgradeCastDBG         = "castB2F"; )
@@ -120,16 +114,14 @@ ALIB_DBG(upgradeCastDBG         = "castB2F"; )
     }
 
     // we can cast every type to integer via boolean
-    else if( major == SortedTypes::Integer && minor == SortedTypes::Bool  )
-    {
+    else if( major == SortedTypes::Integer && minor == SortedTypes::Bool  ) {
         upgradeCast             =  castB2I;
         decompileFunctionCall   =   A_CHAR("Integer");
 ALIB_DBG(upgradeCastDBG         = "castB2I"; )
     }
 
     // we can cast every type to boolean as well
-    else if( major == SortedTypes::Bool )
-    {
+    else if( major == SortedTypes::Bool ) {
         upgradeCast             =  ToBoolean;
         decompileFunctionCall   =   A_CHAR("Boolean");
 ALIB_DBG(upgradeCastDBG         = "ToBoolean"; )
@@ -139,15 +131,12 @@ ALIB_DBG(upgradeCastDBG         = "ToBoolean"; )
         return false;
 
     // set upgrade function to the right callback
-    if(  t1 < t2 )
-    {
+    if(  t1 < t2 ) {
         ciAutoCast.Callback                    = upgradeCast;
         ciAutoCast.TypeOrValue                 = *(ciAutoCast.ArgsBegin + 1);
         ciAutoCast.ReverseCastFunctionName     = decompileFunctionCall;
 ALIB_DBG(ciAutoCast.DbgCallbackName            = upgradeCastDBG; )
-    }
-    else
-    {
+    } else {
         ciAutoCast.CallbackRhs                 = upgradeCast;
         ciAutoCast.TypeOrValueRhs              = *(ciAutoCast.ArgsBegin    );
         ciAutoCast.ReverseCastFunctionNameRhs  = decompileFunctionCall;
@@ -155,15 +144,13 @@ ALIB_DBG(ciAutoCast.DbgCallbackNameRhs         = upgradeCastDBG; )
     }
 
     // If constant values were given, we can we do it right away (compile-time optimization)
-         if( ciAutoCast.IsConst    && ciAutoCast.Callback != nullptr )
-    {
+         if( ciAutoCast.IsConst    && ciAutoCast.Callback != nullptr ) {
         ciAutoCast.TypeOrValue   = ciAutoCast.Callback( ciAutoCast.CompileTimeScope,
                                                         ciAutoCast.ArgsBegin       ,
                                                         ciAutoCast.ArgsEnd    - 1  );
         ciAutoCast.Callback      = nullptr;
     }
-    else if( ciAutoCast.RhsIsConst && ciAutoCast.CallbackRhs != nullptr )
-    {
+    else if( ciAutoCast.RhsIsConst && ciAutoCast.CallbackRhs != nullptr ) {
         ciAutoCast.TypeOrValueRhs= ciAutoCast.CallbackRhs( ciAutoCast.CompileTimeScope,
                                                            ciAutoCast.ArgsBegin + 1   ,
                                                            ciAutoCast.ArgsEnd         );

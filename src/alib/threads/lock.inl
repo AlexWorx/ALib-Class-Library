@@ -8,7 +8,7 @@
 #if !ALIB_SINGLE_THREADED
 ALIB_EXPORT namespace alib {  namespace threads {
 
-// =================================================================================================
+//==================================================================================================
 /// This class is a simple wrapper around C++ standard library type \c std::mutex.
 /// Thus, it is used to implement <em>mutual exclusive access</em> to resources by protecting
 /// critical code sections from being executed in parallel in concurrent threads.
@@ -37,11 +37,11 @@ ALIB_EXPORT namespace alib {  namespace threads {
 /// This type is not available if the compiler-symbol \ref ALIB_SINGLE_THREADED is set.
 ///
 /// @see
-///  - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
-///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
-///  - For this class, as well as for all other five lock types of this module, a
-///    \ref alibtools_debug_helpers_gdb "pretty printer" for the GNU debugger is provided.
-// =================================================================================================
+///   - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
+///   - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+///   - For this class, as well as for all other five lock types of this module, a
+///     \ref alibtools_debug_helpers_gdb "pretty printer" for the GNU debugger is provided.
+//==================================================================================================
 class Lock
 #if ALIB_DEBUG_CRITICAL_SECTIONS
 : public lang::DbgCriticalSections::AssociatedLock
@@ -49,39 +49,31 @@ class Lock
 {
   protected:
   #if !ALIB_DEBUG && !DOXYGEN
-    std::mutex              mutex; // the only member in release compilations
+    std::mutex            mutex; // the only member in release compilations
 
   #else
     #if DOXYGEN
         /// The internal object to lock on.
         /// \note With debug-compilations, this is of type <c>std::timed_mutex</c>.
-        std::mutex          mutex;
+        std::mutex        mutex;
     #else
-        std::timed_mutex    mutex;
+    std::timed_mutex  mutex;
     #endif
 
   public:
     /// The debug tool instance.
-    DbgLockAsserter         Dbg;
+    DbgLockAsserter                  Dbg;
   #endif
 
   public:
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Destructor. With debug-compilations, asserts that this lock is not acquired.
-        ~Lock() override
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
+    ALIB_DLL virtual bool DCSIsAcquired()                                            const override;
 
-        /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
-        ALIB_DLL virtual bool DCSIsAcquired()                                        const override;
-
-        /// @return \c true if the lock is shared-acquired (by at least any thread).
-        ///            Otherwise, returns \c false.
-        ALIB_DLL virtual bool DCSIsSharedAcquired()                                  const override;
-
-    #elif ALIB_DEBUG
-        ~Lock()
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is shared-acquired (by at least any thread).
+    ///            Otherwise, returns \c false.
+    ALIB_DLL virtual bool DCSIsSharedAcquired()                                      const override;
     #endif
 
   #if ALIB_DEBUG || DOXYGEN
@@ -92,8 +84,8 @@ class Lock
     ///
     /// \par Debug Parameter:
     ///   Pass macro \ref ALIB_CALLER_PRUNED with invocations.
-     ALIB_DLL
-     void  Acquire( ALIB_DBG_TAKE_CI );
+    ALIB_DLL
+    void  Acquire( ALIB_DBG_TAKE_CI );
 
     /// Tries to acquire this lock.
     /// Multiple (nested) successful calls to this method or method #Acquire are not supported and
@@ -133,4 +125,3 @@ using     Lock= threads::Lock;
 
 } // namespace [alib]
 #endif // !ALIB_SINGLE_THREADED
-

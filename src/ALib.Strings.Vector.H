@@ -52,7 +52,7 @@ namespace alib { namespace strings::util {
 //==================================================================================================
 template<typename TChar, typename TAllocator>
 class TStringVector  : public std::vector<TString<TChar>,
-                                          lang::StdContainerAllocator<TString<TChar>, TAllocator>>
+                                          lang::StdAllocator<TString<TChar>, TAllocator>>
 {
   public:
     /// The allocator type that \p{TAllocator} specifies.
@@ -61,37 +61,39 @@ class TStringVector  : public std::vector<TString<TChar>,
   protected:
     /// The vector type that \p{TAllocator} specifies.
     using vectorBase    = std::vector<TString<TChar>,
-                                      lang::StdContainerAllocator<TString<TChar>, TAllocator>>;
+                                      lang::StdAllocator<TString<TChar>, TAllocator>>;
 
   public:
-
     /// Constructor.
+    TStringVector()
+    : vectorBase()                                                                                {}
+
+    /// Constructor taking an allocator.
     /// @param pAllocator The allocator to use.
     TStringVector(AllocatorType& pAllocator)
     : vectorBase(pAllocator)                                                                      {}
 
     /// Destructor.
-    ~TStringVector()                                                                      = default;
+    ~TStringVector()                                                                       =default;
 
     /// Returns the allocator provided with construction. If this was \e nulled, then this method
     /// can be used to set an external (or new) allocator using the assignment operator.
     /// Has to be set before the first insertion of data.
     ///
-    /// @return  A reference to the internal allocator.
+    /// @return A reference to the internal allocator.
     AllocatorType&    GetAllocator()                                                        noexcept
     { return vectorBase::get_allocator().GetAllocator(); }
 
     /// Returns the size of this vector as \alib{integer}.
     /// @return The number of strings stored.
-     integer Size()                                                                   const noexcept
-     { return integer(vectorBase::size()); }
+    integer Size()                            const noexcept { return integer(vectorBase::size()); }
 
     /// Adds a string to the end of the list of strings.
     /// @param src Source string to be copied.
     /// @return The index of the created string in this vector.
     integer Add(const strings::TString<TChar>& src )
     {
-        vectorBase::emplace_back( String( GetAllocator(), src ) );
+        vectorBase::emplace_back( TString<TChar>( GetAllocator(), src ) );
         return integer(vectorBase::size()) - 1;
     }
 
@@ -99,8 +101,7 @@ class TStringVector  : public std::vector<TString<TChar>,
     /// is returned.
     /// @param idx The index to try.
     /// @return The string stored at \p{idx}, if available.
-    String TryGet(integer idx )
-    {
+    String TryGet(integer idx ) {
         if (idx >= 0 && idx < Size())
             return vectorBase::at(size_t(idx));
 
@@ -128,5 +129,3 @@ using WStringVector= strings::util::TStringVector<wchar    , lang::HeapAllocator
 
 #endif // ALIB_STRINGS
 #endif // H_ALIB_STRINGS_VECTOR
-
-

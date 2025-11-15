@@ -13,11 +13,11 @@
 #endif
 #if ALIB_VARIABLES
 
-// #################################################################################################
+//##################################################################################################
 // Enum Priority.
 // Note: This is excluded from the module because it is used by ALox and if it was included, ALox
 //       needed to include Configuration in is base module already.
-// #################################################################################################
+//##################################################################################################
 namespace alib {  namespace variables {
 
 
@@ -42,9 +42,9 @@ enum class Priority : uint16_t
     /// The underlying integral value is \c 1,000.
     AutoDetected            = 1000,
 
-     /// Used to store default values, either from (resourced) declarations, hard-coded values,
-     /// or values provided with method \alib{variables;Configuration::PresetImportString}.
-     /// The underlying integral value is \c 2,000.
+    /// Used to store default values, either from (resourced) declarations, hard-coded values,
+    /// or values provided with method \alib{variables;Configuration::PresetImportString}.
+    /// The underlying integral value is \c 2,000.
     DefaultValues           = 2000,
 
     /// This is the default priority when a variable is defined for setting a 'hard-coded' value.
@@ -63,7 +63,7 @@ enum class Priority : uint16_t
 
     /// Used to store temporary session information. Those are higher than \b Environment but lower
     /// than \b CLI. This session priority is only a proposal. Implementations might use a
-    /// different value, even for different variables, for example <b>Environment - 1 </b> or
+    /// different value, even for different variables, for example, <b>Environment - 1 </b> or
     /// <b>CLI + 1 </b>. It depends on the use case.<br>
     /// The underlying integral value is \c 10,000.
     SessionFile             = 10000,
@@ -98,9 +98,9 @@ using     Priority=       alib::variables::Priority;
 
 } // namespace [alib]
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by module ALib.Variables
-// #################################################################################################
+//##################################################################################################
 #define ALIB_VARIABLES_DEFINE_TYPE( Namespace, CPPName,CfgTypeString)                              \
 ALIB_EXPORT namespace alib::variables::detail {                                                    \
 struct VMeta_ ## CPPName : public VMeta                                                            \
@@ -135,4 +135,3 @@ ALIB_DBG(ALIB_DLL const std::type_info& dbgTypeID()                             
 
 #endif
 #endif // HPP_ALIB_VARIABLES_PP
-

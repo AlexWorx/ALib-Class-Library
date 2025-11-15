@@ -22,97 +22,90 @@ ALIB_EXPORT namespace alib {  namespace lox { namespace loggers {
 //==================================================================================================
 class TextFileLogger : public alib::lox::textlogger::PlainTextLogger
 {
-    // #############################################################################################
-    // Internal fields
-    // #############################################################################################
-    protected:
+  //################################################################################################
+  // Internal fields
+  //################################################################################################
+  protected:
+    /// Allocator used for the \alib{strings::compatibility::std;OStreamWriter}.
+    MonoAllocator       ma;
 
-        /// Encapsulates the text file stream in a system dependent way.
-        StringWriter            writer;
+    /// The \b OStreamWriter encapsulated in a placeholder. The instance is constructed
+    /// and destructed with #notifyPlainTextLogOp. With that, synchronized output is
+    /// guaranteed.
+    lang::Placeholder<OStreamWriter<nchar, MonoAllocator, true>>  writer;
 
-        /// Flag to prevent file open/close operations when multi line text logging is performed.
-        bool                    currentlyInMultiLineOp                                      = false;
+    /// Encapsulates the text file stream in a system-dependent way.
+    std::ofstream*          ofs                                                            =nullptr;
 
-
-    // #############################################################################################
-    // Public fields
-    // #############################################################################################
-    public:
-        /// The path and fileName to the log file.
-        alib::AString          FileName;
-
-        /// Errors that usually indicate i/o problems.  With construction of the logger,
-        /// the file is tried to be opened and closed, which might indicate major problems
-        /// (permissions, path, etc) with this public field very early.
-        SystemErrors           LastSystemError                                 = SystemErrors::None;
+    /// Flag to prevent file open/close operations when multi-line text logging is performed.
+    bool                    currentlyInMultiLineOp                                           =false;
 
 
-    // #############################################################################################
-    // Constructor/destructor
-    // #############################################################################################
-    public:
-        //==========================================================================================
-        ///  Creates a TextFileLogger.
-        /// @param fileName    The filename (potentially including a path) of the output log file.
-        /// @param loggerName  The name of the \e Logger. Defaults to "TEXTFILE".
-        //==========================================================================================
-        ALIB_DLL
-        explicit            TextFileLogger( const alib::String& fileName,
-                                            const alib::NString& loggerName    =nullptr );
+  //################################################################################################
+  // Public fields
+  //################################################################################################
+  public:
+    /// The path and fileName to the log file.
+    alib::AString          FileName;
 
-        //==========================================================================================
-        /// Destructs a TextFileLogger
-        //==========================================================================================
-        virtual            ~TextFileLogger()                                            override  {}
-
-    // #############################################################################################
-    // Protected methods
-    // #############################################################################################
-    protected:
-        //==========================================================================================
-        /// Opens the file.
-        //==========================================================================================
-        ALIB_DLL
-        void                openFile();
-
-        //==========================================================================================
-        /// Closes the file.
-        //==========================================================================================
-        ALIB_DLL
-        void                closeFile();
-
-    // #############################################################################################
-    // Abstract method implementations
-    // #############################################################################################
-    protected:
-        //==========================================================================================
-        /// Starts/ends log line. Appends a new-line character sequence to previously logged lines.
-        ///
-        /// @param phase  Indicates the beginning or end of a log line.
-        /// @return Always returns true.
-        //==========================================================================================
-        ALIB_DLL
-        virtual bool        notifyLogOp( lang::Phase phase )                               override;
-
-        //==========================================================================================
-        /// Writes the given region of the given string to the console.
-        ///
-        /// @param buffer   The string to write a portion of.
-        /// @param start    The start of the portion in \p{buffer} to write out.
-        /// @param length   The length of the portion in \p{buffer} to write out.
-        /// @return The number of characters written, -1 on error.
-        //==========================================================================================
-        ALIB_DLL
-        virtual integer     logSubstring( const     String& buffer,
-                                          integer   start,           integer length )      override;
+    /// Errors that usually indicate i/o problems. With construction of the logger,
+    /// the file is tried to be opened and closed, which might indicate major problems
+    /// (permissions, path, etc) with this public field very early.
+    SystemErrors           LastSystemError                                      =SystemErrors::None;
 
 
-        //==========================================================================================
-        ///  Empty implementation, not needed for this class
-        /// @param phase  Indicates the beginning or end of a multi-line operation.
-        //==========================================================================================
-        ALIB_DLL
-        virtual void        notifyMultiLineOp ( lang::Phase phase )                        override;
+  //################################################################################################
+  // Constructor/destructor
+  //################################################################################################
+  public:
+    /// Creates a TextFileLogger.
+    /// @param fileName    The filename (potentially including a path) of the output log file.
+    /// @param loggerName  The name of the \e Logger. Defaults to "TEXTFILE".
+    ALIB_DLL
+    explicit            TextFileLogger( const alib::String& fileName,
+                                        const alib::NString& loggerName    =nullptr );
+
+    /// Destructs a TextFileLogger
+    virtual            ~TextFileLogger()                                                 override {}
+
+  //################################################################################################
+  // Protected methods
+  //################################################################################################
+  protected:
+    /// Opens the file.
+    ALIB_DLL
+    void                openFile();
+
+    /// Closes the file.
+    ALIB_DLL
+    void                closeFile();
+
+  //################################################################################################
+  // Abstract method implementations
+  //################################################################################################
+  protected:
+    /// Starts/ends log line. Appends a new-line character sequence to previously logged lines.
+    ///
+    /// @param phase  Indicates the beginning or end of a log line.
+    /// @return Always returns true.
+    ALIB_DLL
+    virtual bool        notifyPlainTextLogOp( lang::Phase phase )                          override;
+
+    /// Writes the given region of the given string to the console.
+    ///
+    /// @param buffer   The string to write a portion of.
+    /// @param start    The start of the portion in \p{buffer} to write out.
+    /// @param length   The length of the portion in \p{buffer} to write out.
+    /// @return The number of characters written, -1 on error.
+    ALIB_DLL
+    virtual integer     logPlainTextPart( const String& buffer,
+                                          integer       start,    integer length )         override;
+
+
+    /// Empty implementation, not needed for this class
+    /// @param phase  Indicates the beginning or end of a multi-line operation.
+    ALIB_DLL
+    virtual void        notifyMultiLineOp ( lang::Phase phase )                            override;
 
 }; // class TextFileLogger
 
@@ -123,5 +116,3 @@ class TextFileLogger : public alib::lox::textlogger::PlainTextLogger
 using     TextFileLogger=           lox::loggers::TextFileLogger;
 
 } // namespace [alib]
-
-

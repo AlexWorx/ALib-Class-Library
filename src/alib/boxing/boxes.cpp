@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include <cstring>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Boxing;
     import   ALib.Lang;
@@ -29,11 +29,11 @@
 #endif
 #   include "ALib.Boxing.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
-// #################################################################################################
+//##################################################################################################
 // static assertions for the platform
-// #################################################################################################
+//##################################################################################################
 static_assert(         sizeof(alib::integer )       ==        sizeof(alib::uinteger ),          "Error in ALib type definitions" );
 static_assert(         sizeof(alib::integer )       ==         sizeof(std::size_t    ),         "Error in ALib type definitions" );
 static_assert(std::is_signed< alib::integer>::value == std::is_signed<std::ptrdiff_t >::value,  "Error in ALib type definitions" );
@@ -51,44 +51,38 @@ namespace detail {
     // and long double values.
     // It was put here to prevent the compiler to optimize and remove the code.
     extern  long double LONGDOUBLE_WRITE_TEST_MEM[2];
-    extern  void dbgLongDoubleTrueLengthSet();
-    extern  bool dbgLongDoubleTrueLengthTest();
+extern  void dbgLongDoubleTrueLengthSet();
+extern  bool dbgLongDoubleTrueLengthTest();
 }
 #endif
 
 #if !DOXYGEN
 
 namespace {
-integer flattenCount(const Box* boxArray, integer length)
-{
+integer flattenCount(const Box* boxArray, integer length) {
     integer ctdFlattened= 0;
-    for( integer i= 0; i < length ; ++i )
-    {
+    for( integer i= 0; i < length ; ++i ) {
         const Box& box= boxArray[i];
 
-        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<lang::HeapAllocator>*>();
             ctdFlattened+= flattenCount( boxes->data(), integer(boxes->size()) );
             continue;
         }
     #if ALIB_MONOMEM
-        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<MonoAllocator>*>();
             ctdFlattened+= flattenCount( boxes->data(), integer(boxes->size()) );
             continue;
         }
-        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<PoolAllocator>*>();
             ctdFlattened+= flattenCount( boxes->data(), integer(boxes->size()) );
             continue;
         }
     #endif
 
-        if( box.IsArrayOf<Box>() )
-        {
+        if( box.IsArrayOf<Box>() ) {
             ctdFlattened+= flattenCount( box.UnboxArray<Box>(), box.UnboxLength() );
             continue;
         }
@@ -100,50 +94,42 @@ integer flattenCount(const Box* boxArray, integer length)
 }
 
 template<typename TAllocator>
-void flattenInsert(typename TBoxes<TAllocator>::iterator& it, const Box* boxArray, integer length)
-{
-    for( integer i= 0; i < length ; ++i )
-    {
+void flattenInsert(typename TBoxes<TAllocator>::iterator& it, const Box* boxArray, integer length) {
+    for( integer i= 0; i < length ; ++i ) {
         const Box& box= boxArray[i];
 
-        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<lang::HeapAllocator>*>();
             flattenInsert<TAllocator>( it, boxes->data(), integer(boxes->size()) );
             continue;
         }
     #if ALIB_MONOMEM
-        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<MonoAllocator>*>();
             flattenInsert<TAllocator>( it, boxes->data(), integer(boxes->size()) );
             continue;
         }
-        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() )
-        {
+        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() ) {
             const auto* boxes= box.Unbox<boxing::TBoxes<PoolAllocator>*>();
             flattenInsert<TAllocator>( it, boxes->data(), integer(boxes->size()) );
             continue;
         }
     #endif
 
-        if( box.IsArrayOf<Box>() )
-        {
+        if( box.IsArrayOf<Box>() ) {
             flattenInsert<TAllocator>( it, box.UnboxArray<Box>(), box.UnboxLength() );
             continue;
         }
 
         new( &*it ) Box( box );
         ++it;
-    }
-}
+}   }
 
 } // anonymous namespace
 
 
 template<typename TAllocator>
-void  TBoxes<TAllocator>::AddArray( const Box* boxArray, integer length )
-{
+void  TBoxes<TAllocator>::AddArray( const Box* boxArray, integer length ) {
     // 1. Count the number of boxes if "recursively flattened"
     integer ctdFlattened= flattenCount( boxArray, length );
 

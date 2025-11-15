@@ -92,7 +92,7 @@ enum class NumberFormatFlags : uint8_t
 ///   Intended to be used for writing and parsing numbers which are readable by software (not
 ///   humans). Its decimal point character is set to \c '.', the international standard.
 ///   Furthermore no group separators are set for decimal and decimal floating point as well as
-///   for binary, hexadecimal and octal conversions.
+///   for binary, hexadecimal, and octal conversions.
 ///
 /// Any user-defined object defaults to the computational setting after construction.
 ///
@@ -108,14 +108,14 @@ enum class NumberFormatFlags : uint8_t
 ///
 /// - <b>Binary</b><br>
 ///   Binary output supports up to 64 digits and different group separators for nibbles, bytes,
-///   16-bit words and 32 bit words. (See #BinNibbleGroupChar, #BinByteGroupChar,
-///   #BinWordGroupChar and #BinWord32GroupChar ).<br>
+///   16-bit words, and 32 bit words. (See #BinNibbleGroupChar, #BinByteGroupChar,
+///   #BinWordGroupChar, and #BinWord32GroupChar ).<br>
 ///   When parsing integers, a customizable literal string defined in #BinLiteralPrefix might be used
 ///   to auto-detect binary values.
 ///
 /// - <b>Hexadecimal</b><br>
 ///   Hexadecimal output supports up to 16 digits (64-bit) and different group separators
-///   for bytes, 16-bit words and 32 bit words. (See #HexByteGroupChar, #HexWordGroupChar,
+///   for bytes, 16-bit words, and 32 bit words. (See #HexByteGroupChar, #HexWordGroupChar,
 ///   and #HexWord32GroupChar).
 ///   When parsing integers, a customizable literal string defined in #HexLiteralPrefix might be used
 ///   to auto-detect hexadecimal values.
@@ -133,9 +133,9 @@ enum class NumberFormatFlags : uint8_t
 ///   Values with higher fractional precision are rounded accordingly.
 ///   Note that the parameter of the interface functions that may override the width, in the floating
 ///   point case only affects the minimum width of the integral part.<br>
-///   The integral and fractional part of float values are separated by decimalPointChar.
-///   This field of course has to be different from group separator #ThousandsGroupChar, which can
-///   be activated using field #WriteGroupChars.<br>
+///   The integral and fractional parts of float values are separated by decimalPointChar.
+///   This field, of course, has to be different from group separator #ThousandsGroupChar, which can
+///   be activated using the field #WriteGroupChars.<br>
 ///   Other important fields used for writing and parsing floats are: #ExponentSeparator,
 ///   #INFLiteral, #NANLiteral, #WriteExponentPlusSign, and #ForceScientific.
 ///
@@ -145,13 +145,13 @@ enum class NumberFormatFlags : uint8_t
 ///
 /// \attention
 ///   This is \c not true for binary, hexadecimal and octal output. In these formats, the width
-///   provided with fields #BinFieldWidth, #HexFieldWidth and #OctFieldWidth, denote an \b absolute
+///   provided with fields #BinFieldWidth, #HexFieldWidth, and #OctFieldWidth, denote an \b absolute
 ///   value. Higher digits of numbers are not written! The advantage of this design is that no
 ///   masking is needed when just the lower part of an integer number should be written.
-///   However, if a width is set, values might of course change when cut and parsed back later!
+///   However, if a width is set, values might, of course, change when cut and parsed back later!
 ///
 /// All of the integral formats have in common that the output width given includes optional
-/// grouping characters. For example if a width of \b 5 was given for decimal output, the value
+/// grouping characters. For example, if a width of \b 5 was given for decimal output, value
 /// \c 12 would be written \c "0,012", hence \b 4 digits plus the grouping character. If grouping
 /// was disabled, the output became \c "00012", which uses one extra digit instead of the group
 /// character.
@@ -160,7 +160,7 @@ enum class NumberFormatFlags : uint8_t
 /// When parsing values, grouping characters are ignored at any position within the digits,
 /// except of the start. The same is true for whitespace characters as defined in
 /// #Whitespaces. When this field is \e nulled or empty, then white spaces are \b not ignored.
-/// This might be helpful in some cases where occurrence of white space characters should
+/// This might be helpful in some cases where the occurrence of white space characters should
 /// indicate an error (or something else) when parsing.
 /// Otherwise, the characters defined in this field are ignored at two places: at the beginning
 /// of a parsing operation and after a sign character was read.
@@ -171,13 +171,13 @@ enum class NumberFormatFlags : uint8_t
 /// output parameter of the parsing functions, which indicates the index of the end of
 /// the number found.
 ///
-/// For each of the four integer formats, decimal, binary, hexadecimal and octal, dedicated
+/// For each of the four integer formats, decimal, binary, hexadecimal, and octal, dedicated
 /// parsing functions exist. Those do not accept literal prefix identifiers as defined in
-/// fields #BinLiteralPrefix, #HexLiteralPrefix and #OctLiteralPrefix. However, the prefixes \b are
+/// fields #BinLiteralPrefix, #HexLiteralPrefix, and #OctLiteralPrefix. However, the prefixes \b are
 /// identified by function \alib{strings::detail;ParseInt}, which aggregates the other four parsing
 /// functions.<br>
 /// There is no corresponding function defined that writes the literal prefix. When writing
-/// binary, hexadecimal or octal values, such prefixes have to be prepended explicitly by a
+/// binary, hexadecimal, or octal values, such prefixes have to be prepended explicitly by a
 /// user's code.
 ///
 /// @tparam TChar The \ref alib_characters_chars "character type" that this class works on.
@@ -203,7 +203,7 @@ struct TNumberFormat
     static              TNumberFormat   Global;
 
     /// A static number format object that may be used to write and parse numbers for 'computational'
-    /// use, which means, that grouping is switched off and decimal point character
+    /// use, which means that grouping is switched off and the decimal point character
     /// is \c '.'.<br>
     /// Function \alib{Bootstrap} invokes #SetComputational on this object.
     ///
@@ -211,7 +211,7 @@ struct TNumberFormat
     /// value for parameters of their interfaces.
     static              TNumberFormat   Computational;
 
-    // ###############################   string members  ###################################
+  //######################################### string members #######################################
     /// Defines whitespace characters that are ignored when leading the number and after
     /// the sign-character. Applies to functions
     /// \alib{strings::detail;ParseInt} and
@@ -257,7 +257,7 @@ struct TNumberFormat
     /// Defaults to \c "0o".
     TCString<TChar>     OctLiteralPrefix;
 
-    // ###############################  character members  ###################################
+  //####################################### character members ######################################
 
     /// Defines the decimal point character when converting a floating point number to a string
     /// representation with function \alib{strings::detail;WriteFloat}. Also; function \alib{strings::detail;ParseFloat} uses
@@ -269,7 +269,7 @@ struct TNumberFormat
     /// Determines if positive values are prepended with an explicit character (usually '+') when
     /// written using \alib{strings::detail;WriteFloat} or \alib{strings::detail;WriteDecSigned}.<br>
     /// Defaults to \c 0 which omits the writing. Usual other values are of course \c '+', but
-    /// also  <c>' '</c> (space) which supports better horizontal alignment of numbers when written in
+    /// also <c>' '</c> (space) which supports better horizontal alignment of numbers when written in
     /// columns. Note that this is not affecting exponent decimals of floating point values.
     /// For those, see #WriteExponentPlusSign
     TChar               PlusSign;
@@ -298,11 +298,11 @@ struct TNumberFormat
     /// Defaults to \c '\0' what chooses #BinNibbleGroupChar.
     TChar               BinByteGroupChar;
 
-    /// Defines the separator character for 16-bit words  of binary numbers.
+    /// Defines the separator character for 16-bit words of binary numbers.
     /// Defaults to \c '\0' what chooses #BinByteGroupChar.
     TChar               BinWordGroupChar;
 
-    /// Defines the separator character for 32-bit words  of binary numbers.
+    /// Defines the separator character for 32-bit words of binary numbers.
     /// Defaults to \c '\0' what chooses #BinWordGroupChar.
     TChar               BinWord32GroupChar;
 
@@ -310,11 +310,11 @@ struct TNumberFormat
     /// Defaults to \c '\0' what disables reading and writing of byte group characters.
     TChar               HexByteGroupChar;
 
-    /// Defines the separator character for 16-bit words  of hexadecimal numbers.
+    /// Defines the separator character for 16-bit words of hexadecimal numbers.
     /// Defaults to \c '\0' what chooses #HexByteGroupChar.
     TChar               HexWordGroupChar;
 
-    /// Defines the separator character for 32-bit words  of hexadecimal numbers.
+    /// Defines the separator character for 32-bit words of hexadecimal numbers.
     /// Defaults to \c '\0' what chooses #HexWordGroupChar.
     TChar               HexWord32GroupChar;
 
@@ -325,7 +325,7 @@ struct TNumberFormat
     /// The flag field.
     NumberFormatFlags   Flags;
 
-    // ############################ width members ###############################
+  //######################################### width members ########################################
     /// Defines the minimum digits written for the integral part when converting a floating point
     /// value into a string.<br>
     /// If the integral part of the number provided has less digits
@@ -388,28 +388,20 @@ struct TNumberFormat
     int8_t              OctFieldWidth;
 
 
-    // #############################################################################################
-    //  Interface
-    // #############################################################################################
+  //################################################################################################
+  //  Interface
+  //################################################################################################
 
-    //==============================================================================================
     /// Default constructor. Invokes #SetComputational to reset all fields to their default values.
-    //==============================================================================================
-    TNumberFormat()
-    {
-        SetComputational();
-    }
+    TNumberFormat()                                                          { SetComputational(); }
 
-    //==============================================================================================
     /// Copies all fields (settings) from the given object. If no object is provided, values of
     /// the static singleton found in field #Global are copied
     ///
     /// @param other  The \b %NumberFormat object to copy the values from.
     ///               Defaults to \c nullptr, which chooses the global singleton.
-    //==============================================================================================
     void      Set( TNumberFormat* other =nullptr );
 
-    //==============================================================================================
     /// Resets the object to its default values. This method is called in the constructor.
     ///
     /// Decimal point character and grouping characters are set as follows:
@@ -441,7 +433,7 @@ struct TNumberFormat
     /// #FractionalPartWidth,
     /// #DecMinimumFieldWidth,
     /// #BinFieldWidth,
-    /// #HexFieldWidth and
+    /// #HexFieldWidth, and
     /// #OctFieldWidth.
     ///
     /// Finally, the following further fields are reset to their default values:
@@ -461,10 +453,8 @@ struct TNumberFormat
     ///   With static object
     ///   \ref alib::strings::TNumberFormat::Computational "TNumberFormat::Computational",
     ///   there is a global singleton existing which can be used but must not be changed.
-    //==============================================================================================
     void     SetComputational();
 
-    //==============================================================================================
     /// Sets the field #DecimalPointChar and #ThousandsGroupChar to reflect the current
     /// system locale setting. No other values are changed.
     ///
@@ -474,7 +464,6 @@ struct TNumberFormat
     ///   \alib{Bootstrap} was duly invoked by the process).
     ///   Otherwise, this method might be used to initialize a custom object with default values
     ///   to afterwards make some specific changes.
-    //==============================================================================================
     void     SetFromLocale();
 };
 
@@ -492,9 +481,9 @@ extern template   ALIB_DLL void   TNumberFormat<xchar>::Set             ( TNumbe
 extern template   ALIB_DLL void   TNumberFormat<xchar>::SetFromLocale   ();
 
 
-       template<> ALIB_DLL void   TNumberFormat<nchar>::SetComputational();
-       template<> ALIB_DLL void   TNumberFormat<wchar>::SetComputational();
-       template<> ALIB_DLL void   TNumberFormat<xchar>::SetComputational();
+template<>        ALIB_DLL void   TNumberFormat<nchar>::SetComputational();
+template<>        ALIB_DLL void   TNumberFormat<wchar>::SetComputational();
+template<>        ALIB_DLL void   TNumberFormat<xchar>::SetComputational();
 
 template<typename TChar> TNumberFormat<TChar>   TNumberFormat<TChar>::Global;
 template<typename TChar> TNumberFormat<TChar>   TNumberFormat<TChar>::Computational;

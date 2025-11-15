@@ -28,8 +28,7 @@ ALIB_WARNINGS_RESTORE
 /// @param derived    A pointer to the derived type.
 /// @return A pointer to the base type.
 template <typename TTo, typename TFrom>
-TTo* SafeCast(TFrom* derived)
-{
+TTo* SafeCast(TFrom* derived) {
     // Ensure TTo is a base of TFrom
     ALIB_STATIC_ASSERT( SafeCast_not_allowed,   std::is_base_of<TTo   ALIB_COMMA TFrom>::value
                                              || std::is_base_of<TFrom ALIB_COMMA TTo  >::value,
@@ -46,14 +45,14 @@ TTo* SafeCast(TFrom* derived)
 /// @return \c true if \p{t} is default-constructed, \c false otherwise.
 template<typename T>
 requires std::default_initializable<T>
-constexpr bool IsNull(const T& t)                                             { return t==T{}; }
+constexpr bool IsNull(const T& t)                                                 { return t==T{}; }
 
 /// The negation of #alib::lang::IsNull.
 /// @param t The instance to test.
 /// @return \c false if \p{t} is default-constructed, \c true otherwise.
 template<typename T>
 requires std::default_initializable<T>
-constexpr bool IsNotNull(const T& t)                                          { return t!=T{}; }
+constexpr bool IsNotNull(const T& t)                                              { return t!=T{}; }
 
 /// Assigns a default-constructed value to the given instance.
 /// This function is useful with types that are not otherwise nullable, for example,
@@ -61,7 +60,7 @@ constexpr bool IsNotNull(const T& t)                                          { 
 /// @param t The instance to test.
 template<typename T>
 requires std::default_initializable<T>
-constexpr void SetNull(T& t)                                                         { t= T{}; }
+constexpr void SetNull(T& t)                                                             { t= T{}; }
 
 
 //==================================================================================================
@@ -83,7 +82,3 @@ inline
 void     Destruct(T& object)                                                        { object.~T(); }
 
 } // namespace alib[::lang]
-
-
-
-

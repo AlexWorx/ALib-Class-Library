@@ -14,17 +14,19 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/variables/variables.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_variables.
     export module ALib.Variables.ResourcePool;
     import        ALib.Lang;
 #   if !ALIB_SINGLE_THREADED
@@ -55,7 +57,7 @@
 #   include      "ALib.Variables.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 ALIB_EXPORT namespace alib { namespace variables {
 
 #if !ALIB_SINGLE_THREADED || DOXYGEN
@@ -67,9 +69,9 @@ ALIB_EXPORT namespace alib { namespace variables {
 /// \ref alib_mod_bs "customizing the bootstrapping of ALib".
 ///
 /// \see
-///  Please consult the \ref alib_mod_resources "Programmer's Manual" of module
-///  \alib_resources_nl for details on the concept of resources. Details on this specific type are
-///  given in chapter \ref alib_resources_interface_config "3.4.2 Class ConfigResourcePool".
+///   Please consult the \ref alib_mod_resources "Programmer's Manual" of module
+///   \alib_resources_nl for details on the concept of resources. Details on this specific type are
+///   given in chapter \ref alib_resources_interface_config "3.4.2 Class ConfigResourcePool".
 class ConfigResourcePool  : public ResourcePool
                           , public TSharedConfiguration<SharedLock>
 {
@@ -78,7 +80,7 @@ class ConfigResourcePool  : public ResourcePool
                           , public TSharedConfiguration<void>
 {
 #endif
-  //========================================   Internals   =========================================
+  //=========================================== Internals ==========================================
   protected:
 
     /// Protected definition of inherited method.
@@ -87,7 +89,7 @@ class ConfigResourcePool  : public ResourcePool
     void            Reset(lang::CreateDefaults createDefaults= lang::CreateDefaults::Yes)
     {  TSharedConfiguration::Reset( createDefaults); }
 
-  //=================================   Construction/Destruction   =================================
+  //==================================== Construction/Destruction ==================================
   public:
     /// Constructor. Creates a configuration object without any default plug-ins.
     /// After construction, the "resource data", in this case variable values, has to be added.
@@ -100,28 +102,25 @@ class ConfigResourcePool  : public ResourcePool
     ///                              allocation.
     ///                              Defaults to \c 200.
     ///                              Passed to the constructor parent \alib{variables;Configuration}.
-    ConfigResourcePool(size_t          initialBufferSizeInKB = 4,
-                       unsigned int    bufferGrowthInPercent = 200  )
-    : TSharedConfiguration(initialBufferSizeInKB, bufferGrowthInPercent, lang::CreateDefaults::No) {}
+    ConfigResourcePool(size_t    initialBufferSizeInKB = 4,
+                       unsigned  bufferGrowthInPercent = 200  )
+    : TSharedConfiguration(initialBufferSizeInKB,bufferGrowthInPercent,lang::CreateDefaults::No)  {}
 
     /// Default Destructor.
-    virtual ~ConfigResourcePool()                                               override  = default;
+    virtual ~ConfigResourcePool()                                                 override =default;
 
-  //==================================   ResourcePool Interface   ==================================
-    //==============================================================================================
+  //===================================== ResourcePool Interface ===================================
     /// Implements abstract method \alib{resources;ResourcePool::BootstrapAddOrReplace}.
     ///
     /// @param category   Category string of the resource.
     /// @param name       Name string of the resource
     /// @param data       The resource string.
     /// @return \c true if the resource did exist and was replaced, \c false if it was an insertion.
-    //==============================================================================================
     bool BootstrapAddOrReplace( const NString& category,
                                 const NString& name,
                                 const  String& data        )                               override;
 
 
-    //==============================================================================================
     /// Implements abstract method \alib{resources;ResourcePool::BootstrapBulk}.
     /// All variables are written using \alib{variables;Priority;Priority::DefaultValues}.
     ///
@@ -129,7 +128,6 @@ class ConfigResourcePool  : public ResourcePool
     ///                    of type <c>const nchar*</c>.
     /// @param ...         A list of pairs of <b>const nchar*</b> and <b>const character*</b>
     ///                    keys and data.
-    //==============================================================================================
     ALIB_DLL
     virtual
     void BootstrapBulk( const nchar* category, ... )                                       override;
@@ -160,5 +158,3 @@ class ConfigResourcePool  : public ResourcePool
 using     ConfigResourcePool=       variables::ConfigResourcePool;
 
 } // namespace [alib]
-
-

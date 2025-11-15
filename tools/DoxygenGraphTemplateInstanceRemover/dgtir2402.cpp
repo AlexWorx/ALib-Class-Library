@@ -97,7 +97,7 @@ int main2402()
     ostream& out= DebugMode ? cout : *oFile;
 
 
-    alib::ISReadLineN readOp= alib::ISReadLineN( &iFile );
+    alib::IStreamLineN readOp= alib::IStreamLineN( &iFile );
     AString line;
     AString label;
     while( !readOp.IsEOF )
@@ -177,18 +177,16 @@ int main2402()
     for( int i= 2; i< alib::ARG_C ; ++i )
         dotCommand << ' ' << NString(alib::ARG_VN[i]);
 
-    FILE* pipe = popen( dotCommand.Terminate(), "r");
+    AString result;
+    int error= ShellCommand::Run( dotCommand, result);
 
-    string result;
-    if (!pipe)
+    if ( error )
     {
         cerr << "Error invoking command: `" << dotCommand << '`'  << endl;
         cerr << "              returned: "  << result             << endl;
 
         return 2;
     }
-
-    pclose(pipe);
     return 0;
 }
 

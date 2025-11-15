@@ -14,10 +14,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/singletons/singletons.prepro.hpp"
 
-#if ALIB_FEAT_SINGLETON_MAPPED 
+#if ALIB_FEAT_SINGLETON_MAPPED
 #   if !ALIB_MONOMEM || !ALIB_CONTAINERS
 #      include <unordered_map>
 #   endif
@@ -26,14 +26,16 @@
 #   endif
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
 /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
 /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
 /// or use.<br>
 /// In general, the names equal the names of the header files listed in the chapter
 /// \ref alib_manual_modules_impludes of the \alib User Manual.
-/// This chapter, among others, provides further explanations.
+///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_singletons.
     export module ALib.Singletons;
     import        ALib.Lang;
 #   if ALIB_FEAT_SINGLETON_MAPPED
@@ -62,7 +64,7 @@
 #   endif
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 #if ALIB_FEAT_SINGLETON_MAPPED && !DOXYGEN
 namespace alib::singletons::hidden {
 #   if ALIB_MONOMEM && ALIB_CONTAINERS
@@ -225,7 +227,7 @@ ALIB_EXPORT namespace alib::singletons {
 ///   result type of this method changes to <c>std::unordered_map<TypeKey, void*>&</c>.
 ///
 /// @return A map of singleton types with void pointers to the singletons.
-//==============================================================================================
+//==================================================================================================
 ALIB_DLL  HashMap<MonoAllocator,
                   lang::TypeFunctors::Key, void *,
                   lang::TypeFunctors::Hash,

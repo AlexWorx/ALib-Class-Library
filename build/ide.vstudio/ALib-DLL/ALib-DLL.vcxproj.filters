@@ -654,6 +654,9 @@
     <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp">
       <Filter>alib\system</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\system\shellcommand.cpp">
+      <Filter>alib\system</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\alib\lang\dbgcriticalsections.cpp">
       <Filter>alib\lang</Filter>
     </ClCompile>
@@ -1250,6 +1253,9 @@
     <None Include="..\..\..\src\alib\system\processinfo.inl">
       <Filter>alib\system</Filter>
     </None>
+    <None Include="..\..\..\src\alib\system\shellcommand.inl">
+      <Filter>alib\system</Filter>
+    </None>
     <None Include="..\..\..\src\alib\system\system.mpp">
       <Filter>alib\system</Filter>
     </None>
@@ -1295,13 +1301,7 @@
     <None Include="..\..\..\src\alib\lang\plugins.inl">
       <Filter>alib\lang</Filter>
     </None>
-    <None Include="..\..\..\src\alib\lang\rttrallocator.inl">
-      <Filter>alib\lang</Filter>
-    </None>
     <None Include="..\..\..\src\alib\lang\sidilist.inl">
-      <Filter>alib\lang</Filter>
-    </None>
-    <None Include="..\..\..\src\alib\lang\stdcontainerallocator.inl">
       <Filter>alib\lang</Filter>
     </None>
     <None Include="..\..\..\src\alib\lang\stdtypeinfofunctors.inl">

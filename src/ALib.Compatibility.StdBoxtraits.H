@@ -21,7 +21,7 @@
 #include "ALib.Strings.H"
 #include "ALib.Compatibility.StdStrings.H"
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 namespace alib::boxing {
 
 #if DOXYGEN
@@ -123,9 +123,9 @@ DOX_MARKER([DOX_BOXING_CUSTOM_VECTOR])
 }} // namespace alib::boxing[::compatibility::std]
 #endif
 
-// #################################################################################################
-// #############    Utility methods in namespace alib::compatibility::std     ################
-// #################################################################################################
+//##################################################################################################
+//###################### Utility methods in namespace alib::compatibility::std #####################
+//##################################################################################################
 namespace compatibility { namespace std {
 
 /// Creates a deep copy of a boxed C++ array type by appending its contents to a given
@@ -201,5 +201,3 @@ inline void BootstrapStdStringBoxing()
 
 #endif // ALIB_BOXING
 #endif // H_ALIB_BOXING_STDBOXTRAITS
-
-

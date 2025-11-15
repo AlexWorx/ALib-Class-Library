@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,22 +11,20 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings.Tokenizer;
 #else
 #   include "ALib.Strings.Tokenizer.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace strings { namespace util  {
 
 template<typename TChar>
-TSubstring<TChar>& TTokenizer<TChar>::Next( lang::Whitespaces trimming, TChar newDelim )
-{
-    if ( Rest.IsNull() )
-    {
+TSubstring<TChar>& TTokenizer<TChar>::Next( lang::Whitespaces trimming, TChar newDelim ) {
+    if ( Rest.IsNull() ) {
         Actual= nullptr;
         return Actual;
     }
@@ -39,13 +37,10 @@ TSubstring<TChar>& TTokenizer<TChar>::Next( lang::Whitespaces trimming, TChar ne
     {
         integer nextDelimiter= Rest.IndexOf( delim );
 
-        if ( nextDelimiter >= 0 )
-        {
+        if ( nextDelimiter >= 0 ) {
             Actual=  Rest.template Substring<NC>( 0                , nextDelimiter                       );
             Rest  =  Rest.template Substring<NC>( nextDelimiter + 1, Rest.Length() - (nextDelimiter + 1) );
-        }
-        else
-        {
+        } else {
             Actual= Rest;
             Rest  = nullptr;
         }
@@ -63,4 +58,3 @@ template TSubstring<nchar>& TTokenizer<nchar>::Next( lang::Whitespaces trimming,
 template TSubstring<wchar>& TTokenizer<wchar>::Next( lang::Whitespaces trimming, wchar newDelim );
 
 }}} // namespace [alib::strings::util]
-

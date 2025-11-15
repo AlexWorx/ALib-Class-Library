@@ -23,38 +23,30 @@ ALIB_EXPORT namespace alib::lang {
 //==================================================================================================
 class DbgTypeDemangler
 {
-    protected:
-        const char*     name;       ///< The translated name.
-        bool            failed;     ///< If \c true, demangling failed.
+  protected:
+    const char*     name;       ///< The translated name.
+    bool            failed;     ///< If \c true, demangling failed.
 
-    public:
-        //==========================================================================================
-        /// Constructor
-        /// @param typeInfo The information struct on the C++ type.
-        //==========================================================================================
-        ALIB_DLL
-        DbgTypeDemangler( const std::type_info& typeInfo );
+  public:
+    /// Constructor
+    /// @param typeInfo The information struct on the C++ type.
+    ALIB_DLL
+    DbgTypeDemangler( const std::type_info& typeInfo );
 
     #if defined(__GNUC__) || defined(__clang__)
-        //==========================================================================================
-        /// Destructor
-        //==========================================================================================
-        ALIB_DLL
-        ~DbgTypeDemangler();
+    /// Destructor
+    ALIB_DLL
+    ~DbgTypeDemangler();
     #endif
 
-        //==========================================================================================
-        /// Returns the demangled, human-readable name of the type which was provided in the
-        /// constructor.
-        /// @return The demangled type name.
-        //==========================================================================================
-        ALIB_DLL
-        const char*  Get();
+    /// Returns the demangled, human-readable name of the type which was provided in the
+    /// constructor.
+    /// @return The demangled type name.
+    ALIB_DLL
+    const char*  Get();
 
 }; // class DbgTypeDemangler
 
 } // namespace [alib::lang]
 
 #endif // ALIB_DEBUG
-
-

@@ -17,25 +17,19 @@ class CommandLine;
 //==================================================================================================
 class CliCamp : public camp::Camp
 {
-    public:
-        //==========================================================================================
-        /// Constructor.<br>
-        /// While this is public, it must not be invoked as this is a strict singleton type.
-        /// (See notes in \ref alib_camp_camp).
-        //==========================================================================================
-        CliCamp();
+  public:
+    /// Constructor.<br>
+    /// While this is public, it must not be invoked as this is a strict singleton type.
+    /// (See notes in \ref alib_camp_camp).
+    CliCamp();
 
-    protected:
-        //==========================================================================================
-        /// Initializes this camp.
-        //==========================================================================================
-        virtual void    Bootstrap()                                                        override;
+  protected:
+    /// Initializes this camp.
+    virtual void    Bootstrap()                                                            override;
 
-        //==========================================================================================
-        /// Terminates this camp. (Nothing to do.)
-        /// @param phase  The shutdown phase to perform.
-        //==========================================================================================
-        virtual void    Shutdown( ShutdownPhases phase )                override   { (void) phase; }
+    /// Terminates this camp. (Nothing to do.)
+    /// @param phase  The shutdown phase to perform.
+    virtual void    Shutdown( ShutdownPhases phase )                      override { (void) phase; }
 
 }; // class CliCamp
 

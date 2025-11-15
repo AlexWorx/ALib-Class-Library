@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES)
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,23 +11,23 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
-// ===========================================   Module   ==========================================
+//========================================= Global Fragment ========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Lang;
 #else
 #   include "ALib.Lang.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {
     int                 ARG_C = 0;
     const char**        ARG_VN= nullptr;
     const wchar_t**     ARG_VW= nullptr;
 }
 
-// #################################################################################################
+//##################################################################################################
 // Namespace documentation alib
-// #################################################################################################
+//##################################################################################################
 
 /// # 1. Introduction #
 /// This is the root namespace of \alib, a general purpose C++ library. \alib is developed by
@@ -163,7 +163,3 @@ namespace alib {}
 
 /// \dir alib/strings/util
 /// This directory contains header-files and compilation units of utility types of module \alib_strings.
-
-
-
-

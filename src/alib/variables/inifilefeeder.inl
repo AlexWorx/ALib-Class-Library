@@ -8,17 +8,17 @@
 ALIB_EXPORT namespace alib {  namespace variables {
 //==================================================================================================
 /// Adapter type between class \alib{variables;IniFile} and class \alib{variables;Configuration}.
-/// INI-Files contents usually is fed in with bootstrapping an application and optionally be
+/// INI-Files contents usually are fed in with bootstrapping an application and optionally be
 /// written out when an application ends (to populate empty INI-files or add new variables to
 /// existing ones). For this, an instance of this type is to be locally created each time. In other
 /// words, no instance of this type needs to be kept in memory during the life-span of an
 /// application.
 /// @see Chapter \ref alib_variables_external_ini of the Programmer's Manual of camp \alib_variables.
-/// @throws alib::variables::Exceptions::ErrorWritingFile  \I{CLANGDUMMY}
+/// @throws alib::variables::Exceptions::ErrorWritingFile \I{CLANGDUMMY}
 //==================================================================================================
 class IniFileFeeder
 {
-  //====================================   Internals   =============================================
+  //=========================================== Internals ==========================================
   protected:
     /// The configuration to work with. Set with construction.
     Configuration&          configuration;
@@ -37,7 +37,7 @@ class IniFileFeeder
     int         importSection( IniFile::Section& section );
 
 
-  //==================================   Public Fields   ===========================================
+  //========================================= Public Fields ========================================
   public:
     /// The desired maximum width of the INI-file. Defaults to <c>100</c>.
     /// This value is used with utility method #AddResourcedSectionComments.
@@ -50,11 +50,11 @@ class IniFileFeeder
     /// 'in code', such prefix is preserved.
     String                  DefaultCommentPrefix                                      =A_CHAR("# ");
 
-  //=============================   Constructors/destructor   ======================================
+  //==================================== Constructors/destructor ===================================
   public:
     /// Constructor.
-    /// @param pConfiguration Stored in field #configuration.
-    /// @param pPriority      Stored in field #priority.
+    /// @param pConfiguration Stored in the field #configuration.
+    /// @param pPriority      Stored in the field #priority.
     ///                       \alib{variables;Priority;ConfigFile}.
     IniFileFeeder( Configuration& pConfiguration, Priority pPriority= Priority::ConfigFile )
     : configuration(pConfiguration)
@@ -63,8 +63,7 @@ class IniFileFeeder
     /// Virtual destructor. \ref alib_mod_assert "Raises an ALib warning" in debug-compilations,
     /// if the internal INI-file was not disposed before deletion. Disposal is made with methods
     /// #ImportEnd and ExportEnd.
-    virtual ~IniFileFeeder()
-    {
+    virtual ~IniFileFeeder() {
         #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
             ALIB_ASSERT_WARNING(iniFile == nullptr, "VARIABLES",
               "Export or import sequence not completed before deleting the INI-file.\n"
@@ -74,7 +73,7 @@ class IniFileFeeder
 
     }
 
-  //====================================   Interface   =============================================
+  //=========================================== Interface ==========================================
     /// Imports all entries in the section named \p{sectionName} in the underlying INI-file into
     /// the configuration.
     /// @param sectionName The name of the section to import.
@@ -90,7 +89,7 @@ class IniFileFeeder
     ///   This method is useful to load a section of variables of the same type with a) avoiding to
     ///   set preset string and b) with the advantage that a using code may use
     ///   \alib{variables;Variable::Try} to find the variable already.<br>
-    ///   This method may be used for example with camp \alib_expressions to declare nested
+    ///   This method may be used, for example, with camp \alib_expressions to declare nested
     ///   expressions to an \alib{expressions;StandardRepository}.
     /// @param sectionName The name of the section to import.
     /// @param typeName    The type of the variable to declare.
@@ -109,12 +108,10 @@ class IniFileFeeder
     /// Creates the internal \p{iniFile} instance.
     /// @param path The filepath to the INI-file.
     /// @return A pointer to the (otherwise internal) \alib{variables;IniFile} object that was opened.
-    ///         Use with caution. Could be used for example to detect the fact that the INI-file
+    ///         Use with caution. Could be used, for example, to detect the fact that the INI-file
     ///         was empty or not found.
-    IniFile* ImportStart( const system::Path&  path )
-    {
-        if( iniFile != nullptr )
-        {
+    IniFile* ImportStart( const system::Path&  path ) {
+        if( iniFile != nullptr ) {
             ALIB_ASSERT_WARNING(iniFile == nullptr, "VARIABLES",
               "Export or import sequence not completed before starting a new one.\n"
               "Previous filename: ", iniFile->FileName )
@@ -126,19 +123,14 @@ class IniFileFeeder
 
     /// Creates the internal \p{iniFile} instance.
     /// @param path The filepath to the INI-file.
-    /// @return A pointer to the (otherwise internal) \alib{variables;IniFile} object that was opened.
-    ///         Use with caution. Could be used for example to detect the fact that the INI-file
-    ///         was empty or not found.
-    IniFile* ExportStart( const system::Path&  path )
-    {
-        return ImportStart(path); // this is just the very same as ImportStart()
-    }
+    /// @return A pointer to the (otherwise internal) \alib{variables;IniFile} object that was
+    ///         opened. Use with caution. Could be used, for example, to detect the fact that
+    ///         the INI-file was empty or not found.
+    IniFile* ExportStart( const system::Path& path )                   { return ImportStart(path); }
 
     /// Closes and deletes the internal \p{iniFile} instance.
-    void ImportEnd()
-    {
-        if(iniFile == nullptr)
-        {
+    void ImportEnd() {
+        if(iniFile == nullptr) {
             ALIB_ERROR( "VARIABLES", "No INI-file loaded when trying to end import/export." )
             return;
         }
@@ -152,10 +144,8 @@ class IniFileFeeder
     /// Writes the contents of the internal \p{iniFile} instance created with #ExportStart into
     /// an (optionally) different file and then deletes the instance.
     /// @param path The file path for writing.
-    void ExportEnd(const system::Path&  path )
-    {
-        if(iniFile == nullptr)
-        {
+    void ExportEnd(const system::Path&  path ) {
+        if(iniFile == nullptr) {
             ALIB_ERROR( "VARIABLES", "No INI-file loaded when trying to import data." )
             return;
         }
@@ -186,12 +176,10 @@ class IniFileFeeder
     /// @param path  The path of the variable to export.
     /// @return \c   true if the variable either did not exist yet in the INI-file or if it existed
     ///              and the write-back mechanism was in place. \c false otherwise.
-    bool         Export(const String& path)
-    {
+    bool         Export(const String& path) {
         auto cursor= configuration.Root();
         auto remainder= cursor.GoTo(path);
-        if( remainder.IsNotEmpty() )
-        {
+        if( remainder.IsNotEmpty() ) {
             ALIB_WARNING("VARIABLES", "Configuration variable path \"{}\" to export not found.",
                                       path)
             return false;
@@ -224,12 +212,10 @@ class IniFileFeeder
     /// @param directChildrenOnly  If \c true, only the direct children of this \p{path} are written
     ///                            as variables. Defaults to \c false.
     /// @return The number of variables exported. A negative value on error.
-    int        ExportSubTree( const String& path, bool directChildrenOnly= false )
-    {
+    int        ExportSubTree( const String& path, bool directChildrenOnly= false ) {
         auto cursor= configuration.Root();
         auto remainder= cursor.GoTo(path);
-        if( remainder.IsNotEmpty() )
-        {
+        if( remainder.IsNotEmpty() ) {
             ALIB_WARNING("VARIABLES", "Configuration variable path \"{}\" to export not found.")
             return -1;
         }
@@ -254,7 +240,7 @@ class IniFileFeeder
 
     /// This method may be used to set the \ref config_IniFile_writebackflag "writeback flag"
     /// of an entry in the associated INI-file. The flag is only set if the entry was
-    /// programmaticaly created (usually with one of the <b>Export</b>-methods of this class) and
+    /// programmatically created (usually with one of the <b>Export</b>-methods of this class) and
     /// if it was not present in the INI-file before.
     /// @see Chapter \ref alib_variables_external_session of the Programmer's Manual of module
     /// \alib_variables_nl.
@@ -272,13 +258,12 @@ class IniFileFeeder
     bool        SetWriteBackFlag( const Variable& var );
 
     #if ALIB_RESOURCES
-    //==============================================================================================
     /// This is a utility function that reads section comments from
     /// \ref alib_mod_resources "externalized string resources".
     ///
     /// All sections of the underlying INI-file are processed, but resourced comments
     /// are only added in the case that a section's comment string is \c nulled. This is not the
-    /// case if a section was read from from an INI-file, as even if no comments are given,
+    /// case if a section was read from an INI-file, as even if no comments are given,
     /// the field is empty, but not \e nulled. In other words, only sections that have been
     /// programmatically added during the run of software are changed<br>
     /// This approach allows a user to remove the comments, without the software restoring them.
@@ -296,7 +281,6 @@ class IniFileFeeder
     /// @param resourceNamePrefix    A prefix of the resource name.
     /// @return The number of section comments written. This is useful to detect if the INI-file
     ///         needs to be written.
-    //==============================================================================================
     ALIB_DLL  int       AddResourcedSectionComments( ResourcePool&    resourcePool,
                                                      const NString&   resourceCategory,
                                                      const NString&   resourceNamePrefix  );
@@ -305,9 +289,8 @@ class IniFileFeeder
     /// Allows access to the internal INI-file object created with either method #ImportStart or
     /// #ExportStart. In debug-compilations, this method asserts that an INI-file was opened.
     /// In release-compilations, a non-existing INI-file leads to undefined behavior.
-    /// @return  The currently opened INI-File.
-    IniFile& GetIniFile()
-    {
+    /// @return The currently opened INI-File.
+    IniFile& GetIniFile() {
         ALIB_ASSERT_ERROR( iniFile != nullptr, "VARIABLES",
             "No INI-file loaded when trying to access it." )
         return *iniFile;

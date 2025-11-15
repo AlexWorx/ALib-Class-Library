@@ -23,7 +23,8 @@ struct DbgLockAsserter
     const char* Name                                                                   ="<unnamed>";
     CallerInfo  AcqCI ;                  ///< Source location of the most recent acquirement.
     CallerInfo  RelCI ;                  ///< Source location of the most recent release.
-    int16_t     CntAcquirements= 0;      ///< The number of nested acquirements.
+
+    std::atomic<int> CntAcquirements{0}; ///< The number of shared acquirements.
 
     /// The format string used to write exceptions to the console.
     /// This string can be changed if the source information is not "clickable" in a user's
@@ -32,7 +33,7 @@ struct DbgLockAsserter
     /// The default string is optimized for
     /// \https{JetBrains CLion,www.jetbrains.com/clion} and is defined as:
     /**  \verbatim
-Multi-Threadding {} in Lock \"{}\"
+Multi-Threading {} in Lock \"{}\"
                 Message: {}
    In (Member-)Function: {}
                Is Owned: {} ({})
@@ -64,7 +65,7 @@ Multi-Threadding {} in Lock \"{}\"
     static const char* ASSERTION_FORMAT;
 
 
-    /// This is a threshold that causes non-timed Acquire() methods to raise a \alib warning in
+    /// This is a threshold that causes non-timed Acquire() methods to raise a \alib_warning in
     /// debug-builds in case a thread is blocked longer than the given duration.
     ///
     /// To disable warnings in cases that high block times are suitable, set this value to \c 0.
@@ -72,13 +73,16 @@ Multi-Threadding {} in Lock \"{}\"
     Ticks::Duration                WaitTimeLimit          = Ticks::Duration::FromAbsoluteSeconds(2);
 
     /// Limit of recursions. If the limit is reached or a multiple of it, an
-    /// \alib warning is raised.
+    /// \alib_warning is raised.
     /// Defaults is \c 10. To disable, set to \c 0.<p>
     /// Available only in debug versions of \alib.
     int                            RecursionLimit                                               =10;
 
     /// Destructor.
-    virtual ~DbgLockAsserter()                                                                    {}
+    virtual ~DbgLockAsserter() {
+        if( CntAcquirements.load() > 0 )
+            DoAssert( 0, ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" );
+    }
     
     /// Returns a pointer the owning thread.<p>
     /// Available only in debug-builds.
@@ -91,7 +95,7 @@ Multi-Threadding {} in Lock \"{}\"
     /// @return \c true, if the lock is owned by this thread, \c false if it is owned by
     ///            another thread or not owned.
     bool            IsOwnedByCurrentThread()                                                   const
-    { return CntAcquirements > 0 &&  AcqCI.ThreadID == std::this_thread::get_id(); }
+    { return CntAcquirements.load() > 0 &&  AcqCI.ThreadID == std::this_thread::get_id(); }
 
     /// Returns \c true if this is a non-recursive lock or a recursive instance which is acquired
     /// exactly once.<br>
@@ -103,7 +107,7 @@ Multi-Threadding {} in Lock \"{}\"
     ///   is invoked.
     ///
     /// @return \c true if the next release will free this lock, \c false otherwise.
-    bool            WillRelease()                   const  noexcept { return CntAcquirements == 1; }
+    bool            WillRelease()              const noexcept { return CntAcquirements.load()== 1; }
 
     /// Collects assertion info and \ref alib_mod_assert "raises a warning or error".
     /// @see
@@ -121,41 +125,38 @@ Multi-Threadding {} in Lock \"{}\"
     /// Asserts that #CntAcquirements is not \c 0
     /// @param assertCI Location where the assertion is placed.
     /// @param ci       Location of the call to the method that asserted.
-    /// @param headline The message.
-    void AssertOwned    (const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
+    void AssertOwned    (const CallerInfo& assertCI, const CallerInfo& ci )
     {
-        if( CntAcquirements == 0 )
-            DoAssert( 0, assertCI, ci, headline );
+        if( CntAcquirements.load() == 0 )
+            DoAssert( 0, assertCI, ci, "Not acquired" );
     }
 
-    /// Asserts that #CntAcquirements is \c 0
-    /// @param assertCI Location where the assertion is placed.
-    /// @param ci       Location of the call to the method that asserted.
-    /// @param headline The message.
-    void AssertNotOwned (const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
-    {
-        if( CntAcquirements > 0 )
-            DoAssert( 0, assertCI, ci, headline );
+    /// Sets the given caller as the current owner. Asserts that #CntAcquirements is \c 0
+    /// when called.
+    /// @param assertCI Location where ownership was implemented (usually the lock).
+    /// @param requestCI Location where ownership was requested (the caller of \p{assertCI})
+    void SetOwner    (const CallerInfo& assertCI, const CallerInfo& requestCI ) {
+        if( CntAcquirements.load() > 0 )
+            DoAssert( 0, assertCI, requestCI, "Already (still) owned." );
+        AcqCI= requestCI;
+        CntAcquirements.fetch_add(1);
     }
 
-    /// Asserts that either #CntAcquirements is \c 0 or the lock is owned by calling thread.
-    /// @param assertCI Location where the assertion is placed.
-    /// @param ci       Location of the call to the method that asserted.
-    /// @param headline The message.
-    void AssertNotOwnedOrMe (const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
-    {
-        if( CntAcquirements > 0 && ci.ThreadID != AcqCI.ThreadID )
-            DoAssert( 0, assertCI, ci, headline );
-    }
+    /// Sets the given caller as the current owner. Asserts that either #CntAcquirements is \c 0
+    /// or the current owner is the same as in parameter \p{requestCI}.
+    /// @param assertCI Location where ownership was implemented (usually the lock).
+    /// @param requestCI Location where ownership was requested (the caller of \p{assertCI})
+    ALIB_DLL
+    void SetRecursiveOwner (const CallerInfo& assertCI, const CallerInfo& requestCI );
 
     /// Asserts that this lock is owned by the thread in \p{ci}.
-    /// @param assertCI Location where the assertion is placed.
-    /// @param ci       Location of the call to the method that asserted.
-    /// @param headline The message.
-    void AssertOwning   (const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
-    {
-        if( CntAcquirements == 0 || ci.ThreadID != AcqCI.ThreadID )
-            DoAssert( 0, assertCI, ci, headline);
+    /// @param assertCI Location where the release is implemented.
+    /// @param requestCI Location where the release was requested (the caller of \p{assertCI})
+    void Release   (const CallerInfo& assertCI, const CallerInfo& requestCI) {
+        if( CntAcquirements.load() == 0 || requestCI.ThreadID != AcqCI.ThreadID )
+            DoAssert( 0, assertCI, requestCI, "Release without having ownership");
+        RelCI = requestCI;
+        CntAcquirements.fetch_sub(1);
     }
 
     /// Asserts that this lock is not owned by the thread in \p{ci}.
@@ -164,7 +165,7 @@ Multi-Threadding {} in Lock \"{}\"
     /// @param headline The message.
     void AssertNotOwning(const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
     {
-        if( CntAcquirements > 0 && ci.ThreadID == AcqCI.ThreadID )
+        if( CntAcquirements.load() > 0 && ci.ThreadID == AcqCI.ThreadID )
             DoAssert( 0, assertCI, ci, headline);
     }
 }; // struct DbgLockAsserter
@@ -176,9 +177,9 @@ Multi-Threadding {} in Lock \"{}\"
 //==================================================================================================
 struct DbgSharedLockAsserter : DbgLockAsserter
 {
-    CallerInfo          SAcqCI;               ///< Source location of the most recent shared acquirement.
-    CallerInfo          SRelCI;               ///< Source location of the most recent shared release.
-    std::atomic<int>    CntSharedAcquirements{0};  ///< The number of shared acquirements.
+    CallerInfo       SAcqCI;                   ///< The most recent shared acquirement's caller.
+    CallerInfo       SRelCI;                   ///< The most recent shared release caller.
+    std::atomic<int> CntSharedAcquirements{0}; ///< The number of shared acquirements.
 
     /// The format string used to write exceptions to the console.
     /// This string can be changed if the source information is not "clickable" in a user's
@@ -187,7 +188,7 @@ struct DbgSharedLockAsserter : DbgLockAsserter
     /// The default string is optimized for
     /// \https{JetBrains CLion,www.jetbrains.com/clion} and is defined as:
     /**  \verbatim
-Multi-Threadding {} in Shared-Lock \"{}\"
+Multi-Threading {} in Shared-Lock \"{}\"
                        Message: {}
           In (Member-)Function: {}
                       Is Owned: {} ({})
@@ -245,7 +246,7 @@ Multi-Threadding {} in Shared-Lock \"{}\"
     /// @param headline The message.
     ALIB_DLL
     void DoAssert       (int type, const CallerInfo& assertCI, const CallerInfo& ci,
-                         const char* headline )                                         override;
+                         const char* headline )                                            override;
 
     /// Returns \c true if currently a reader is registered. This method is used to
     /// create assertions. of course, to detect assertions, it would be more efficient to check
@@ -255,17 +256,53 @@ Multi-Threadding {} in Shared-Lock \"{}\"
     /// Available only in debug-builds.
     /// @return \c true, if the lock is owned by this thread, \c false if it is owned by
     ///         another thread or not owned.
-    bool    IsSharedOwnedByAnyThread()             const{ return CntSharedAcquirements.load() > 0; }
+    bool    IsSharedOwnedByAnyThread()            const { return CntSharedAcquirements.load() > 0; }
 
-    /// Asserts that #CntAcquirements is \c 0
-    /// @param assertCI Location where the assertion is placed.
-    /// @param ci       Location of the call to the method that asserted.
-    /// @param headline The message.
-    void AssertNotOwned (const CallerInfo& assertCI, const CallerInfo& ci, const char* headline )
-    {
-        if( CntAcquirements > 0 || CntSharedAcquirements.load() > 0 )
-            DoAssert( 0, assertCI, ci, headline );
+    /// Sets the given caller as the current owner. Asserts that #CntAcquirements is \c 0
+    /// when called.
+    /// @param assertCI Location where ownership was implemented (usually the lock).
+    /// @param requestCI Location where ownership was requested (the caller of \p{assertCI})
+    void SetOwner    (const CallerInfo& assertCI, const CallerInfo& requestCI ) {
+        if( CntAcquirements.load() > 0 )
+            DoAssert( 0, assertCI, requestCI, "Already (still) owned." );
+        if( CntSharedAcquirements.load() > 0 )
+            DoAssert( 0, assertCI, requestCI, "Already (still) shared-owned." );
+        AcqCI= requestCI;
+        CntAcquirements.fetch_add(1);
     }
+
+    /// Sets the given caller as a current shared-owner. Asserts that #CntAcquirements is \c 0
+    /// when called.
+    /// @param assertCI   Location where ownership was implemented (usually the lock).
+    /// @param requestCI  Location where ownership was requested (the caller of \p{assertCI})
+    /// @param warnLimit  If this number of shared acquisitions is exceeded, a warning is
+    ///                  given.
+    void SetSharedOwner    (const CallerInfo& assertCI, const CallerInfo& requestCI,
+                            int warnLimit ) {
+        if( CntAcquirements.load() > 0 )
+            DoAssert( 0, assertCI, requestCI, "Already (still) owned." );
+
+        if ( CntSharedAcquirements.fetch_add(1) >= warnLimit )
+            DoAssert( 1, ALIB_CALLER, requestCI,
+                "Too many parallel shared acquisitions detected. "
+                "A reason might be that shared acquirers do not call ReleaseShared" );
+
+        SAcqCI= requestCI;
+    }
+
+    /// Asserts that this lock is shared-owned by the thread in \p{ci}.
+    /// @param assertCI Location where the release is implemented.
+    /// @param requestCI Location where the release was requested (the caller of \p{assertCI})
+    void ReleaseShared   (const CallerInfo& assertCI, const CallerInfo& requestCI) {
+        auto prevCounter= CntSharedAcquirements.fetch_sub(1);
+        if ( prevCounter <= 0 )
+            DoAssert( 0,  assertCI, requestCI,
+              "Too many invocations of ReleaseShared (from any thread) without prior acquisition" );
+
+        SRelCI= requestCI;
+    }
+
+
 }; // struct DbgSharedLockAsserter
 
 

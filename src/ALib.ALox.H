@@ -26,6 +26,3 @@
 #endif
 
 #endif // H_ALIB_ALOX
-
-
-

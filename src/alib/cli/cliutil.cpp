@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <algorithm>
 #include "ALib.Monomem.StdContainers.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.CLI;
     import   ALib.Characters.Functions;
@@ -27,12 +27,11 @@
 #   include "ALib.Strings.Tokenizer.H"
 #   include "ALib.CLI.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 namespace alib::cli {
 
-OptionDecl*  CLIUtil::GetOptionDecl( CommandLine& cmdLine, const String& identString )
-{
+OptionDecl*  CLIUtil::GetOptionDecl( CommandLine& cmdLine, const String& identString ) {
     for( auto* decl : cmdLine.OptionDecls )
         if (    (    identString.Length()              == 1
                   && identString.CharAtStart<NC>()  == decl->IdentifierChar() )
@@ -43,8 +42,7 @@ OptionDecl*  CLIUtil::GetOptionDecl( CommandLine& cmdLine, const String& identSt
 }
 
 
-CommandDecl*  CLIUtil::GetCommandDecl( CommandLine& cmdLine, const String& identString )
-{
+CommandDecl*  CLIUtil::GetCommandDecl( CommandLine& cmdLine, const String& identString ) {
     for( auto* decl : cmdLine.CommandDecls )
         if (     identString.Length() >=  decl->MinimumRecognitionLength()
              &&  decl->Identifier().StartsWith<CHK,lang::Case::Ignore>( identString ) )
@@ -52,8 +50,7 @@ CommandDecl*  CLIUtil::GetCommandDecl( CommandLine& cmdLine, const String& ident
     return nullptr;
 }
 
-ParameterDecl*  CLIUtil::GetParameterDecl(CommandLine &cmdLine, const String &identString)
-{
+ParameterDecl*  CLIUtil::GetParameterDecl(CommandLine &cmdLine, const String &identString) {
     for( auto* decl : cmdLine.ParameterDecls )
         if ( decl->Name().StartsWith<CHK,lang::Case::Ignore>( identString ) )
             return decl;
@@ -62,20 +59,17 @@ ParameterDecl*  CLIUtil::GetParameterDecl(CommandLine &cmdLine, const String &id
 
 
 
-AString CLIUtil::GetCommandUsageFormat( CommandLine& cmdLine, CommandDecl& cmd )
-{
+AString CLIUtil::GetCommandUsageFormat( CommandLine& cmdLine, CommandDecl& cmd ) {
     AString result;
     result.EnsureRemainingCapacity(2048);
     result << cmdLine.GetResource( "HlpCLIAppName" ) << ' ' << cmd.Identifier();
 
-    for( auto* param : cmd.Parameters )
-    {
+    for( auto* param : cmd.Parameters ) {
         result << ' ';
         if( param->IsOptional() ) result << '[';
 
         result << param->Name();
-        if ( param->ValueListSeparator() != '\0' )
-        {
+        if ( param->ValueListSeparator() != '\0' ) {
             result << '[' << param->ValueListSeparator() << param->Name() << "...]";
         }
 
@@ -92,35 +86,27 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
 
     String argList= NULL_STRING;
     bool   argWasPeeked= false;
-    if( helpCmd )
-    {
+    if( helpCmd ) {
         if(  helpCmd->ParametersOptional.IsNotEmpty() )
             argList= helpCmd->ParametersOptional.front()->Args.front();
-        else if( cmdLine.ArgCount() > helpCmd->Position + 1  )
-        {
+        else if( cmdLine.ArgCount() > helpCmd->Position + 1  ) {
             argWasPeeked= true;
             argList= cmdLine.GetArg(helpCmd->Position + 1);
         }
-    }
-    else
-    {
+    } else {
         if(  helpOpt->Args.IsNotEmpty() )
             argList= helpOpt->Args.front();
-        else if( cmdLine.ArgCount() > helpOpt->Position + 1 )
-        {
+        else if( cmdLine.ArgCount() > helpOpt->Position + 1 ) {
             argWasPeeked= true;
             argList= cmdLine.GetArg(helpOpt->Position + 1);
-        }
-    }
+    }   }
 
-    if( argList.IsNotEmpty() )
-    {
+    if( argList.IsNotEmpty() ) {
         int cntArgsRecognized= 0;
 
         Tokenizer args( argList, ',' );
         int cntTokens= 0;
-        while( args.HasNext() )
-        {
+        while( args.HasNext() ) {
             ++cntTokens;
 
             String arg= args.Next();
@@ -129,12 +115,10 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
             // command
             {
                 CommandDecl* cmdDecl= CLIUtil::GetCommandDecl( cmdLine, arg );
-                if( cmdDecl )
-                {
+                if( cmdDecl ) {
                     ++cntArgsRecognized;
 
-                    if( cmdLine.DryRun == DryRunModes::Off )
-                    {
+                    if( cmdLine.DryRun == DryRunModes::Off ) {
                         text.Add( cmdLine.GetResource( "HlpHdlTopic" ), "command", cmdDecl->Identifier() )
                             .PushIndent( 2 )
                             .Add( cmdLine.GetResource( "HlpHdlUsage" ), " ", GetCommandUsageFormat( cmdLine, *cmdDecl ) )
@@ -146,8 +130,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
 
                             .Add( NEW_LINE, cmdLine.GetResource( "HlpHdlPDscr" ) )
                             .PushIndent( 2 );
-                            for( auto* param : cmdDecl->Parameters )
-                            {
+                            for( auto* param : cmdDecl->Parameters ) {
                                 text.Add( "* ", param->Name()  )
                                     .PushIndent( 2 )
                                       .AddMarked( param->GetHelpTextShort() )
@@ -156,19 +139,14 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
                             }
                         text.PopIndent()
                             .PopIndent();
-                    }
-                }
-            }
+            }   }   }
 
             // option?
-            if( cntArgsRecognizedSoFar == cntArgsRecognized )
-            {
+            if( cntArgsRecognizedSoFar == cntArgsRecognized ) {
                 OptionDecl* optDecl= CLIUtil::GetOptionDecl( cmdLine, arg );
-                if( optDecl )
-                {
+                if( optDecl ) {
                     ++cntArgsRecognized;
-                    if( cmdLine.DryRun == DryRunModes::Off )
-                    {
+                    if( cmdLine.DryRun == DryRunModes::Off ) {
                         text.Add( cmdLine.GetResource( "HlpHdlTopic" ), "option", optDecl->Identifier() )
                             .PushIndent( 2 )
                             .Add( cmdLine.GetResource( "HlpHdlUsage" ), "  ", optDecl->HelpUsageLine() )
@@ -178,65 +156,45 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
                             .PopIndent()
 
                             .PopIndent();
-                    }
-                }
-            }
+            }   }   }
 
             // parameter?
-            if( cntArgsRecognizedSoFar == cntArgsRecognized )
-            {
+            if( cntArgsRecognizedSoFar == cntArgsRecognized ) {
                 ParameterDecl* paramDecl= CLIUtil::GetParameterDecl( cmdLine, arg );
-                if( paramDecl )
-                {
+                if( paramDecl ) {
                     ++cntArgsRecognized;
-                    if( cmdLine.DryRun == DryRunModes::Off )
-                    {
+                    if( cmdLine.DryRun == DryRunModes::Off ) {
                         text.Add( cmdLine.GetResource( "HlpHdlTopic" ), "parameter", paramDecl->Name() )
                             .PushIndent( 2 )
                             .AddMarked( paramDecl->GetHelpTextLong() )
                             .PopIndent();
-                    }
-                }
-            }
+            }   }   }
 
             // special help topic?
-            if( cntArgsRecognizedSoFar == cntArgsRecognized )
-            {
+            if( cntArgsRecognizedSoFar == cntArgsRecognized ) {
                 auto& additionalHelpTopics= cmdLine.TryResource("HlpAddnlTopics");
-                if( additionalHelpTopics.IsNotEmpty() )
-                {
+                if( additionalHelpTopics.IsNotEmpty() ) {
                     Tokenizer topics(additionalHelpTopics, ',');
-                    while(topics.Next().IsNotEmpty())
-                    {
-                        if(topics.Actual.StartsWith<CHK,lang::Case::Ignore>( arg ) )
-                        {
+                    while(topics.Next().IsNotEmpty()) {
+                        if(topics.Actual.StartsWith<CHK,lang::Case::Ignore>( arg ) ) {
                             ++cntArgsRecognized;
                             if( cmdLine.DryRun == DryRunModes::Off )
                                 text.AddMarked( cmdLine.GetResource( NString64("HlpAddnl")._( topics.Actual ) ) );
 
                             break;
-                        }
-                    }
-                }
-            }
-        }
+        }   }   }   }   }
 
 
         // Add arg to command object if at least one token matched
-        if( cntArgsRecognized > 0 && argWasPeeked )
-        {
-            if( helpCmd )
-            {
+        if( cntArgsRecognized > 0 && argWasPeeked ) {
+            if( helpCmd ) {
                 cmdLine.RemoveArg( helpCmd->Position + 1 );
                 ++helpCmd->ConsumedArguments;
-            }
-            else
-            {
+            } else {
                 cmdLine.RemoveArg( helpOpt->Position + 1 );
                 ++helpOpt->ConsumedArguments;
                 helpOpt->Args.push_back( argList );
-            }
-        }
+        }   }
 
         // not peeked means "--help=arg" was given. In this case, the argument has to be recognized.
         // Also in the case that more than one token was read but the recognized qty is smaller.
@@ -258,7 +216,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
     {
         // sort the exit codes by their number
         auto snapshot= cmdLine.allocator.TakeSnapshot();
-        StdVectorMono<std::pair<Enum, ExitCodeDecl *>>
+        StdVectorMA<std::pair<Enum, ExitCodeDecl *>>
                 sortedExitCodes(cmdLine.allocator);
         for( auto& declIt : cmdLine.ExitCodeDecls )
             sortedExitCodes.emplace_back(declIt);
@@ -291,8 +249,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
 
     text.Add( NEW_LINE, cmdLine.GetResource(       "HlpHdlCmds"  ) )
         .PushIndent( 2 );
-    for( auto* decl : cmdLine.CommandDecls )
-    {
+    for( auto* decl : cmdLine.CommandDecls ) {
         text.Add( "* ", GetCommandUsageFormat( cmdLine, *decl ), NEW_LINE )
             .PushIndent( 2 )
               .Add( decl->HelpTextShort(), NEW_LINE )
@@ -304,8 +261,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
     return true;
 }
 
-bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt)
-{
+bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt) {
     cmdLine.DryRun= DryRunModes::Application;
 
     // try to fetch argument
@@ -313,25 +269,20 @@ bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt)
     bool      argWasPeeked= false;
     if( dryOpt.Args.IsNotEmpty() )
         arg= dryOpt.Args.front();
-    else if( cmdLine.ArgCount() > dryOpt.Position )
-    {
+    else if( cmdLine.ArgCount() > dryOpt.Position ) {
         argWasPeeked= true;
         arg= cmdLine.GetArg(dryOpt.Position + 1);
     }
 
-    if( arg.IsNotEmpty() )
-    {
+    if( arg.IsNotEmpty() ) {
         DryRunModes dryRunMode;
-        if( enumrecords::Parse( arg, dryRunMode ) && arg.IsEmpty() )
-        {
+        if( enumrecords::Parse( arg, dryRunMode ) && arg.IsEmpty() ) {
             cmdLine.DryRun= dryRunMode;
-            if( argWasPeeked )
-            {
+            if( argWasPeeked ) {
                 cmdLine.RemoveArg( dryOpt.Position + 1 );
                 ++dryOpt.ConsumedArguments;
                 dryOpt.Args.push_back( cmdLine.GetArg(dryOpt.Position + 1) );
-            }
-        }
+        }   }
 
         // not peeked means "--dryrun=arg" was given. In this case, the argument has to be recognized.
         else if ( !argWasPeeked )
@@ -342,12 +293,10 @@ bool CLIUtil::GetDryOpt( CommandLine& cmdLine, Option& dryOpt)
 }
 
 
-AString&  CLIUtil::DumpDeclarations( CommandLine& cmdLine, Paragraphs& dump )
-{
+AString&  CLIUtil::DumpDeclarations( CommandLine& cmdLine, Paragraphs& dump ) {
     dump.Add( "COMMANDS:")
         .PushIndent( 2 );
-    for( auto* decl : cmdLine.CommandDecls )
-    {
+    for( auto* decl : cmdLine.CommandDecls ) {
         dump.Add( "- ({}) {}", decl->Element(), decl->Identifier())
             .PushIndent( 2 );
         String256 paramIDs;
@@ -368,8 +317,7 @@ AString&  CLIUtil::DumpDeclarations( CommandLine& cmdLine, Paragraphs& dump )
         .Add( NEW_LINE )
         .Add( "OPTIONS:")
         .PushIndent( 2 );
-    for( auto* decl : cmdLine.OptionDecls )
-    {
+    for( auto* decl : cmdLine.OptionDecls ) {
         dump.Add( decl->HelpUsageLine() )
             .Add( decl->HelpText()      )
             .Add( NEW_LINE );
@@ -381,8 +329,7 @@ AString&  CLIUtil::DumpDeclarations( CommandLine& cmdLine, Paragraphs& dump )
     dump.Add( NEW_LINE )
         .Add( "PARAMETERS:")
         .PushIndent( 2 );
-    for( auto* decl : cmdLine.ParameterDecls )
-    {
+    for( auto* decl : cmdLine.ParameterDecls ) {
         dump.Add( "- ({}) {}  Optional: {}  Multi-Separator: {}" ,
                            decl->Element(),
                            decl->Name(),
@@ -408,65 +355,60 @@ AString&  CLIUtil::DumpDeclarations( CommandLine& cmdLine, Paragraphs& dump )
 //! @cond NO_DOX
 namespace
 {
-    void dumpParsedOptions( CommandLine& app, List<MonoAllocator, Option*>& optionsOriginal, Paragraphs& dump )
-    {
-        std::vector<Option*> options;
-        std::vector<Option*> optionsOfActType;
-        auto overallSize= optionsOriginal.size();
-        options       .reserve( size_t(overallSize) );
-        optionsOfActType.reserve( size_t(overallSize) );
-        for( auto* optionOrig : optionsOriginal )
-            options.push_back( optionOrig );
+void dumpParsedOptions( CommandLine& app, ListMA<Option*>& optionsOriginal,
+                        Paragraphs&  dump ) {
+    std::vector<Option*> options;
+    std::vector<Option*> optionsOfActType;
+    auto overallSize= optionsOriginal.size();
+    options       .reserve( size_t(overallSize) );
+    optionsOfActType.reserve( size_t(overallSize) );
+    for( auto* optionOrig : optionsOriginal )
+        options.push_back( optionOrig );
 
-        dump.PushIndent( 2 );
-            while( options.size() )
-            {
-                // collect all options of the same type in  optionsOfActType
-                auto* decl= options.front()->Declaration;
-                optionsOfActType.clear();
-                size_t actIdx= 0;
-                while( actIdx < options.size() )
-                {
-                    if( options[actIdx]->Declaration == decl )
-                    {
-                        optionsOfActType.push_back( options[actIdx] );
-                        options.erase( options.begin() + integer(actIdx) );
-                    }
-                    else
-                        ++actIdx;
+    dump.PushIndent( 2 );
+        while( options.size() ) {
+            // collect all options of the same type in  optionsOfActType
+            auto* decl= options.front()->Declaration;
+            optionsOfActType.clear();
+            size_t actIdx= 0;
+            while( actIdx < options.size() ) {
+                if( options[actIdx]->Declaration == decl ) {
+                    optionsOfActType.push_back( options[actIdx] );
+                    options.erase( options.begin() + integer(actIdx) );
                 }
-
-
-                dump.Add( "- \"-{},--{}\" ({}x)",
-                          decl->IdentifierChar(), decl->Identifier(), optionsOfActType.size() )
-                    .PushIndent( 2 );
-
-                for( actIdx= 0; actIdx < optionsOfActType.size() ; ++actIdx )
-                {
-                    Option* actOption= optionsOfActType[actIdx];
-                    dump.Add( "{}/{}: ArgStrings{!Q[]}= {!Q}, #arguments parsed: {}",
-                              actIdx + 1, optionsOfActType.size(),
-                              actOption->Position,
-                              app.GetArg(actOption->Position),
-                              actOption->Args.size()                          )
-                        .PushIndent(5);
-
-                    uinteger argNo= 0;
-                    for( auto& arg : actOption->Args )
-                        dump.Add( "Argument {}: {!Q}", ++argNo, arg );
-                    dump.PopIndent();
-
-                }
-                dump.PopIndent()
-                    .Add( NEW_LINE );
+                else
+                    ++actIdx;
             }
-        dump.PopIndent();
-    }
+
+
+            dump.Add( "- \"-{},--{}\" ({}x)",
+                      decl->IdentifierChar(), decl->Identifier(), optionsOfActType.size() )
+                .PushIndent( 2 );
+
+            for( actIdx= 0; actIdx < optionsOfActType.size() ; ++actIdx ) {
+                Option* actOption= optionsOfActType[actIdx];
+                dump.Add( "{}/{}: ArgStrings{!Q[]}= {!Q}, #arguments parsed: {}",
+                          actIdx + 1, optionsOfActType.size(),
+                          actOption->Position,
+                          app.GetArg(actOption->Position),
+                          actOption->Args.size()                          )
+                    .PushIndent(5);
+
+                uinteger argNo= 0;
+                for( auto& arg : actOption->Args )
+                    dump.Add( "Argument {}: {!Q}", ++argNo, arg );
+                dump.PopIndent();
+
+            }
+            dump.PopIndent()
+                .Add( NEW_LINE );
+        }
+    dump.PopIndent();
+}
 } // anon namespace
 //! @endcond
 
-AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
-{
+AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump ) {
     dump.Add( NEW_LINE )
         .Add( "OPTIONS:");
     dumpParsedOptions( cmdLine, cmdLine.Options, dump );
@@ -485,13 +427,11 @@ AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
         .Add( "COMMANDS PARSED:")
         .PushIndent( 2 );
             cnt= 0;
-            for( auto& cmd : cmdLine.CommandsParsed )
-            {
+            for( auto& cmd : cmdLine.CommandsParsed ) {
                 ++cnt;
                 dump.Add( "- {:8}with argument #{}", cmd->Declaration->Identifier(), cmd->Position )
                     .PushIndent( 2 );
-                for( auto* param : cmd->ParametersMandatory )
-                {
+                for( auto* param : cmd->ParametersMandatory ) {
                     dump.Add( "Parameter: {}", param->Declaration->Name() )
                         .PushIndent( 2 );
                     uinteger argNo= 0;
@@ -500,8 +440,7 @@ AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
                     dump.PopIndent();
 
                 }
-                for( auto* param : cmd->ParametersOptional )
-                {
+                for( auto* param : cmd->ParametersOptional ) {
                     dump.Add( "Parameter: {}", param->Declaration->Name() )
                         .PushIndent( 2 );
                     uinteger argNo= 0;

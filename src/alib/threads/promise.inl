@@ -67,8 +67,8 @@ class Promise
 
   public:
   #if ALIB_DEBUG
-    /// This is a threshold that causes the non-timed #Wait method to raise a
-    /// \alib warning in debug-builds in case a thread is blocked longer than the given duration.
+    /// This is a threshold that causes the non-timed #Wait method to raise an
+    /// \alib_warning in debug-builds in case a thread is blocked longer than the given duration.
     ///
     /// To disable warnings in cases that high block times are suitable, set this value to \c 0.
     /// The default value is two seconds.
@@ -88,8 +88,7 @@ class Promise
 
 
     /// Default constructor. Sets the state to \alib{threads::Promise;State;State::Unfulfilled}.
-    Promise()
-    {
+    Promise() {
         #if ALIB_DEBUG
             DbgFulfillCI.Line= -1;
             DbgWaitCI   .Line= -1;
@@ -98,8 +97,7 @@ class Promise
     }
 
     /// Destructor.
-    ~Promise()
-    {
+    ~Promise() {
         ALIB_ASSERT_WARNING( DbgFulfillCI.Line != -1, "THREADS",
                                                       "Promise not fulfilled on destruction." )
         ALIB_ASSERT_WARNING( DbgWaitCI   .Line != -1, "THREADS",
@@ -110,8 +108,7 @@ class Promise
     /// case either #Fulfill was not called or a waiting method was not called (or both).
     /// With an invocation of this method, such warnings can be omitted.<br>
     /// Note that the function is available in release-builds as well, but empty and optimized-out.
-    void        DbgOmitDestructionWarning()
-    {
+    void        DbgOmitDestructionWarning() {
         #if ALIB_DEBUG
             DbgFulfillCI.Line =
             DbgWaitCI   .Line = 0;
@@ -146,7 +143,7 @@ class Promise
             promise.set_value(state);
         }
     #else
-        ALIB_DLL void    Fulfill(const CallerInfo& ci,State state= State::OK);
+    ALIB_DLL void    Fulfill(const CallerInfo& ci,State state= State::OK);
     #endif
 
 
@@ -185,7 +182,7 @@ class Promise
             return future.get();
         }
     #else
-        ALIB_DLL State Wait(const CallerInfo& ci);
+    ALIB_DLL State Wait(const CallerInfo& ci);
     #endif
 
     #if   DOXYGEN
@@ -217,8 +214,8 @@ class Promise
             return future.get();
         }
     #else
-        ALIB_DLL State WaitFor( const Ticks::Duration::TDuration& maxWaitTimeSpan,
-                                const CallerInfo& ci );
+    ALIB_DLL State WaitFor( const Ticks::Duration::TDuration& maxWaitTimeSpan,
+                            const CallerInfo& ci );
     #endif
 
 
@@ -265,7 +262,7 @@ class Promise
             return future.get();
         }
     #else
-        ALIB_DLL State WaitUntil( const Ticks& wakeUpTime, const CallerInfo& ci );
+    ALIB_DLL State WaitUntil( const Ticks& wakeUpTime, const CallerInfo& ci );
     #endif
 };  // class Promise
 
@@ -277,5 +274,3 @@ using     Promise=   threads::Promise;
 
 } // namespace [alib]
 #endif // !ALIB_SINGLE_THREADED
-
-

@@ -85,14 +85,12 @@ struct EnumRecordParser
     /// @param outerDelim       The delimiter of records.
     /// @param resourceCategory The delimiter of records.
     /// @param resourceName     The delimiter of records.
-    ALIB_DLL static void Initialize( const String& input            ,
-                                     character     innerDelim       , character      outerDelim,
-                                     const NString& resourceCategory, const NString& resourceName )
-    {
+    ALIB_DLL static void Initialize(const String&  input            ,
+                                    character      innerDelim       , character     outerDelim,
+                                    const NString& resourceCategory, const NString& resourceName) {
         // Test for double initialization call, what is not easily avoidable for resourced strings.
         // This protects the resource information, of the first call.
-        if( input.Buffer() != Input.Buffer() || Input.IsNull() )
-        {
+        if( input.Buffer() != Input.Buffer() || Input.IsNull() ) {
             Input            =
             OriginalInput    = input;
             InnerDelimChar   = innerDelim;
@@ -101,12 +99,11 @@ struct EnumRecordParser
             ResourceName     = resourceName;
             if( input.IsNull () ) error( "Input string is nulled" );
             if( input.IsEmpty() ) error( "Input string is empty"  );
-        }
-    }
+    }   }
 
-    // #############################################################################################
-    // Helpers
-    // #############################################################################################
+  //################################################################################################
+  // Helpers
+  //################################################################################################
 
     /// Throws a <c>std::runtime_error</c>.
     /// @param what     Textual description about what has been tried to do.
@@ -123,7 +120,7 @@ struct EnumRecordParser
     ALIB_DLL static void    assertNoTrailingWhitespaces(String& token);
 
 
-    /// Asserts that a specific redundant character is not given, for example a leading
+    /// Asserts that a specific redundant character is not given, for example, a leading
     /// <c>'+'</c> sign for an integral value.
     /// Throws a <c>std::runtime_error</c> in case.
     /// @param specificChar The character to check.
@@ -151,9 +148,9 @@ struct EnumRecordParser
     ALIB_DLL static integer getInteger( bool isLastField );
 
 
-    // #############################################################################################
-    // Main methods for parsing fields.
-    // #############################################################################################
+  //################################################################################################
+  // Main methods for parsing fields.
+  //################################################################################################
     /// Parses a field of string-type. Parsing ends with an #InnerDelimChar.
     /// The string is checked for not containing leading or trailing whitespaces.<br>
     ///
@@ -183,8 +180,7 @@ struct EnumRecordParser
     ///                      Defaults to \c false.
     template<typename TIntegral>
     requires std::integral<TIntegral>
-    static void Get( TIntegral& result, bool isLastField= false )
-    {
+    static void Get( TIntegral& result, bool isLastField= false ) {
         integer  bigInt= getInteger( isLastField );
              if( bigInt == (std::numeric_limits<integer>::max)() )     result= (std::numeric_limits<TIntegral>::max)();
         else if( bigInt == (std::numeric_limits<integer>::min)() )     result= (std::numeric_limits<TIntegral>::min)();
@@ -205,8 +201,7 @@ struct EnumRecordParser
     ///                      Defaults to \c false.
     template<typename TEnum>
     requires std::is_enum_v<TEnum>
-    static void Get( TEnum& result, bool isLastField= false )
-    {
+    static void Get( TEnum& result, bool isLastField= false ) {
         typename std::underlying_type<TEnum>::type resultIntegral;
         EnumRecordParser::Get( resultIntegral, isLastField );
         result= TEnum( resultIntegral );
@@ -231,5 +226,3 @@ struct EnumRecordParser
 };
 
 } // namespace [alib::enumrecords::bootstrap]
-
-

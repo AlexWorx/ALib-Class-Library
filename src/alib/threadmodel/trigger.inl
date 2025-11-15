@@ -25,39 +25,41 @@ class Trigger;
 //==================================================================================================
 class Triggered
 {
-    protected:
-        /// Class Trigger is the only one that will trigger us and hence has access to
-        /// our protected functions.
-        friend class Trigger;
+  protected:
+    /// Class Trigger is the only one that will trigger us and hence has access to
+    /// our protected functions.
+    friend class Trigger;
 
-        #if ALIB_STRINGS
-        /// The name of the triggered object. This is mainly used for log output and some
-        /// convenience methods.<br>
-        /// \par Availability
-        ///  This field is available only if the module \alib_strings is included in the \alibbuild.
-        const   String      Name;
+    #if ALIB_STRINGS
+    /// The name of the triggered object. This is mainly used for log output and some
+    /// convenience methods.<br>
+    /// \par Availability
+    ///    This field is available only if the module \alib_strings is included in the
+    ///    \alibbuild.
+    const   String      Name;
 
-        /// Constructor. Stores the name in constant member #Name. Usually these names are
-        /// hard-coded C++ character arrays. If programmatically created, it has to be assured that
-        /// the life-cycle of the string supersedes the lifecycle of the instnace of this class.
-        /// @param pName The name of this object.
-                Triggered(const String& pName)  : Name( pName )                                   {}
+    /// Constructor. Stores the name in constant member #Name. Usually these names are
+    /// hard-coded C++ character arrays. If programmatically created, it has to be assured that
+    /// the life-cycle of the string supersedes the lifecycle of the instnace of this class.
+    /// @param pName The name of this object.
+    Triggered(const String& pName)  : Name( pName )                                               {}
 
-        #else
-                Triggered()                                                               = default;
-        #endif
-       /// Virtual empty destructor. Needed with any virtual class.
-        virtual ~Triggered()                                                                      {}
+    #else
+    Triggered()                                                               = default;
+    #endif
+
+    /// Virtual empty destructor. Needed with any virtual class.
+    virtual ~Triggered()                                                                          {}
         
-        /// Implementations need to return the sleep time, between two trigger events.
-        /// Precisely, this method is called after #trigger has been executed and defines the
-        /// next sleep time.
-        /// @return The desired sleep time between two trigger events.
-        virtual Ticks::Duration triggerPeriod()                                                 = 0;
+    /// Implementations need to return the sleep time, between two trigger events.
+    /// Precisely, this method is called after #trigger has been executed and defines the
+    /// next sleep time.
+    /// @return The desired sleep time between two trigger events.
+    virtual Ticks::Duration triggerPeriod()                                                      =0;
 
-        ///  Implementations need to implement this function and perform their trigger actions
-        ///  here.
-        virtual void            trigger()                                                       = 0;
+    /// Implementations need to implement this function and perform their trigger actions
+    /// here.
+    virtual void            trigger()                                                            =0;
 
 }; // interface class Triggered
 
@@ -104,17 +106,17 @@ class Trigger :   protected   Thread,
         /// @param target      Assigned to #Target.
         /// @param nextWakeup  Assigned to #NextWakeup.
         TriggerEntry(Triggered* target, const Ticks& nextWakeup )
-        : Target(target), NextWakeup(nextWakeup)                                            {}
+        : Target(target), NextWakeup(nextWakeup)                                                  {}
 
         /// Deleted copy constructor (to avoid working on copies accidentally).
-        TriggerEntry(TriggerEntry& )= delete;
+        TriggerEntry(TriggerEntry& )                                                        =delete;
 
         Triggered*  Target;     ///< The triggered object.
         Ticks       NextWakeup; ///< The next wakeup time.
     };
 
     /// The list of registered triggered objects.
-    List<MonoAllocator, TriggerEntry>   triggerList;
+    ListMA<TriggerEntry>   triggerList;
 
     /// The condition requested by parent class \alib{threads;TCondition} via a call to
     /// #isConditionMet.
@@ -182,6 +184,3 @@ using      Trigger          = threadmodel::Trigger;
 using      Triggered        = threadmodel::Triggered;
 
 }  // namespace [alib]
-
-
-

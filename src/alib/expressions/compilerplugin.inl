@@ -75,7 +75,7 @@ ALIB_EXPORT namespace alib {  namespace expressions {
 /// permutation of expression node type and argument types, then a lower prioritized plug-in is not
 /// even asked to do so. With this concept, <b>ALib Expressions</b> provides a lot of flexibility:
 /// the built-in operators and identifiers can be unplugged completely or just sparsely "superseded"
-/// in certain aspects  by adding a custom \b %CompilerPlugin with a higher priority than that of
+/// in certain aspects by adding a custom \b %CompilerPlugin with a higher priority than that of
 /// the built-in one.
 ///
 /// \note
@@ -96,7 +96,6 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     /// The compiler that this plug-in is attached to.
     Compiler&       Cmplr;
 
-    //==============================================================================================
     /// Public inner base struct which provides input and output information for compiling
     /// single entities (nodes of the \e AST) of a parsed expression.
     ///
@@ -113,7 +112,6 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///
     /// Together, these four descendants comprise the parameters of the four overloaded methods
     /// \alib{expressions::CompilerPlugin;TryCompilation}.
-    //==============================================================================================
     struct CompilationInfo
     {
         /// The scope found here is the same object passed to method
@@ -124,7 +122,7 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         /// #TypeOrValue it has to be ensured that the boxed data is to available during the
         /// life-cycle of the expression.
         ///
-        /// To allocate custom compilation data, a custom, derived type, might for example be
+        /// To allocate custom compilation data, a custom, derived type, might, for example, be
         /// extended with simple\c std::vector of pointers to the created objects.
         /// (Attention: Vectors of value-types must not be used, as with their growth, the objects
         /// get moved within the heap memory!).<br>.
@@ -148,13 +146,13 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         ArgIterator         ArgsEnd;
 
         #if ALIB_DEBUG
-            /// Output: The C++ name of the callback function. This field is available only in debug
-            /// compilations of the library. Hence, setting it must be performed with preprocessor
-            /// conditionals.
-            const nchar*    DbgCallbackName                                               = nullptr;
+        /// Output: The C++ name of the callback function. This field is available only in debug
+        /// compilations of the library. Hence, setting it must be performed with preprocessor
+        /// conditionals.
+        const nchar*    DbgCallbackName                                                    =nullptr;
         #endif
 
-        ///  Output: The native C++ callback function to be set by one of the plug-ins.
+        /// Output: The native C++ callback function to be set by one of the plug-ins.
         CallbackDecl        Callback                                                      = nullptr;
 
         /// Output: Specifies the return type of #Callback, respectively, as the name indicates, the
@@ -173,15 +171,12 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         : CompileTimeScope     ( scope               )
         , CompileTimeAllocator ( allocator           )
         , ArgsBegin            ( scope.Stack->begin())
-        , ArgsEnd              ( scope.Stack->end()  )
-        {}
+        , ArgsEnd              ( scope.Stack->end()  )                                            {}
     };
 
-    //==============================================================================================
     /// Info struct for compiling expression identifiers and functions.
     /// This struct is used with method \ref TryCompilation(CIFunction&) to provide information
     /// to derived compiler plug-ins, as well as to receive information back.
-    //==============================================================================================
     struct CIFunction     : public CompilationInfo
     {
         /// Input: The identifier name to search.
@@ -204,7 +199,7 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         ///
         /// To add entries here, convenience method #AddFunctionsWithNonMatchingArguments is
         /// provided.
-        List<MonoAllocator, String>&    FunctionsWithNonMatchingArguments;
+        ListMA<String>&    FunctionsWithNonMatchingArguments;
 
         /// Constructor.
         /// @param scope                 Passed to parent.
@@ -218,45 +213,34 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
                     AString&                     name,
                     bool                         isIdentifier,
                     bool                         argsAreConst,
-                    List<MonoAllocator, String>& hints        )
+                    ListMA<String>& hints        )
         : CompilationInfo(scope, compileTimeAllocator)
         , Name           (name)
         , IsIdentifier   (isIdentifier)
         , AllArgsAreConst(argsAreConst)
-        , FunctionsWithNonMatchingArguments(hints)
-        {}
+        , FunctionsWithNonMatchingArguments(hints)                                                {}
 
 
         /// Returns the number of arguments given.
         /// @return The number of arguments the function call requested.
-        size_t QtyArgs()
-        {
-            return size_t( ArgsEnd - ArgsBegin );
-        }
+        size_t QtyArgs()                                   { return size_t( ArgsEnd - ArgsBegin ); }
 
         /// Returns the argument number \p{no}.
         /// @param no The number of the argument requested.
         /// @return A reference to the requested argument.
-        Box& Arg( size_t no )
-        {
-            return *(ArgsBegin + static_cast<ptrdiff_t>( no ) );
-        }
+        Box& Arg( size_t no )               { return *(ArgsBegin + static_cast<ptrdiff_t>( no ) ); }
 
         /// Convenience method that adds creates a monotonically allocated copy of the given string
         /// and adds it to list #FunctionsWithNonMatchingArguments.
         ///
         /// @param signature  The function signature to add.
         void AddFunctionsWithNonMatchingArguments( const String& signature )
-        {
-            FunctionsWithNonMatchingArguments.emplace_back( String( CompileTimeAllocator, signature ) );
-        }
+        { FunctionsWithNonMatchingArguments.emplace_back(String(CompileTimeAllocator,signature)); }
     };
 
-    //==============================================================================================
     /// Info struct for compiling an unary operator.
     /// This struct is used with method \ref TryCompilation(CIUnaryOp&) to provide information
     /// to derived compiler plug-ins, as well as to receive information back.
-    //==============================================================================================
     struct CIUnaryOp      : public CompilationInfo
     {
         String&         Operator;   ///< Input/Output: The unary operator.
@@ -276,11 +260,9 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
                    String& op       , bool            argIsConst )
         : CompilationInfo( scope, compileTimeAllocator  )
         , Operator       ( op         )
-        , ArgIsConst     ( argIsConst )
-        {}
+        , ArgIsConst     ( argIsConst )                                                           {}
     };
 
-    //==============================================================================================
     /// Info struct for compiling a binary operator.
     /// This struct is used with method \ref TryCompilation(CIBinaryOp&) to provide information
     /// to derived compiler plug-ins, as well as to receive information back.
@@ -320,7 +302,6 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///   Class \alib{expressions::plugins;Calculus} which specializes this plug-in class,
     ///   provides a convenient way to define the optimization rules described here, along with
     ///   its mechanics to support binary operator compilation.
-    //==============================================================================================
     struct CIBinaryOp     : public CompilationInfo
     {
         String&         Operator;     ///< Input/Output: The binary operator symbol.
@@ -347,11 +328,9 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         , Operator           ( op         )
         , LhsIsConst         ( lhsIsConst )
         , RhsIsConst         ( rhsIsConst )
-        , NonConstArgIsResult( false      )
-        {}
+        , NonConstArgIsResult( false      )                                                       {}
     };
 
-    //==============================================================================================
     /// Info struct for compiling automatic type casts. Such automatic cast is tried to be inserted
     /// into the expression program by the compiler if:
     ///
@@ -389,7 +368,6 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     /// #ReverseCastFunctionName, respectively #ReverseCastFunctionNameRhs.
     /// For further information on this topic see
     /// \ref alib_expressions_details_optimizations_norm "11.5.6 Optimized Expression Strings"
-    //==============================================================================================
     struct CIAutoCast  : public CompilationInfo
     {
         /// The operator that the cast is required for. If this is <b>'?:'</b> then
@@ -431,10 +409,10 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         String              ReverseCastFunctionNameRhs;
 
         #if ALIB_DEBUG
-            /// Output: The C++ name of the callback function. This field is available only in debug
-            /// compilations of the library. Hence, setting it must be performed with preprocessor
-            /// conditionals.
-            const nchar*    DbgCallbackNameRhs;
+        /// Output: The C++ name of the callback function. This field is available only in debug
+        /// compilations of the library. Hence, setting it must be performed with preprocessor
+        /// conditionals.
+        const nchar*    DbgCallbackNameRhs;
         #endif
 
         /// Constructor.
@@ -450,31 +428,22 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
         , IsConst           ( isConst     )
         , RhsIsConst        ( rhsIsConst  )
         , CallbackRhs       ( nullptr     )
-        , TypeOrValueRhs    ( nullptr     )
-        {
-        }
+        , TypeOrValueRhs    ( nullptr     )                                                       {}
     };
 
-    //==============================================================================================
     /// Constructor.
     /// @param name       Assigned to field #Name.
     /// @param compiler   The compiler we will get attached to. Gets stored in field #Cmplr.
     /// @param pPriority  The priority of this plugin.
-    //==============================================================================================
-                CompilerPlugin( const NString& name, Compiler& compiler, CompilePriorities pPriority )
+    CompilerPlugin( const NString& name, Compiler& compiler, CompilePriorities pPriority )
     : Plugin(pPriority)
     , Name( name )
-    , Cmplr( compiler )
-    {}
+    , Cmplr( compiler )                                                                           {}
 
-    //==============================================================================================
     /// Virtual destructor
-    //==============================================================================================
-    virtual    ~CompilerPlugin()
-    {}
+    virtual    ~CompilerPlugin()                                                                  {}
 
 
-    //==============================================================================================
     /// Used to compile identifiers (parameterless functions ) and functions parsed from
     /// expression strings.
     ///
@@ -504,10 +473,8 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///         other words, if the plug-in chose to compile the <em>AST</em>-node.<br>
     ///         This default implementation returns \c false to indicate that no compilation
     ///         was done.
-    //==============================================================================================
     virtual bool TryCompilation( CIFunction&  ciFunction )      { (void) ciFunction; return false; }
 
-    //==============================================================================================
     /// Used to compile unary operators parsed from expressions.
     ///
     /// On success, this method has to provide a native C++ callback function together with
@@ -532,10 +499,8 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///         other words, if the plug-in chose to compile the <em>AST</em>-node.<br>
     ///         This default implementation returns \c false to indicate that no compilation
     ///         was done.
-    //==============================================================================================
     virtual bool TryCompilation( CIUnaryOp&   ciUnaryOp )        { (void) ciUnaryOp; return false; }
 
-    //==============================================================================================
     /// Used to compile binary operators parsed from expressions.
     ///
     /// On success, this method has to provide a native C++ callback function together with
@@ -562,10 +527,8 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///         other words, if the plug-in chose to compile the <em>AST</em>-node.<br>
     ///         This default implementation returns \c false to indicate that no compilation
     ///         was done.
-    //==============================================================================================
     virtual bool TryCompilation( CIBinaryOp&  ciBinaryOp )      { (void) ciBinaryOp; return false; }
 
-    //==============================================================================================
     /// Used to provide information to the compiler for casting types.
     ///
     /// For details on how this method is overridden, consult the documentation of the input/output
@@ -577,9 +540,7 @@ struct CompilerPlugin : public lang::Plugin<Compiler, CompilePriorities>
     ///         other words, if the plug-in chose to provide auto-cast information as requested.<br>
     ///         This default implementation returns \c false to indicate that no compilation
     ///         was done.
-    //==============================================================================================
-    virtual bool TryCompilation( CIAutoCast& ciAutoCast )
-    { (void) ciAutoCast; return false; }
+    virtual bool TryCompilation( CIAutoCast& ciAutoCast )       { (void) ciAutoCast; return false; }
 
 };
 

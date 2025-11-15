@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/system/system.prepro.hpp"
@@ -28,7 +28,7 @@
 #   endif
 #   include <fstream>
 #endif // !DOXYGEN
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.System;
 #  if ALIB_STRINGS
@@ -44,7 +44,7 @@
 #   include "ALib.Boxing.H"
 #   include "ALib.System.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::system::Path*            , vt_system_path          )
 ALIB_BOXING_VTABLE_DEFINE( alib::system::SystemErrors     , vt_system_systemerrors  )
 
@@ -53,19 +53,21 @@ ALIB_BOXING_VTABLE_DEFINE( alib::system::SystemErrors     , vt_system_systemerro
 namespace alib::system {
 
 #if !DOXYGEN
-//--------------- two versions to load environment variables into a Path instance -------------
+//----------------- two versions to load environment variables into a Path instance ----------------
 namespace {
 
 ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION
 template<typename TRequires= PathCharType>
 requires std::same_as<TRequires, character>
-bool loadEnvVar( const CString& name, AString& target, lang::CurrentData targetData  =lang::CurrentData::Clear ) {
+bool loadEnvVar( const CString& name, AString& target,
+                 lang::CurrentData targetData= lang::CurrentData::Clear ) {
     return EnvironmentVariables::Get( name, target, targetData );
 }
 
 template<typename TRequires= PathCharType>
 requires (!std::same_as<TRequires, character>)
-bool loadEnvVar( const CString& name, Path& target, lang::CurrentData targetData  =lang::CurrentData::Clear ) {
+bool loadEnvVar( const CString& name, Path& target,
+                 lang::CurrentData targetData= lang::CurrentData::Clear ) {
     String256 buf;
     auto result= EnvironmentVariables::Get( name, buf, targetData );
     target.Reset( buf );
@@ -77,20 +79,19 @@ ALIB_WARNINGS_RESTORE
 
 #endif // !DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // Static variables
-// #################################################################################################
+//##################################################################################################
 PathString  Path::tempDirEvaluatedOnce;
 PathString  Path::varTempDirEvaluatedOnce;
 
-// #################################################################################################
+//##################################################################################################
 // Change
-// #################################################################################################
+//##################################################################################################
 //! @cond NO_DOX
 namespace {
 void createTempFolderInHomeDir( const PathString& folderName, Path& resultPath,
-                                const NString& reasonMsg )
-{
+                                const NString& reasonMsg ) {
     // get home directory and set this as fallback result value
     Path homeTemp( SystemFolders::Home );
     resultPath.Reset( homeTemp  );
@@ -98,16 +99,13 @@ void createTempFolderInHomeDir( const PathString& folderName, Path& resultPath,
     // add given folder name and check if already exists
     homeTemp._( DIRECTORY_SEPARATOR )._( folderName );
     bool exists= homeTemp.IsDirectory();
-    if( !exists )
-    {
-        if( homeTemp.Create() == SystemErrors::OK )
-        {
+    if( !exists ) {
+        if( homeTemp.Create() == SystemErrors::OK ) {
             exists= true;
             NAString fileName( homeTemp ); fileName._( DIRECTORY_SEPARATOR )._( "readme.txt" );
 
             std::ofstream file ( fileName );
-            if ( file.is_open() )
-            {
+            if ( file.is_open() ) {
                 const ProcessInfo& pi= ProcessInfo::Current();
                 file << "This folder was created by \"" << pi.CmdLine
                      << "\"" << std::endl
@@ -115,9 +113,7 @@ void createTempFolderInHomeDir( const PathString& folderName, Path& resultPath,
                 file.write( reasonMsg.Buffer(), reasonMsg.Length() );
                 file << std::endl;
                 file.close();
-            }
-        }
-    }
+    }   }   }
 
     // if existed or got created
     if( exists )
@@ -126,10 +122,8 @@ void createTempFolderInHomeDir( const PathString& folderName, Path& resultPath,
 } // anonymous namespace
 //! @endcond
 
-bool Path::Change( SystemFolders special )
-{
-    switch( special )
-    {
+bool Path::Change( SystemFolders special ) {
+    switch( special ) {
         case SystemFolders::Root:       _( DIRECTORY_SEPARATOR );
                                         return true;
 
@@ -157,8 +151,7 @@ bool Path::Change( SystemFolders special )
         case SystemFolders::Home:
         {
             #if defined (__unix__)
-                    if ( !loadEnvVar( A_CHAR("HOME"), *this ) )
-                    {
+                    if ( !loadEnvVar( A_CHAR("HOME"), *this ) ) {
                         struct passwd* pwd = getpwuid(getuid());
                         Reset( pwd ? NString( pwd->pw_dir ) :  "~/" );
                     }
@@ -166,8 +159,7 @@ bool Path::Change( SystemFolders special )
 
             #elif defined(__APPLE__)
                 macos::ALIB_APPLE_OC_NSHomeDirectory( *this );
-                if ( IsEmpty() )
-                {
+                if ( IsEmpty() ) {
                     struct passwd* pwd = getpwuid(getuid());
                     Reset( pwd ? NString( pwd->pw_dir ) :  "~/" );
                 }
@@ -175,8 +167,7 @@ bool Path::Change( SystemFolders special )
 
 
             #elif defined(_WIN32)
-                if ( !loadEnvVar( A_CHAR("USERPROFILE"), *this ) || !IsDirectory() )
-                {
+                if ( !loadEnvVar( A_CHAR("USERPROFILE"), *this ) || !IsDirectory() ) {
                     loadEnvVar( A_CHAR("HOMEDRIVE"), *this );
                     loadEnvVar( A_CHAR("HOMEPATH" ), *this, lang::CurrentData::Keep );
                 }
@@ -220,8 +211,7 @@ bool Path::Change( SystemFolders special )
           #if ALIB_MONOMEM
             ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
           #endif
-            if ( tempDirEvaluatedOnce.IsNull() )
-            {
+            if ( tempDirEvaluatedOnce.IsNull() ) {
                 #if defined (__unix__)
                     NString reasonMsg=  "(The default temporary folder \"/tmp\" could not be found.)";
                     if ( Path(A_PATH("/tmp") ).IsDirectory() )
@@ -248,8 +238,7 @@ bool Path::Change( SystemFolders special )
                         tempDirEvaluatedOnce.Allocate(ha, temp);
                       }
                       #endif
-                    else
-                    {
+                    else {
                         temp.Reset( A_PATH("/tmp") );
                         if ( temp.IsDirectory() )
                           #if ALIB_MONOMEM
@@ -283,14 +272,12 @@ bool Path::Change( SystemFolders special )
                 #endif
 
 
-                if( tempDirEvaluatedOnce.IsEmpty() )
-                {
+                if( tempDirEvaluatedOnce.IsEmpty() ) {
                     Path homeTemp;
                     createTempFolderInHomeDir( A_PATH(".tmp"), homeTemp, reasonMsg );
 
                     // If this did not work, use home
-                    if( homeTemp.IsNotEmpty() )
-                    {
+                    if( homeTemp.IsNotEmpty() ) {
                       #if ALIB_MONOMEM
                         ALIB_LOCK_RECURSIVE_WITH( monomem::GLOBAL_ALLOCATOR_LOCK )
                         tempDirEvaluatedOnce.Allocate(monomem::GLOBAL_ALLOCATOR, homeTemp);
@@ -301,9 +288,7 @@ bool Path::Change( SystemFolders special )
                         }
                       #endif
 
-                    }
-                    else
-                    {
+                    } else {
                         Change( SystemFolders::Home );
                         {
                       #if ALIB_MONOMEM
@@ -315,10 +300,7 @@ bool Path::Change( SystemFolders special )
                                 tempDirEvaluatedOnce.Allocate(ha, *this);
                             }
                       #endif
-                        }
-                    }
-                }
-            }
+            }   }   }   }
 
             // set path to evaluated dir name
             Reset( tempDirEvaluatedOnce );
@@ -331,8 +313,7 @@ bool Path::Change( SystemFolders special )
             #if ALIB_MONOMEM
               ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
             #endif
-            if ( varTempDirEvaluatedOnce.IsNull() )
-            {
+            if ( varTempDirEvaluatedOnce.IsNull() ) {
                 #if defined (__unix__)
                     NString reasonMsg=  "(The default folder \"/var/tmp\" could not be found.)";
 
@@ -379,14 +360,12 @@ bool Path::Change( SystemFolders special )
                 #endif
 
 
-                if( varTempDirEvaluatedOnce.IsEmpty() )
-                {
+                if( varTempDirEvaluatedOnce.IsEmpty() ) {
                     Path varTemp;
                     createTempFolderInHomeDir( A_PATH(".var.tmp"), varTemp, reasonMsg );
 
                     // If this did not work, use home
-                    if( varTemp.IsNotEmpty() )
-                    {
+                    if( varTemp.IsNotEmpty() ) {
                         #if ALIB_MONOMEM
                           ALIB_LOCK_RECURSIVE_WITH( monomem::GLOBAL_ALLOCATOR_LOCK )
                           varTempDirEvaluatedOnce.Allocate(monomem::GLOBAL_ALLOCATOR, varTemp);
@@ -397,9 +376,7 @@ bool Path::Change( SystemFolders special )
                         }
                         #endif
 
-                    }
-                    else
-                    {
+                    } else {
                         Change( SystemFolders::Home );
                         {
                             #if ALIB_MONOMEM
@@ -411,9 +388,7 @@ bool Path::Change( SystemFolders special )
                               varTempDirEvaluatedOnce.Allocate(ha, *this);
                             }
                             #endif
-                        }
-                    }
-                }
+                }   }   }
 
             }
             // now path to evaluated dir name
@@ -426,8 +401,7 @@ bool Path::Change( SystemFolders special )
     } // switch ( special )
 }
 
-void Path::AddModuleName( const PathString& extension )
-{
+void Path::AddModuleName( const PathString& extension ) {
     if( CharAtEnd() != DIRECTORY_SEPARATOR )
         _(DIRECTORY_SEPARATOR);
 
@@ -441,12 +415,10 @@ void Path::AddModuleName( const PathString& extension )
     _( extension );
 }
 
-bool Path::Change( const PathString& ppath )
-{
+bool Path::Change( const PathString& ppath ) {
     // absolute addressing
     Path path(ppath);
-    if( path.CharAtStart() == DIRECTORY_SEPARATOR )
-    {
+    if( path.CharAtStart() == DIRECTORY_SEPARATOR ) {
         if( !path.IsDirectory() )
             return false;
 
@@ -466,14 +438,35 @@ bool Path::Change( const PathString& ppath )
     return false;
 }
 
+bool Path::ChangeToParent() {
+    integer origLength= Length();
 
-bool Path::IsDirectory()
-{
+    integer startIdx= length;
+    if ( CharAtEnd() == DIRECTORY_SEPARATOR  ) {
+        if ( startIdx == 1 )
+            return false;
+        --startIdx;
+    }
+
+    integer lastDirSep= LastIndexOf(DIRECTORY_SEPARATOR, startIdx);
+    if ( lastDirSep < 0 )
+        return false;
+    if ( lastDirSep == 0 )
+        lastDirSep= 1;
+    ShortenTo(lastDirSep);
+
+    if( IsDirectory() )
+        return true;
+
+    length= origLength;
+    return false;
+}
+
+bool Path::IsDirectory() {
     #if defined (__GLIBC__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
         ALIB_STRINGS_TO_NARROW(*this, nPath, 512)
         DIR* dir= opendir( nPath );
-        if ( dir != nullptr )
-        {
+        if ( dir != nullptr ) {
             closedir( dir );
             return true;
         }
@@ -530,8 +523,7 @@ SystemErrors Path::MakeReal() {
     
     #endif
 }
-SystemErrors Path::Create( const PathString& ppath )       // static
-{
+SystemErrors Path::Create( const PathString& ppath ) {
     if( Path::IsAbsolute(ppath) )
         Reset( ppath );
     else

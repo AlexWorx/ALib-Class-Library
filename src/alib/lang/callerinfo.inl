@@ -14,16 +14,16 @@ ALIB_EXPORT namespace alib { namespace lang {
 ///
 ///
 /// @see
-///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
-///  - Macros \ref ALIB_CALLER, \ref ALIB_CALLER_PRUNED, \ref ALIB_COMMA_CALLER_PRUNED and
-///    \ref ALIB_CALLER_NULLED.
-///  - Instances of this type are appendable to class \b AString in a default way.
-///    This is implemented with functor
-///    \alib{strings::APPENDABLES;AppendableTraits<lang::CallerInfo,TChar,TAllocator>}.
-///  - Class \alib{format;FMTCallerInfo} defines a format specification to customize
-///    the output.
-///    As always, \alib{format;FMTCallerInfo;that syntax} is directly available in
-///    placeholder fields of class \alib{format;FormatterPythonStyle}.
+/// - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+/// - Macros \ref ALIB_CALLER, \ref ALIB_CALLER_PRUNED, \ref ALIB_COMMA_CALLER_PRUNED and
+///   \ref ALIB_CALLER_NULLED.
+/// - Instances of this type are appendable to class \b AString in a default way.
+///   This is implemented with functor
+///   \alib{strings::APPENDABLES;AppendableTraits<lang::CallerInfo,TChar,TAllocator>}.
+/// - Class \alib{format;FMTCallerInfo} defines a format specification to customize
+///   the output.
+///   As always, \alib{format;FMTCallerInfo;that syntax} is directly available in
+///   placeholder fields of class \alib{format;FormatterPythonStyle}.
 struct CallerInfo
 {
     const char*     File{nullptr};  ///< The name of the source file as given by compiler.
@@ -44,6 +44,3 @@ struct CallerInfo
 using CallerInfo      = lang::CallerInfo;
 
 } // namespace [alib]
-
-
-

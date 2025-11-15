@@ -32,51 +32,47 @@ ALIB_EXPORT namespace alib {  namespace strings { namespace util  {
 //==================================================================================================
 class RegexMatcher
 {
-    protected:
-        /// This is the internal regex matcher. Yes, a nasty \c reinterpret_cast is performed in the
-        /// compilation unit. This is for avoiding the inclusion of external headers with \alib
-        /// headers at the expense of an otherwise unnecessary heap allocation.
-        void*           boostRegex                                                        = nullptr;
+  protected:
+    /// This is the internal regex matcher.
+    boost::basic_regex<character, boost::regex_traits<character> >    boostRegex;
 
-    public:
-        //==========================================================================================
-        /// Constructs a RegexMatcher to work on a given string. Passes the optional parameters
-        /// to method #Compile.
-        ///
-        /// @param  pattern      The string pattern to match.
-        ///                      Defaults to \b NULL_STRING to allow parameterless construction,
-        ///                      with later invocation of #Compile.
-        //==========================================================================================
-        RegexMatcher( const String& pattern= NULL_STRING  )
-        {
-            Compile( pattern );
-        }
+  public:
+    /// A simple struct that determines a range in a string.
+    /// A range is not bound to a certain string object and its validty has to be checked
+    /// when used.
+    struct SRange {
+        integer     Position;  ///< The starting index of this range in a string.
+        integer     Length;    ///< The length of this range in a string.
+    };
 
-        //==========================================================================================
-        /// Destructor.
-        //==========================================================================================
-        ALIB_DLL
-        ~RegexMatcher();
+    /// Constructs a RegexMatcher to work on a given string.
+    /// Passes the optional parameters to method #Compile.
+    /// @param pattern The string pattern to match.
+    ///                Defaults to \b NULL_STRING to allow parameterless construction, with
+    ///                later invocation of #Compile.
+    RegexMatcher( const String& pattern= NULL_STRING  )                      { Compile( pattern ); }
 
-    public:
-        //==========================================================================================
-        /// Resets this object to use the given pattern.
-        ///
-        /// @param  pattern      The string pattern to match.
-        //==========================================================================================
-        ALIB_DLL
-        void Compile( const String& pattern );
+    /// Resets this object to use the given pattern.
+    /// @param  pattern      The string pattern to match.
+    ALIB_DLL
+    void        Compile( const String& pattern );
 
-        //==========================================================================================
-        /// Tests if given \p{haystack} matches the actual pattern.
-        /// If #Compile was not invoked or an empty pattern string was given, \c true is returned.
-        ///
-        /// @param haystack  The string to test.
-        /// @return \c true if given \p{haystack} matches the actual pattern, \c false otherwise.
-        //==========================================================================================
-        ALIB_DLL
-        bool   Match( const String& haystack );
+    /// Tests if the given \p{haystack} matches the actual pattern.
+    /// If #Compile was not invoked or an empty pattern string was given, \c true is returned.
+    ///
+    /// @param haystack  The string to test.
+    /// @return \c true if given \p{haystack} matches the actual pattern, \c false otherwise.
+    ALIB_DLL
+    bool        Match( const String& haystack );
 
+    /// Searches for the first match of the actual pattern in the given \p{haystack}
+    /// If #Compile was not invoked or an empty pattern string was given, an
+    /// \alib_assertion is raised.
+    /// @param haystack The string to search in..
+    /// @return The (first) range in \b haystack that matches the compiled pattern.
+    ///         In case the pattern was not found, <c>{-1,-1}</c> is returned.
+    ALIB_DLL
+    SRange      SearchIn( const String& haystack );
 }; // class RegexMatcher
 
 }} // namespace alib[::strings::util]
@@ -87,4 +83,3 @@ using     RegexMatcher=     strings::util::RegexMatcher;
 } // namespace [alib]
 
 #endif // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
-

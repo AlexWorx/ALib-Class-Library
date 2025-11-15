@@ -7,9 +7,9 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib {  namespace enumops{
 
-// #################################################################################################
+//##################################################################################################
 // struct IterableTraits
-// #################################################################################################
+//##################################################################################################
 
 
 //==================================================================================================
@@ -81,9 +81,9 @@ ALIB_WARNINGS_RESTORE
 
 }} // namespace [alib::enumops::]
 
-// #################################################################################################
+//##################################################################################################
 // Operators for iterable enums
-// #################################################################################################
+//##################################################################################################
 
 // For documentation, all operators and enum-related template functions are faked into namespace
 // alib::enumops.
@@ -111,8 +111,7 @@ namespace iterable {
 ALIB_EXPORT
 template<typename TEnum, typename TRhs= int>
 requires (  alib::enumops::IsIterable<TEnum>  &&  std::integral<TRhs> )
-constexpr TEnum operator+  (TEnum element, TRhs summand) noexcept
-{
+constexpr TEnum operator+  (TEnum element, TRhs summand)                                  noexcept {
     return TEnum(   alib::UnderlyingIntegral(element)
                   + static_cast<typename std::underlying_type<TEnum>::type>(summand) );
 }
@@ -130,8 +129,8 @@ constexpr TEnum operator+  (TEnum element, TRhs summand) noexcept
 ALIB_EXPORT
 template<typename TEnum, typename TRhs= int>
 requires (  alib::enumops::IsIterable<TEnum>  &&  std::integral<TRhs> )
-constexpr TEnum operator-  (TEnum element, typename std::underlying_type<TEnum>::type subtrahend) noexcept
-{
+constexpr TEnum operator-  (TEnum                                      element,
+                            typename std::underlying_type<TEnum>::type subtrahend)        noexcept {
     return TEnum(   alib::UnderlyingIntegral(element)
                   - static_cast<typename std::underlying_type<TEnum>::type>(subtrahend) );
 }
@@ -141,12 +140,12 @@ constexpr TEnum operator-  (TEnum element, typename std::underlying_type<TEnum>:
 #if DOXYGEN
 }
 #else
-    ALIB_EXPORT namespace alib {  namespace enumops {
+ALIB_EXPORT namespace alib {  namespace enumops {
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // EnumIterator
-// #################################################################################################
+//##################################################################################################
 /// Implements a \c std::iterator_traits class for scoped and non-scoped enum types.
 /// The documentation is found with the type trait \alib{enumops;IterableTraits}, which needs
 /// to be specialized for template type \p{TEnum}.
@@ -156,19 +155,15 @@ template<typename TEnum>
 requires alib::enumops::IsIterable<TEnum>
 struct EnumIterator
 {
-    //==============================================================================================
     /// Default constructor.
-    //==============================================================================================
-    EnumIterator()= default;
+    EnumIterator()                                                                         =default;
 
-    //==============================================================================================
     /// Implementation of \c std::iterator_traits for enum type \p{TEnum}. This class exposes
     /// #ConstIterator which uses <c>const TEnum*</c> and <c>const TEnum&</c> as
     /// pointer and reference types.
     ///
     /// As the name of the class indicates, this iterator satisfies the C++ standard library concept
     /// \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
-    //==============================================================================================
     template<typename TPointer, typename TReference>
     class TRandomAccessIterator
     {
@@ -178,216 +173,181 @@ struct EnumIterator
         using pointer           = TPointer                       ;  ///< Implementation of <c>std::iterator_traits</c>.
         using reference         = TReference                     ;  ///< Implementation of <c>std::iterator_traits</c>.
 
-        protected:
-            /// The actual enum element.
-            TEnum p;
+      protected:
+        /// The actual enum element.
+        TEnum p;
 
             /// The underlying integer type.
             using TIntegral= typename std::underlying_type<TEnum>::type;
 
+      public:
+        /// Constructor.
+        /// @param pp Our initial value
+        constexpr
+        explicit TRandomAccessIterator( TEnum pp = TEnum(0) ) : p(pp)                             {}
 
-        public:
-            /// Constructor.
-            /// @param pp Our initial value
-            constexpr
-            explicit TRandomAccessIterator( TEnum pp = TEnum(0) ) : p(pp)
-            {
-            }
+      //############################ To satisfy concept of  InputIterator ##########################
 
-        //######################   To satisfy concept of  InputIterator   ######################
+        /// Prefix increment operator.
+        /// @return A reference to ourselves.
+        TRandomAccessIterator& operator++() {
+            if constexpr( !IsBitwise<TEnum> )
+                p= p + 1;
+            else
+                p= TEnum( UnderlyingIntegral( p ) << 1 );
 
-            /// Prefix increment operator.
-            /// @return A reference to ourselves.
-            TRandomAccessIterator& operator++()
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    p= p + 1;
-                else
-                    p= TEnum( UnderlyingIntegral( p ) << 1 );
+            return *this;
+        }
 
-                return *this;
-            }
+        /// Postfix increment operator.
+        /// @return A reference to ourselves.
+        TRandomAccessIterator operator++(typename std::underlying_type<TEnum>::type) {
+            if constexpr( !IsBitwise<TEnum> )
+                return TRandomAccessIterator(p= p + 1);
+            else
+                return TRandomAccessIterator(p= TEnum( UnderlyingIntegral( p ) << 1) );
+        }
 
-            /// Postfix increment operator.
-            /// @return A reference to ourselves.
-            TRandomAccessIterator operator++(typename std::underlying_type<TEnum>::type)
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return TRandomAccessIterator(p= p + 1);
-                else
-                    return TRandomAccessIterator(p= TEnum( UnderlyingIntegral( p ) << 1) );
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and given iterator are equal, \c false otherwise.
+        constexpr
+        bool operator==(TRandomAccessIterator other)                  const { return p == other.p; }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and given iterator are equal, \c false otherwise.
-            constexpr
-            bool operator==(TRandomAccessIterator other)             const
-            {
-                return p == other.p;
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and given iterator are not equal, \c false otherwise.
+        constexpr
+        bool operator!=(TRandomAccessIterator other)             const { return !(*this == other); }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and given iterator are not equal, \c false otherwise.
-            constexpr
-            bool operator!=(TRandomAccessIterator other)             const
-            {
-                return !(*this == other);
-            }
-
-            /// Retrieves the enum element that this iterator references.
-            /// @return The enum element.
-            constexpr
-            TEnum  operator*()                                          const
-            {
-                return p;
-            }
+        /// Retrieves the enum element that this iterator references.
+        /// @return The enum element.
+        constexpr
+        TEnum  operator*()                                                       const { return p; }
 
 
-        //##################   To satisfy concept of  BidirectionalIterator   ##################
+      //######################## To satisfy concept of  BidirectionalIterator ######################
 
-            /// Prefix decrement operator.
-            /// @return A reference to ourselves.
-            TRandomAccessIterator& operator--()
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    p= p + 1;
-                else
-                    p= TEnum(  );
-                return *this;
-            }
-
-
-            /// Postfix decrement operator.
-            /// @return An iterator that with the old value.
-            TRandomAccessIterator operator--(typename std::underlying_type<TEnum>::type)
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return TRandomAccessIterator(p= p - 1);
-                else
-                    return TRandomAccessIterator(p= TEnum( UnderlyingIntegral( p ) >> 1) );
-            }
+        /// Prefix decrement operator.
+        /// @return A reference to ourselves.
+        TRandomAccessIterator& operator--() {
+            if constexpr( !IsBitwise<TEnum> )
+                p= p + 1;
+            else
+                p= TEnum(  );
+            return *this;
+        }
 
 
-        //##################   To satisfy concept of  RandomAccessIterator   ###################
+        /// Postfix decrement operator.
+        /// @return An iterator that with the old value.
+        TRandomAccessIterator operator--(typename std::underlying_type<TEnum>::type) {
+            if constexpr( !IsBitwise<TEnum> )
+                return TRandomAccessIterator(p= p - 1);
+            else
+                return TRandomAccessIterator(p= TEnum( UnderlyingIntegral( p ) >> 1) );
+        }
 
-            /// Addition assignment.
-            /// @param n The value to subtract.
-            /// @return A reference to ourselves.
-            TRandomAccessIterator& operator+=(TIntegral n)
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    p= p + n;
-                else
-                    p= TEnum( UnderlyingIntegral( p ) << n );
-                return *this;
-            }
 
-            /// Subtraction assignment.
-            /// @param n The value to subtract.
-            /// @return A reference to ourselves.
-            TRandomAccessIterator& operator-=(TIntegral n)
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    p= p - n;
-                else
-                    p= TEnum( UnderlyingIntegral( p ) >> n );
-            }
+      //######################## To satisfy concept of  RandomAccessIterator #######################
 
-            /// Addition.
-            /// @param n The value to subtract.
-            /// @return A reference to the new iterator.
-            TRandomAccessIterator operator+(TIntegral n)       const
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return TRandomAccessIterator( p + n );
-                else
-                    return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) << n ) );
-            }
+        /// Addition assignment.
+        /// @param n The value to subtract.
+        /// @return A reference to ourselves.
+        TRandomAccessIterator& operator+=(TIntegral n) {
+            if constexpr( !IsBitwise<TEnum> )
+                p= p + n;
+            else
+                p= TEnum( UnderlyingIntegral( p ) << n );
+            return *this;
+        }
 
-            /// Subtraction.
-            /// @param n The value to subtract.
-            /// @return A reference to the new iterator.
-            TRandomAccessIterator operator-(TIntegral n)       const
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return TRandomAccessIterator( p - n );
-                else
-                    return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) >> n ) );
-            }
+        /// Subtraction assignment.
+        /// @param n The value to subtract.
+        /// @return A reference to ourselves.
+        TRandomAccessIterator& operator-=(TIntegral n) {
+            if constexpr( !IsBitwise<TEnum> )
+                p= p - n;
+            else
+                p= TEnum( UnderlyingIntegral( p ) >> n );
+        }
 
-            /// Difference (distance) from this iterator to the given one.
-            /// @param other  The iterator to subtract
-            /// @return The iterator to subtract.
-            std::ptrdiff_t operator-(TRandomAccessIterator other)   const
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return static_cast<std::ptrdiff_t>(UnderlyingIntegral(p) - UnderlyingIntegral(other.p));
-                else
-                     return   static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( p )       ))
-                            - static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( other.p ) ));
-            }
+        /// Addition.
+        /// @param n The value to subtract.
+        /// @return A reference to the new iterator.
+        TRandomAccessIterator operator+(TIntegral n)                                         const {
+            if constexpr( !IsBitwise<TEnum> )
+                return TRandomAccessIterator( p + n );
+            else
+                return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) << n ) );
+        }
 
-            /// Subscript operator.
-            /// @param n  The iterator to subtract
-            /// @return <c>*( (*this) + n )</c>.
-            TEnum operator[]( std::ptrdiff_t n )   const
-            {
-                if constexpr( !IsBitwise<TEnum> )
-                    return ( p + static_cast<TIntegral>( n ) );
-                else
-                    return TEnum( UnderlyingIntegral( p ) << n );
-            }
+        /// Subtraction.
+        /// @param n The value to subtract.
+        /// @return A reference to the new iterator.
+        TRandomAccessIterator operator-(TIntegral n)                                         const {
+            if constexpr( !IsBitwise<TEnum> )
+                return TRandomAccessIterator( p - n );
+            else
+                return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) >> n ) );
+        }
+
+        /// Difference (distance) from this iterator to the given one.
+        /// @param other  The iterator to subtract
+        /// @return The iterator to subtract.
+        std::ptrdiff_t operator-(TRandomAccessIterator other)                                const {
+            if constexpr( !IsBitwise<TEnum> )
+                return static_cast<std::ptrdiff_t>(UnderlyingIntegral(p) - UnderlyingIntegral(other.p));
+            else
+                 return   static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( p )       ))
+                        - static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( other.p ) ));
+        }
+
+        /// Subscript operator.
+        /// @param n  The iterator to subtract
+        /// @return <c>*( (*this) + n )</c>.
+        TEnum operator[]( std::ptrdiff_t n )                                                 const {
+            if constexpr( !IsBitwise<TEnum> )
+                return ( p + static_cast<TIntegral>( n ) );
+            else
+                return TEnum( UnderlyingIntegral( p ) << n );
+        }
 
         //#### Comparison operators (also needed to satisfy concept of RandomAccessIterator) ###
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e smaller than \p{other},
-            ///         \c false otherwise.
-            bool operator<(TRandomAccessIterator other)   const
-            {
-                return p < other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e smaller than \p{other},
+        ///         \c false otherwise.
+        bool operator<(TRandomAccessIterator other)                    const { return p < other.p; }
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e smaller than or equal to \p{other},
-            ///         \c false otherwise.
-            bool operator<=(TRandomAccessIterator other)   const
-            {
-                return p <= other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e smaller than or equal to \p{other},
+        ///         \c false otherwise.
+        bool operator<=(TRandomAccessIterator other)                  const { return p <= other.p; }
 
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e greater than \p{other},
-            ///         \c false otherwise.
-            bool operator>(TRandomAccessIterator other)   const
-            {
-                return p > other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e greater than \p{other},
+        ///         \c false otherwise.
+        bool operator>(TRandomAccessIterator other)                    const { return p > other.p; }
 
-            /// Compares this iterator with the given one.
-            /// @param other  The iterator to compare
-            /// @return \c true if this iterator is \e greater than or equal to \p{other},
-            ///         \c false otherwise.
-            bool operator>=(TRandomAccessIterator other)   const
-            {
-                return p >= other.p;
-            }
+        /// Compares this iterator with the given one.
+        /// @param other  The iterator to compare
+        /// @return \c true if this iterator is \e greater than or equal to \p{other},
+        ///         \c false otherwise.
+        bool operator>=(TRandomAccessIterator other)                  const { return p >= other.p; }
     };
 
-    /// The constant iterator exposed by this class. A Mutable version is not available.
-    using ConstIterator= TRandomAccessIterator<const TEnum*, const TEnum&>;
+/// The constant iterator exposed by this class. A Mutable version is not available.
+using ConstIterator= TRandomAccessIterator<const TEnum*, const TEnum&>;
 
 
     /// Returns an iterator referring to the start of enumeration \p{TEnum}.
     /// @return The start of the enumeration.
-    ConstIterator begin()                       const
-    {
+    ConstIterator begin()                                                                    const {
         return ConstIterator(   IsBitwise<TEnum>
                              && UnderlyingIntegral( IterableTraits<TEnum>::Begin ) == 0
                                 ? TEnum(1)
@@ -396,10 +356,8 @@ struct EnumIterator
 
     /// Returns an iterator referring the first illegal value of enumeration \p{TEnum}.
     /// @return The end of the enumeration.
-    ConstIterator end()                         const
-    {
-        return ConstIterator( TEnum(0) + UnderlyingIntegral( IterableTraits<TEnum>::End ) );
-    }
+    ConstIterator end()                                                                        const
+    { return ConstIterator( TEnum(0) + UnderlyingIntegral( IterableTraits<TEnum>::End ) ); }
 };  // struct EnumIterator
 
 
@@ -413,5 +371,3 @@ requires enumops::IsIterable<TEnum>
 using  EnumIterator=     enumops::EnumIterator<TEnum>;
 
 } // namespace [alib]
-
-

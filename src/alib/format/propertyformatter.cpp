@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <vector>
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Format.PropertyFormatter;
     import   ALib.Lang;
@@ -30,7 +30,7 @@
 #   include "ALib.Format.PropertyFormatter.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib::format {
 
 PropertyFormatter::PropertyFormatter( const String             customFormatString,
@@ -39,14 +39,12 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
                                       character                ESCCharacter          )
 : stdFormatter        ( formatter )
 , propertyFormatString( customFormatString )
-, formatString        ( customFormatString )
-{
+, formatString        ( customFormatString ) {
     if(!formatter.Get())
         stdFormatter= Formatter::Default;
 
     integer parsePos= 0;
-    while(parsePos < formatString.Length() )
-    {
+    while(parsePos < formatString.Length() ) {
         // find next parse position
         integer parsePosCopy= parsePos;
         if( (parsePos= formatString.IndexOf( ESCCharacter, parsePosCopy ) ) < 0 )
@@ -54,11 +52,9 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
 
         String identifier;
         integer endPos= parsePos+ 1;
-        if( endPos < formatString.Length() )
-        {
+        if( endPos < formatString.Length() ) {
             // double Escape character? -> replace to single!
-            if( formatString[endPos] == ESCCharacter )
-            {
+            if( formatString[endPos] == ESCCharacter ) {
                 formatString.Delete( endPos, 1 );
                 ++parsePos;
                 continue;
@@ -77,8 +73,7 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
 
         // add callback
         auto entryIt= propertyTable.begin();
-        while( entryIt != propertyTable.end() )
-        {
+        while( entryIt != propertyTable.end() ) {
             if( Substring(identifier).ConsumePartOf<lang::Case::Ignore>( entryIt->Name,
                                                                          entryIt->MinimumRecognitionLength
                                                                        ) == identifier.Length() )
@@ -95,8 +90,7 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
         }
 
         // identifier not found?
-        if( entryIt == propertyTable.end() )
-        {
+        if( entryIt == propertyTable.end() ) {
             Exception e( ALIB_CALLER_NULLED, FMTExceptions::UnknownPropertyInFormatString,
                          ESCCharacter, identifier, customFormatString  );
             for( auto& row : propertyTable )
@@ -104,13 +98,10 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
             e.Back().back()= '.'; // replace the last comma
 
             throw e;
-        }
-    }
-}
+}   }   }
 
 
-void    PropertyFormatter::Format( AString& target, const Box&  src )
-{
+void    PropertyFormatter::Format( AString& target, const Box&  src ) {
     // string buffers
     std::vector<String> heapStrings;
     String128   localString;
@@ -119,11 +110,9 @@ void    PropertyFormatter::Format( AString& target, const Box&  src )
     // collect boxes
     BoxesMA& results= stdFormatter->GetArgContainer();
     results.Add( formatString );
-    for( auto& entry : callBacks )
-    {
+    for( auto& entry : callBacks ) {
         Box argument= entry->Callback( src, localString );
-        if( localString.IsNotEmpty() )
-        {
+        if( localString.IsNotEmpty() ) {
             heapStrings.emplace_back( localString );
             argument= heapStrings.back();
         }
@@ -148,4 +137,3 @@ void    PropertyFormatter::Format( AString& target, const Box&  src )
 
 
 } // namespace [alib::format]
-

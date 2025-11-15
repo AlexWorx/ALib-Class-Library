@@ -223,7 +223,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -241,7 +241,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -259,7 +259,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_DEBUG=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -277,7 +277,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -296,7 +296,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -315,7 +315,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_DEBUG=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_DEBUG=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -336,7 +336,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -358,7 +358,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -380,7 +380,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -402,7 +402,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_C20_MODULES=0;ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib_precompile.hpp</PrecompiledHeaderFile>
@@ -601,6 +601,7 @@
     <ClCompile Include="..\..\..\src\alib\system\environment.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\path.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\shellcommand.cpp" />
     <ClCompile Include="..\..\..\src\alib\threadmodel\dedicatedworker.cpp" />
     <ClCompile Include="..\..\..\src\alib\threadmodel\threadpool.cpp" />
     <ClCompile Include="..\..\..\src\alib\threadmodel\trigger.cpp" />
@@ -846,9 +847,7 @@
     <None Include="..\..\..\src\alib\lang\owner.inl" />
     <None Include="..\..\..\src\alib\lang\placeholder.inl" />
     <None Include="..\..\..\src\alib\lang\plugins.inl" />
-    <None Include="..\..\..\src\alib\lang\rttrallocator.inl" />
     <None Include="..\..\..\src\alib\lang\sidilist.inl" />
-    <None Include="..\..\..\src\alib\lang\stdcontainerallocator.inl" />
     <None Include="..\..\..\src\alib\lang\stdtypeinfofunctors.inl" />
     <None Include="..\..\..\src\alib\lang\tmp.inl" />
     <None Include="..\..\..\src\alib\mainargs.inl" />
@@ -904,6 +903,7 @@
     <None Include="..\..\..\src\alib\system\path.inl" />
     <None Include="..\..\..\src\alib\system\path.mm" />
     <None Include="..\..\..\src\alib\system\processinfo.inl" />
+    <None Include="..\..\..\src\alib\system\shellcommand.inl" />
     <None Include="..\..\..\src\alib\system\system.mpp" />
     <None Include="..\..\..\src\alib\system\systemerrors.inl" />
     <None Include="..\..\..\src\alib\threadmodel\dedicatedworker.inl" />

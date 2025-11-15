@@ -21,34 +21,28 @@ ALIB_EXPORT namespace alib {  namespace strings::util {
 ///   \alib{strings::util;StringEscaperStandard}.
 struct StringEscaper
 {
-    ///  Virtual destructor.
+    /// Virtual destructor.
     virtual ~StringEscaper()                                                                      {}
 
-    //==============================================================================================
     /// Just copies the given \p{src} string to \p{dest}.
     ///
     /// @param  src        The source string.
     /// @param  dest       The destination string.
     /// @param  delimiters Ignored
     /// @return \p{dest} to allow concatenated operations.
-    //==============================================================================================
     virtual inline
     AString&    Escape( const String& src, AString& dest, const String& delimiters )           const
     { (void) delimiters; return dest << src; }
 
-    //==============================================================================================
     /// Just copies the given \p{src} string to \p{dest}.
     ///
     /// @param  src      The source string.
     /// @param  dest     The destination string.
     /// @return \p{dest} to allow concatenated operations.
-    //==============================================================================================
     virtual inline
-    AString&    Unescape( const String& src, AString& dest )                                   const
-    { return dest << src; }
+    AString&    Unescape( const String& src, AString& dest )           const { return dest << src; }
 
 #if ALIB_MONOMEM
-    //==============================================================================================
     /// Simply tokenizes \p{src} and feeds the tokens into \p{result}.
     ///
     /// \par Availability
@@ -57,11 +51,9 @@ struct StringEscaper
     /// @param  src        The source string.
     /// @param  delimiters A set of characters accepted as delimiters.
     /// @return The number of tokens found.
-    //==============================================================================================
     ALIB_DLL virtual
     int    EscapeTokens( StringVectorMA& result, const String& src, const String& delimiters) const;
 
-    //==============================================================================================
     /// Simply tokenizes \p{src} and feeds the tokens into \p{result}.
     /// (In fact, #EscapeTokens is called.)
     ///
@@ -71,7 +63,6 @@ struct StringEscaper
     /// @param  src        The source string.
     /// @param  delimiters A set of characters accepted as delimiters.
     /// @return The number of tokens found.
-    //==============================================================================================
     virtual inline
     int    UnescapeTokens(StringVectorMA& result, const String& src, const String& delimiters) const
     { return EscapeTokens( result, src, delimiters); }
@@ -85,8 +76,8 @@ struct StringEscaper
 /// Its purpose is to convert string data to external string representations and vice versa.
 /// Such conversion is needed when C++ strings contain non-readable characters like
 /// 'new line', 'carriage return' or 'tabulator' and such strings should be stored in ASCII or
-/// unicode files. The common way of conversion is to add "escape sequences", for example <c>"\n"</c>
-/// for the 'new line' character.
+/// unicode files. The common way of conversion is to add "escape sequences", for example,
+/// <c>"\n"</c> for the 'new line' character.
 ///
 /// Furthermore if a C++ string starts or ends with spaces, the string has to be quoted and in this
 /// case occurences of the quote character <c>(\")</c> inside the string have to be escaped.
@@ -122,10 +113,9 @@ struct StringEscaper
 //==================================================================================================
 struct StringEscaperStandard   : public StringEscaper
 {
-    ///  Virtual destructor.
-    virtual ~StringEscaperStandard()                                                    override  {}
+    /// Virtual destructor.
+    virtual ~StringEscaperStandard()                                                     override {}
 
-    //==============================================================================================
     /// Converts the given \p{src} string to an external representation.
     /// The escape symbol is backslash \c '\\' and the following characters are escaped:
     /// \c \\n, \c \\r, \c \\t , \c \\a, \c \\b, \c \\v, \c \\f, \c \\e. Furthermore
@@ -142,23 +132,19 @@ struct StringEscaperStandard   : public StringEscaper
     /// @param  dest       The destination string buffer.
     /// @param  delimiters If one of these characters is found in the string, the value is quoted
     /// @return \p{dest} to allow concatenated operations.
-    //==============================================================================================
     ALIB_DLL virtual
     AString&    Escape( const String& src, AString& dest, const String& delimiters ) const override;
 
-    //==============================================================================================
     /// Trims \p{src}, removes surrounding quotes and, un-escapes characters as defined with
     /// method #Escape.
     ///
     /// @param  src      The source string.
     /// @param  dest     The destination string.
     /// @return \p{dest} to allow concatenated operations.
-    //==============================================================================================
     ALIB_DLL virtual
     AString&    Unescape( const String& src, AString& dest )                         const override;
 
 #if ALIB_MONOMEM
-    //==============================================================================================
     /// Parses a list of tokens separated by the given \p{delimiter} and calls method
     /// #Escape for each of them. The results are copied to string list \p{result}.
     ///
@@ -169,11 +155,10 @@ struct StringEscaperStandard   : public StringEscaper
     /// @param  src        The source string.
     /// @param  delimiters A set of characters defining the delimiters.
     /// @return The number of tokens found.
-    //==============================================================================================
     ALIB_DLL virtual
-    int  EscapeTokens( StringVectorMA& result, const String& src, const String& delimiters ) const override;
+    int  EscapeTokens( StringVectorMA& result, const String& src,
+                       const String& delimiters )                                    const override;
 
-    //==============================================================================================
     /// Parses a list of tokens separated by the given \p{delimiter} and calls method
     /// #Unescape for each of them. The results are copied to string list \p{result}.
     /// Delimiters found within quoted strings are rightfully ignored.
@@ -184,7 +169,6 @@ struct StringEscaperStandard   : public StringEscaper
     /// @param  src        The source string.
     /// @param  delimiters A set of characters accepted as delimiters.
     /// @return The number of tokens found.
-    //==============================================================================================
     ALIB_DLL virtual
     int  UnescapeTokens(StringVectorMA& result,
                         const String&   src   , const String& delimiters)            const override;
@@ -203,5 +187,3 @@ using     StringEscaperStandard=        strings::util::StringEscaperStandard;
 
 
 } // namespace [alib]
-
-

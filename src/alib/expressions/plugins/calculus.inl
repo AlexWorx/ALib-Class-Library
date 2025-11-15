@@ -31,7 +31,7 @@ namespace plugins {
 /// The class implements virtual, overloaded methods
 /// - \alib{expressions::CompilerPlugin;TryCompilation(CIFunction&)},
 /// - \alib{expressions::CompilerPlugin;TryCompilation(CIUnaryOp&)},
-/// - \alib{expressions::CompilerPlugin;TryCompilation(CIBinaryOp&)}  and
+/// - \alib{expressions::CompilerPlugin;TryCompilation(CIBinaryOp&)}, and
 /// - \alib{expressions::CompilerPlugin;TryCompilation(CIAutoCast&)}.
 ///
 /// For each <em>AST</em> node type to compile, this class holds a vector or a hash map to store
@@ -63,7 +63,7 @@ namespace plugins {
 ///
 /// Just after this anonymous namespace, the implementation of the constructor of the custom
 /// plug-in, should be placed. As explained above, its duty is to fills in the vector/hash map using
-/// the right combination of operator or function  argument types, as well as providing a proper
+/// the right combination of operator or function argument types, as well as providing a proper
 /// \ref alib_expressions_prereq_sb "sample box" that corresponds to the type of the
 /// output parameter of the native function.
 ///
@@ -109,7 +109,7 @@ namespace plugins {
 ///   parameters given in the expression are constant.
 ///   If so, this struct will do the invocation at compile-time and return the constant result value
 ///   instead of the function call.<br>
-///   Most built-in functions are compile-time invokable. For example most mathematical functions
+///   Most built-in functions are compile-time invokable. For example, most mathematical functions
 ///   like \c log(Float) or \c sin(Float) can be evaluated at compile-time (again, only in the case
 ///   that the given parameters are constant). The reason is that
 ///   these functions are independent of custom scope data.
@@ -170,19 +170,19 @@ namespace plugins {
 /// ### 4.2 Specifics For Binary Operators ###
 ///
 /// #### Aliasing '==' With '=': ####
-///  With the use of this class it is \e not necessary to define alias <c>'='</c> for binary
-///  operator <c>'=='</c>, because this alias replacement is internally always made for any
-///  combination of argument types, when compilation flag
-///  \alib{expressions;Compilation::AliasEqualsOperatorWithAssignOperator} is set  in field
-///  \alib{expressions;Compiler::CfgCompilation}.
+/// With the use of this class it is \e not necessary to define alias <c>'='</c> for binary
+/// operator <c>'=='</c>, because this alias replacement is internally always made for any
+/// combination of argument types, when compilation flag
+/// \alib{expressions;Compilation::AliasEqualsOperatorWithAssignOperator} is set in field
+/// \alib{expressions;Compiler::CfgCompilation}.
 ///
 /// #### Aliasing Bitwise Boolean Operators: ####
-///  In contrast to the above, compilation flag \alib{expressions;Compilation::AllowBitwiseBooleanOperators}
-///  affects only built-in type \e boolean - just as the flag's name suggests.
-///  The flag is therefore tested only in derived plug-in \alib{expressions;plugins::Arithmetics}.
-///  In other words: to allow for example operator <c>'&'</c> to be used as an alias for operator
-///  <c>'&&'</c> defined on custom types, this has to be explicitly added as a set alias definitions
-///  for each combination of types in question.
+/// In contrast to the above, compilation flag \alib{expressions;Compilation::AllowBitwiseBooleanOperators}
+/// affects only built-in type \e boolean - just as the flag's name suggests.
+/// The flag is therefore tested only in derived plug-in \alib{expressions;plugins::Arithmetics}.
+/// In other words: to allow, for example, operator <c>'&'</c> to be used as an alias for operator
+/// <c>'&&'</c> defined on custom types, this has to be explicitly added as a set alias definitions
+/// for each combination of types in question.
 ///
 /// #### Support For Compile-Time Optimization: ####
 /// For binary operators, this class provides a mechanism to provide information on possible
@@ -242,13 +242,11 @@ struct Calculus   : public CompilerPlugin
     /// type is used.
     MonoAllocator          allocator;
 
-    //==============================================================================================
     /// Constructor.
     /// @param name      Assigned to the field \alib{expressions;CompilerPlugin::Name}.
     /// @param compiler  The compiler we will get attached to
     /// @param pPriority The priority of this plugin.
-    //==============================================================================================
-                    Calculus( const NString& name, Compiler& compiler, CompilePriorities pPriority )
+    Calculus( const NString& name, Compiler& compiler, CompilePriorities pPriority )
     : CompilerPlugin( name, compiler, pPriority )
     , allocator                  (ALIB_DBG("Calculus",) 4)
     , Operators                  (allocator)
@@ -256,22 +254,19 @@ struct Calculus   : public CompilerPlugin
     , BinaryOperatorOptimizations(allocator)
     { ALIB_DBG( allocator.DbgName= NCString(allocator, name).Buffer(); ) }
 
-    //==============================================================================================
     /// Virtual destructor.
-    //==============================================================================================
-    virtual        ~Calculus()                                                              override
-    {}
+    virtual        ~Calculus()                                                           override {}
 
 
-    // #############################################################################################
-    // Constant Identifiers, Identifiers and Functions
-    // #############################################################################################
+  //################################################################################################
+  // Constant Identifiers, Identifiers and Functions
+  //################################################################################################
 
     /// An entry of field #ConstantIdentifiers. Describes how the identifier is recognized and
     /// the constant value to return for it.
     struct ConstantIdentifierEntry
     {
-        /// The name, minimum length and letter case sensitivity  of the function to recognize.
+        /// The name, minimum length and letter case sensitivity of the function to recognize.
         Token                       Descriptor;
 
         /// The constant result.
@@ -285,7 +280,7 @@ struct Calculus   : public CompilerPlugin
     /// the callback function and return type for it.
     struct FunctionEntry
     {
-        /// The name, minimum length and letter case sensitivity  of the function to recognize.
+        /// The name, minimum length and letter case sensitivity of the function to recognize.
         Token                       Descriptor;
 
         /// A pointer to list of pointers to sample boxes that describe the function signature.
@@ -312,11 +307,11 @@ struct Calculus   : public CompilerPlugin
 
 
         #if ALIB_DEBUG
-            /// The C++ name of the callback function (only available with debug-builds of the
-            /// library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
-            /// together with field #Callback. The macro selects to prune the name string
-            /// in release compilations.
-            const char*             DbgCallbackName;
+        /// The C++ name of the callback function (only available with debug-builds of the
+        /// library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
+        /// together with field #Callback. The macro selects to prune the name string
+        /// in release compilations.
+        const char*             DbgCallbackName;
         #endif
 
         /// The result type given as a pointer to a \ref alib_expressions_prereq_sb "sample box".
@@ -341,7 +336,6 @@ struct Calculus   : public CompilerPlugin
     /// List of functions to be compiled by this plug-in.
     std::vector<FunctionEntry>      Functions;
 
-    //==============================================================================================
     /// Searches in vectors #Functions and #ConstantIdentifiers for an entry matching \p{name} and,
     /// if found, adds either a constant value or a callback function to \p{ciFunction}.
     ///
@@ -351,56 +345,53 @@ struct Calculus   : public CompilerPlugin
     /// @param[in,out]  ciFunction  The compilation result.
     /// @return \c true if an entry was found in #Functions and a corresponding command
     ///         was added to \p{ciFunction}. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
-    virtual bool    TryCompilation( CIFunction& ciFunction )                              override;
+    virtual bool    TryCompilation( CIFunction& ciFunction )                               override;
 
-    // #############################################################################################
-    // Operators
-    // #############################################################################################
-    protected:
+  //################################################################################################
+  // Operators
+  //################################################################################################
+  protected:
 
-        /// Key type for operator hash maps #Operators and OperatorAliases.
-        struct OperatorKey
+    /// Key type for operator hash maps #Operators and OperatorAliases.
+    struct OperatorKey
+    {
+        const String           op;          ///< A string defining the operator.
+        const std::type_info&  lhs;         ///< Left-hand side type.
+        const std::type_info&  rhs;         ///< Right-hand side type. For unary operators
+                                            ///< equals to <c>typeid(void)</c>.
+
+        /// Hash functor for operator hash map.
+        struct Hash
         {
-            const String           op;          ///< A string defining the operator.
-            const std::type_info&  lhs;         ///< Left-hand side type.
-            const std::type_info&  rhs;         ///< Right-hand side type. For unary operators
-                                                ///< equals to <c>typeid(void)</c>.
+            /// Calculates a hash code for objects of type \b OperatorKey.
+            /// @param src The node to hash.
+            /// @return The hash code.
+            std::size_t operator()(const OperatorKey& src)                                   const {
+                return      src.op.Hashcode()
+                         +  4026031ul * src.lhs.hash_code()
+                         +  8175383ul * src.rhs.hash_code();
+            }
 
-            /// Hash functor for operator hash map.
-            struct Hash
-            {
-                /// Calculates a hash code for objects of type \b OperatorKey.
-                /// @param src The node to hash.
-                /// @return The hash code.
-                std::size_t operator()(const OperatorKey& src)                                 const
-                {
-                    return      src.op.Hashcode()
-                             +  4026031ul * src.lhs.hash_code()
-                             +  8175383ul * src.rhs.hash_code();
-                }
-
-            };
-
-            /// Equality functor for operator hash map.
-            struct EqualTo
-            {
-                /// Compares two objects of type \b OperatorKey.
-                /// @param left  The left-hand side object.
-                /// @param right The left-hand side object.
-                /// @return The result of the comparison.
-                bool        operator()(const OperatorKey& left, const OperatorKey& right )     const
-                {
-                    return     left.op       == right.op
-                            && left.lhs      == right.lhs
-                            && left.rhs      == right.rhs;
-                }
-            };
         };
 
+        /// Equality functor for operator hash map.
+        struct EqualTo
+        {
+            /// Compares two objects of type \b OperatorKey.
+            /// @param left  The left-hand side object.
+            /// @param right The left-hand side object.
+            /// @return The result of the comparison.
+            bool        operator()(const OperatorKey& left, const OperatorKey& right )       const {
+                return     left.op       == right.op
+                        && left.lhs      == right.lhs
+                        && left.rhs      == right.rhs;
+            }
+        };
+    };
 
-    public:
+
+  public:
 
     /// Hash map assigning combinations of (unary and binary) operators and its argument types to a
     /// tuple providing information about a callback function.
@@ -510,20 +501,15 @@ struct Calculus   : public CompilerPlugin
     #endif
 
 
-    //==============================================================================================
     /// Templated helper method. Deduces the array size of the given table and passes it
     /// to \ref AddOperators(OperatorTableEntry* table, size_t length).
     ///
     /// @tparam TCapacity Implicitly deferred size of the array provided.
     /// @param  table     The table containing operator compilation information.
-    //==============================================================================================
     template<size_t TCapacity>
     void AddOperators    ( OperatorTableEntry (&table) [TCapacity]  )
-    {
-        AddOperators( &table[0], TCapacity );
-    }
+    { AddOperators( &table[0], TCapacity ); }
 
-    //==============================================================================================
     /// Loads all entries of the given table into hash map #Operators.
     ///
     /// Note, that usually, the given table is a constexpr array located in an anonymous namespace
@@ -533,11 +519,9 @@ struct Calculus   : public CompilerPlugin
     ///
     /// @param  table     The table containing operator compilation information.
     /// @param  length    The table containing operator compilation information.
-    //==============================================================================================
     ALIB_DLL
     void AddOperators    ( OperatorTableEntry* table, size_t length );
 
-    //==============================================================================================
     /// Adds an alias operator to hash table #OperatorAliases.
     ///
     /// \see
@@ -548,23 +532,17 @@ struct Calculus   : public CompilerPlugin
     /// @param lhsType  The left-hand side argument type that the operator is defined for.
     /// @param rhsType  The right-hand side argument type that the operator is defined for.
     /// @param op       The operator aliased by \p{alias}.
-    //==============================================================================================
     void AddOperatorAlias  ( const String& alias, Type lhsType, Type rhsType, const String& op );
 
-    //==============================================================================================
     /// Templated helper method. Deduces the array size of the given table and passes it
     /// to \ref AddOperatorAliases(OperatorAliasTableEntry* table, size_t length).
     ///
     /// @tparam TCapacity Implicitly deferred size of the array provided.
     /// @param  table     The table containing operator compilation information.
-    //==============================================================================================
     template<size_t TCapacity>
     void AddOperatorAliases( OperatorAliasTableEntry (&table) [TCapacity]  )
-    {
-        AddOperatorAliases( &table[0], TCapacity );
-    }
+    { AddOperatorAliases( &table[0], TCapacity ); }
 
-    //==============================================================================================
     /// Loads all entries of the given table into hash map #OperatorAliases.
     ///
     /// Note, that usually, the given table is a constexpr array located in an anonymous namespace
@@ -574,57 +552,54 @@ struct Calculus   : public CompilerPlugin
     ///
     /// @param  table     The table containing operator compilation information.
     /// @param  length    The table containing operator compilation information.
-    //==============================================================================================
     void AddOperatorAliases( OperatorAliasTableEntry* table, size_t length );
 
 
-    // #############################################################################################
-    // Binary operator optimizations
-    // #############################################################################################
-    protected:
+  //################################################################################################
+  // Binary operator optimizations
+  //################################################################################################
+  protected:
 
-        /// Key type for operator hash maps #Operators and OperatorAliases.
-        struct BinOpOptKey
+    /// Key type for operator hash maps #Operators and OperatorAliases.
+    struct BinOpOptKey
+    {
+        const String           op;        ///< The operator to optimize.
+        lang::Side             constSide; ///< Denotes a left- or right-hand side optimization.
+        const Box              constVal;  ///< The type and value of the constant argument.
+        const std::type_info&  other;     ///< The type of the non-constant argument.
+
+        /// Hash functor for operator hash map.
+        struct Hash
         {
-            const String           op;        ///< The operator to optimize.
-            lang::Side             constSide; ///< Denotes a left- or right-hand side optimization.
-            const Box              constVal;  ///< The type and value of the constant argument.
-            const std::type_info&  other;     ///< The type of the non-constant argument.
-
-            /// Hash functor for operator hash map.
-            struct Hash
-            {
-                /// Calculates a hash code for objects of type \b OperatorKey.
-                /// @param src The node to hash.
-                /// @return The hash code.
-                std::size_t operator()(const BinOpOptKey& src)                                 const
-                {
-                    return  (   std::hash<String>()(src.op)
-                              +  6949ul * std::hash<Box>()(src.constVal)
-                              + 14033ul * src.other.hash_code()
-                            ) ^ ( src.constSide == lang::Side::Left ? size_t( 0)
-                                                                    : size_t(-1) );
-                }
-            };
-
-            /// Equality functor for operator hash map.
-            struct EqualTo
-            {
-                /// Compares two objects of type \b OperatorKey.
-                /// @param lhs The left-hand side object.
-                /// @param rhs The left-hand side object.
-                /// @return The result of the comparison.
-                bool        operator()(const BinOpOptKey& lhs, const BinOpOptKey& rhs )        const
-                {
-                    return     lhs.op       == rhs.op
-                            && lhs.constSide== rhs.constSide
-                            && lhs.constVal == rhs.constVal
-                            && lhs.other    == rhs.other;
-                }
-            };
+            /// Calculates a hash code for objects of type \b OperatorKey.
+            /// @param src The node to hash.
+            /// @return The hash code.
+            std::size_t operator()(const BinOpOptKey& src)                                   const {
+                return  (   std::hash<String>()(src.op)
+                          +  6949ul * std::hash<Box>()(src.constVal)
+                          + 14033ul * src.other.hash_code()
+                        ) ^ ( src.constSide == lang::Side::Left ? size_t( 0)
+                                                                : size_t(-1) );
+            }
         };
 
-    public:
+        /// Equality functor for operator hash map.
+        struct EqualTo
+        {
+            /// Compares two objects of type \b OperatorKey.
+            /// @param lhs The left-hand side object.
+            /// @param rhs The left-hand side object.
+            /// @return The result of the comparison.
+            bool        operator()(const BinOpOptKey& lhs, const BinOpOptKey& rhs )          const {
+                return     lhs.op       == rhs.op
+                        && lhs.constSide== rhs.constSide
+                        && lhs.constVal == rhs.constVal
+                        && lhs.other    == rhs.other;
+            }
+        };
+    };
+
+  public:
     /// Hash map storing optimization information for binary operators where either argument is
     /// constant.<br>
     /// This map may be filled with #AddBinaryOpOptimizations, which is usually done in the.
@@ -652,20 +627,15 @@ struct Calculus   : public CompilerPlugin
     using BinaryOpOptimizationsTableEntry= const std::tuple<String, lang::Side, Type, const Box&, const Box&>;
 
 
-    //==============================================================================================
     /// Templated helper method. Deduces the array size of the given table and passes it
     /// to \ref AddBinaryOpOptimizations(BinaryOpOptimizationsTableEntry*, size_t).
     ///
     /// @tparam TCapacity Implicitly deferred size of the array provided.
     /// @param  table     The table containing operator compilation information.
-    //==============================================================================================
     template<size_t TCapacity>
     void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry (&table) [TCapacity] )
-    {
-        AddBinaryOpOptimizations( &table[0], TCapacity );
-    }
+    { AddBinaryOpOptimizations( &table[0], TCapacity ); }
 
-    //==============================================================================================
     /// Loads all entries of the given table into hash map #BinaryOperatorOptimizations.
     ///
     /// Note, that usually, the given table is a constexpr array located in an anonymous namespace
@@ -675,11 +645,9 @@ struct Calculus   : public CompilerPlugin
     ///
     /// @param  table     The table containing operator compilation information.
     /// @param  length    The table containing operator compilation information.
-    //==============================================================================================
     ALIB_DLL
     void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length );
 
-    //==============================================================================================
     /// Searches in #Operators for an entry matching the combination of
     /// \doxlinkproblem{structalib_1_1expressions_1_1CompilerPlugin_1_1CIUnaryOp.html;a2eba8729cc1606107496dbd797966b5c;CIUnaryOp::Operator}
     /// and the argument type of operand found with iterator
@@ -697,12 +665,10 @@ struct Calculus   : public CompilerPlugin
     /// @param    ciUnaryOp    The compilation result.
     /// @return \c true if an entry was found in #Operators and a corresponding command was added to
     ///         \p{ciUnaryOp}. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIUnaryOp& ciUnaryOp )                                 override;
 
 
-    //==============================================================================================
     /// Searches in #Operators for an entry matching the combination of
     /// \doxlinkproblem{structalib_1_1expressions_1_1CompilerPlugin_1_1CIBinaryOp.html;a2eba8729cc1606107496dbd797966b5c;CIBinaryOp::Operator}
     /// and the argument types of operands found with argument iterators
@@ -720,14 +686,13 @@ struct Calculus   : public CompilerPlugin
     /// @param  ciBinaryOp  The compilation info struct.
     /// @return \c true if an entry was found in #Operators and a corresponding command was added
     ///         to \p{ciBinaryOp}. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIBinaryOp& ciBinaryOp )                               override;
 
 
-    // #############################################################################################
-    // Auto-Casts
-    // #############################################################################################
+  //################################################################################################
+  // Auto-Casts
+  //################################################################################################
 
     /// An entry of the field #AutoCasts. Defines auto-casts for custom types.
     struct AutoCastEntry
@@ -757,15 +722,15 @@ struct Calculus   : public CompilerPlugin
 
 
         #if ALIB_DEBUG
-            /// The C++ name of the callback function (only available with debug-builds of the
-            /// library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
-            /// together with field #Callback. The macro selects to prune the name string
-            /// in release compilations.
-            ///
-            /// If #Callback is set to nullptr, the name of the internal function (\e "any2int")
-            /// is inserted automatically. Instead of the aforementioned macro \ref CALCULUS_CALLBACK
-            /// use macro \ref CALCULUS_DEFAULT_AUTOCAST instead.
-            const char*             DbgCallbackName;
+        /// The C++ name of the callback function (only available with debug-builds of the
+        /// library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
+        /// together with field #Callback. The macro selects to prune the name string
+        /// in release compilations.
+        ///
+        /// If #Callback is set to nullptr, the name of the internal function (\e "any2int")
+        /// is inserted automatically. Instead of the aforementioned macro \ref CALCULUS_CALLBACK
+        /// use macro \ref CALCULUS_DEFAULT_AUTOCAST instead.
+        const char*             DbgCallbackName;
         #endif
 
         /// The result type given a \ref alib_expressions_prereq_sb "sample box".
@@ -798,7 +763,6 @@ struct Calculus   : public CompilerPlugin
     std::vector<AutoCastEntry>      AutoCasts;
 
 
-    //==============================================================================================
     /// Searches in #AutoCasts for an entry matching the combination of
     /// \doxlinkproblem{structalib_1_1expressions_1_1CompilerPlugin_1_1CIAutoCast.html;a2eba8729cc1606107496dbd797966b5c;CIAutoCast::Operator} and the type(s) that might be auto-cast.
     ///
@@ -825,9 +789,8 @@ struct Calculus   : public CompilerPlugin
     /// @param  autoCast  The compilation info struct.
     /// @return \c true if a matching entry was found in #AutoCasts and a corresponding command
     ///         was added to \p{autoCast}. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
-    virtual bool    TryCompilation(CIAutoCast& autoCast)                                  override;
+    virtual bool    TryCompilation(CIAutoCast& autoCast)                                   override;
 };
 
 }} // namespace alib[::expressions::plugin]
@@ -836,5 +799,3 @@ struct Calculus   : public CompilerPlugin
 using     Calculus=    expressions::plugins::Calculus;
 
 } // namespace [alib]
-
-

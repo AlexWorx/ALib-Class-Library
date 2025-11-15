@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 
 #include <cmath>
@@ -19,7 +19,7 @@
 #include <cstring>
 #include <typeindex>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Boxing;
 #else
@@ -32,7 +32,7 @@
 #endif
 #endif
 #   include "ALib.Lang.H"
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if ALIB_STRINGS
 ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<alib::strings::TAString<nchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tanstring )
 ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<alib::strings::TAString<wchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tawstring )
@@ -51,11 +51,11 @@ namespace alib {
 //==================================================================================================
 namespace boxing {
 
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 // class Box
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 
 #if ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     bool    Box::IsSignedIntegral() const
@@ -136,8 +136,7 @@ wchar   Box::UnboxCharacter()                                                   
 }
 #endif
 
-bool    Box::IsFloatingPoint()                                                                 const
-{
+bool    Box::IsFloatingPoint()                                                               const {
     return    IsType<     double>()
         #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
            || IsType<     float >()
@@ -148,8 +147,7 @@ bool    Box::IsFloatingPoint()                                                  
         ;
 }
 
-double  Box::UnboxFloatingPoint()                                                              const
-{
+double  Box::UnboxFloatingPoint()                                                            const {
   #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     if( IsType<     float >() ) return   double( Unbox<float      >() );
   #endif
@@ -162,27 +160,22 @@ double  Box::UnboxFloatingPoint()                                               
 }
 
 #if !DOXYGEN
-       Box::operator bool()              const     { return  Call<FIsTrue    >();          }
-bool   Box::IsNotNull ()                 const     { return  Call<FIsNotNull >();          }
-size_t Box::Hashcode  ()                 const     { return  Call<FHashcode  >();          }
+       Box::operator bool()                                   const { return  Call<FIsTrue    >(); }
+bool   Box::IsNotNull ()                                      const { return  Call<FIsNotNull >(); }
+size_t Box::Hashcode  ()                                      const { return  Call<FHashcode  >(); }
 IF_ALIB_MONOMEM(
 void   Box::Clone( MonoAllocator& memory) {         Call<FClone     >( memory );  } )
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Non-anonymous functions
-// #################################################################################################
-bool FIsNotNull::ConstantTrue( const alib::Box & )
-{
-    return false;
-}
+//##################################################################################################
+bool FIsNotNull::ConstantTrue( const alib::Box & )                                 { return false; }
 
 }} // namespace [alib::boxing]
 
 using namespace alib::boxing;
-bool   Box::operator==(const Box& rhs) const { return  Call<FEquals>( rhs );                            }
-bool   Box::operator< (const Box& rhs) const { return  Call<FIsLess>( rhs );                            }
-bool   Box::operator<=(const Box& rhs) const { return  Call<FIsLess>( rhs )  ||   Call<FEquals>( rhs ); }
-bool   Box::operator> (const Box& rhs) const { return !Call<FIsLess>( rhs )  &&  !Call<FEquals>( rhs ); }
-
-
+bool   Box::operator==(const Box& rhs)                          const { return Call<FEquals>(rhs); }
+bool   Box::operator< (const Box& rhs)                          const { return Call<FIsLess>(rhs); }
+bool   Box::operator<=(const Box& rhs)  const { return  Call<FIsLess>(rhs) ||  Call<FEquals>(rhs); }
+bool   Box::operator> (const Box& rhs)  const { return !Call<FIsLess>(rhs) && !Call<FEquals>(rhs); }

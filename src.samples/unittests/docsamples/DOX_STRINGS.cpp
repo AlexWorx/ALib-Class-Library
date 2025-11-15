@@ -461,7 +461,7 @@ alib::BASECAMP.GetResourcePool()->BootstrapBulk( alib::BASECAMP.ResourceCategory
     "PersonFormats_D1", A_CHAR( "{@name} ({@age})")                   ,
     "PersonFormats_D2", A_CHAR( "{@name} aged {@age} loves {@hobby}" ),
 
-    // Variable comments. These are written for example to an INI-file if the application
+    // Variable comments. These are written, for example, to an INI-file if the application
     // fetches default values at the end of the process. In this sample, all variables share
     // the same comment.
     "PersonFormats_C0", A_CHAR( "Short output format for lists of \"Persons\"."   ),

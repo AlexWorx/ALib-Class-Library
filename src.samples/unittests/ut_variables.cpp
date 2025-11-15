@@ -31,40 +31,6 @@ using namespace std;
 using namespace alib;
 
 namespace {
-int systemCall(const NCString& cmd, AString& result)
-{
-#if !defined( _WIN32 )
-
-    // Open pipe to file
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe)
-        return -1;
-
-    // read till end of process
-    int qtyResults= 0;
-    NString4K readBuf;
-    while (!feof(pipe))
-    {
-        // use buffer to read and add to result
-        if (fgets(readBuf.VBuffer(), 1024 * 4 - 1, pipe) != nullptr)
-        {
-            readBuf.DetectLength();
-            readBuf.DeleteEnd(NNEW_LINE);
-            result << readBuf << NEW_LINE;
-            ++qtyResults;
-        }
-    }
-
-    pclose(pipe);
-    return qtyResults;
-#else
-	(void) cmd; 
-	(void) result; 
-    return 0;
-#endif
-
-}
-
 
 struct MyPlugin : public variables::ConfigurationPlugin
 {
@@ -439,8 +405,9 @@ UT_METHOD(ConfigIniFilePlain)
     inif.Write(writePath);
 
 
-    AString sysCallBuf;
-    systemCall(NString1K("diff --ignore-blank-lines  ") << sampleIniPath << " " << writePath, sysCallBuf );
+    NAString sysCallBuf;
+    ShellCommand::Run( NString1K("diff --ignore-blank-lines  ") << sampleIniPath << " " << writePath,
+                       sysCallBuf );
     UT_PRINT( "DIFF: ", sysCallBuf )
     UT_TRUE(sysCallBuf.IsEmpty())
 
@@ -464,9 +431,8 @@ UT_METHOD(ConfigIniFilePlain)
     // write and make a diff (but its output is not programmatically tested)
     writePath.Change(alib::system::SystemFolders::Temp, A_PATH("test1.added.ini"));
     inif.Write(writePath);
-    systemCall(NString1K("diff ") << sampleIniPath << " " << writePath, sysCallBuf );
+    ShellCommand::Run( NString1K("diff ") << sampleIniPath << " " << writePath, sysCallBuf );
     UT_PRINT( "DIFF: ", sysCallBuf )
-
 
     // --------- Delete an entry --------------
     var = inif.SearchEntry(A_CHAR("Section1"), A_CHAR("V2")).second;     UT_EQ( A_CHAR("V2"), var->Name)
@@ -818,7 +784,7 @@ UT_METHOD(ConfigSubstitution)
     cfg.SubstitutionVariableStart= A_CHAR("${");
     cfg.SubstitutionVariableEnd  = A_CHAR("}");
 
-    // multi line replacements
+    // multi-line replacements
     var.Declare(A_CHAR("ML_REPL1") , A_CHAR("SV;"), A_CHAR("repl1-v1;repl1-v2")    ); UT_EQ( 2, var.Size() )
     var.Declare(A_CHAR("ML_REPL2") , A_CHAR("SV;"), A_CHAR("repl2-v1;repl2-v2")    ); UT_EQ( 2, var.Size() )
     var.Declare(A_CHAR("ML_VAR"  ) , A_CHAR("SV;"), A_CHAR("${ML_REPL1};${ML_REPL2}")  );

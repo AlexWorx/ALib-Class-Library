@@ -13,9 +13,9 @@
 #   include "alib/alib.inl"
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by module ALib.Enums
-// #################################################################################################
+//##################################################################################################
 #define  ALIB_ENUMS_MAKE_ARITHMETICAL(TEnum)                                                       \
 namespace alib::enumops {                                                                          \
 template<> struct ArithmeticalTraits<TEnum> : std::true_type {}; }                                 \
@@ -37,4 +37,3 @@ template<> struct IterableTraits<TEnum>   : std::true_type                      
 ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END( TEnum, TEnum(0),  StopElement )
 
 #endif // HPP_ALIB_ENUMOPS_PP
-

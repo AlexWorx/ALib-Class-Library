@@ -33,8 +33,3 @@ void       shutdown();
 
 #include "ALib.Lang.CIMethods.H"
 } // namespace [alib::boxing]
-
-
-
-
-

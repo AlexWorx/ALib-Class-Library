@@ -308,7 +308,7 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
 
     // domain related
     Log_SetPrefix( "DOM1:" )                         PFXCHECK( "FILE:METHOD:DOM1:*msg*"            ,ml )
-    BoxesHA domPfx;             // set two logables at once!
+    Boxes domPfx;             // set two logables at once!
     domPfx.Add("DO", "M2:" );
     Log_SetPrefix( domPfx  )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
     Log_SetPrefix( "DOM3:" )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:DOM3:*msg*"  ,ml )

@@ -14,22 +14,25 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 
+#include <variant>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <iostream>
+#include <syncstream>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_strings.
     export module ALib.Strings.StdIOStream;
     import        ALib.Lang;
 #  if ALIB_STRINGS
@@ -40,7 +43,7 @@
 #   include        "ALib.Strings.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 #include "ALib.Lang.CIFunctions.H"
 ALIB_EXPORT namespace alib {  namespace strings { namespace compatibility { namespace std {
 
@@ -68,9 +71,9 @@ template<typename T>  struct SuppressStdOStreamOpTraits  :  ::std::false_type {}
 //==================================================================================================
 /// Parameter class used to append to objects of type \alib{strings;TAString;AString}, which
 /// invokes the method of the according specialization of template struct
-/// <b>AppendableTraits<ISReadLine,TChar,HeapAllocator></b>.<br>
-/// This then reads a line of text from the encapsulated \b std::istream and appends that line to the
-/// target \b %AString.
+/// <b>AppendableTraits<TIStreamLine,TChar,HeapAllocator></b>.<br>
+/// This then reads a line of text from the encapsulated \b std::istream and appends that line to
+/// the target \b %AString.
 ///
 /// This class can be created 'inline', similar to, for example,
 /// \ref alib_strings_assembly_ttostring_builtin "special types appendable to" class \b AString.
@@ -81,7 +84,7 @@ template<typename T>  struct SuppressStdOStreamOpTraits  :  ::std::false_type {}
 /// Field #IsEOF can be used to detect the end of the input stream.
 ///
 /// \see
-/// - \alib{strings;compatibility::std::operator>>(std::istream&;NAString& string)}  and
+/// - \alib{strings;compatibility::std::operator>>(std::istream&;NAString& string)} and
 ///   \alib{strings;compatibility::std::operator<<(std::ostream&;const NString&)}.
 /// - For a sample, refer to the source code of \alib class \b %IniFile, method
 ///   \alib{variables;IniFile::Read}.
@@ -90,10 +93,10 @@ template<typename T>  struct SuppressStdOStreamOpTraits  :  ::std::false_type {}
 /// @tparam TChar  The character type of the input stream as well as the receiving string.<br>
 ///                Specializations for character types \alib{characters;nchar},
 ///                \alib{characters;wchar} exist. Those have corresponding alias type definition
-///                shortcuts \alib{ISReadLineN} and \alib{ISReadLineW} in namespace #alib.
+///                shortcuts \alib{IStreamLineN} and \alib{IStreamLineW} in namespace #alib.
 //==================================================================================================
 template<typename TChar>
-struct TISReadLine
+struct TIStreamLine
 {
     /// The input stream to read from.
     ::std::basic_istream<TChar>*    IStream;
@@ -101,7 +104,7 @@ struct TISReadLine
     /// If \c CurrentData::KEEP, the target \c %AString is not cleared before the read operation.
     lang::CurrentData               TargetData;
 
-    /// The amount of characters that the buffer is increased while reading parts of the line.
+    /// The number of characters that the buffer is increased while reading parts of the line.
     integer                         BufferSize;
 
     /// The maximum length of a single line to be read. Longer lines get truncated.
@@ -112,27 +115,24 @@ struct TISReadLine
     /// \c false
     bool                            IsEOF                                                   = false;
 
-    //==============================================================================================
     /// Constructor.
     ///
     /// @param istream       The input stream to read from.
     /// @param targetData    If \c CurrentData::Keep, the target \c %AString is not cleared
     ///                      before the read operation is performed.
     ///                      Defaults to \c CurrentData::Clear.
-    /// @param bufferSize    The amount of characters that the buffer is increased while reading
+    /// @param bufferSize    The number of characters that the buffer is increased while reading
     ///                      parts of the line. Defaults to 256 characters.
     /// @param maxLineWidth  The maximum length of a single line to be read. Longer lines
     ///                      get truncated. Defaults to 4096 characters.
-    //==============================================================================================
-    TISReadLine( ::std::basic_istream<TChar>*   istream,
-                 lang::CurrentData              targetData   = lang::CurrentData::Clear,
-                 integer                        bufferSize   = 256,
-                 integer                        maxLineWidth = 4096                      )
+    TIStreamLine( ::std::basic_istream<TChar>*   istream,
+                  lang::CurrentData              targetData   = lang::CurrentData::Clear,
+                  integer                        bufferSize   = 256,
+                  integer                        maxLineWidth = 4096                      )
     : IStream     (istream),
       TargetData  (targetData),
       BufferSize  (bufferSize),
-      MaxLineWidth(maxLineWidth)
-    {}
+      MaxLineWidth(maxLineWidth)                                                                  {}
 };
 
 
@@ -143,14 +143,13 @@ struct TISReadLine
 #endif
 
 /// Specialization of the type trait \alib{strings;AppendableTraits} for type
-/// \alib{strings::compatibility::std;TISReadLine}.
+/// \alib{strings::compatibility::std;TIStreamLine}.
 /// @tparam TChar The <b>AString</b>'s \ref alib_characters_chars "character type".
-template<typename TChar>  struct AppendableTraits<compatibility::std::TISReadLine<TChar>, TChar, lang::HeapAllocator>
+template<typename TChar>  struct AppendableTraits<compatibility::std::TIStreamLine<TChar>, TChar, lang::HeapAllocator>
 {
-    //==============================================================================================
     /// Reads a line from a text file and appends the contents to \p{target}.
     /// If the end of the input stream was reached, field
-    /// \alib{strings::compatibility::std::TISReadLine;IsEOF} of parameter \p{reader} will be set
+    /// \alib{strings::compatibility::std::TIStreamLine;IsEOF} of parameter \p{reader} will be set
     /// to \c true, which indicates that the next read operation would fail if it was performed.
     ///
     /// \note
@@ -159,218 +158,356 @@ template<typename TChar>  struct AppendableTraits<compatibility::std::TISReadLin
     ///
     /// @param  target     The AString object to read into.
     /// @param  reader     The object holding the \b std::istream and some parameters.
-    //==============================================================================================
     void operator()( TAString<TChar, lang::HeapAllocator>&           target,
-                     const compatibility::std::TISReadLine<TChar>&   reader  );
+                     const compatibility::std::TIStreamLine<TChar>&   reader  );
 };
 
 #if DOXYGEN
-} 
+}
 #endif
+
 
 namespace compatibility { namespace std {
 
 //==================================================================================================
-/// This class is a simple helper-class that converts strings of the
-/// \alib{characters;character;default character type} to narrow strings as expected by
-/// \c std::ostream objects.
+/// This class writes \alib_strings into instances of
+/// <c>std::basic_ostream<TChar></c>. The features of this type are:
+/// - Supports writing into narrow and wide output streams (<c>std::ostream</c> and
+///   <c>std::wostream</c>). The character width is controlled with the template parameter \p{TChar}.
+/// - Accepts \alib strings of all three character widths (narrow, wide, and
+///   \alib{characters;xchar;strange} strings).
+/// - The template parameter \p{TSynced} allows syncing the output in multithreaded applications
+///   to avoid interleaving of output.
+///   For this, the C++ 20 mechanism provided with type
+///   \https{std::osyncstream,https://en.cppreference.com/w/cpp/io/basic_osyncstream} is used.
+///   This allows syncing across C++ libraries that rely on the same standard.<br>
+///   If syncing is enabled, output is emitted to the stream only at the moment that the
+///   corresponding instance of this class is destructed.
+/// - Optionally, this type converts non-conform newline sequences to the desired coding.
+///   For example, if the given strings contain WindowsOS newline codes <c>"\r\n"</c>, on GNU/Linux
+///   platforms, just <c>"\n"</c> may be written. This feature is controlled by the template
+///   parameter \p{TTargetLF}.
+/// - The type counts the number of printed characters with its overloaded method #Write.
+///   "Printed" here means that it is how many characters in a <em>UTF8-enconding</em>
+///   would effectively be shown, if printed.
+/// - The type uses \alib allocators for memory management.
 ///
-/// The basic goal of this class is to avoid preprocessor directives for code selection when
-/// the default string-type of \alib uses wide characters.
+/// It is recommended that only short-living, local instances of this class are created.
+/// This is especially important in the case that parameter \p{TSynced} is \c true.
+/// In this mode, this type follows the
+/// \https{RAII idiom,https://en.cppreference.com/w/cpp/language/raii} just as its then
+/// available member <c>std::osyncstream</c> does.
 ///
-/// For example, to write string data into a file, the following approach is advised:
+/// \note As of 10/2025, some toolchains might not support the C++20 output stream synchronization,
+///       yet. In this case, the code compiles without using it, and the output is not synchronized
+///       and may interleave.<br>
+///       Clang's standard library \e libc++ (which can be activated with
+///       \alib with CMake variable \ref alib_manual_build_cmake_3 "ALIB_CLANG_USE_LIBCPP"),
+///       in its version \b 200100 supports class <c>std::osyncstream</c> only if the compiler
+///       flag <c>-fexperimental-library</c> is provided.
 ///
-/// 1. Create an output stream of (derived) type \c std::ostream.
-/// 2. Create an object of this class and pass the output stream via #SetStream.
-/// 3. Write string data stored in objects of platform-dependent type alias \ref alib::AString
-///    by passing those to method #Write.
-///
-/// Within step 3, the compiler chooses the right overloaded version of the method #Write.
-/// Hence, the potentially necessary conversion of the string data is done transparently and only
-/// if needed.
-///
-/// \see Class \alib{strings::compatibility::std;StringReader}.
+/// @tparam TChar      The character type of the target <c>std::basic_ostream</c>.
+///                    Defaults to \alib{nchar} (which effectively is C++ \c char).
+/// @tparam TAllocator The \alib{lang;Allocator;allocator type} to use with
+///                    <c>std::osyncstream</c> (if \p{TSynced} is \c true), and with temporary
+///                    character conversion buffers in case those need to exceed 4kB.<br>
+///                    Defaults to \alib{lang::HeapAllocator}.
+/// @tparam TSynced    Determines if the encapsulated <c>std::ostream</c> should be synchronized
+///                    on writing. If so, the C++ 20 mechanism provided with
+///                    \https{std::osyncstream,https://en.cppreference.com/w/cpp/io/basic_osyncstream}
+///                    is used, as well as \alib's built-in mechanism provided with the global mutex
+///                    \alib{threads;STD_IOSTREAMS_LOCK}.
+///                    Both mechanics togoether allows syncing across C++ libraries and in
+///                    respect to ouput generated with \alib, synchronization between
+///                    <c>std::cout</c> and <c>std::cerr</c>.
+/// @tparam TTargetLF  Determines whether non-conform line-feeds are adjusted.
+///                    The default value is \alib{lang;LineFeeds;Platform}, which converts all
+///                    line-feeds to the platforms' standard. Values \alib{lang;LineFeeds;Unix}
+///                    and \alib{lang;LineFeeds;WindowsOS} can be used to force conversion
+///                    to a different standard. Finally, \alib{lang;LineFeeds;Ignore} disables
+///                    the detection and conversion of line-feed codes.
 //==================================================================================================
-class StringWriter
-{
-    protected:
-        /// The string buffer used for conversion.
-        NAString                converter;
+template< typename        TChar     = nchar,
+          typename        TAllocator= lang::HeapAllocator,
+          bool            TSynced   = false,
+          lang::LineFeeds TTargetLF = lang::LineFeeds::Platform >
+requires (::std::is_same_v<TChar, char> || ::std::is_same_v<TChar, wchar_t>)
+class OStreamWriter : public     lang::AllocatorMember<TAllocator> {
+  protected:
+    /// The type of the base class that stores the allocator.
+    using allocBase=   lang::AllocatorMember<TAllocator>;
 
-    public:
-        /// The output stream as provided with #SetStream. Will be set to the \c std::cout,
-        /// respectively \c std::wcout in the constructor.
-        ::std::ostream*         ostream;
+  public:
+    static constexpr bool Synced       = TSynced;    ///< Exposes template parameter \p{TSynced}.
+    using                 CharType     = TChar;      ///< Exposes template parameter \p{TChar}.
+    using                 AllocatorType= TAllocator; ///< Exposes template parameter \p{TAllocator}.
+    static constexpr
+         lang::LineFeeds  TargetLF     = TTargetLF;  ///< Exposes template parameter \p{TAdjustLF}.
 
-    public:
-        //==========================================================================================
-        /// Constructor.
-        /// Invokes #SetStream passing \c std::cout.
-        //==========================================================================================
-                        StringWriter()
-        : ostream( &::std::cout )
-        {}
+    /// This flag may be set after construction to disable the syncing mechanics, even if
+    /// the template parameter \p{TSynced} is set. This is useful, for example, if a using code
+    /// detects recursion, which is not allowed with \c std::osyncstream and
+    /// \alib{threads;STD_IOSTREAMS_LOCK}.
+    bool                  DisableSync                                                        =false;
+
+  protected:
+    #if defined(__cpp_lib_syncbuf) || DOXYGEN
+    /// If unsynced, this member holds the output stream as provided with construction.
+    /// In the synced case, this stores a <c>std::basic_osyncstream</c> which wraps the given
+    /// output stream.
+    ::std::conditional_t<TSynced && !ALIB_SINGLE_THREADED,
+        ::std::basic_osyncstream< TChar,
+                                  ::std::char_traits<TChar>,
+                                  lang::StdAllocator<TChar,TAllocator>>,
+        ::std::basic_ostream<TChar>& >                                                ostream;
+    #else
+        ::std::basic_ostream<TChar>&                                                  ostream;
+    #endif
+
+    /// Implementation of overloaded methods #Write.
+    /// @param      src          The string to write.
+    /// @param[out] printedWidth If given, the output width of \p{src} when it was printed
+    ///                          is returned. (See the class description for further information.)
+    /// @tparam TSrc  The character type of the source string.
+    template<typename TSrc>
+    void             doWrite( const TString<TSrc>& src, integer* printedWidth ) {
+        integer         lineStart= 0;
+        integer         lineEnd  = 0;
+        if ( printedWidth )
+            *printedWidth= 0;
+        bool done= TTargetLF != lang::LineFeeds::Ignore ? false : true;
+
+        #if !ALIB_SINGLE_THREADED  && (defined(__cpp_lib_syncbuf) || DOXYGEN )
+        // create an empty owner and fill it in case that a) this object is synced, and b) the
+        // encapsulated ostream is either std::cout or std::cerr.
+        lang::Owner<Lock, true>  ioLocker( nullptr  ALIB_COMMA_CALLER_PRUNED );
+        if constexpr (TSynced)
+            if ( !DisableSync
+                 && (   ostream.get_wrapped() == ::std::cout.rdbuf()
+                     || ostream.get_wrapped() == ::std::cerr.rdbuf() )  )
+                ioLocker.Set( &threads::STD_IOSTREAMS_LOCK );
+        #endif
+
+        for (;;) {
+            if constexpr ( TTargetLF != lang::LineFeeds::Ignore ) {
+                lineEnd= src.IndexOf('\n', lineStart);
+                if (lineEnd == -1) {
+                    lineEnd= src.Length();
+                    done= true;
+            }   }
+            else
+                lineEnd= src.Length();
+
+            integer writeEnd= lineEnd;
+            if (src.CharAt(writeEnd - 1) == '\r' )
+                --writeEnd;
+            if (writeEnd > lineStart) {
+                if constexpr (::std::is_same_v<TChar, TSrc>) {
+                    if ( printedWidth )
+                        *printedWidth= TString<TChar>( src.Buffer() + lineStart, writeEnd - lineStart ).WStringLength();
+                    ostream.write( src.Buffer() + lineStart, writeEnd - lineStart );
+                } else {
+
+                    TLocalString<TChar, 4*1024, TAllocator> converter(allocBase::GetAllocator());
+                    converter.DbgDisableBufferReplacementWarning();
+                    TString<TSrc> line(src.Buffer() + lineStart, writeEnd - lineStart);
+                    converter << line;
+                    ostream.write( converter.Buffer(), converter.Length() );
+                    if ( printedWidth ) {
+                        if constexpr (::std::is_same_v<TChar, wchar>)
+                            *printedWidth= converter.Length();
+                        else
+                            *printedWidth= line.Length();
+            }   }   }
+
+            if ( done )
+                break;
+
+            // write the line feed as specified by TTargetLF
+            if constexpr ( TTargetLF == lang::LineFeeds::Unix ) {
+                if constexpr ( ::std::is_same_v<TChar, nchar> ) ostream.write(    "\n", 1 );
+                else                                            ostream.write(   L"\n", 1 );
+            } else if constexpr ( TTargetLF == lang::LineFeeds::WindowsOS ) {
+                if constexpr ( ::std::is_same_v<TChar, nchar> ) ostream.write(  "\r\n", 2 );
+                else                                            ostream.write( L"\r\n", 2 );
+            }
+            lineStart= lineEnd + 1;
+    }   }
+
+  public:
+    /// Constructor accepting the destination stream.
+    /// @param os        The output-stream to use.
+    OStreamWriter(::std::basic_ostream<TChar> &os)
+    : ostream( os )                                                                               {}
+
+    #if !defined(__cpp_lib_syncbuf) || ALIB_SINGLE_THREADED || DOXYGEN
+        /// Constructor accepting the destination stream, as well as an allocator to use.
+        /// @param os    The output-stream to use.
+        /// @param alloc The allocator to use for the internal buffers.
+        OStreamWriter(::std::basic_ostream<TChar>& os, TAllocator& alloc)
+        : allocBase(alloc)
+        , ostream( os )                                                                   {}
+    #else
+    OStreamWriter(::std::basic_ostream<TChar>& os, TAllocator& alloc)
+    requires (!TSynced)
+    : allocBase(alloc)
+    , ostream( os )                                                                               {}
+
+    OStreamWriter(::std::basic_ostream<TChar>& os, TAllocator& alloc)
+    requires (TSynced)
+    : allocBase{alloc}
+    , ostream  { os.rdbuf() , lang::StdAllocator<TChar, TAllocator>(alloc) }                      {}
+    #endif
+
+    /// Returns the output stream given with construction, or, if template parameter \p{TSynced}
+    /// is \c true, that output stream wrapped in a <c>std::basic_osyncstream</c>.
+    /// In the latter case, the sync-stream is destructed - and data is written - only with the
+    /// destruction of this instance.
+    /// @return The output stream of this writer.
+    ::std::ostream& GetStream()                                                  { return ostream; }
+
+    /// Writes the given narrow string to the stream.
+    ///
+    /// \note
+    ///   The output parameter \p{printedWidth}  returns the length of the given string, when
+    ///   it was converted to wide string. This is done, even if template parameter \p{TChar}
+    ///   is narrow and consequently no conversion was performed.<br>
+    ///   The value is useful to callers when the "real" output width is needed, i.e., when
+    ///   the output text is formatted in tabulator columns or tables.
+    ///   Of course, in some locales, this might still not be the correct output width because even
+    ///   uni-code characters are not guaranteed to represent exactly one printable character.
+    ///   But still, this value is already a much better approximation than the length of the
+    ///   given narrow string.
+    ///
+    /// @param      src          The string to write.
+    /// @param[out] printedWidth If given, the width if \p{src} was printed is returned.
+    ///                          See the note above. If not given, the method might execute
+    ///                          slightly faster.
+    void Write( const NString& src, integer* printedWidth= nullptr ) { doWrite(src, printedWidth); }
+
+    /// See sibling method #Write( const NString& src, integer* printedWidth ).
+    /// @param      src          The wide string to write.
+    /// @param[out] printedWidth If given, the width if \p{src} was printed is returned.
+    ///                          See the note above. If not given, the method might execute
+    ///                          slightly faster.
+    void Write( const WString& src, integer* printedWidth= nullptr ) { doWrite(src, printedWidth); }
+
+    /// See sibling method #Write( const NString& src, integer* printedWidth ).
+    /// @param      src          The strange string to write.
+    /// @param[out] printedWidth If given, the width if \p{src} was printed is returned.
+    ///                          See the note above. If not given, the method might execute
+    ///                          slightly faster.
+    void Write( const XString& src, integer* printedWidth= nullptr ) { doWrite(src, printedWidth); }
+
+    /// Write the given character repeatedly to the stream.
+    /// @param fillChar The character to write.
+    /// @param count    The number of characters to write.
+    void            Fill( const TChar fillChar, integer count )  {
+        characters::AlignedCharArray<TChar, 8*sizeof(void*)> alc( fillChar );
+        while (count >= alc.Length() ) {
+            ostream.write(alc.Buffer(), alc.Length());
+            count-= alc.Length();
+        }
+
+        if (count > 0)
+            ostream.write(alc.Buffer(), count);
+    }
 
 
-        //==========================================================================================
-        /// Sets the output stream.
-        ///
-        /// @param os  Pointer to the output stream to write to.
-        //==========================================================================================
-        void            SetStream( ::std::ostream * os)                             { ostream= os; }
-
-        //==========================================================================================
-        /// Returns the output stream previously set with #SetStream.
-        ///
-        /// @return  The output stream set with #SetStream.
-        //==========================================================================================
-        ::std::ostream* GetStream()                                              { return ostream; }
-
-        //==========================================================================================
-        /// Write the given narrow string to the stream and return the length of the string given
-        /// if it was converted to wide characters.
-        ///
-        /// \note
-        ///  The return value is the length of the given string if it was converted to wide string,
-        ///  even though in this overloaded version it is unnecessary to be converted.
-        ///  This is useful to determine the "real" output width when an output text is formatted.
-        ///  Of course, in many locales, this is still not the real output width because even
-        ///  uni-code characters are not guaranteed to represent exactly one printable character.
-        ///  But still, this value is already a much better approximation than the length of the
-        ///  given narrow string.
-        ///
-        /// @param src  The string to write.
-        /// @return Returns the length of the given string as wide string.
-        //==========================================================================================
-        ALIB_DLL
-        integer         WriteAndGetWideLength( const NString& src );
-
-        //==========================================================================================
-        /// Write the given wide string to the stream and returns the length of the string given
-        /// @param src  The string to write.
-        /// @return Returns the length of the given wide string.
-        //==========================================================================================
-        ALIB_DLL
-        integer         WriteAndGetWideLength( const WString& src );
-
-        //==========================================================================================
-        /// Write the given narrow string to the stream.
-        /// @param src  The string to write.
-        //==========================================================================================
-        ALIB_DLL
-        void            Write( const NString& src );
-
-        //==========================================================================================
-        /// Write the given narrow character repeatedly to the stream.
-        /// @param fillChar The character to write.
-        /// @param count    The number of characters to write.
-        //==========================================================================================
-        ALIB_DLL
-        void            WriteChars( const nchar fillChar, integer count );
-
-        //==========================================================================================
-        /// Write the given wide string to the stream.
-        /// @param src  The string to write.
-        //==========================================================================================
-        ALIB_DLL
-        void            Write( const WString& src );
 };
+
+/// @param os The output-stream to use.
+template< typename        TChar     = nchar,
+          typename        TAllocator= lang::HeapAllocator,
+          bool            TSynced   = false,
+          lang::LineFeeds TTargetLF = lang::LineFeeds::Platform  >
+OStreamWriter(::std::basic_ostream<TChar>& os)
+-> OStreamWriter<nchar, lang::HeapAllocator, TSynced, TTargetLF>;
+
+/// C++17 Deduction Guide to construct the type \alib{strings::compatibility::std;OStreamWriter}.
+/// @param os        The output-stream to use.
+/// @param allocator The allocator to use for the internal buffers.
+template< typename        TChar     = nchar,
+          typename        TAllocator= lang::HeapAllocator,
+          bool            TSynced   = false,
+          lang::LineFeeds TTargetLF = lang::LineFeeds::Platform  >
+OStreamWriter(::std::basic_ostream<TChar>& os, TAllocator allocator)
+-> OStreamWriter<nchar, TAllocator, TSynced, TTargetLF>;
 
 //==================================================================================================
 /// This class is a helper-class that converts narrow string data read from an object of
 /// type \c std::istream to the \alib{characters;character;default character type}.
 ///
-/// \see Further explanations are given with sibling class
-///      \alib{strings::compatibility::std;StringWriter}.
+/// \see Class \alib{strings::compatibility::std;OStreamWriter}.
 //==================================================================================================
-class StringReader
+class IStreamReader
 {
-    protected:
-        /// The string buffer used for conversion.
-        NAString                                    converter;
+  protected:
+    /// The string buffer used for conversion.
+    NAString                                    converter;
 
-        /// The input stream as provided with #SetStream. Will be set to the \c std::cin,
-        /// respectively \c std::win in the constructor.
-        compatibility::std::TISReadLine<nchar>      readOp;
-
-
-    public:
-        //==========================================================================================
-        /// Constructor.Invokes #SetStream passing \c std::cin.
-        //==========================================================================================
-                            StringReader()
-        : readOp( &::std::cin )
-        {}
+    /// The input stream as provided with #SetStream. Will be set to the \c std::cin,
+    /// respectively \c std::win in the constructor.
+    compatibility::std::TIStreamLine<nchar>     readOp;
 
 
-        //==========================================================================================
-        /// Sets the input stream.
-        ///
-        /// @param is  Pointer to the input stream to read from to.
-        //==========================================================================================
-        void                SetStream( ::std::istream* is )                   { readOp.IStream= is;}
+  public:
+    /// Constructor.Invokes #SetStream passing \c std::cin.
+    IStreamReader()                                                      : readOp( &::std::cin )  {}
 
-        //==========================================================================================
-        /// Returns the input stream previously set with #SetStream.
-        ///
-        /// @return  The input stream set with #SetStream.
-        //==========================================================================================
-        ::std::istream*     GetStream()                                   { return readOp.IStream; }
+    /// Sets the input stream.
+    /// @param is  Pointer to the input stream to read from to.
+    void                SetStream( ::std::istream* is )                      { readOp.IStream= is; }
 
-        //==========================================================================================
-        /// Returns \c true if the input stream signaled its end, \c false otherwise.
-        ///
-        /// @return \c true if the input stream is known to be at its end, \c false otherwise.
-        //==========================================================================================
-        bool                IsEOF()                                         { return readOp.IsEOF; }
+    /// Returns the input stream previously set with #SetStream.
+    /// @return The input stream set with #SetStream.
+    ::std::istream*     GetStream()                                       { return readOp.IStream; }
+
+    /// Returns \c true if the input stream signaled its end, \c false otherwise.
+    /// @return \c true if the input stream is known to be at its end, \c false otherwise.
+    bool                IsEOF()                                             { return readOp.IsEOF; }
 
 
-        //==========================================================================================
-        /// Reads one line of text from the input stream into a narrow string.
-        ///
-        /// @param target  The storage buffer for the string to read. This string will be cleared
-        ///                independent of the availability of input data.
-        //==========================================================================================
-        void                Read( NAString& target )
-        {
-            target.Reset( readOp );
-        }
+    /// Reads one line of text from the input stream into a narrow string.
+    /// @param target  The storage buffer for the string to read. This string will be cleared
+    ///                independent of the availability of input data.
+    void                Read( NAString& target )                         { target.Reset( readOp ); }
 
-        //==========================================================================================
-        /// Reads one line of text from the internal input stream into a wide string.
-        ///
-        /// @param target  The storage buffer for the string to read. This string will be cleared
-        ///                independent of the availability of input data.
-        //==========================================================================================
-        void                Read( WAString& target )
-        {
-            target.Reset();
-            converter.Reset( readOp );
-            target << converter;
-        }
+    /// Reads one line of text from the internal input stream into a wide string.
+    /// @param target  The storage buffer for the string to read. This string will be cleared
+    ///                independent of the availability of input data.
+    void                Read( WAString& target ) {
+        target.Reset();
+        converter.Reset( readOp );
+        target << converter;
+    }
 };
 
 }}} // namespace alib[::strings::compatibility::std]
 
 /// Type alias in namespace \b alib.
-using  ISReadLine     =   strings::compatibility::std::TISReadLine<character>;
+using  IStreamLine     =   strings::compatibility::std::TIStreamLine<alib::character>;
 
 /// Type alias in namespace \b alib.
-using  ISReadLineN    =   strings::compatibility::std::TISReadLine<char>;
+using  IStreamLineN    =   strings::compatibility::std::TIStreamLine<alib::nchar>;
 
 /// Type alias in namespace \b alib.
-using  ISReadLineW    =   strings::compatibility::std::TISReadLine<wchar_t>;
+using  IStreamLineW    =   strings::compatibility::std::TIStreamLine<alib::wchar>;
 
 /// Type alias in namespace \b alib.
-using  StringWriter   =   strings::compatibility::std::StringWriter;
+template< typename        TChar     = nchar,
+          typename        TAllocator= lang::HeapAllocator,
+          bool            TSynced   = false,
+          lang::LineFeeds TTargetLF = lang::LineFeeds::Platform >
+using OStreamWriter=    strings::compatibility::std::OStreamWriter<TChar, TAllocator, TSynced,
+                                                                                         TTargetLF>;
 
 /// Type alias in namespace \b alib.
-using  StringReader   =   strings::compatibility::std::StringReader;
+using IStreamReader=    strings::compatibility::std::IStreamReader;
 
-
-// #################################################################################################
-// ####################           std::ostream& operator<<           ###############################
-// #################################################################################################
+//##################################################################################################
+//##################################### std::ostream& operator<< ###################################
+//##################################################################################################
 #if DOXYGEN
  namespace strings { namespace compatibility { namespace std {
 #else
@@ -380,14 +517,13 @@ using  StringReader   =   strings::compatibility::std::StringReader;
 //==================================================================================================
 /// Copies the contents of the given \b %NString to into the \c std::ostream given as reference.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
 //==================================================================================================
 ALIB_EXPORT
-inline std::ostream& operator<<( std::ostream& stream, const alib::NString& string )
-{
+inline std::ostream& operator<<( std::ostream& stream, const alib::NString& string ) {
     if ( string.IsNotEmpty() )
         stream.write( string.Buffer(), string.Length() );
     return stream;
@@ -396,7 +532,7 @@ inline std::ostream& operator<<( std::ostream& stream, const alib::NString& stri
 //==================================================================================================
 /// Copies the contents of the given \b %NString to into the \c std::ostream given as pointer.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -411,7 +547,7 @@ inline std::ostream* operator<<( std::ostream* stream, const alib::NString& stri
 //==================================================================================================
 /// Copies the contents of the given \b %WString to into the \c std::ostream given as reference.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -422,7 +558,7 @@ ALIB_DLL std::ostream& operator<<( std::ostream& stream, const alib::WString& st
 //==================================================================================================
 /// Copies the contents of the given \b %WString to into the \c std::ostream given as pointer.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -442,10 +578,10 @@ inline   std::ostream* operator<<( std::ostream* stream, const alib::WString& st
 ///   to an string of \c wchar_t characters that the output stream accepts. In case that
 ///   the given \p{string} is larger, a dynamic memory allocation has to be made.<br>
 ///   In performance-critical code that writes larger string data, a custom conversion method,
-///   that for example reuses a buffer, may be appropriate.
+///   that, for example, reuses a buffer, may be appropriate.
 ///
 /// <p>
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -456,10 +592,10 @@ ALIB_DLL std::wostream& operator<<( std::wostream& stream, const alib::NString& 
 //==================================================================================================
 /// Copies the contents of the given \b %NString to into the \c std::wostream given as pointer.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
-/// \see   The notes on memory efficiency, documented with operator
-///        \alib{strings::compatibility::std;operator<<(std::wostream&,const NString&)}
-///        which this operator uses inline.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \see The notes on memory efficiency, documented with operator
+///      \alib{strings::compatibility::std;operator<<(std::wostream&,const NString&)}
+///      which this operator uses inline.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -474,16 +610,14 @@ inline   std::wostream* operator<<( std::wostream* stream, const alib::NString& 
 //==================================================================================================
 /// Copies the contents of the given \b %WString to into the \c std::wostream given as reference.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
 //==================================================================================================
 ALIB_EXPORT
-inline std::wostream& operator<<( std::wostream& stream, const alib::WString& string )
-{
-    if ( string.IsNotEmpty() )
-    {
+inline std::wostream& operator<<( std::wostream& stream, const alib::WString& string ) {
+    if ( string.IsNotEmpty() ) {
         #if ALIB_CHARACTERS_NATIVE_WCHAR
             stream.write( string.Buffer(), string.Length() );
         #else
@@ -498,7 +632,7 @@ inline std::wostream& operator<<( std::wostream& stream, const alib::WString& st
 //==================================================================================================
 /// Copies the contents of the given \b %WString to into the \c std::wostream given as pointer.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The ostream object to write the given  String into.
 /// @param  string The String to write into the given ostream.
 /// @returns The ostream to allow concatenated operations.
@@ -511,18 +645,17 @@ inline std::wostream* operator<<( std::wostream* stream, const alib::WString& st
 }
 
 //==================================================================================================
-/// Clears the given \b %NAString and extracts data from the std::istream into it. The extractions
+/// Clears the given \b %NAString and extracts data from the std::istream into it. The extraction
 /// ends with either the end of the std::istream or when reading a newline character.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The istream object to extract data from.
 /// @param  string The AString to receive data.
 /// @returns The ostream to allow concatenated operations.
 //==================================================================================================
 ALIB_EXPORT
-inline std::istream& operator>>( std::istream& stream, alib::NAString& string )
-{
-    string << alib::strings::compatibility::std::TISReadLine<alib::nchar>( &stream,
+inline std::istream& operator>>( std::istream& stream, alib::NAString& string ) {
+    string << alib::strings::compatibility::std::TIStreamLine<alib::nchar>( &stream,
                                                                    alib::lang::CurrentData::Clear );
     return stream;
 }
@@ -531,18 +664,17 @@ inline std::istream& operator>>( std::istream& stream, alib::NAString& string )
 /// Clears the given \b %NAString and extracts data from the std::istream into it. The extractions
 /// ends with either the end of the std::istream or when reading a newline character.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The istream object to extract data from.
 /// @param  string The AString to receive data.
 /// @returns The ostream to allow concatenated operations.
 //==================================================================================================
 ALIB_EXPORT
-inline std::istream* operator>>( std::istream* stream, alib::NAString& string )
-{
+inline std::istream* operator>>( std::istream* stream, alib::NAString& string ) {
     ALIB_ASSERT_WARNING( stream != nullptr, "STRINGS", "Given std::IStream is nullptr" )
 
     if (stream != nullptr)
-        string << alib::strings::compatibility::std::TISReadLine<alib::nchar>( stream,
+        string << alib::strings::compatibility::std::TIStreamLine<alib::nchar>( stream,
                                                                    alib::lang::CurrentData::Clear );
     return stream;
 }
@@ -560,22 +692,21 @@ inline std::istream* operator>>( std::istream* stream, alib::NAString& string )
 ///   that, for example, reuses a buffer may be appropriate.
 ///
 /// <p>
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 /// @param  stream The istream object to extract data from.
 /// @param  string The AString to receive data.
 /// @returns The ostream to allow concatenated operations.
 //==================================================================================================
 ALIB_EXPORT
 inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& stream,
-                                                alib::WAString&              string )
-{
+                                                alib::WAString&              string ) {
     #if ALIB_CHARACTERS_NATIVE_WCHAR
-        string << alib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+        string << alib::strings::compatibility::std::TIStreamLine<wchar_t>( &stream,
                                                                    alib::lang::CurrentData::Clear );
     #else
         alib::XLocalString<1024> converter;
         converter.DbgDisableBufferReplacementWarning();
-        converter << alib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+        converter << alib::strings::compatibility::std::TIStreamLine<wchar_t>( &stream,
                                                                    alib::lang::CurrentData::Keep );
         string.Reset( converter );
     #endif
@@ -586,7 +717,7 @@ inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& str
 /// Clears the given \b %WAString and extracts data from the std::istream into it. The extractions
 /// ends with either the end of the std::istream or when reading a newline character.
 ///
-/// \note  Unlike this documentation indicates, the operator is defined in the global namespace.
+/// \note Unlike this documentation indicates, the operator is defined in the global namespace.
 ///
 /// \see   The notes on memory efficiency, documented with operator
 ///        \alib{strings::compatibility::std;operator>>(std::basic_istream<wchar_t>&, WAString& )}
@@ -597,8 +728,7 @@ inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& str
 //==================================================================================================
 ALIB_EXPORT
 inline std::basic_istream<wchar_t>* operator>>( std::basic_istream<wchar_t>* stream,
-                                                alib::WAString& string )
-{
+                                                alib::WAString& string ) {
     ALIB_ASSERT_WARNING ( stream != nullptr, "STRINGS", "Given std::istream is nullptr" )
 
     if (stream != nullptr)
@@ -622,8 +752,7 @@ ALIB_EXPORT
 template<typename TAppendable>
 requires (     alib::strings::IsAppendable<TAppendable,alib::nchar,alib::lang::HeapAllocator>
            && !alib::strings::compatibility::std::SuppressStdOStreamOpTraits<TAppendable>::value )
-std::ostream& operator<<( std::ostream& stream, const TAppendable& appendable )
-{
+std::ostream& operator<<( std::ostream& stream, const TAppendable& appendable ) {
     alib::NString256 buf;
     buf.DbgDisableBufferReplacementWarning();
 
@@ -647,8 +776,7 @@ ALIB_EXPORT
 template<typename TAppendable>
 requires (     alib::strings::IsAppendable<TAppendable,alib::nchar,alib::lang::HeapAllocator>
            && !alib::strings::compatibility::std::SuppressStdOStreamOpTraits<TAppendable>::value )
-std::ostream* operator<<( std::ostream* stream, const TAppendable& appendable )
-{
+std::ostream* operator<<( std::ostream* stream, const TAppendable& appendable ) {
     if (stream != nullptr)
         operator<<( * stream, appendable );
     return stream;
@@ -669,8 +797,7 @@ ALIB_EXPORT
 template<typename TAppendable>
 requires(     alib::strings::IsAppendable<TAppendable,alib::wchar,alib::lang::HeapAllocator>
           && !alib::strings::compatibility::std::SuppressStdOStreamOpTraits<TAppendable>::value )
-std::wostream& operator<<( std::wostream& stream, const TAppendable& appendable )
-{
+std::wostream& operator<<( std::wostream& stream, const TAppendable& appendable ) {
     #if ALIB_CHARACTERS_NATIVE_WCHAR
         alib::WLocalString<256> buf;
     #else
@@ -685,7 +812,7 @@ std::wostream& operator<<( std::wostream& stream, const TAppendable& appendable 
 
 //==================================================================================================
 /// Copies the contents of the given \alib{strings;AppendableTraits;appendable type} the \c std::ostream
-/// given as pointer.
+/// given as a pointer.
 ///
 /// \note Unlike this documentation indicates, this operator is defined in the global namespace.
 ///
@@ -699,8 +826,7 @@ ALIB_EXPORT
 template<typename TAppendable, typename TAllocator>
 requires (    alib::strings::IsAppendable<TAppendable,alib::wchar,alib::lang::HeapAllocator>
           && !alib::strings::compatibility::std::SuppressStdOStreamOpTraits<TAppendable>::value )
-std::wostream* operator<<( std::wostream* stream, const TAppendable& appendable )
-{
+std::wostream* operator<<( std::wostream* stream, const TAppendable& appendable ) {
     if (stream != nullptr)
         operator<<( * stream, appendable );
     return stream;
@@ -716,11 +842,11 @@ namespace alib {  namespace strings { // the real namespace
 #endif
 
 
-extern template ALIB_DLL   void strings::AppendableTraits<strings::compatibility::std::TISReadLine<char   >, char   , lang::HeapAllocator>
-        ::operator()( TAString<char   , lang::HeapAllocator>& target, const strings::compatibility::std::TISReadLine<char   >&  reader );
+extern template ALIB_DLL   void strings::AppendableTraits<strings::compatibility::std::TIStreamLine<char   >, char   , lang::HeapAllocator>
+        ::operator()( TAString<char   , lang::HeapAllocator>& target, const strings::compatibility::std::TIStreamLine<char   >&  reader );
 
-extern template ALIB_DLL   void strings::AppendableTraits<strings::compatibility::std::TISReadLine<wchar_t>, wchar_t, lang::HeapAllocator>
-        ::operator()( TAString<wchar_t, lang::HeapAllocator>& target, const strings::compatibility::std::TISReadLine<wchar_t>&  reader );
+extern template ALIB_DLL   void strings::AppendableTraits<strings::compatibility::std::TIStreamLine<wchar_t>, wchar_t, lang::HeapAllocator>
+        ::operator()( TAString<wchar_t, lang::HeapAllocator>& target, const strings::compatibility::std::TIStreamLine<wchar_t>&  reader );
 
 #if DOXYGEN
     }} // namespace alib[::strings::APPENDABLES]
@@ -742,6 +868,3 @@ ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::wstring)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u8string)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u16string)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u32string)
-
-
-

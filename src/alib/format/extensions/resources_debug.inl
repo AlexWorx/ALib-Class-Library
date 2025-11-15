@@ -38,4 +38,3 @@ AString DbgDump( std::vector<std::tuple<NString, NString, String, integer>>& lis
 } // namespace [alib::enumrecords::bootstrap]
 
 #endif // ALIB_DEBUG_RESOURCES
-

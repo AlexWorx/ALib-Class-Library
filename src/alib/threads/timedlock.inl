@@ -8,7 +8,7 @@
 #if !ALIB_SINGLE_THREADED
 ALIB_EXPORT namespace alib {  namespace threads {
 
-// =================================================================================================
+//==================================================================================================
 /// This class is a simple wrapper around C++ standard library type \c std::timed_mutex.
 /// Thus, it is used to implement <em>mutual exclusive access</em> to resources by protecting
 /// critical code sections from being executed in parallel in concurrent threads.<br>
@@ -37,9 +37,9 @@ ALIB_EXPORT namespace alib {  namespace threads {
 /// This type is not available if the compiler-symbol \ref ALIB_SINGLE_THREADED is set.
 ///
 /// @see
-///  - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
-///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
-// =================================================================================================
+///   - Chapter \ref alib_threads_locks of the Programmer's Manual of the module \alib_threads_nl.
+///   - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+//==================================================================================================
 class TimedLock
 #if ALIB_DEBUG_CRITICAL_SECTIONS
 : public lang::DbgCriticalSections::AssociatedLock
@@ -56,19 +56,12 @@ class TimedLock
   #endif
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Destructor. With debug-compilations, asserts that this lock is not acquired.
-        ~TimedLock() override
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
+    ALIB_DLL virtual bool DCSIsAcquired()                                            const override;
 
-        /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
-        ALIB_DLL virtual bool DCSIsAcquired()                                        const override;
-
-        /// @return \c true if the lock is shared-acquired (by at least any thread).
-        ///            Otherwise, returns \c false.
-        ALIB_DLL virtual bool DCSIsSharedAcquired()                                  const override;
-    #elif ALIB_DEBUG
-        ~TimedLock()
-        { Dbg.AssertNotOwned( ALIB_CALLER, ALIB_CALLER, "Destructing acquired lock" ); }
+    /// @return \c true if the lock is shared-acquired (by at least any thread).
+    ///            Otherwise, returns \c false.
+    ALIB_DLL virtual bool DCSIsSharedAcquired()                                      const override;
     #endif
 
   #if ALIB_DEBUG || DOXYGEN
@@ -167,5 +160,3 @@ using     TimedLock= threads::TimedLock;
 
 } // namespace [alib]
 #endif // !ALIB_SINGLE_THREADED
-
-

@@ -35,7 +35,7 @@ ALIB_EXPORT namespace alib {  namespace time {
 //==================================================================================================
 class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 {
-    public:
+  public:
 
 //! @cond NO_DOX
 // doxygen bug: generates "return type not documented"
@@ -43,34 +43,25 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
         using  TimePointBase::TimePointBase;
 //! @endcond
 
-    // #############################################################################################
-    // Conversion to time platform/language specific values
-    // #############################################################################################
+  //################################################################################################
+  // Conversion to time platform/language specific values
+  //################################################################################################
 
-        //==========================================================================================
-        /// Converts the internal value into seconds since January 1, 1970, 00:00:00 GMT.
-        /// The conversion is dependent on time zone and system clock setting of the host.
-        ///
-        /// @return Seconds in the epoch.
-        //==========================================================================================
-        time_t      InEpochSeconds()    const
-        {
-            return std::chrono::system_clock::to_time_t( stamp );
-        }
+    /// Converts the internal value into seconds since January 1, 1970, 00:00:00 GMT.
+    /// The conversion is dependent on time zone and system clock setting of the host.
+    ///
+    /// @return Seconds in the epoch.
+    time_t      InEpochSeconds()     const { return std::chrono::system_clock::to_time_t( stamp ); }
 
 
-        //==========================================================================================
-        /// Static method that creates a \b %DateTime object representing the given system
-        /// point in time measured in seconds since January 1st 1970, 00:00:00 GMT.
-        ///
-        /// @param epochSeconds The milliseconds in the epoch to convert.
-        /// @return A time stamp object
-        //==========================================================================================
-        static
-        DateTime    FromEpochSeconds ( time_t epochSeconds )
-        {
-            return DateTime( std::chrono::system_clock::from_time_t( epochSeconds ) );
-        }
+    /// Static method that creates a \b %DateTime object representing the given system
+    /// point in time measured in seconds since January 1st 1970, 00:00:00 GMT.
+    ///
+    /// @param epochSeconds The milliseconds in the epoch to convert.
+    /// @return A time stamp object
+    static
+    DateTime    FromEpochSeconds ( time_t epochSeconds )
+    { return DateTime( std::chrono::system_clock::from_time_t( epochSeconds ) ); }
 
 
         #if defined (_WIN32)
@@ -156,66 +147,36 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
         #endif
 
 
-        //==========================================================================================
-        /// Equal to operator.
-        /// @param other The time stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator==( const DateTime& other )                                        const
-        {
-            return stamp == other.stamp;
-        }
+    /// Equal to operator.
+    /// @param other The time stamp to compare.
+    /// @return The result of the comparison.
+    bool   operator==( const DateTime& other )                const { return stamp == other.stamp; }
 
 
-        //==========================================================================================
-        /// Not equal to operator.
-        /// @param other The time stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator!=( const DateTime& other )                                        const
-        {
-            return stamp != other.stamp;
-        }
+    /// Not equal to operator.
+    /// @param other The time stamp to compare.
+    /// @return The result of the comparison.
+    bool   operator!=( const DateTime& other )                const { return stamp != other.stamp; }
 
-        //==========================================================================================
-        /// Less than operator.
-        /// @param other The time stamp to compare.
-        /// @return A reference to this object.
-        //==========================================================================================
-        bool   operator<( const DateTime& other )                                         const
-        {
-            return stamp <  other.stamp;
-        }
+    /// Less than operator.
+    /// @param other The time stamp to compare.
+    /// @return A reference to this object.
+    bool   operator<( const DateTime& other )                 const { return stamp <  other.stamp; }
 
-        //==========================================================================================
-        /// Less than or equal to operator.
-        /// @param other The time stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator<=( const DateTime& other )                                        const
-        {
-            return stamp <=  other.stamp;
-        }
+    /// Less than or equal to operator.
+    /// @param other The time stamp to compare.
+    /// @return The result of the comparison.
+    bool   operator<=( const DateTime& other )               const { return stamp <=  other.stamp; }
 
-        //==========================================================================================
-        /// Greater than operator.
-        /// @param other The time stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator>( const DateTime& other )                                         const
-        {
-            return stamp >  other.stamp;
-        }
+    /// Greater than operator.
+    /// @param other The time stamp to compare.
+    /// @return The result of the comparison.
+    bool   operator>( const DateTime& other )                 const { return stamp >  other.stamp; }
 
-        //==========================================================================================
-        /// Greater than or equal to operator.
-        /// @param other The time stamp to compare.
-        /// @return The result of the comparison.
-        //==========================================================================================
-        bool   operator>=( const DateTime& other )                                        const
-        {
-            return stamp >=  other.stamp;
-        }
+    /// Greater than or equal to operator.
+    /// @param other The time stamp to compare.
+    /// @return The result of the comparison.
+    bool   operator>=( const DateTime& other )               const { return stamp >=  other.stamp; }
 };
 
 } // namespace time
@@ -224,6 +185,3 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 using     DateTime=    time::DateTime;
 
 } // namespace [alib]
-
-
-

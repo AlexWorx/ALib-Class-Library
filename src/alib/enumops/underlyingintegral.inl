@@ -34,7 +34,7 @@ ALIB_EXPORT namespace alib {
 /// @return \c true if all bits of \p{testFor} are set in \p{tested}.
 template<typename TEnum>
 requires std::is_enum_v<TEnum>
-std::underlying_type_t<TEnum> constexpr UnderlyingIntegral(TEnum  element) noexcept
+std::underlying_type_t<TEnum> constexpr UnderlyingIntegral(TEnum  element)                  noexcept
 { return static_cast<typename std::underlying_type<TEnum>::type>( element ); }
 
 // Reset documentation fake
@@ -43,4 +43,3 @@ std::underlying_type_t<TEnum> constexpr UnderlyingIntegral(TEnum  element) noexc
 #endif
 
 } // namespace [alib]
-

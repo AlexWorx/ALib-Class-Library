@@ -82,8 +82,7 @@ class TDec
           TNumberFormat<TChar>*    numberFormat = nullptr        )
     : nf       (numberFormat)
     , width    (overrideWidth)
-    , valueType( std::numeric_limits<TIntegral>::is_signed ? 1 : 2 )
-    { v.value= int64_t(value); }
+    , valueType( std::numeric_limits<TIntegral>::is_signed ? 1 : 2 )    { v.value= int64_t(value); }
 
 
     /// Alternative constructor that omits parameter \p{overrideWidth} and set it to \c 0.
@@ -99,8 +98,7 @@ class TDec
              TNumberFormat<TChar>*    numberFormat = nullptr        )
     : nf       (numberFormat)
     , width    (0)
-    , valueType( std::numeric_limits<TIntegral>::is_signed ? 1 : 2 )
-    { v.value= int64_t(value); }
+    , valueType( std::numeric_limits<TIntegral>::is_signed ? 1 : 2 )    { v.value= int64_t(value); }
 
 
     /// Constructor. Stores parameters.
@@ -119,7 +117,7 @@ class TDec
              TNumberFormat<TChar>*    numberFormat = nullptr        )
     : nf       (numberFormat)
     , width    (overrideWidth)
-    , valueType( 3 )                                      { v.fpValue= double(value); }
+    , valueType( 3 )                                                   { v.fpValue= double(value); }
 
     /// Alternative constructor that omits parameter \p{overrideWidth} and set it to \c 0.
     /// @tparam TFloat       The type of argument \p{value}. Deduced by the compiler.
@@ -134,7 +132,7 @@ class TDec
              TNumberFormat<TChar>*    numberFormat = nullptr        )
     : nf       (numberFormat)
     , width    ( 0 )
-    , valueType( 3 )                                      { v.fpValue= double(value); }
+    , valueType( 3 )                                                   { v.fpValue= double(value); }
 
 }; // class format
 
@@ -148,7 +146,7 @@ class TDec
 /// parameter is negative, the last newline characters are searched from the end of the
 /// string backwards.<br>
 /// Referring to that as position 0, the tab position is then located at the next multiple
-/// of parameter \p{tabSize}, after having added  \p{minPad} tab characters.
+/// of parameter \p{tabSize}, after having added \p{minPad} tab characters.
 /// @tparam TChar The \ref alib_characters_chars "character type" of the \b AString that
 ///               instances can be "applied" to.
 template<typename TChar>
@@ -180,8 +178,7 @@ struct TTab
     /// @param fillChar      The character to insert to reach the tab position.
     ///                      Defaults to ' ' (space).
     TTab(  integer size, integer referenceIdx = 0, integer minPadChars= 1, TChar fillChar= ' ' )
-    : tabSize(size), reference(referenceIdx), minPad(minPadChars), tabChar(fillChar)
-    {}
+    : tabSize(size), reference(referenceIdx), minPad(minPadChars), tabChar(fillChar)              {}
 };
 
 #if !ALIB_BOXING
@@ -214,7 +211,7 @@ struct TField
 ///
 /// The characters converted are
 /// <c>'\\\\'</c>, <c>'\\r'</c>, <c>'\\n'</c>, <c>'\\t'</c>, <c>'\\a'</c>,
-/// <c>'\\b'</c>,  <c>'\\v'</c>, <c>'\\f'</c>, <c>'\\e'</c> and  <c>'"'</c>.
+/// <c>'\\b'</c>, <c>'\\v'</c>, <c>'\\f'</c>, <c>'\\e'</c> and  <c>'"'</c>.
 ///
 /// If the new region length is needed to be known, it can be calculated as the sum of
 /// the old region length and the difference of the string's length before and after the
@@ -243,12 +240,11 @@ struct TEscape
     /// @param regionStart   The start of the region to convert.
     /// @param regionLength  The length of the region to convert.
     TEscape( lang::Switch escape= lang::Switch::On, integer regionStart = 0, integer regionLength =MAX_LEN )
-    : pSwitch(escape), startIdx(regionStart), length(regionLength)
-    {}
+    : pSwitch(escape), startIdx(regionStart), length(regionLength)                                {}
 };
 
 
-/// Implements a temporary object which can be  \ref alib_strings_assembly_ttostring "appended"
+/// Implements a temporary object which can be \ref alib_strings_assembly_ttostring "appended"
 /// to instances of type \alib{strings;TAString;AString}.
 ///
 /// Appends an integral value in binary format.
@@ -286,7 +282,7 @@ struct TBin
           TNumberFormat<TChar>*  numberFormat = nullptr        )
     : theValue  (uint64_t(value))
     , theWidth  (overrideWidth)
-    , nf        (numberFormat)                  {}
+    , nf        (numberFormat)                                                                    {}
 
     /// Constructor, taking the value and a just an object of type \b %NumberFormat.
     ///
@@ -338,7 +334,7 @@ struct THex
     THex( TIntegral value, int overrideWidth= 0, TNumberFormat<TChar>* numberFormat = nullptr )
     : theValue  (uint64_t(value))
     , theWidth  (overrideWidth)
-    , nf        (numberFormat)                  {}
+    , nf        (numberFormat)                                                                    {}
 
     /// Constructor, taking the value and a just an object of type \b %NumberFormat.
     ///
@@ -350,7 +346,7 @@ struct THex
     THex( TIntegral value, TNumberFormat<TChar>* numberFormat )
     : theValue  (uint64_t(value))
     , theWidth  (0)
-    , nf        (numberFormat)                  {}
+    , nf        (numberFormat)                                                                    {}
 };
 
 /// Implements a temporary object which is \ref alib_strings_assembly_ttostring "appended"
@@ -388,7 +384,7 @@ struct TOct
     TOct( TIntegral value, int overrideWidth= 0, TNumberFormat<TChar>* numberFormat = nullptr )
     : theValue  (uint64_t(value))
     , theWidth  (overrideWidth)
-    , nf        (numberFormat)                  {}
+    , nf        (numberFormat)                                                                    {}
 
     /// Constructor, taking the value and a just an object of type \b %NumberFormat.
     ///
@@ -401,7 +397,7 @@ struct TOct
     TOct( TIntegral value, TNumberFormat<TChar>* numberFormat )
     : theValue  (uint64_t(value))
     , theWidth  (0)
-    , nf        (numberFormat)                  {}
+    , nf        (numberFormat)                                                                    {}
 };
 
 /// Implements a temporary object which is \ref alib_strings_assembly_ttostring "appended"
@@ -420,12 +416,12 @@ struct TFill
     /// @param pCount     The number of characters to write.
     TFill(TChar pFillChar, int pCount )
     : fillChar(pFillChar)
-    , count   (pCount)                                                                        {}
+    , count   (pCount)                                                                            {}
 };
 
-// #################################################################################################
+//##################################################################################################
 // Corresponding specializations of struct  AppendableTraits
-// #################################################################################################
+//##################################################################################################
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -587,5 +583,3 @@ using  NFill         =     strings::TFill<nchar>;
 using  WFill         =     strings::TFill<wchar>;
 
 } // namespace [alib::strings]
-
-

@@ -65,7 +65,7 @@ struct FMTCallerInfo
 /// If parameter \p{formatSpec} is empty, a default format string defined by string resource
 /// of key \b "FMTCI" is used. This resource by default evaluates to
 /// \par
-///  <c>"[@ sf:sl from ''ya'' by ''ta'']"</c>
+///   <c>"[@ sf:sl from ''ya'' by ''ta'']"</c>
 ///
 /// which results in the same output that is generated if an instance of class \b CallerInfo is
 /// simply appended to an \b AString, what in turn is defined with functor
@@ -86,5 +86,3 @@ FFormat_CallerInfo( const Box & self, const String & formatSpec, NumberFormat& n
 using     FMTCallerInfo      =     format::FMTCallerInfo;
 
 } // namespace [alib]
-
-

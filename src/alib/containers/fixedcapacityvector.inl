@@ -10,8 +10,8 @@ ALIB_EXPORT namespace alib {  namespace containers {
 //==================================================================================================
 /// This class fills the gap between standard types <c>std::array</c> and <c>std::vector</c> by
 /// implementing a fixed size array, with a current filling size index.
-/// With that methods #push_back and #pop_back could be implemented, which satisfies the constraints
-/// given for example to underlying containers of type <c>std::priority_queue</c>.
+/// With that, methods #push_back and #pop_back could be implemented, which satisfies the constraints
+/// given, for example, to underlying containers of type <c>std::priority_queue</c>.
 ///
 /// The rationale here is to use fixed size memory allocation or even stack allocation, in situations
 /// where the maximum capacity needed at runtime is known upfront.
@@ -33,55 +33,52 @@ ALIB_EXPORT namespace alib {  namespace containers {
 template<typename T, std::size_t TSize>
 class FixedCapacityVector : public std::array<T, TSize>
 {
-    protected:
-        std::size_t fillSize= 0;       ///< The current fill
+  protected:
+    std::size_t fillSize= 0;       ///< The current fill
 
-    public:
-       /// Increases the size of this vector by inserting given \p value at the end.<br>
-       /// In debug compilations, an \alib assertion is raised, if this fixed sized vector's
-       /// capacity is exceeded.
-       /// @param value The value to insert.
-        void push_back( const T& value )
-        {
-            ALIB_ASSERT_ERROR( fillSize < TSize, "MONOMEM/UT",
-                "FixedCapacityVector overflow: ", fillSize )
-            (*this)[fillSize++]= value;
-        }
+  public:
+    /// Increases the size of this vector by inserting given \p{value} at the end.<br>
+    /// In debug compilations an \alib_assertion is raised if this fixed-sized vector's
+    /// capacity is exceeded.
+    /// @param value The value to insert.
+    void push_back( const T& value ) {
+        ALIB_ASSERT_ERROR( fillSize < TSize, "MONOMEM/UT",
+            "FixedCapacityVector overflow: ", fillSize )
+        (*this)[fillSize++]= value;
+    }
 
-       /// Decreases the size of this vector by destructing and removing the given \p value at the
-       /// current end.<br>
-       /// In debug compilations, an \alib assertion is raised, if no elements are left.
-        void pop_back()
-        {
-            ALIB_ASSERT_ERROR( fillSize > 0   , "MONOMEM/UT",
-                "FixedCapacityVector underflow: ", fillSize )
-            (*this)[--fillSize].~T();
-        }
+    /// Decreases the size of this vector by destructing and removing the given \p{value} at the
+    /// current end.<br>
+    /// In debug compilations an \alib_assertion is raised if no elements are left.
+    void pop_back() {
+        ALIB_ASSERT_ERROR( fillSize > 0   , "MONOMEM/UT",
+            "FixedCapacityVector underflow: ", fillSize )
+        (*this)[--fillSize].~T();
+    }
 
-#if !DOXYGEN
-        [[nodiscard]]
-        typename std::array<T, TSize>::size_type
-        size() const
-        { return fillSize; }
+  #if !DOXYGEN
+    [[nodiscard]]
+    typename std::array<T, TSize>::size_type
+    size()                                                                const { return fillSize; }
 
-        [[nodiscard]]
-        constexpr typename std::array<T, TSize>::iterator                   end()           noexcept
-        { return std::array<T, TSize>::begin() + fillSize; }
+    [[nodiscard]]
+    constexpr typename std::array<T, TSize>::iterator       end()                           noexcept
+    { return std::array<T, TSize>::begin() + fillSize; }
 
-        [[nodiscard]]
-        constexpr typename std::array<T, TSize>::const_iterator             end()   const   noexcept
-        { return std::array<T, TSize>::begin() + fillSize; }
+    [[nodiscard]]
+    constexpr typename std::array<T, TSize>::const_iterator end()                     const noexcept
+    { return std::array<T, TSize>::begin() + fillSize; }
 
-        [[nodiscard]]
-        constexpr
-        typename std::array<T, TSize>::const_iterator                       cend()          noexcept
-        { return std::array<T, TSize>::cbegin() + fillSize; }
+    [[nodiscard]]
+    constexpr
+    typename std::array<T, TSize>::const_iterator           cend()                          noexcept
+    { return std::array<T, TSize>::cbegin() + fillSize; }
 
-        [[nodiscard]]
-        constexpr
-        typename std::array<T, TSize>::const_iterator                       cend()  const   noexcept
-        { return std::array<T, TSize>::cbegin() + fillSize; }
-#endif // !DOXYGEN
+    [[nodiscard]]
+    constexpr
+    typename std::array<T, TSize>::const_iterator           cend()                    const noexcept
+    { return std::array<T, TSize>::cbegin() + fillSize; }
+  #endif // !DOXYGEN
 
 }; // FixedCapacityVector
 
@@ -104,4 +101,3 @@ template<typename T, std::size_t TSize, typename TCompare= std::less<T>>
 using FixedSizePriorityQueue = std::priority_queue< T, FixedCapacityVector<T, TSize>, TCompare>;
 
 } // namespace [alib]
-

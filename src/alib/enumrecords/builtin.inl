@@ -20,6 +20,7 @@ ALIB_ENUMS_ASSIGN_RECORD( alib::lang::CreateIfNotExists , alib::enumrecords::ERS
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::CurrentData       , alib::enumrecords::ERSerializable )
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Inclusion         , alib::enumrecords::ERSerializable )
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Initialization    , alib::enumrecords::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( alib::lang::LineFeeds         , alib::enumrecords::ERSerializable )
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Phase             , alib::enumrecords::ERSerializable )
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Propagation       , alib::enumrecords::ERSerializable )
 ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Reach             , alib::enumrecords::ERSerializable )
@@ -38,7 +39,3 @@ ALIB_ENUMS_ASSIGN_RECORD( alib::lang::Whitespaces       , alib::enumrecords::ERS
 #if !ALIB_SINGLE_THREADED
   ALIB_ENUMS_ASSIGN_RECORD(alib::threads::Thread::State, alib::enumrecords::ERSerializable )
 #endif
-
-
-
-

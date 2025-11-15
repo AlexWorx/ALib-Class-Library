@@ -1,15 +1,9 @@
-// #################################################################################################
-//  alib::lox::detail - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-// #################################################################################################
-//  alib::lox - ALox Logging Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -17,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alox/alox.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -42,24 +36,23 @@
 #   include "ALib.Camp.Base.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace lox { namespace detail {
 
-// #################################################################################################
+//##################################################################################################
 // static fields
-// #################################################################################################
+//##################################################################################################
 
-// #################################################################################################
+//##################################################################################################
 // Constructor/Destructor
-// #################################################################################################
+//##################################################################################################
 
 Domain::Domain( MonoAllocator& allocator, PoolAllocator& pool, const NString& name )
 : Name          (allocator, name)
 , Parent        (nullptr)
 , SubDomains    (allocator)
 , Data          (allocator)
-, PrefixLogables(pool)
-{
+, PrefixLogables(pool) {
     Data      .reserve( size_t( 2 ) );
 
     // The full of the root domain equals the name
@@ -75,8 +68,7 @@ Domain::Domain( Domain* parent, const NString& name )
 , Parent        ( parent )
 , SubDomains    ( parent->Data.get_allocator().GetAllocator() )
 , Data          ( parent->Data.get_allocator().GetAllocator() )
-, PrefixLogables( parent->PrefixLogables.GetAllocator() )
-{
+, PrefixLogables( parent->PrefixLogables.GetAllocator() ) {
     // if we have a parent, we inherit all logger's verbosities
     if( parent != nullptr )
         Data= parent->Data;
@@ -95,11 +87,10 @@ Domain::Domain( Domain* parent, const NString& name )
     FullPath.Allocate( Data.get_allocator().GetAllocator(), fullPath );
 }
 
-// #################################################################################################
+//##################################################################################################
 // Methods
-// #################################################################################################
-Domain* Domain::Find( NSubstring domainPath, int maxCreate, bool* wasCreated )
-{
+//##################################################################################################
+Domain* Domain::Find( NSubstring domainPath, int maxCreate, bool* wasCreated ) {
     // set optional output parameter as default to false
     bool dummy;
     if ( wasCreated == nullptr )
@@ -111,15 +102,13 @@ Domain* Domain::Find( NSubstring domainPath, int maxCreate, bool* wasCreated )
     // if string is empty (resp. contains only separator characters), return ourselves
     while ( domainPath.ConsumeChar( Domain::Separator() ) )
         ;
-    if( domainPath.IsEmpty() )
-    {
+    if( domainPath.IsEmpty() ) {
         return this;
     }
 
     // Trailing domain separator found: call find on root domain
     Domain* startDomain= this;
-    if ( lenBeforeTrim > domainPath.Length() )
-    {
+    if ( lenBeforeTrim > domainPath.Length() ) {
         while (startDomain->Parent != nullptr )
             startDomain= startDomain->Parent;
     }
@@ -128,8 +117,7 @@ Domain* Domain::Find( NSubstring domainPath, int maxCreate, bool* wasCreated )
     return startDomain->findRecursive( domainPath, maxCreate, wasCreated );
 }
 
-Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasCreated )
-{
+Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasCreated ) {
     //--- get act sub-name and rest of path
     domainPath.ConsumeChar( Domain::Separator() );
     integer endSubName= domainPath.IndexOf( Domain::Separator() );
@@ -153,19 +141,15 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
         subDomain= Parent != nullptr ? Parent : this;
 
     // search in subdomain
-    else
-    {
+    else {
         decltype(SubDomains)::iterator subDomainIt;
         bool fixedOnce= false;
-        for(;;)
-        {
+        for(;;) {
             subDomainIt=  SubDomains.begin();
-            while ( subDomainIt != SubDomains.end() )
-            {
+            while ( subDomainIt != SubDomains.end() ) {
                 int comparison= (*subDomainIt).Name.CompareTo<NC, lang::Case::Sensitive>( domainPath );
 
-                if( comparison >= 0 )
-                {
+                if( comparison >= 0 ) {
                     if ( comparison == 0 )
                         subDomain=    &(*subDomainIt);
                     break;
@@ -178,13 +162,11 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
                 break;
 
             // try and fix name
-            if( !fixedOnce )
-            {
+            if( !fixedOnce ) {
                 fixedOnce= true;
 
                 bool illegalCharacterFound= false;
-                for( int i= 0; i< domainPath.Length() ; ++i )
-                {
+                for( int i= 0; i< domainPath.Length() ; ++i ) {
                     nchar c= domainPath[i];
                     if (!(    isdigit( c )
                            || ( c >= 'A' && c <= 'Z' )
@@ -195,8 +177,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
                         illegalCharacterFound= true;
                         // oh dear: modifying const buffer...but this is definitely from an AString!
                         *const_cast<nchar*>( domainPath.Buffer() + i)= '#';
-                    }
-                }
+                }   }
 
                 if ( illegalCharacterFound )
                     continue;
@@ -212,8 +193,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
             if ( maxCreate == 0 )
                 return &(*subDomainIt);
             break;
-        }
-    }
+    }   }
 
     // recursion?
     return  restOfDomainPath.IsNotEmpty()
@@ -221,11 +201,9 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
             : subDomain;
 }
 
-Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priority priority )
-{
+Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priority priority ) {
     LoggerData& ld= Data[size_t(loggerNo)];
-    if( priority >= ld.Priority )
-    {
+    if( priority >= ld.Priority ) {
         ld.Priority=        priority;
         ld.LoggerVerbosity= verbosity;
 
@@ -235,29 +213,25 @@ Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priority prio
     return ld.LoggerVerbosity;
 }
 
-void  Domain::addLoggerRecursive( Logger* logger)
-{
+void  Domain::addLoggerRecursive( Logger* logger) {
     Data.emplace_back( LoggerData( logger ) );
     for( Domain& subDomain : SubDomains )
         subDomain.addLoggerRecursive( logger );
 }
 
-void  Domain::removeLoggerRecursive( int loggerNo )
-{
+void  Domain::removeLoggerRecursive( int loggerNo ) {
     Data.erase( Data.begin() + loggerNo );
     for( Domain& subDomain : SubDomains )
         subDomain.removeLoggerRecursive( loggerNo );
 }
 
-void Domain::ToString( NAString& tAString )
-{
+void Domain::ToString( NAString& tAString ) {
     tAString << FullPath;
     tAString._('[')._( NDec( CntLogCalls,3 ) )._("] ");
 
     // get verbosities
     tAString._(" { ");
-        for( size_t i= 0; i < Data.size() ; ++i )
-        {
+        for( size_t i= 0; i < Data.size() ; ++i ) {
             LoggerData& ld= Data[i];
             tAString._(i!=0 ? ", " : "" )
                     ._('(')
@@ -270,4 +244,3 @@ void Domain::ToString( NAString& tAString )
 
 
 }}}// namespace [alib::lox::detail]
-

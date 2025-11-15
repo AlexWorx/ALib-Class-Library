@@ -9,9 +9,8 @@ ALIB_EXPORT namespace alib {
 
 //==================================================================================================
 /// This is the reference documentation of module \alib_files_nl of the \aliblong.<br>
-/// @see
-///  A user manual with tutorial-style sample code is found in the
-///  \ref alib_mod_files "Programmer's Manual" of this module.
+/// @see A user manual with tutorial-style sample code is found in the
+///      \ref alib_mod_files "Programmer's Manual" of this module.
 //==================================================================================================
 namespace files {
 
@@ -22,20 +21,20 @@ namespace files {
 //==================================================================================================
 class FilesCamp : public camp::Camp
 {
-    public:
-        /// Constructor.<br>
-        /// While this is public, it must not be invoked as this is a strict singleton type.
-        /// (See notes in \ref alib_camp_camp).
-        ALIB_DLL
-        FilesCamp();
+  public:
+    /// Constructor.<br>
+    /// While this is public, it must not be invoked as this is a strict singleton type.
+    /// (See notes in \ref alib_camp_camp).
+    ALIB_DLL
+    FilesCamp();
 
-    protected:
-        /// Initializes this camp.
-        ALIB_DLL
-        virtual void    Bootstrap()                                 override;
+  protected:
+    /// Initializes this camp.
+    ALIB_DLL
+    virtual void    Bootstrap()                                                            override;
 
-        /// Terminates this camp. (Nothing to do.)
-        virtual void    Shutdown( ShutdownPhases )                                       override {}
+    /// Terminates this camp. (Nothing to do.)
+    virtual void    Shutdown( ShutdownPhases )                                           override {}
 
 }; // class FilesCamp
 

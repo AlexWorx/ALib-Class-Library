@@ -37,8 +37,7 @@ struct Message : BoxesMA
              TBoxables&&...        args )
     : TBoxes( monoAllocator )
     , CI  (ci)
-    , Type(type)
-    { Add( std::forward<TBoxables>(args)... ); }
+    , Type(type)                                        { Add( std::forward<TBoxables>(args)... ); }
 };
 
 } // namespace [alib::exceptions]

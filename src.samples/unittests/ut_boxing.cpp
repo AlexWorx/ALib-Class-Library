@@ -690,7 +690,7 @@ UT_METHOD(Boxing_Boxes)
     UT_PRINT("") UT_PRINT( "### Boxing: class Boxes ###" )
 
     {
-        BoxesHA boxes;
+        Boxes boxes;
         #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
         boxes.Add( 1 );                                              UT_EQ( 1,  boxes.Size() )  UT_EQ( 1              , boxes[0].Unbox<integer>())
         boxes.Add( 2 );                                              UT_EQ( 2,  boxes.Size() )  UT_EQ( 2              , boxes[1].Unbox<integer>())
@@ -705,7 +705,7 @@ UT_METHOD(Boxing_Boxes)
         boxes.clear(); boxes.Add( 5, xyzStr );      UT_EQ( 2,  boxes.Size() )  UT_EQ( A_CHAR("xyz")  , boxes[1].Unbox<String >())
         boxes.clear(); boxes.Add(A_CHAR("Hello "), A_CHAR("World") );UT_EQ( 2,  boxes.Size() )  UT_EQ( A_CHAR("World"), boxes[1].Unbox<String >())
 
-        BoxesHA boxes2;
+        Boxes boxes2;
         boxes2.Add(A_CHAR("List1"), A_CHAR("List2") );
         boxes.Add( boxes2 );                                         UT_EQ( 4,  boxes.Size() )
         boxes.Add( Box(boxes2) );                                    UT_EQ( 6,  boxes.Size() )
@@ -735,7 +735,7 @@ UT_METHOD(Boxing_Boxes)
         boxes.clear(); boxes.Add( 5, xyzStr);                        UT_EQ( 2,  boxes.Size() )  UT_EQ( A_CHAR("xyz")  , boxes[1].Unbox<String >())
         boxes.clear(); boxes.Add(A_CHAR("Hello "), A_CHAR("World") );UT_EQ( 2,  boxes.Size() )  UT_EQ( A_CHAR("World"), boxes[1].Unbox<String >())
 
-        BoxesHA boxes2;
+        Boxes boxes2;
         boxes2.Add(A_CHAR("List1"), A_CHAR("List2") );
         boxes.Add( boxes2 );                                         UT_EQ( 4,  boxes.Size() )
         boxes.Add( Box(boxes2) );                                    UT_EQ( 6,  boxes.Size() )

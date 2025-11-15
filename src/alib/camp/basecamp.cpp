@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <iostream>
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/boxing/boxing.prepro.hpp"
@@ -19,7 +19,7 @@
 #include "alib/camp/camp.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 #include "ALib.Compatibility.StdStrings.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Camp.Base;
     import        ALib.Lang;
@@ -76,7 +76,7 @@
 #   include "ALib.Camp.H"
 #   include "ALib.Camp.Base.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace enbs= alib::enumrecords::bootstrap;
 namespace alib { camp::Basecamp BASECAMP; }
 
@@ -86,18 +86,15 @@ namespace alib::camp {
 
 Basecamp::Basecamp()
 : Camp( "ALIB" )
-, LocaleFound(nullptr)
-{
+, LocaleFound(nullptr) {
     #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
         ALIB_ASSERT_ERROR( this == &BASECAMP, "BASECAMP",
             "Instances of class Basecamp must not be created. Use singleton alib::BASECAMP" )
     #endif
 }
 
-void Basecamp::Bootstrap()
-{
-    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
-    {
+void Basecamp::Bootstrap() {
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources ) {
 //! @cond NO_DOX
         #define EOS ,
 //! @endcond
@@ -149,6 +146,12 @@ void Basecamp::Bootstrap()
                                    "0"  ","  "None"               ","  "2" ","
                                    "1"  ","  "Initialize"         ","  "1" ","
                                    "2"  ","  "Zero"               ","  "1"     ),
+
+       "LineFeeds",         A_CHAR("0"  ","  "None"               ","  "1" ","
+                                   "0"  ","  "Ignore"             ","  "1" ","
+                                   "1"  ","  "Unix"               ","  "1" ","
+                                   "2"  ","  "WindowsOS"          ","  "1" ","
+                                   "3"  ","  "Platform"           ","  "1"     ),
 
        "Phase",             A_CHAR("0"  ","  "Begin"              ","  "1" ","
                                    "1"  ","  "End"                ","  "1"     ),
@@ -214,7 +217,7 @@ void Basecamp::Bootstrap()
 
 
 
-       //------------ module variables ------------
+      //-------------------------------------- module variables ------------------------------------
        "VARE<", A_CHAR("variables::"),
        "VARE" , A_CHAR("0"  ","    "OK"                ","  ""     ","
                        "1"  ","    "ErrorOpeningFile"  ","  "VARERF"  ","
@@ -256,7 +259,7 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION6])
 "Var2",    A_CHAR("3|ALIB/HAS_CONSOLE_WINDOW|" "B"  ),
 
 "Var_C1",  A_CHAR("Defines the locale of the application. If empty or not set, the system's locale is used.\n"
-                 "If set, a UTF8 local should be used, for example 'us_US.UTF-8' or 'de_DE.UTF-8'" ),
+                 "If set, a UTF8 locale should be used, for example, 'us_US.UTF-8' or 'de_DE.UTF-8'" ),
 "Var_C2",  A_CHAR("If true, the process waits for a key stroke on termination. If empty, under Windows"   "\n"
                  "behavior is detected, under other OSes, defaults to false."                               ),
 "Var_C3",  A_CHAR("Boolean value that denotes what its name indicates. If empty, under Windows value is " "\n"
@@ -569,10 +572,10 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION6])
         "140"    ","    "EWOULDBLOCK"       ","  "OSERR"      ) EOS
 #endif // #elif defined(_WIN32)
 
-// ----------------------------------- module exceptions ------------------------------------
+//---------------------------------------- module exceptions ---------------------------------------
     "ExcFmtExc",       A_CHAR("\nAn exception occurred while formatting another (!) exception:\n" ),
 
-// ----------------------------------- module format ------------------------------------
+//------------------------------------------ module format -----------------------------------------
     "PHT",         A_CHAR(  "0,NotGiven"          ",1,"
                             "1,String"            ",1,"
                             "2,Character"         ",1,"
@@ -735,6 +738,7 @@ DOX_MARKER( [DOX_ENUMS_MAKE_PARSABLE_22] )
         enbs::Bootstrap<alib::lang::CurrentData      >( *this, "CurrentData"    );
         enbs::Bootstrap<alib::lang::Inclusion        >( *this, "Inclusion"      );
         enbs::Bootstrap<alib::lang::Initialization   >( *this, "Initialization" );
+        enbs::Bootstrap<alib::lang::LineFeeds        >( *this, "LineFeeds"      );
         enbs::Bootstrap<alib::lang::Phase            >( *this, "Phase"          );
         enbs::Bootstrap<alib::lang::Propagation      >( *this, "Propagation"    );
         enbs::Bootstrap<alib::lang::Reach            >( *this, "Reach"          );
@@ -770,15 +774,13 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
         enbs::Bootstrap<alib::format::FMTExceptions       >();
     }
 
-    else if( GetBootstrapState() == BootstrapPhases::PrepareConfig )
-    {
+    else if( GetBootstrapState() == BootstrapPhases::PrepareConfig ) {
 
         // preload all variable with declarations (and without placeholders)
         config->PreloadVariables<camp::Variables>();
     }
 
-    else if( GetBootstrapState() == BootstrapPhases::Final )
-    {
+    else if( GetBootstrapState() == BootstrapPhases::Final ) {
         Substring parser;
         parser= GetResource( "Months" ); for( int i= 0 ; i < 12 ; ++i ) { CalendarDateTime::MONTH_NAMES[i]= parser.ConsumeToken(','); }
         parser= GetResource( "Days"   ); for( int i= 0 ; i <  7 ; ++i ) { CalendarDateTime::  DAY_NAMES[i]= parser.ConsumeToken(','); }
@@ -793,7 +795,7 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
         format::BYTESIZE_NUMBER_FORMAT= monomem::GLOBAL_ALLOCATOR().New<NumberFormat>(NumberFormat::Global );
         format::BYTESIZE_NUMBER_FORMAT->FractionalPartWidth= 1;
 
-        //############### set locale ###############
+      //######################################### set locale #######################################
         int receivedFrom= 0;
         String256 locale;
 
@@ -807,11 +809,9 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
         else if ( EnvironmentVariables::Get( A_CHAR("LANG")      ,locale ) )  receivedFrom= 2;
         else if ( EnvironmentVariables::Get( A_CHAR("LANGUAGE")  ,locale ) )  receivedFrom= 3;
 
-        if( receivedFrom > 0 && !locale.Equals<NC,lang::Case::Ignore>( A_CHAR("none") ) )
-        {
+        if( receivedFrom > 0 && !locale.Equals<NC,lang::Case::Ignore>( A_CHAR("none") ) ) {
             ALIB_STRINGS_TO_NARROW( locale, nLocale, 1024)
-            if( !setlocale(LC_ALL, nLocale ) )
-            {
+            if( !setlocale(LC_ALL, nLocale ) ) {
                 NString256 msg( "ALib Error: setlocale(\""); msg << nLocale <<"\") failed. Setting read from ";
                 msg << (   receivedFrom == 1 ? "config variable 'ALIB_LOCALE'"   :
                            receivedFrom == 2 ? "environment variable 'LANG'"     :
@@ -822,8 +822,7 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
                 std::cerr << ". Trying  'setlocale(LC_ALL, \"\")': ";
                 if ( setlocale(LC_ALL, ""  ) )
                     std::cerr << " success.";
-                else
-                {
+                else {
                     std::cerr << "failed. Trying  'setlocale(LC_ALL, \"C\")': ";
                     if ( setlocale(LC_ALL, "C" ) )
                         std::cerr << " success.";
@@ -848,8 +847,7 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
         Variable varHasConsoleWindow(*config, Variables::HAS_CONSOLE_WINDOW );
         if ( varHasConsoleWindow.IsDefined() )
             HasConsoleWindow=  varHasConsoleWindow;
-        else
-        {
+        else {
             #if defined(_WIN32)
                 // determine if we have a console window
                 HasConsoleWindow= GetConsoleWindow() != NULL;
@@ -864,8 +862,7 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
         Variable varWaitForKeyPress(*config, Variables::WAIT_FOR_KEY_PRESS );
         if ( varWaitForKeyPress.IsDefined() )
             WaitForKeyPressOnTermination= varWaitForKeyPress;
-        else
-        {
+        else {
             #if defined(_WIN32) && ALIB_DEBUG
                 WaitForKeyPressOnTermination=    HasConsoleWindow
                                               && IsDebuggerPresent();
@@ -874,18 +871,14 @@ DOX_MARKER([DOX_VARIABLES_DECLARATION7])
             #endif
             (void) varWaitForKeyPress.Define();
             varWaitForKeyPress= WaitForKeyPressOnTermination;
-        }
-    }
-}
+}   }   }
 
-void Basecamp::Shutdown( ShutdownPhases phase )
-{
+void Basecamp::Shutdown( ShutdownPhases phase ) {
     if( phase == ShutdownPhases::Announce )
         return;
 
     // ShutdownPhases::Destruct:
-    if ( BASECAMP.WaitForKeyPressOnTermination )
-    {
+    if ( BASECAMP.WaitForKeyPressOnTermination ) {
         #if defined(_WIN32)
             OutputDebugStringA( "\r\nALIB: Waiting for 'Enter' key in the console window.\r\n" );
         #endif
@@ -901,51 +894,43 @@ void Basecamp::Shutdown( ShutdownPhases phase )
     #endif
 }
 
-// #############################################################################################
+//##################################################################################################
 // Environment definition/detection
-// #############################################################################################
+//##################################################################################################
 
-//! @cond NO_DOX
-   #if defined(__unix__) || defined(__APPLE__)
-   namespace {
-       String      DebuggerProcessNames= A_CHAR("gdb|debugserver");
-   }
-   #endif
-//! @endcond
 
-   bool Basecamp::IsDebuggerPresent()
-   {
-   #if defined(__unix__) || defined(__APPLE__)
+    #if (defined(__unix__) || defined(__APPLE__)) && !DOXYGEN
+namespace { String  DebuggerProcessNames= A_CHAR("gdb|debugserver"); }
+    #endif
 
-       // Unix: search debugger process in parent processes
-       const ProcessInfo& pi= ProcessInfo::Current();
-       uinteger parentPID= pi.PPID;
-       if ( parentPID == 0 )
-           return false;
 
-       ProcessInfo actPI( parentPID );
-       Tokenizer tknzr( DebuggerProcessNames, '|' );
-       while(tknzr.HasNext() )
-       {
-           Substring& debuggerName= tknzr.Next();
-           if (actPI.Name.StartsWith( debuggerName ) )
-               return true;
-       }
-       return false;
+bool Basecamp::IsDebuggerPresent() {
+#if defined(__unix__) || defined(__APPLE__)
 
-   #elif defined(_WIN32)
+    // Unix: search debugger process in parent processes
+    const ProcessInfo& pi= ProcessInfo::Current();
+    uinteger parentPID= pi.PPID;
+    if ( parentPID == 0 )
+        return false;
 
-        return (bool) ( ::IsDebuggerPresent() != 0 ) ;
+    ProcessInfo actPI( parentPID );
+    Tokenizer tknzr( DebuggerProcessNames, '|' );
+    while(tknzr.HasNext() ) {
+        Substring& debuggerName= tknzr.Next();
+        if (actPI.Name.StartsWith( debuggerName ) )
+            return true;
+    }
+    return false;
+
+#elif defined(_WIN32)
+
+    return (bool) ( ::IsDebuggerPresent() != 0 ) ;
 
    #else
-        #pragma message ("Unknown Platform in file: " __FILE__ )
-        return false;
+    #pragma message ("Unknown Platform in file: " __FILE__ )
+    return false;
    #endif
    }
 
 
 } // namespace [alib::camp]
-
-
-
-

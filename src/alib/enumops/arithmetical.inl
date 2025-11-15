@@ -7,13 +7,13 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib::enumops {
 
-// #################################################################################################
+//##################################################################################################
 // struct ArithmeticalTraits
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// A simple type trait that inherits <c>std::false_type</c> by default. If specialized for an
-/// enumeration type \p{TEnum} to inherit <c>std::true_type</c>, the following operators  set of
+/// enumeration type \p{TEnum} to inherit <c>std::true_type</c>, the following operators set of
 /// \alib operators become applicable to elements of \p{TEnum}:
 ///
 /// - \alib{enumops::arithmetical;operator<}
@@ -64,9 +64,9 @@ ALIB_WARNINGS_RESTORE
 } // namespace [alib::enumops]
 
 
-// #################################################################################################
+//##################################################################################################
 // Arithmetic Operators
-// #################################################################################################
+//##################################################################################################
 
 // For documentation, all operators and enum related template functions are faked into namespace
 // alib::enumops
@@ -95,8 +95,7 @@ namespace arithmetical {
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr bool operator<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)      noexcept
-{
+constexpr bool operator<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)    noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TValue(lhs) < rhs ;
 }
@@ -114,8 +113,7 @@ constexpr bool operator<  (TEnum  lhs, typename std::underlying_type<TEnum>::typ
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr bool operator<=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr bool operator<=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs)    noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TValue(lhs) <= rhs;
 }
@@ -133,8 +131,7 @@ constexpr bool operator<=  (TEnum lhs, typename std::underlying_type<TEnum>::typ
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr bool operator>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr bool operator>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)    noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TValue(lhs) > rhs;
 }
@@ -152,8 +149,7 @@ constexpr bool operator>  (TEnum  lhs, typename std::underlying_type<TEnum>::typ
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr bool operator>=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr bool operator>=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs)    noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TValue(lhs) >= rhs ;
 }
@@ -171,8 +167,7 @@ constexpr bool operator>=  (TEnum lhs, typename std::underlying_type<TEnum>::typ
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator+  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator+  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) + TValue(rhs) );
 }
@@ -189,8 +184,7 @@ constexpr TEnum operator+  (TEnum  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator+  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator+  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) + rhs );
 }
@@ -208,8 +202,7 @@ constexpr TEnum operator+  (TEnum  lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator+=  (TEnum& lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator+=  (TEnum& lhs, TEnum rhs)                                       noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) + TValue(rhs) );
 }
@@ -226,8 +219,7 @@ constexpr TEnum operator+=  (TEnum& lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator+=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator+=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) + rhs );
 }
@@ -243,8 +235,7 @@ constexpr TEnum operator+=  (TEnum&  lhs, typename std::underlying_type<TEnum>::
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator++  (TEnum&  arg) noexcept
-{
+constexpr TEnum operator++  (TEnum&  arg)                                                 noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return arg= TEnum( TValue(arg) + 1 );
 }
@@ -260,8 +251,7 @@ constexpr TEnum operator++  (TEnum&  arg) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator++  (TEnum&  arg, typename std::underlying_type<TEnum>::type) noexcept
-{
+constexpr TEnum operator++  (TEnum&  arg, typename std::underlying_type<TEnum>::type)     noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     TEnum tmp= arg;
     arg= TEnum( TValue(arg) + 1 );
@@ -280,8 +270,7 @@ constexpr TEnum operator++  (TEnum&  arg, typename std::underlying_type<TEnum>::
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator-  (TEnum  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator-  (TEnum  lhs, TEnum rhs)                                        noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) - TValue(rhs) );
 }
@@ -299,8 +288,7 @@ constexpr TEnum operator-  (TEnum  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator-  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator-  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) - rhs );
 }
@@ -317,8 +305,7 @@ constexpr TEnum operator-  (TEnum  lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator-=  (TEnum&  lhs, TEnum rhs) noexcept
-{
+constexpr TEnum operator-=  (TEnum&  lhs, TEnum rhs)                                      noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) - TValue(rhs) );
 }
@@ -335,8 +322,7 @@ constexpr TEnum operator-=  (TEnum&  lhs, TEnum rhs) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator-=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator-=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) - rhs );
 }
@@ -352,8 +338,7 @@ constexpr TEnum operator-=  (TEnum&  lhs, typename std::underlying_type<TEnum>::
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator--  (TEnum&  arg) noexcept
-{
+constexpr TEnum operator--  (TEnum&  arg)                                                 noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return arg= TEnum( TValue(arg) - 1 );
 }
@@ -370,8 +355,7 @@ constexpr TEnum operator--  (TEnum&  arg) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator--  (TEnum&  arg, typename std::underlying_type<TEnum>::type) noexcept
-{
+constexpr TEnum operator--  (TEnum&  arg, typename std::underlying_type<TEnum>::type)     noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     TEnum tmp= arg;
     arg= TEnum( TValue(arg) - 1 );
@@ -389,10 +373,7 @@ constexpr TEnum operator--  (TEnum&  arg, typename std::underlying_type<TEnum>::
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator+  (TEnum  arg) noexcept
-{
-    return arg;
-}
+constexpr TEnum operator+  (TEnum  arg)                                     noexcept { return arg; }
 
 /// Unary minus operator for enum elements.
 ///
@@ -405,8 +386,7 @@ constexpr TEnum operator+  (TEnum  arg) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator-  (TEnum  arg) noexcept
-{
+constexpr TEnum operator-  (TEnum  arg)                                                   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( - TValue(arg) );
 }
@@ -424,8 +404,7 @@ constexpr TEnum operator-  (TEnum  arg) noexcept
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator*  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator*  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) * rhs );
 }
@@ -443,8 +422,7 @@ constexpr TEnum operator*  (TEnum  lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator*= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator*= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) * rhs );
 }
@@ -461,8 +439,7 @@ constexpr TEnum operator*= (TEnum& lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator/  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator/  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) / rhs );
 }
@@ -480,8 +457,7 @@ constexpr TEnum operator/  (TEnum  lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator/= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator/= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) / rhs );
 }
@@ -499,8 +475,7 @@ constexpr TEnum operator/= (TEnum& lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator%  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator%  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) % rhs );
 }
@@ -518,8 +493,7 @@ constexpr TEnum operator%  (TEnum  lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator%= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator%= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs)   noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) % rhs );
 }
@@ -537,8 +511,7 @@ constexpr TEnum operator%= (TEnum& lhs, typename std::underlying_type<TEnum>::ty
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator<<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator<<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)  noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) << rhs );
 }
@@ -555,8 +528,7 @@ constexpr TEnum operator<<  (TEnum  lhs, typename std::underlying_type<TEnum>::t
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator<<= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator<<= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs)  noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) << rhs );
 }
@@ -574,8 +546,7 @@ constexpr TEnum operator<<= (TEnum& lhs, typename std::underlying_type<TEnum>::t
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator>>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator>>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs)  noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return TEnum( TValue(lhs) << rhs );
 }
@@ -593,8 +564,7 @@ constexpr TEnum operator>>  (TEnum  lhs, typename std::underlying_type<TEnum>::t
 ALIB_EXPORT
 template<typename TEnum>
 requires alib::enumops::IsArithmetical<TEnum>
-constexpr TEnum operator>>= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept
-{
+constexpr TEnum operator>>= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs)  noexcept {
     using TValue= typename std::underlying_type<TEnum>::type;
     return lhs= TEnum( TValue(lhs) >> rhs );
 }
@@ -603,5 +573,3 @@ constexpr TEnum operator>>= (TEnum& lhs, typename std::underlying_type<TEnum>::t
 #if DOXYGEN
 }}}} // doxygen namespace [alib::enumops::arithmetical]
 #endif
-
-

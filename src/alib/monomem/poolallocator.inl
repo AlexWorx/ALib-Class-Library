@@ -55,7 +55,7 @@ ALIB_EXPORT namespace alib { namespace monomem {
 /// "recycling" in this context. Several strategies are proposed with container types provided by
 /// module \alib_containers_nl. From this perspective, this allocator could be seen as a
 /// "recycling proxy" in front of a \b MonoAllocator (or a different,
-/// \ref  alib_contmono_chaining "chained" allocator).
+/// \ref alib_contmono_chaining "chained" allocator).
 ///
 /// @see
 /// - The \ref alib_contmono_intro "Programmer's Manual" of module \alib_monomem_nl.
@@ -113,21 +113,21 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
 
     using allocMember= lang::AllocatorMember<TAllocator>;            ///< A shortcut to a base type.
 
-    // =========================================   Fields   ========================================
+  //============================================= Fields ===========================================
     /// Array of hooks. Each hook points to previously disposed memory of the same size.
     /// Its length is determined with \c constexpr #qtyHooks and it is allocated with construction
     /// in \p{allocator}.
     void**          hooks                                                                 = nullptr;
 
     #if ALIB_DEBUG
-      public:
-        /// A name for this object.
-        /// The constructors grab this name from the chained allocator, which most often is an
-        /// already named \b MonoAllocator. Thus, no constructor argument is available
-        /// (in contrast to class \alib{monomem;TMonoAllocator;MonoAllocator}).
-        /// This name may be changed after construction by the using code as appropriate.
-        const char*             DbgName;
-      protected:
+  public:
+    /// A name for this object.
+    /// The constructors grab this name from the chained allocator, which most often is an
+    /// already named \b MonoAllocator. Thus, no constructor argument is available
+    /// (in contrast to class \alib{monomem;TMonoAllocator;MonoAllocator}).
+    /// This name may be changed after construction by the using code as appropriate.
+    const char*             DbgName;
+  protected:
     #endif
 
     #if ALIB_DEBUG_MEMORY
@@ -147,7 +147,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
         size_t      dbgLastRequestedSize;
     #endif
 
-    // ====================================   Internal Methods   ===================================
+  //======================================== Internal Methods ======================================
     /// To be able to store allocated memory in the recycling stacks, any allocated memory is at
     /// least of size <c>sizeof(void*)</c>. Hence sizes \c 1 and \c 2 (with 64-bit systems
     /// also \c 4) will never be allocated and no hook is available for these sizes.
@@ -164,8 +164,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     /// @param requestedObjectSize The object size requested by the user.
     /// @return The index of the recycler hook in #hooks.
     static constexpr
-    short         hookIndex(size_t requestedObjectSize)
-    {
+    short         hookIndex(size_t requestedObjectSize) {
         if( requestedObjectSize < sizeof(void*) )
             return 0;
         int msb= lang::MSB(requestedObjectSize);
@@ -179,8 +178,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     /// @return The index of the recycler hook in #hooks.
     template<size_t TRequestedObjectSize>
     static constexpr
-    short         hookIndex()
-    {
+    short         hookIndex() {
         if( TRequestedObjectSize < sizeof(void*) )
             return 0;
         constexpr int      msb      = lang::MSB(TRequestedObjectSize);
@@ -206,7 +204,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     /// @see Field \alib{lang;Allocator::MAX_ALIGNMENT}.
     static constexpr size_t             MAX_ALIGNMENT                                  = TAlignment;
 
-    // =====================================   Construction    =====================================
+  //========================================== Construction ========================================
     /// Constructs this type.
     /// @param pAllocator  The allocator to use for allocating pool objects.
     ALIB_DLL
@@ -247,14 +245,14 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     ALIB_DLL
     ~TPoolAllocator   ();
 
-    // #############################################################################################
+    //##############################################################################################
     /// @name lang::Allocator Implementation
-    // #############################################################################################
+    //##############################################################################################
     /// Allocates or re-uses a previously freed piece of memory of equal \p{size}.
     /// Any given \p{size} is rounded up to the next higher power of 2 before comparison and
     /// returned via in/output parameter \p{size}.
-    /// @param[in,out] size The size of memory the block to allocate in bytes. This will be rounded up
-    ///                     to the next higher power of 2 when the function returns.
+    /// @param[in,out] size The size of memory the block to allocate in bytes. This will be rounded
+    ///                     up to the next higher power of 2 when the function returns.
     ///                     Any additional size might be used by the caller.
     /// @param  pAlignment  The (minimum) alignment of the memory block to allocate in bytes.
     ///                     This is ignored with this allocator. Instead, it uses what is specified
@@ -262,8 +260,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     ///                     See Chapter \ref alib_contmono_further_alignment of the Programmer's
     ///                     Manual of this module.
     /// @return Pointer to the allocated memory.
-    void* allocate( size_t& size, size_t pAlignment )
-    {
+    void* allocate( size_t& size, size_t pAlignment ) {
         ALIB_ASSERT_ERROR(pAlignment <= TAlignment,  "MONOMEM",
            "The requested alignment is higher than what was specified with "
            "template parameter TAlignment: {} >= {}", pAlignment, TAlignment )
@@ -273,7 +270,9 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
             dbgLastRequestedSize= size;
         #endif
 
-        return AllocateByAllocationInfo(GetAllocInformation(size));
+        short allocInfo= GetAllocInformation(size);
+        size= GetAllocationSize(allocInfo);
+        return AllocateByAllocationInfo(allocInfo);
     }
 
     /// Shrinks or grows a piece of memory. If a new allocation was performed the existing
@@ -297,8 +296,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     ///
     /// @param mem   The memory to dispose.
     /// @param size  The size of the given \p{mem}.
-    void free(void* mem, size_t size)
-    {
+    void free(void* mem, size_t size) {
         #if ALIB_DEBUG_ALLOCATIONS
             dbgLastRequestedSize= size;
         #endif
@@ -320,7 +318,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     /// @return \c false.
            constexpr bool allowsMemSplit()                                                 noexcept;
   #else
-    static constexpr bool allowsMemSplit()                             noexcept    { return false; }
+    static constexpr bool allowsMemSplit()                                noexcept { return false; }
   #endif
 
     /// Returns a temporary object (which is usually optimized out together with a call to this
@@ -330,9 +328,9 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     lang::AllocatorInterface<TPoolAllocator> operator()()
     { return lang::AllocatorInterface<TPoolAllocator>(*this); }
 
-    // #############################################################################################
+    //##############################################################################################
     /// @name Specific Interface (Static Methods)
-    // #############################################################################################
+    //##############################################################################################
     /// Returns the number of relevant bits of the allocation information value returned by
     /// overloaded methods #GetAllocInformation. In other words, the value returned by these
     /// methods is between \c 0 and the power of 2 of the value returned by this method.
@@ -389,9 +387,9 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     static constexpr size_t GetAllocationSize(short allocInfo)
     { return size_t(1)<<(allocInfo + minimumHookIndex()); }
 
-    // #############################################################################################
+    //##############################################################################################
     /// @name Specific Interface
-    // #############################################################################################
+    //##############################################################################################
     /// Allocates or recycles previously freed memory suitable to emplace an instance with the
     /// given allocation information.
     /// \note This method is to be used in combination with template method #GetAllocInformation
@@ -409,8 +407,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     /// memory with character <c>0xD3</c>.
     /// @param allocInfo  The allocation information received with #GetAllocInformation.
     /// @param mem        The object to dispose.
-    void FreeByAllocationInfo(int allocInfo, void* mem )
-    {ALIB_DCS
+    void FreeByAllocationInfo(int allocInfo, void* mem )                                   {ALIB_DCS
         #if ALIB_DEBUG_ALLOCATIONS
             // if not set, then this method had been called directly from outside and we expect
             // that the hook index is stored instead of the true requested size.
@@ -428,8 +425,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
 
     /// Deletes all current pool objects with the #ChainedAllocator.
     /// The state of this class equals the state after construction.
-    void Reset()
-    {
+    void Reset() {
         deletePool();
         std::memset( hooks, 0, sizeof( void*[qtyHooks()] ) );
         #if ALIB_DEBUG_ALLOCATIONS
@@ -449,7 +445,7 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     integer GetPoolSize(size_t size);
 
     /// If the compiler-symbol \ref ALIB_DEBUG_ALLOCATIONS is not set, this method is empty and will
-    /// be optimized out. Otherwise, this will raise an \alib assertion if the piece of allocated
+    /// be optimized out. Otherwise, this will raise an \alib_assertion if the piece of allocated
     /// memory is corrupted or its allocation size is not rightfully given by the using code.
     /// @see Chapter \ref alib_contmono_further_debug of the Programmer's Manual.
     ///
@@ -497,9 +493,9 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     }
 
     #else
-        static constexpr int DbgCountedOpenAllocations(size_t )                            { return 0; }
-        static constexpr int DbgCountedOpenAllocations()                                   { return 0; }
-        static constexpr int DbgSuppressNonFreedObjectsWarning()                       { return 0; }
+    static constexpr int DbgCountedOpenAllocations(size_t )                            { return 0; }
+    static constexpr int DbgCountedOpenAllocations()                                   { return 0; }
+    static constexpr int DbgSuppressNonFreedObjectsWarning()                           { return 0; }
     #endif
 
     #if ALIB_DEBUG_MEMORY
@@ -528,8 +524,8 @@ class TPoolAllocator : public lang::AllocatorMember<TAllocator>
     }
 
     #else
-        static constexpr uinteger DbgStatAllocCounter(size_t)                          { return 0; }
-        static constexpr uinteger DbgStatAllocCounter()                                { return 0; }
+    static constexpr uinteger DbgStatAllocCounter(size_t)                              { return 0; }
+    static constexpr uinteger DbgStatAllocCounter()                                    { return 0; }
     #endif
 }; // class TPoolAllocator
 
@@ -553,10 +549,8 @@ using  PoolAllocator       = monomem::TPoolAllocator<MonoAllocator>;
 using  PoolAllocatorHA     = monomem::TPoolAllocator<lang::HeapAllocator>;
 
 /// Type alias in namespace \b alib to denote the use of a
-/// \alib{PoolAllocator} with type \alib{lang::StdContainerAllocator}.
+/// \alib{PoolAllocator} with type \alib{lang::StdAllocator}.
 template<typename T>
-using SCAPool= lang::StdContainerAllocator<T, PoolAllocator>;
+using StdPA= lang::StdAllocator<T, PoolAllocator>;
 
 } // namespace [alib]
-
-

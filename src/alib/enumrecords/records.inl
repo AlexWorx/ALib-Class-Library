@@ -7,9 +7,9 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib { namespace enumrecords {
 
-// #################################################################################################
+//##################################################################################################
 // RecordsTraits
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// This type trait is used to associate an <b><em>"ALib Enum Record"</em></b> type to a
@@ -22,7 +22,7 @@ ALIB_EXPORT namespace alib { namespace enumrecords {
 /// \see
 ///   Please consult chapter \ref alib_enums_records "4. Enum Records" of the Programmer's Manual
 ///   of \alib_enumrecords_nl for detailed documentation and sample code on this struct and
-//    underlying concept.
+///   underlying concept.
 ///
 /// \see
 ///   Macro \ref ALIB_ENUMS_ASSIGN_RECORD offers a well readable alternative to specialize this
@@ -50,15 +50,15 @@ concept HasRecords = !std::same_as<void, typename RecordsTraits<TEnum>::Type>;
 ALIB_WARNINGS_RESTORE
 
 
-// #################################################################################################
+//##################################################################################################
 // detail {}
-// #################################################################################################
+//##################################################################################################
 /// Details of namespace #alib::enumrecords.
 namespace detail {
 
-// #################################################################################################
+//##################################################################################################
 // Detail functions
-// #################################################################################################
+//##################################################################################################
 //==================================================================================================
 /// Stores the \p{record} for enum \p{element} of the given enum type \p{rtti}.
 /// If a value already exists, it is ignored. This allows having multiple records, while only
@@ -126,11 +126,10 @@ struct EnumRecordHook :  Singleton<EnumRecordHook<TEnum>>
         template <typename... TArgs>
         Node( TEnum element, TArgs&&... args)                                   noexcept
         : integral( TIntegral(element) )
-        , record  ( std::forward<TArgs>(args)... )
-        {}
+        , record  ( std::forward<TArgs>(args)... )                                                {}
 
         /// Default constructor.
-        Node()                                                                  noexcept   =default;
+        Node()                                                                    noexcept =default;
 
     };
 
@@ -141,33 +140,31 @@ struct EnumRecordHook :  Singleton<EnumRecordHook<TEnum>>
     /// \alib{enumrecords::detail;EnumRecordHook::Node::next} the last element contained in the
     /// list. If no elements have been initialized, yet, the address of field #first is
     /// returned.
-    /// @return  A pointer to the pointer of the last element or this hook.
-    Node** getPointerToLast()
-    {
+    /// @return A pointer to the pointer of the last element or this hook.
+    Node** getPointerToLast() {
         auto** last= &first;
         while( (*last) != nullptr )
             last= &(*last)->next;
         return last;
     }
 
-    private:
-        /// Private default constructor, what makes this type a
-        /// \ref alib_singleton_strict "strict singleton".
-        ///
-        ///  \note As enum record types are trivially destructible types, no destructor is given.
-        EnumRecordHook()
-        : first( nullptr )
-        {}
+  private:
+    /// Private default constructor, what makes this type a
+    /// \ref alib_singleton_strict "strict singleton".
+    ///
+    /// \note As enum record types are trivially destructible types, no destructor is given.
+    EnumRecordHook()
+    : first( nullptr )                                                                            {}
 }; // EnumRecordHook
 } //namespace alib::enumrecords[::detail]
 
-// #################################################################################################
+//##################################################################################################
 // GetRecord/TryRecord
-// #################################################################################################
+//##################################################################################################
 #include "ALib.Lang.CIFunctions.H"
 
 /// Returns the enum record for element \p{element} of enumeration type \p{TEnum} .
-/// In debug-compilations an \alib assertion is raised, if no enum record was defined for
+/// In debug-compilations an \alib_assertion is raised if no enum record was defined for
 /// \p{element}.
 ///
 /// Internally, references to enum records are stored in a hash map. With that, this method executes
@@ -185,15 +182,14 @@ struct EnumRecordHook :  Singleton<EnumRecordHook<TEnum>>
 /// @return The record that is associated with \p{element}.
 template<typename TEnum>
 requires alib::enumrecords::HasRecords<TEnum>
-const typename RecordsTraits<TEnum>::Type& GetRecord( TEnum element )
-{
+const RecordsTraits<TEnum>::Type& GetRecord( TEnum element ) {
     static_assert( std::is_trivially_destructible<typename RecordsTraits<TEnum>::Type>::value,
                    "Error: Enum Record types must be a trivially destructible." );
 
     const void* result= detail::getEnumRecord( typeid(TEnum), integer(element) );
     ALIB_ASSERT_ERROR( result != nullptr, "ENUMS", "Enum Record for type <{}>({}) not found.",
                                           &typeid(TEnum), UnderlyingIntegral(element) )
-    return *reinterpret_cast<const typename RecordsTraits<TEnum>::Type*>( result );
+    return *reinterpret_cast<const RecordsTraits<TEnum>::Type*>( result );
 }
 
 //==================================================================================================
@@ -215,8 +211,7 @@ const typename RecordsTraits<TEnum>::Type& GetRecord( TEnum element )
 //==================================================================================================
 template<typename TEnum>
 requires alib::enumrecords::HasRecords<TEnum>
-const typename RecordsTraits<TEnum>::Type* TryRecord( TEnum element )
-{
+const typename RecordsTraits<TEnum>::Type* TryRecord( TEnum element ) {
     static_assert( std::is_trivially_destructible<typename RecordsTraits<TEnum>::Type>::value,
                    "Error: Enum Record types must be a trivially destructible." );
 
@@ -226,9 +221,9 @@ const typename RecordsTraits<TEnum>::Type* TryRecord( TEnum element )
 
 #include "ALib.Lang.CIMethods.H"
 
-// #################################################################################################
+//##################################################################################################
 // struct EnumRecords
-// #################################################################################################
+//##################################################################################################
 //==================================================================================================
 /// This is a pure static interface type usable with enumeration types that dispose of a
 /// specialization of the type trait \alib{enumrecords;RecordsTraits}.
@@ -273,7 +268,7 @@ struct EnumRecords
                    "Error: Enum Record types must be a trivially destructible." );
 
     /// Defaulted constructor.
-    EnumRecords()                                                            noexcept  = default;
+    EnumRecords()                                                                 noexcept =default;
 
     /// The enum's underlying integer type.
     using  TIntegral=  typename std::underlying_type<TEnum>::type;
@@ -299,7 +294,7 @@ struct EnumRecords
     /// concept \https{ForwardIterator,en.cppreference.com/w/cpp/concept/ForwardIterator}.
     struct ForwardIterator
     {
-        private:
+      private:
             #if !DOXYGEN
                 friend struct EnumRecords;
             #endif
@@ -308,14 +303,13 @@ struct EnumRecords
             /// Shortcut to the record hook's inner node type (linked list).
             using Node= typename detail::EnumRecordHook<TEnum>::Node;
 
-            /// The current node this iterator refers to.
-            Node*          node;
+        /// The current node this iterator refers to.
+        Node*          node;
 
-            /// Constructor.
-            /// @param start Pointer to the initial element.
-            ForwardIterator( Node* start )                                                  noexcept
-            : node( start )
-            {}
+        /// Constructor.
+        /// @param start Pointer to the initial element.
+        ForwardIterator( Node* start )                                                  noexcept
+        : node( start )                                                                           {}
 
             using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
             using value_type        = const TRecord&           ;  ///< Implementation of <c>std::iterator_traits</c>.
@@ -323,73 +317,48 @@ struct EnumRecords
             using pointer           = const TRecord*           ;  ///< Implementation of <c>std::iterator_traits</c>.
             using reference         = const TRecord&           ;  ///< Implementation of <c>std::iterator_traits</c>.
 
-        public:
+      public:
 
-            // ######################   To satisfy concept of  InputIterator   ######################
+          //########################## To satisfy concept of  InputIterator ########################
 
-            /// Prefix increment operator.
-            /// @return A reference to this object.
-            ForwardIterator& operator++()
-            {
-                node= node->next;
-                return *this;
-            }
+        /// Prefix increment operator.
+        /// @return A reference to this object.
+        ForwardIterator& operator++()                            { node= node->next; return *this; }
 
-             /// Postfix increment operator.
-            /// @return An iterator value that is not increased, yet.
-            ForwardIterator operator++(int)
-            {
-                return ForwardIterator( node->next );
-            }
+        /// Postfix increment operator.
+        /// @return An iterator value that is not increased, yet.
+        ForwardIterator operator++(int)                    { return ForwardIterator( node->next ); }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and the given iterator are pointing to the same element,
-            ///         \c false otherwise.
-            bool operator==(ForwardIterator other)                                             const
-            {
-                return node == other.node;
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and the given iterator are pointing to the same element,
+        ///         \c false otherwise.
+        bool operator==(ForwardIterator other)                  const { return node == other.node; }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and given iterator are not equal, \c false otherwise.
-            bool operator!=(ForwardIterator other)                                             const
-            {
-                return !(*this == other);
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and given iterator are not equal, \c false otherwise.
+        bool operator!=(ForwardIterator other)                   const { return !(*this == other); }
 
-            // ######################   Member access   ######################
+          //##################################### Member access ####################################
 
-            /// Returns the enum element of the enum record that this iterator refers to.
-            /// @return The enum element the current record is associated to.
-            TEnum               Enum()                                                         const
-            {
-                return TEnum( node->integral );
-            }
+        /// Returns the enum element of the enum record that this iterator refers to.
+        /// @return The enum element the current record is associated to.
+        TEnum               Enum()                         const { return TEnum( node->integral ); }
 
-            /// Returns the underlying integral value of the enum element of the enum record
-            /// that this iterator refers to.
-            /// @return The integral value of the enum element the current record is associated
-            ///         to.
-            TIntegral           Integral()                                                     const
-            {
-                return node->integral;
-            }
+        /// Returns the underlying integral value of the enum element of the enum record
+        /// that this iterator refers to.
+        /// @return The integral value of the enum element the current record is associated
+        ///         to.
+        TIntegral           Integral()                              const { return node->integral; }
 
-            /// Returns a constant reference to the enum record this iterator refers to.
-            /// @return The current enum record.
-            const TRecord&      operator*()                                                    const
-            {
-                return node->record;
-            }
+        /// Returns a constant reference to the enum record this iterator refers to.
+        /// @return The current enum record.
+        const TRecord&      operator*()                               const { return node->record; }
 
-            /// Returns a constant pointer to the enum record this iterator refers to.
-            /// @return The current enum record.
-            const TRecord*      operator->()                                                   const
-            {
-                return &node->record;
-            }
+        /// Returns a constant pointer to the enum record this iterator refers to.
+        /// @return The current enum record.
+        const TRecord*      operator->()                             const { return &node->record; }
     }; // inner struct ForwardIterator
 
     /// Returns an iterator referring to the first enum record defined for type \p{TEnum}.
@@ -399,32 +368,27 @@ struct EnumRecords
     ///   \alib{singletons;Singleton} and executes in constant time <em>O(1)</em>, in effect almost
     ///   no time.
     ///
-    ///  \note
+    /// \note
     ///     Like any other entity in this class, this method is static, apart from a defaulted
     ///     (empty) constructor, which is provided for the sole purpose of allowing
     ///     range-based <em><c>for(:)</c></em> loops.
     ///
-    ///  @return An iterator to the first record defined for enumeration type \p{TEnum}.
+    /// @return An iterator to the first record defined for enumeration type \p{TEnum}.
     static
     ForwardIterator  begin()
-    {
-        return  ForwardIterator( detail::EnumRecordHook<TEnum>::GetSingleton().first );
-    }
+    { return  ForwardIterator( detail::EnumRecordHook<TEnum>::GetSingleton().first ); }
 
     /// Returns an iterator referring to the first element behind the list.
     ///
     /// \see The note documented with sibling method #begin.
     /// @return The end of the list.
     static constexpr
-    ForwardIterator  end()
-    {
-        return  ForwardIterator( nullptr );
-    }
+    ForwardIterator  end()                                   { return  ForwardIterator( nullptr ); }
 }; // struct EnumRecords
 
-// #################################################################################################
+//##################################################################################################
 // ERSerializable
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// This is a <em>built-in</em> record type that can be used to equip custom enumeration types
@@ -443,7 +407,7 @@ struct EnumRecords
 ///
 /// If deserialization is not of importance, a derived type may choose to not parse member
 /// #MinimumRecognitionLength from a (resourced) string, but initialize it to fixed \c 0 value.
-/// This behavior is for example implemented with record \alib{exceptions;ERException} and various
+/// This behavior is, for example, implemented with record \alib{exceptions;ERException} and various
 /// types found in module \alib_cli.
 ///
 /// \see For more information, see:
@@ -473,7 +437,7 @@ struct ERSerializable
 
 
     /// Defaulted constructor leaving the record undefined.
-    ERSerializable()                                                            noexcept  = default;
+    ERSerializable()                                                              noexcept =default;
 
     /// Constructor. This is either called by descendants or by user code that omits the preferred
     /// option of parsing resourced strings for the creation of enum records.
@@ -487,11 +451,10 @@ struct ERSerializable
     ///                   (Assigned to field #MinimumRecognitionLength.)
     ERSerializable( const String& name, int minLength= 0 )                                  noexcept
     : EnumElementName         (name)
-    , MinimumRecognitionLength(minLength)
-    {}
+    , MinimumRecognitionLength(minLength)                                                         {}
 
     /// Parses the fields of this record from the \b Substring \p{parser} given as reference.
-    /// In case of an error, an \alib exception is raised, as parsing has to succeed.
+    /// In case of an error, an \alib_exception is raised because parsing has to succeed.
     ///
     /// @see
     ///   This is the implementation of a method needed with template programming, as described in
@@ -519,5 +482,3 @@ template<typename TEnum>
 using     EnumRecords=          enumrecords::EnumRecords<TEnum>;
 
 } // namespace [alib]
-
-

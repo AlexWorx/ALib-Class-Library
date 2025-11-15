@@ -15,16 +15,16 @@ ALIB_EXPORT namespace alib::assert {
 
 #if !DOXYGEN
 #   if ALIB_SINGLE_THREADED && ALIB_EXT_LIB_THREADS_AVAILABLE
-       ALIB_DLL  void SingleThreaded();
+        ALIB_DLL  void SingleThreaded();
 #   else
-       inline    void SingleThreaded() {}  // optimized out
+inline    void SingleThreaded() {}  // optimized out
 #   endif
 #endif
 
 
 #if ALIB_DEBUG_ASSERTION_PRINTABLES
 /// This is the implementation of the templated sibling method, which fetches the variadic
-/// templated printables of an \alib assertion.<br>
+/// templated printables of an \alib_assertion.<br>
 ///
 /// Available only if the compiler-symbol \ref ALIB_DEBUG_ASSERTION_PRINTABLES is given.
 /// @param ci       Source location of the assertion raised.
@@ -62,10 +62,10 @@ void CheckArgs( const CallerInfo& ci, TArgs&&... args) {
 /// Here, errors may need to be tested to be properly raised.
 struct TLD {
 
-    /// Flag to enable/disable the use of <c>assert(0)</c> if an \alib error  was raised.
+    /// Flag to enable/disable the use of <c>assert(0)</c> when an \alib error was raised.
     bool HaltOnErrors                                                                        = true;
 
-    /// Flag to enable/disable the use of <c>assert(0)</c> if an \alib warning was raised.
+    /// Flag to enable/disable the use of <c>assert(0)</c> when an \alib_warning was raised.
     bool HaltOnWarnings                                                                     = false;
 
     /// The number of errors counted for this thread.
@@ -148,26 +148,26 @@ ALIB_DLL void raise( const lang::CallerInfo& ci, int type, std::string_view doma
 /// and then, if \p{type} equals \c 0, invokes <c>assert(0)</c>.
 ///
 /// @see
-///  The following entities are related to \alib assertions:
-///  - \alib{assert::raise} (called by this method after converting the variadic arguments to
-///    an array of <c>std::any</c> objects.
-///  - Type definition \alib{assert::AnyConversionFunc} to register custom printable types.
-///  - Function \alib{assert;RegisterPrintable} to register a conversion function.
-///  - Namespace variable \alib{assert::FORMAT} that defines the output format.
-///  - Namespace variables \alib{assert::STREAM_ERRORS}, \alib{assert::STREAM_WARNINGS}, and
-///    \alib{assert::STREAM_MESSAGES} that allow to redirect assertion messages.
-///  - Thread-local struct HALT_FLAGS_AND_COUNTERS, which allows tweaking
-///    the assertion behavior and implements usage counters. (Mostly done to support unit-tests.)
-///  - Assertion and message macros:
-///    - ALIB_ERROR,
-///    - ALIB_WARNING,
-///    - ALIB_MESSAGE,
-///    - ALIB_ASSERT,
-///    - ALIB_ASSERT_ERROR,
-///    - ALIB_ASSERT_WARNING, and
-///    - ALIB_ASSERT_MESSAGE.
-///    - ALIB_ERROR,
-///    - ALIB_ERROR,
+///   The following entities are related to \alib_assertions:
+///   - \alib{assert::raise} (called by this method after converting the variadic arguments to
+///     an array of <c>std::any</c> objects.
+///   - Type definition \alib{assert::AnyConversionFunc} to register custom printable types.
+///   - Function \alib{assert;RegisterPrintable} to register a conversion function.
+///   - Namespace variable \alib{assert::FORMAT} that defines the output format.
+///   - Namespace variables \alib{assert::STREAM_ERRORS}, \alib{assert::STREAM_WARNINGS}, and
+///     \alib{assert::STREAM_MESSAGES} that allow to redirect assertion messages.
+///   - Thread-local struct HALT_FLAGS_AND_COUNTERS, which allows tweaking
+///     the assertion behavior and implements usage counters. (Mostly done to support unit-tests.)
+///   - Assertion and message macros:
+///     - ALIB_ERROR,
+///     - ALIB_WARNING,
+///     - ALIB_MESSAGE,
+///     - ALIB_ASSERT,
+///     - ALIB_ASSERT_ERROR,
+///     - ALIB_ASSERT_WARNING, and
+///     - ALIB_ASSERT_MESSAGE.
+///     - ALIB_ERROR,
+///     - ALIB_ERROR,
 ///
 /// @tparam TArgs  The types of the variadic function arguments \p{args}.
 /// @param ci      Caller information.
@@ -184,8 +184,7 @@ void Raise( const lang::CallerInfo& ci, int type, std::string_view domain, TArgs
     else {
         std::array<std::any, sizeof...(TArgs)> argArray  { std::forward<TArgs>(args)... };
         alib::assert::raise( ci, type, domain, argArray );
-    }
-}
+}   }
 
 /// This function pointer defaults to \c nullptr and may be set by from outside to redirect
 /// writing the assertion, warning or message text of functions #Raise, respectively
@@ -208,10 +207,3 @@ extern void (*PLUGIN)( const lang::CallerInfo&  ci,
 
 } // namespace [alib::assert]
 #endif // ALIB_DEBUG
-
-
-
-
-
-
-

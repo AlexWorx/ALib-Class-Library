@@ -191,7 +191,7 @@ void testParamLocalString( AWorxUnitTesting& ut, const character* exp, const Str
 void testParamSubstring( AWorxUnitTesting& ut, const character* exp, const Substring& ss )
 {
     #if ALIB_DEBUG_STRINGS
-        ALIB_STRING_DBG_CHK(&as)
+        ALIB_STRING_DBG_CHK(&ss)
     #endif
     String32 asTemp;
     asTemp._(ss);

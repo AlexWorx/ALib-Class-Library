@@ -14,7 +14,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 
 #include <iterator>
@@ -32,14 +32,16 @@
 #include <vector>
 #include <algorithm>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_strings.
     export module ALib.Strings.Monomem;
     import        ALib.Lang;
     import        ALib.Time;
@@ -56,7 +58,7 @@
 #include "ALib.Strings.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 
 //==================================================================================================
 //==== AString versions using Mono- and PoolAllocator
@@ -214,28 +216,26 @@ using StringPA4K =  LocalStringPA<4096>;
 //==================================================================================================
 #if ALIB_DEBUG
 ALIB_EXPORT namespace alib::monomem {
-    //==========================================================================================
-    /// Provides allocation statistics for manual performance optimization.
-    ///
-    /// \par Availability
-    ///  This method is included only in debug-compilations and when module \alib_strings is
-    ///  included in the \alibbuild.<br>
-    ///  In case the code selector symbol \ref ALIB_DEBUG_MEMORY is set, additional information
-    ///  retrieved with \alib{monomem;TMonoAllocator::DbgGetStatistics} is included in the
-    ///  generated string.
-    ///
-    /// @param ma  The allocator to get formatted statistics for.
-    /// @return Some textual information on the allocation statistics.
-    //==========================================================================================
-    template<typename TAllocator>
-    NAString    DbgDumpStatistics(monomem::TMonoAllocator<TAllocator>& ma);
+//==================================================================================================
+/// Provides allocation statistics for manual performance optimization.
+///
+/// \par Availability
+///   This method is included only in debug-compilations and when module \alib_strings is
+///   included in the \alibbuild.<br>
+///   In case the code selector symbol \ref ALIB_DEBUG_MEMORY is set, additional information
+///   retrieved with \alib{monomem;TMonoAllocator::DbgGetStatistics} is included in the
+///   generated string.
+///
+/// @param ma  The allocator to get formatted statistics for.
+/// @return Some textual information on the allocation statistics.
+//==================================================================================================
+template<typename TAllocator>
+NAString    DbgDumpStatistics(monomem::TMonoAllocator<TAllocator>& ma);
 
-// #############################   Template instantiation declaration   ############################
+//################################ Template instantiation declaration ##############################
 #if !DOXYGEN
     extern template ALIB_DLL NAString monomem::DbgDumpStatistics(TMonoAllocator<lang::HeapAllocator> &ma);
 #endif
 
 } // namespace [alib::monomem]
 #endif // ALIB_DEBUG
-
-

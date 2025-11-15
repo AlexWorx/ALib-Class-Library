@@ -224,24 +224,17 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
  **************************************************************************************************/
 struct Arithmetics   : public plugins::Calculus
 {
-    //==============================================================================================
     /// Constructor. Creates the hash maps.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
-     ALIB_DLL   Arithmetics( Compiler& compiler );
+    ALIB_DLL   Arithmetics( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor
-    //==============================================================================================
-    virtual    ~Arithmetics()                                                               override
-    {}
+    virtual    ~Arithmetics()                                                            override {}
 
-    //==============================================================================================
     /// Invokes parent's method. On failure, tries to compile function <b>%Length(array)</b>.
     ///
     /// @param[in,out] ciFunction  The compilation information.
     /// @return \c true if an entry was found. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIFunction& ciFunction )                               override;
 
@@ -267,4 +260,3 @@ Box ToBoolean( Scope& scope, ArgIterator  args, ArgIterator );
 
 
 }}} // namespace [alib::expressions::detail]
-

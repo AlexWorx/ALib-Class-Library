@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/resources/resources.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Resources;
 #   if ALIB_ENUMRECORDS
@@ -23,7 +23,7 @@
 #   include "ALib.EnumRecords.Bootstrap.H"
 #   include "ALib.Resources.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if ALIB_ENUMRECORDS
 // Windows.h might bring in max/min macros
 #if defined( max )
@@ -43,8 +43,7 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
                            strings::util::Token* token,
                ALIB_DBG(   int                   dbgSizeVerifier, )
                            character             outerSeparator,
-                           character             innerSeparator        )
-{
+                           character             innerSeparator        ) {
     ALIB_DBG( int tableSize= 0; )
     int resourceNo= -1; // disable number parsing
 
@@ -52,8 +51,7 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
     if( parser.IsNull() )
         resourceNo= 0; // enable number parsing
 
-    for( ;; )
-    {
+    for( ;; ) {
         if (resourceNo >= 0)
             parser= resourcePool.Get( resourceCategory, NString256() << resourceName << resourceNo++
                                       ALIB_DBG(, false ) );
@@ -65,15 +63,13 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
         if( parser.IsEmpty() )
             break;
 
-        while( parser.IsNotEmpty() )
-        {
+        while( parser.IsNotEmpty() ) {
             String actValue= parser.ConsumeToken( outerSeparator );
             token->Define( actValue, innerSeparator );
 
             #if ALIB_DEBUG
                 NCString errorMessage(nullptr);
-                switch( token->DbgGetError() )
-                {
+                switch( token->DbgGetError() ) {
                     case Token::DbgDefinitionError::OK:
                         break;
                     case Token::DbgDefinitionError::EmptyName:
@@ -111,8 +107,7 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
                     default: ALIB_ERROR( "RESOURCES", "Illegal switch state." ) break;
                 }
 
-                if( errorMessage.IsNotEmpty() )
-                {
+                if( errorMessage.IsNotEmpty() ) {
                     ALIB_ERROR( "STRINGS", errorMessage,
                         "\n(While reading token table.)\n"
                         "    Resource category (module name):  \"{}\"\n"
@@ -126,14 +121,12 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
 
             ++token;
             ALIB_DBG( tableSize++; )
-        }
-    }
+    }   }
 
     // check if there are more coming (a gap in numbered definition)
     #if ALIB_DEBUG
     if( resourceNo > 1 )
-        for( int i= 0 ; i < 35 ; ++i )
-        {
+        for( int i= 0 ; i < 35 ; ++i ) {
             if( resourcePool.Get( resourceCategory, NString256() << resourceName << (resourceNo + i)
                                   ALIB_DBG(, false ) ).IsNotNull() )
             {
@@ -143,8 +136,7 @@ void LoadResourcedTokens(  ResourcePool&         resourcePool,
                    "From index {} to {}.\n"
                    "  Resource category/name: {} / {}",
                    resourceNo - 1, resourceNo + i - 1, resourceCategory, resourceName )
-            }
-        }
+        }   }
     #endif
 
 

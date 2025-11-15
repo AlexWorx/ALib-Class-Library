@@ -68,17 +68,17 @@ struct VirtualMachine : VirtualMachineBase
 
 
         #if ALIB_DEBUG
-            /// Provides additional debug information for a command.
-            /// Available only with debug-builds of the library.
-            /// Used with \alib{expressions::detail;VirtualMachine::DbgList}
-            struct DbgInformation
-            {
-                /// The plug-in that provided the callback or constant.
-                CompilerPlugin* Plugin                                                    = nullptr;
+        /// Provides additional debug information for a command.
+        /// Available only with debug-builds of the library.
+        /// Used with \alib{expressions::detail;VirtualMachine::DbgList}
+        struct DbgInformation
+        {
+            /// The plug-in that provided the callback or constant.
+            CompilerPlugin* Plugin                                                         =nullptr;
 
-                /// The native C++ name of the callback function.
-                const char*     Callback;
-            };
+            /// The native C++ name of the callback function.
+            const char*     Callback;
+        };
         #endif
 
         /// A union of different parameter types for the commands.
@@ -136,8 +136,8 @@ struct VirtualMachine : VirtualMachineBase
 
 
         #if ALIB_DEBUG
-            /// Operation code of this command. Available only with debug-builds.
-            DbgInformation  DbgInfo;
+        /// Operation code of this command. Available only with debug-builds.
+        DbgInformation  DbgInfo;
         #endif
 
         /// Constructor creating a constant.
@@ -153,8 +153,7 @@ struct VirtualMachine : VirtualMachineBase
                                          : int16_t(ListingTypes::LiteralConstant     ) ) )
         , ResultType(value)
         , ExpressionPositions( (uinteger(idxNormalized) << (bitsof(integer)/2) )
-                              + uinteger(idxOriginal  )  )
-        {}
+                              + uinteger(idxOriginal  )  )                                        {}
 
 
         /// Constructor creating a native function call exposed from an identifier, function
@@ -184,8 +183,7 @@ struct VirtualMachine : VirtualMachineBase
         , ResultType         (resultType       )
         , ExpressionPositions( (uinteger(idxNormalized) << (bitsof(integer)/2) )
                               + uinteger(idxOriginal  )  )
-        , DecompileSymbol    (functionOrOp     )
-        {}
+        , DecompileSymbol    (functionOrOp     )                                                  {}
 
         /// Constructor creating a subroutine call.
         /// @param program         The program to call.
@@ -207,26 +205,25 @@ struct VirtualMachine : VirtualMachineBase
         , Parameter (-1)
         , ResultType(nullptr)
         , ExpressionPositions( (uinteger(idxNormalized) << (bitsof(integer)/2) )
-                              | uinteger(idxOriginal  )  )
-        {}
+                              | uinteger(idxOriginal  )  )                                        {}
 
 
         /// Returns the opcode of this command.
-        /// @return  The masked command part of the opcode.
-        constexpr OpCodes OpCode()             const  { return OpCodes(bits & Bits::CMD_MASK); }
+        /// @return The masked command part of the opcode.
+        constexpr OpCodes OpCode()                  const { return OpCodes(bits & Bits::CMD_MASK); }
 
         /// Returns the decompile type of this command.
-        /// @return  The masked command part of the opcode.
-        constexpr ListingTypes TerminalType() const {return ListingTypes(bits & Bits::TYPE_MASK);}
+        /// @return The masked command part of the opcode.
+        constexpr ListingTypes TerminalType()   const {return ListingTypes(bits & Bits::TYPE_MASK);}
 
         /// Returns \c true if the command represents a constant value, but is not the end
         /// of a conditional jump.
-        /// @return  \c true if the command represents a constant value, \c false otherwise.
-        bool IsConstant()                                            const
+        /// @return \c true if the command represents a constant value, \c false otherwise.
+        bool IsConstant()                                                                      const
         { return   OpCodes(bits & Bits::CMD_MASK_WITH_EOC) == OpCodes::Constant; }
 
         /// Returns \c true if the command represents a conditional or unconditional jump.
-        /// @return  \c true if the command represents a jump, \c false otherwise.
+        /// @return \c true if the command represents a jump, \c false otherwise.
         bool IsJump()                                              const { return (bits & 4) == 4; }
 
         /// Marks the command as the end of a conditional term.
@@ -236,50 +233,42 @@ struct VirtualMachine : VirtualMachineBase
         bool HasArgs()                                                const { return qtyArgs <= 0; }
 
         /// @return \c true if the function has arguments, \c false otherwise.
-        bool IsIdentifier()                                     const { return qtyArgs <= 0; }
+        bool IsIdentifier()                                           const { return qtyArgs <= 0; }
 
         /// @return The number of arguments of a function call.
         int QtyArgs()                                                 const { return int(qtyArgs); }
     }; // inner struct Command
 
-    //==============================================================================================
     /// Static method that runs an expression program.
     /// @param program  The program to run.
     /// @param scope    The scope to use.
     /// @return The result value of the expression program.
-    //==============================================================================================
     ALIB_DLL static
     alib::Box  Run( Program& program, Scope& scope );
 
-    //==============================================================================================
     /// Static method that decompiles a program into an abstract syntax tree.
     /// Used to generate optimized, normalized, parsable expression strings.
     /// @param program   The program to decompile.
     /// @param allocator Allocator for AST objects (and their data).
     /// @return The abstract syntax tree as a result of de-compilation.
-    //==============================================================================================
     ALIB_DLL static
     AST*        Decompile( Program& program, MonoAllocator& allocator );
 
 
     #if ALIB_DEBUG
-        //==========================================================================================
-        /// Lists a virtual machine program.
-        ///
-        /// Note: This method is available only with debug-builds of the library.
-        /// @param program  The program to list.
-        /// @return The program listing.
-        //==========================================================================================
-        ALIB_DLL static
-        AString DbgList( Program& program );
+    /// Lists a virtual machine program.
+    ///
+    /// Note: This method is available only with debug-builds of the library.
+    /// @param program  The program to list.
+    /// @return The program listing.
+    ALIB_DLL static
+    AString DbgList( Program& program );
 
     #endif
 
-    //==============================================================================================
     /// The implementation of #Run, which itself is just initialization code.
     /// @param program      The program to run.
     /// @param scope        The scope to use.
-    //==============================================================================================
     ALIB_DLL static
     void  run( Program& program, Scope& scope );
     
@@ -291,4 +280,3 @@ ALIB_BOXING_VTABLE_DECLARE(  alib::expressions::detail::VirtualMachine::Command:
 #if ALIB_DEBUG
     ALIB_ENUMS_ASSIGN_RECORD(alib::expressions::detail::VirtualMachine::Command::OpCodes, ERSerializable )
 #endif
-

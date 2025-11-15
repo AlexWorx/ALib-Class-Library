@@ -12,6 +12,7 @@
 
 #include "ALib.Variables.IniFile.H"
 #include "ALib.Containers.StringTree.H"
+#include "ALib.Containers.StringTreeIterator.H"
 #include "ALib.Monomem.H"
 #include "ALib.System.H"
 #include "ALib.Format.H"
@@ -38,19 +39,22 @@ namespace ut_stringtree { namespace {
 
 using AStringST= StringTree<MonoAllocator, NAString,StringTreeNamesStatic<character>>;
 
-bool valueSorter(const AStringST::Cursor& lhs, const AStringST::Cursor& rhs)
+struct ValueSorter : StringTreeIterator<AStringST>::Sorter
 {
-    return lhs->CompareTo<CHK, lang::Case::Ignore>(*rhs) < 0 ;
-}
+    bool Compare (const AStringST::ConstCursor& lhs,
+                  const AStringST::ConstCursor& rhs) override {
+        return lhs->CompareTo<CHK, lang::Case::Ignore>(*rhs) < 0 ;
+    }
+};
 
 
 using MyTree= StringTree<MonoAllocator, const char*>;
-MyTree::RecursiveIterator testIt;
+StringTreeIterator<MyTree> testIt;
 
 void testIteration( AWorxUnitTesting& ut,
                     MyTree::Cursor& cursor,
                     int qtyChilds,
-                    unsigned int recursionDepth, int qtyChildsRecursive,
+                    unsigned recursionDepth, int qtyChildsRecursive,
                     bool debugOutput   =false                        )
 {
     String128 path;
@@ -62,14 +66,15 @@ void testIteration( AWorxUnitTesting& ut,
     }
 
     testIt.SetPathGeneration( lang::Switch::On );
-    testIt.Initialize( cursor, recursionDepth );
+    testIt.SetMaxDepth( recursionDepth );
+    testIt.Initialize( cursor, lang::Inclusion::Exclude );
     int cnt= 0;
     while ( testIt.IsValid() )
     {
         if( debugOutput )
             UT_PRINT( "{:02} Depth={} QtyChildren={} N={:<3} Value={:<8}  Path: {}" , cnt,
                       testIt.CurrentDepth(), testIt.Node().CountChildren(), testIt.Node().Name(),
-                      *testIt.Node(), testIt.CurrentPath() )
+                      *testIt.Node(), testIt.Path() )
         ++cnt;
         testIt.Next();
     }
@@ -229,28 +234,28 @@ UT_METHOD(StringTree_Cursor)
            UT_TRUE( cursor.GoToCreateChildIfNotExistent( A_CHAR("1")    ) ) *cursor= "aA1"    ;
     cursor.GoToParent(); UT_TRUE(  cursor.IsValid() ) UT_TRUE( cursor.GoToCreateChildIfNotExistent( A_CHAR("b")    ) ) *cursor= "aAb"    ;
     cursor.GoToParent(); UT_TRUE(  cursor.IsValid() ) UT_TRUE( cursor.GoToCreateChildIfNotExistent( A_CHAR("c")    ) ) *cursor= "aAc"    ;
-    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent ( A_CHAR( "a/B"   )  ); *cursor= "aB-"  ;
-    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent ( A_CHAR( "a/B/1" )  ); *cursor= "aB1"  ;
-    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent ( A_CHAR( "a/B/2" )  ); *cursor= "aB2"  ;
-    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent ( A_CHAR( "a/B/3" )  ); *cursor= "aB3"  ;
-                        cursor.GoToCreatedPathIfNotExistent ( A_CHAR("/a/C"   )  ); *cursor= "aC-"  ;
-                        cursor.GoToCreatedPathIfNotExistent ( A_CHAR("/a/C/1" )  ); *cursor= "aC1"  ;
-                        cursor.GoToCreatedPathIfNotExistent ( A_CHAR("/a/C/2" )  ); *cursor= "aC2"  ;
-                        cursor.GoToCreatedPathIfNotExistent ( A_CHAR("/a/C/3" )  ); *cursor= "aC3"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b"     )  ).first= "b--"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A"   )  ).first= "bA-"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/1" )  ).first= "bA1"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/2" )  ).first= "bA2"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/3" )  ).first= "bA3"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B"   )  ).first= "bB-"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/1" )  ).first= "bB1"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/2" )  ).first= "bB2"  ;
-                       *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/3" )  ).first= "bB3"  ;
-              (cursor=  cursor    .CreatePathIfNotExistent ( A_CHAR("/b/C"   )  ).first).Value()= "bC-"  ;
-                        auto cursor2 =  cursor.CreateChild       ( A_CHAR("1" )  ); *cursor2="bC1"  ;
-                             cursor2 =  cursor.CreateChild<NC>   ( A_CHAR("2" )  ); *cursor2="bC2"  ;
-                             cursor2 =  cursor.CreateChild       ( A_CHAR("3" )  ); *cursor2="bC3"  ;
-                             cursor2 =  cursor.CreateChild       ( A_CHAR("3" )  ); UT_TRUE( cursor2.IsInvalid() )
+    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent( A_CHAR( "a/B"   )  ); *cursor= "aB-"  ;
+    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent( A_CHAR( "a/B/1" )  ); *cursor= "aB1"  ;
+    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent( A_CHAR( "a/B/2" )  ); *cursor= "aB2"  ;
+    cursor= pm.Root(); cursor.GoToCreatedPathIfNotExistent( A_CHAR( "a/B/3" )  ); *cursor= "aB3"  ;
+                       cursor.GoToCreatedPathIfNotExistent( A_CHAR("/a/C"   )  ); *cursor= "aC-"  ;
+                       cursor.GoToCreatedPathIfNotExistent( A_CHAR("/a/C/1" )  ); *cursor= "aC1"  ;
+                       cursor.GoToCreatedPathIfNotExistent( A_CHAR("/a/C/2" )  ); *cursor= "aC2"  ;
+                       cursor.GoToCreatedPathIfNotExistent( A_CHAR("/a/C/3" )  ); *cursor= "aC3"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b"     )  ).first= "b--"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A"   )  ).first= "bA-"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/1" )  ).first= "bA1"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/2" )  ).first= "bA2"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/A/3" )  ).first= "bA3"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B"   )  ).first= "bB-"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/1" )  ).first= "bB1"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/2" )  ).first= "bB2"  ;
+                      *cursor    .CreatePathIfNotExistent ( A_CHAR("/b/B/3" )  ).first= "bB3"  ;
+             (cursor=  cursor    .CreatePathIfNotExistent ( A_CHAR("/b/C"   )  ).first).Value()= "bC-"  ;
+                 auto cursor2 =  cursor.CreateChild       ( A_CHAR("1"      )  ); *cursor2="bC1"  ;
+                      cursor2 =  cursor.CreateChild<NC>   ( A_CHAR("2"      )  ); *cursor2="bC2"  ;
+                      cursor2 =  cursor.CreateChild       ( A_CHAR("3"      )  ); *cursor2="bC3"  ;
+                      cursor2 =  cursor.CreateChild       ( A_CHAR("3"      )  ); UT_TRUE( cursor2.IsInvalid() )
 
     cout << "Check construction (sizes of some branches)" << endl;
               cursor= pm.Root();                                            UT_EQ( 0, cursor.Depth() ) testIteration( ut, cursor, 2, 100, 26, true );
@@ -273,10 +278,10 @@ UT_METHOD(StringTree_Cursor)
     cursor= pm.Root(); UT_TRUE ( cursor.GoTo(A_CHAR("a/B/1/..")    ).IsEmpty()) UT_EQ( A_CHAR("/a/B"  ), cursor.AssemblePath(path) )
     cursor= pm.Root(); UT_TRUE ( cursor.GoTo(A_CHAR("a/B/1/../1")  ).IsEmpty()) UT_EQ( A_CHAR("/a/B/1"), cursor.AssemblePath(path) )
     cursor= pm.Root(); UT_TRUE ( cursor.GoTo(A_CHAR("a/B/1")       ).IsEmpty()) UT_EQ( NString("aB1" ) , *cursor )
-                        UT_TRUE ( cursor.GoTo(A_CHAR("../2")       ).IsEmpty()) UT_EQ( NString("aB2" ) , *cursor )
-                        UT_FALSE( cursor.GoTo(A_CHAR("b")          ).IsEmpty()) UT_EQ( NString("aB2" ) , *cursor )
-                        UT_TRUE ( cursor.GoTo(A_CHAR("/b")         ).IsEmpty()) UT_EQ( NString("b--" ) , *cursor )
-                        UT_TRUE ( cursor.GoTo(A_CHAR("./C")        ).IsEmpty()) UT_EQ( NString("bC-" ) , *cursor )
+                       UT_TRUE ( cursor.GoTo(A_CHAR("../2")        ).IsEmpty()) UT_EQ( NString("aB2" ) , *cursor )
+                       UT_FALSE( cursor.GoTo(A_CHAR("b")           ).IsEmpty()) UT_EQ( NString("aB2" ) , *cursor )
+                       UT_TRUE ( cursor.GoTo(A_CHAR("/b")          ).IsEmpty()) UT_EQ( NString("b--" ) , *cursor )
+                       UT_TRUE ( cursor.GoTo(A_CHAR("./C")         ).IsEmpty()) UT_EQ( NString("bC-" ) , *cursor )
 
 
     UT_PRINT( "Up" )
@@ -416,47 +421,52 @@ UT_METHOD(StringTree_Cursor)
 }
 
 //--------------------------------------------------------------------------------------------------
-//--- StringTree_RecursiveIterator
+//--- StringTreeIterator
 //--------------------------------------------------------------------------------------------------
 #include "ALib.Lang.CIFunctions.H"
 
-template <typename TStartValue>
-int doIterations( AWorxUnitTesting& ut,
-                  alib::StringTree<MonoAllocator, NAString, StringTreeNamesStatic<character>>::RecursiveIterator& iterator,
-                  TStartValue& startValue,
-                  unsigned int recursionDepth  )
+template <typename TCursor>
+int doIterations( AWorxUnitTesting&              ut,
+                  StringTreeIterator<AStringST>& iterator,
+                  TCursor                        startNode,
+                  bool                           includeStartNode,
+                  unsigned                       recursionDepth     )
 {
-    String512 buf;
+    String512 startPath;
 
     int cnt= 0;
-    iterator.Initialize( startValue, recursionDepth );
+    startNode.AssemblePath(startPath);
+    iterator.SetMaxDepth( recursionDepth );
+    iterator.Initialize( startNode, includeStartNode ? lang::Inclusion::Include : lang::Inclusion::Exclude );
     if( !iterator.IsValid() )
     {
         UT_PRINT( "Invalid iterator after initialization (e.g., no children in given node). No iterations performed.")
         return 0;
     }
 
-    UT_PRINT( "Iterator test. Iteration start path: {!Q}, depth: {}", iterator.Node().AssemblePath( buf), iterator.RequestedDepth() )
+    UT_PRINT( "\nIterator test. Iteration start path: {!Q}, include startNode= {}, depth: {}",
+              startPath, includeStartNode, iterator.MaxDepth() )
+
     for ( ; iterator.IsValid() ; iterator.Next() )
     {
-        const String& path= iterator.CurrentPath();
-        UT_TRUE(    ( iterator.CurrentDepth() == 0 && (path.IsEmpty() || (path.Length()==1 && path.CharAtStart() == '/') ) )
-                 || ( iterator.CurrentDepth() > 0 && path.EndsWith( iterator.Node().Parent().Name())
-                      && (    ( iterator.CurrentDepth() == 1 && path.Length() == iterator.Node().Parent().Name().Length() )
-                                                      || path[path.Length() - iterator.Node().Parent().Name().Length() - 1] == '/' )           )
-               )
-        UT_PRINT( buf,
-                    "Depth: {:2}  "
-                  "  Node: {!Q:>7} "
-                  "  Value: {!Q:>11} "
-                  "  Children: {:2} "
-                  "  Path to node: {:<30} " ,
-                   iterator.CurrentDepth()        ,
-                   iterator.Node().Name()         ,
-                   iterator.Node().Value()        ,
+        String512 filePath;
+        iterator.Node().AssemblePath(filePath);
+        const String  nodeName= iterator.Node().Name();
+        UT_PRINT( "Depth: {!ATab:2}  "
+                  "  Node: {!ATab!Q} "
+                  "  Value: {!ATab!Q} "
+                  "  Children: {!ATab:2} "
+                  "  path: {!ATab!Q} "
+                  "  (true path): {!ATab!Q} " ,
+                   iterator.CurrentDepth()    ,
+                   nodeName                   ,
+                   iterator.Node().Value()    ,
                    iterator.Node().CountChildren(),
-                   path
+                   iterator.Path(), filePath
                  )
+
+        UT_EQ(filePath, iterator.Path() )
+
         ++cnt;
     }
 
@@ -464,12 +474,13 @@ int doIterations( AWorxUnitTesting& ut,
 }
 #include "ALib.Lang.CIMethods.H"
 
-UT_METHOD(StringTree_RecursiveIterator)
+UT_METHOD(StringTreeIterator)
 {
     UT_INIT()
 
     MonoAllocator ma(ALIB_DBG("UTStringRO",)4);
     AStringST tree(ma, '/');
+    tree.ConstructRootValue("ROOT");
     auto cursor=  tree.Root();
 
     cursor.CreatePathIfNotExistent( A_CHAR( ""               ));
@@ -488,172 +499,196 @@ UT_METHOD(StringTree_RecursiveIterator)
     cursor.CreatePathIfNotExistent( A_CHAR( "outer/Inn3/def" )).first->Reset( "sort3"      );
     cursor.CreatePathIfNotExistent( A_CHAR( "outer/Inn3/ght" )).first->Reset( "sort1"      );
 
-    AStringST::RecursiveIterator recursiveIt;
-    recursiveIt.SetPathGeneration( lang::Switch::On );
+    StringTreeIterator<AStringST> stit;
+    stit.SetPathGeneration( lang::Switch::On );
 
     // check cursor/iterator creation
-    recursiveIt.Initialize( tree );
-    UT_TRUE( recursiveIt.Node().Name() == tree.Root().FirstChild().Name()  )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude );
+    UT_TRUE( stit.Node().Name() == tree.Root().FirstChild().Name()  )
 
 
     UT_PRINT(NEW_LINE, "--- non recursive ---" )
     int qtyIt;
-    qtyIt = doIterations(ut, recursiveIt, tree, 0);  UT_EQ(2, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), false, 0);  UT_EQ(2, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), true , 0);  UT_EQ(1, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), true , 1);  UT_EQ(3, qtyIt)
 
     UT_PRINT(NEW_LINE, "--- non recursive ---" )
     decltype(tree)::Cursor start=   tree.Root();
     UT_TRUE( start.GoTo(A_CHAR("outer/Inn3")).IsEmpty() )
 
-    qtyIt = doIterations( ut, recursiveIt, start, 0 ); UT_EQ( 3, qtyIt)
+    qtyIt = doIterations( ut, stit, start, false, 0 ); UT_EQ( 3, qtyIt)
+    qtyIt = doIterations( ut, stit, start, true , 0 ); UT_EQ( 1, qtyIt)
+    qtyIt = doIterations( ut, stit, start, true , 1 ); UT_EQ( 4, qtyIt)
 
 
 
     UT_PRINT(NEW_LINE, "--- non recursive decending---" )
-    recursiveIt.SetSorting( lang::SortOrder::Descending, lang::Case::Sensitive );
-    qtyIt = doIterations(ut, recursiveIt, start, 0); UT_EQ(3, qtyIt)
+    decltype(stit)::NameSorter sorter;
+    sorter.Descending   = true;
+    sorter.CaseSensitive= true;
+    stit.SetSorting( &sorter );
+    qtyIt = doIterations(ut, stit, start, false, 0); UT_EQ(3, qtyIt)
+    qtyIt = doIterations(ut, stit, start, true , 0); UT_EQ(1, qtyIt)
+    qtyIt = doIterations(ut, stit, start, true , 1); UT_EQ(4, qtyIt)
 
 
     UT_PRINT(NEW_LINE, "--- ascending ---" )
-    recursiveIt.SetSorting( lang::SortOrder::Ascending, lang::Case::Sensitive );
-    qtyIt = doIterations(ut, recursiveIt, tree, 99);  UT_EQ(13, qtyIt)
+    sorter.Descending   = false;
+    sorter.CaseSensitive= true;
+    qtyIt = doIterations(ut, stit, tree.Root(), false, 99);  UT_EQ(13, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), true , 99);  UT_EQ(14, qtyIt)
 
     UT_PRINT(NEW_LINE, "--- descending ---" )
-    recursiveIt.SetSorting( lang::SortOrder::Descending, lang::Case::Sensitive );
-    qtyIt = doIterations(ut, recursiveIt, tree, (std::numeric_limits<int>::max)());  UT_EQ(13, qtyIt)
+    sorter.Descending   = true;
+    sorter.CaseSensitive= true;
+    qtyIt = doIterations(ut, stit, tree.Root(), false, (std::numeric_limits<int>::max)());  UT_EQ(13, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), true , (std::numeric_limits<int>::max)());  UT_EQ(14, qtyIt)
 
     UT_PRINT(NEW_LINE, "--- value ---" )
-    recursiveIt.SetSorting( valueSorter );
-    qtyIt = doIterations(ut, recursiveIt, tree, (std::numeric_limits<int>::max)());  UT_EQ(13, qtyIt)
+    ValueSorter  vs;
+    stit.SetSorting( &vs );
+    qtyIt = doIterations(ut, stit, tree.Root(), false, (std::numeric_limits<int>::max)());  UT_EQ(13, qtyIt)
+    qtyIt = doIterations(ut, stit, tree.Root(), true , (std::numeric_limits<int>::max)());  UT_EQ(14, qtyIt)
 
     UT_PRINT(NEW_LINE, "--- value ---" )
-    recursiveIt.SetSorting( valueSorter );
+    stit.SetSorting( &vs );
     start=   tree.Root();
     UT_TRUE( start.GoTo(A_CHAR("outer/Inn3")).IsEmpty() )
-    qtyIt = doIterations( ut, recursiveIt, start, ( std::numeric_limits<int>::max )() ); UT_EQ( 3, qtyIt)
+    qtyIt = doIterations( ut, stit, start, false, ( std::numeric_limits<int>::max )() ); UT_EQ( 3, qtyIt)
+    qtyIt = doIterations( ut, stit, start, true , ( std::numeric_limits<int>::max )() ); UT_EQ( 4, qtyIt)
 
-    qtyIt = doIterations(ut, recursiveIt, start, 1); UT_EQ( 3, qtyIt )
+    qtyIt = doIterations(ut, stit, start, false, 1); UT_EQ( 3, qtyIt )
+    qtyIt = doIterations(ut, stit, start, true , 1); UT_EQ( 4, qtyIt )
 
 
     UT_PRINT(NEW_LINE, "--- value ---" )
     UT_TRUE( start.GoTo(A_CHAR("abc")).IsEmpty() )
-    qtyIt = doIterations( ut, recursiveIt, start, ( std::numeric_limits<int>::max )() ); UT_EQ( 0, qtyIt)
-
-    qtyIt = doIterations( ut, recursiveIt, start, 4 ); UT_EQ( 0, qtyIt)
+    qtyIt = doIterations( ut, stit, start, false, ( std::numeric_limits<int>::max )() ); UT_EQ( 0, qtyIt)
+    qtyIt = doIterations( ut, stit, start, false, 4                                   ); UT_EQ( 0, qtyIt)
+    qtyIt = doIterations( ut, stit, start, true , ( std::numeric_limits<int>::max )() ); UT_EQ( 1, qtyIt)
+    qtyIt = doIterations( ut, stit, start, true , 4                                   ); UT_EQ( 1, qtyIt)
 
     //---------- test skipping ---------------------
     UT_PRINT(NEW_LINE, "------- Test skipping ---" )
-    recursiveIt.SetSorting( lang::Switch::Off );
+    stit.SetSorting( nullptr );
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("dir2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("dir2"   ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("dir2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("subd2-a") , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("subd2-b") , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("dir2"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("subd2-a") , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("subd2-b") , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("inner"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_EQ( A_CHAR("dir2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inner"  ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_EQ( A_CHAR("dir2"   ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("inner"  ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("xinn1"  ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("inn2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_EQ( A_CHAR("dir2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inner"  ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("xinn1"  ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inn2"   ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_EQ( A_CHAR("dir2"   ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("inner"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("xinn1"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("inn2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("Inn3"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("abc"    ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("def"    ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_EQ( A_CHAR("inn4"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("inn5"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("dir2"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextParentSibling();   UT_TRUE( !recursiveIt.IsValid() )
-
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"  ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inner"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("xinn1"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("inn2"   ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("Inn3"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("abc"    ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("def"    ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_EQ( A_CHAR("inn4"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inn5"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("dir2"   ) , stit.Node().Name() )
+    stit.NextParentSibling();                                 UT_TRUE( !stit.IsValid() )
 
     // test iterator with no children
     cursor= tree.Root();
-    cursor.GoTo( A_CHAR("dir2/subd2-a"));UT_EQ( uinteger(0), cursor.CountChildren() )
-    recursiveIt.Initialize( cursor );    UT_TRUE( !recursiveIt.IsValid() )
+    cursor.GoTo( A_CHAR("dir2/subd2-a"));                     UT_EQ( uinteger(0), cursor.CountChildren() )
+    stit.Initialize( cursor, lang::Inclusion::Exclude );      UT_TRUE( !stit.IsValid() )
 
     // test copying constructor and copying
-    recursiveIt.Initialize( tree, 1 );                             UT_EQ( A_CHAR("outer"), recursiveIt.Node().Name() )
-    AStringST::RecursiveIterator recursiveIt2(recursiveIt);        UT_EQ( A_CHAR("outer"), recursiveIt2.Node().Name() )
-    recursiveIt.Next();                                            UT_EQ( A_CHAR("inner"), recursiveIt.Node().Name() )
-                                                                   UT_EQ( A_CHAR("outer"), recursiveIt2.Node().Name() )
-    recursiveIt2= recursiveIt;
-    while( recursiveIt.IsValid() )
+    stit.SetMaxDepth( 1 );
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"), stit.Node().Name() )
+    StringTreeIterator<AStringST> recursiveIt2(stit);         UT_EQ( A_CHAR("outer"), recursiveIt2.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inner"), stit.Node().Name() )
+                                                              UT_EQ( A_CHAR("outer"), recursiveIt2.Node().Name() )
+    recursiveIt2= stit;
+    while( stit.IsValid() )
     {
         UT_TRUE( recursiveIt2.IsValid() )
-        UT_EQ( recursiveIt.Node().Name()  , recursiveIt2.Node().Name() )
-        UT_EQ( recursiveIt.Next(), recursiveIt2.Next() )
+        UT_EQ( stit.Node().Name()  , recursiveIt2.Node().Name() )
+        UT_EQ( stit.Next(), recursiveIt2.Next() )
     }
     UT_TRUE( recursiveIt2.IsInvalid() )
 
     //---------- test sorting ---------------------
     UT_PRINT(NEW_LINE, "------- Test sorting ---" )
-    recursiveIt.SetSorting( lang::SortOrder::Ascending  );
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("dir2"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("outer" ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_TRUE( !recursiveIt.IsValid() )
+    sorter.Descending= false;
+    stit.SetSorting( &sorter  );
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("dir2"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("outer" ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_TRUE( !stit.IsValid() )
 
-    recursiveIt.SetSorting( lang::SortOrder::Descending  );
-    recursiveIt.Initialize( tree );    UT_EQ( A_CHAR("outer"  ) , recursiveIt.Node().Name() )
-    recursiveIt.SetSorting( lang::SortOrder::Ascending, lang::Case::Ignore  );
-    recursiveIt.Next();                UT_EQ( A_CHAR("inn2"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("Inn3"  ) , recursiveIt.Node().Name() )
-    recursiveIt.SetSorting( valueSorter  );
-    recursiveIt.Next();                UT_EQ( A_CHAR("ght"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("abc"   ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                UT_EQ( A_CHAR("def"   ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("inn4"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("inn5"  ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("inner" ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("xinn1" ) , recursiveIt.Node().Name() )
-    recursiveIt.NextSibling();         UT_EQ( A_CHAR("dir2"  ) , recursiveIt.Node().Name() )
+
+    sorter.Descending   = true;
+    sorter.CaseSensitive= false;
+    stit.SetSorting( &sorter  );
+    stit.SetMaxDepth();
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer" ) , stit.Node().Name() )
+    sorter.Descending   = false;
+    sorter.CaseSensitive= false;
+    stit.Next();                                              UT_EQ( A_CHAR("inn2"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("Inn3"  ) , stit.Node().Name() )
+    stit.SetSorting( &vs  );
+    stit.Next();                                              UT_EQ( A_CHAR("ght"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("abc"   ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("def"   ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("inn4"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("inn5"  ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("inner" ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("xinn1" ) , stit.Node().Name() )
+    stit.NextSibling();                                       UT_EQ( A_CHAR("dir2"  ) , stit.Node().Name() )
 
 
     //---------- test deletion ---------------------
     UT_PRINT(NEW_LINE, "------- Test deletion ---" )
-    recursiveIt.SetSorting( valueSorter  );
+    stit.SetSorting( &vs  );
     cursor= tree.Root();
     cursor.GoTo( A_CHAR("outer/Inn3") );
-    recursiveIt.Initialize( cursor );                UT_EQ( A_CHAR("ght"      ) , recursiveIt.Node().Name() )
-    recursiveIt.DeleteNode();                         UT_EQ( A_CHAR("abc"      ) , recursiveIt.Node().Name() )
-                                                      UT_EQ( uinteger(2) , recursiveIt.Node().Parent().CountChildren() )
-    recursiveIt.DeleteNode();                         UT_EQ( A_CHAR("def"      ) , recursiveIt.Node().Name() )
-                                                      UT_EQ( uinteger(1) , recursiveIt.Node().Parent().CountChildren() )
-    recursiveIt.DeleteNode();                         UT_TRUE( !recursiveIt.IsValid() )
-    recursiveIt.SetSorting( lang::Switch::Off  );
-    recursiveIt.Initialize( tree );                   UT_EQ( A_CHAR("outer"    ) , recursiveIt.Node().Name() )
-                                                      UT_EQ( uinteger(6) , recursiveIt.Node().CountChildren() )
-    recursiveIt.Node().DeleteChild( A_CHAR("xinn1")); UT_EQ( uinteger( 5), recursiveIt.Node().CountChildren() )
-    recursiveIt.Node().DeleteChild( A_CHAR("Inn3" )); UT_EQ( uinteger( 4), recursiveIt.Node().CountChildren() )
-    recursiveIt.Next();                               UT_EQ( A_CHAR("inner"    ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                               UT_EQ( A_CHAR("inn2"     ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                               UT_EQ( A_CHAR("inn4"     ) , recursiveIt.Node().Name() )
-    recursiveIt.Next();                               UT_EQ( A_CHAR("inn5"     ) , recursiveIt.Node().Name() )
+    stit.Initialize( cursor, lang::Inclusion::Exclude );      UT_EQ( A_CHAR("ght"      ) , stit.Node().Name() )
+    stit.DeleteNode();                                        UT_EQ( A_CHAR("abc"      ) , stit.Node().Name() )
+                                                              UT_EQ( uinteger(2) , stit.Node().Parent().CountChildren() )
+    stit.DeleteNode();                                        UT_EQ( A_CHAR("def"      ) , stit.Node().Name() )
+                                                              UT_EQ( uinteger(1) , stit.Node().Parent().CountChildren() )
+    stit.DeleteNode();                                        UT_TRUE( !stit.IsValid() )
+    stit.SetSorting( nullptr  );
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"    ) , stit.Node().Name() )
+                                                              UT_EQ( uinteger(6) , stit.Node().CountChildren() )
+    stit.Node().DeleteChild( A_CHAR("xinn1"));                UT_EQ( uinteger( 5), stit.Node().CountChildren() )
+    stit.Node().DeleteChild( A_CHAR("Inn3" ));                UT_EQ( uinteger( 4), stit.Node().CountChildren() )
+    stit.Next();                                              UT_EQ( A_CHAR("inner"    ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inn2"     ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inn4"     ) , stit.Node().Name() )
+    stit.Next();                                              UT_EQ( A_CHAR("inn5"     ) , stit.Node().Name() )
 
-    recursiveIt.Initialize( tree );                   UT_EQ( A_CHAR("outer"    ) , recursiveIt.Node().Name() )
-    recursiveIt.DeleteNode();                         UT_EQ( A_CHAR("dir2"     ) , recursiveIt.Node().Name() )
-    recursiveIt.DeleteNode();                         UT_TRUE( !recursiveIt.IsValid() )
-    recursiveIt.Initialize( tree );                   UT_TRUE( !recursiveIt.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_EQ( A_CHAR("outer"    ) , stit.Node().Name() )
+    stit.DeleteNode();                                        UT_EQ( A_CHAR("dir2"     ) , stit.Node().Name() )
+    stit.DeleteNode();                                        UT_TRUE( !stit.IsValid() )
+    stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_TRUE( !stit.IsValid() )
 }
 
 UT_METHOD(StringTree_RecIter_Const)
 {
-    // it mainly is about: does it compile? Because of the templated Cursor/RecursiveIterator
+    // it mainly is about: does it compile? Because of the templated Cursor/StringTreeIterator
     // types.
     UT_INIT()
 
@@ -680,17 +715,17 @@ UT_METHOD(StringTree_RecIter_Const)
     node.GoToLastChild();       UT_EQ( "inn2" , NString(*node) )
 
 
-    AStringST::ConstRecursiveIterator rit;
-    rit.SetPathGeneration(lang::Switch::On);
-    rit.Initialize( ctree );      UT_TRUE (   rit.IsValid())   UT_EQ( "aDir"  , NString(*rit.Node()) )
-    rit.Next();                   UT_TRUE (   rit.IsValid())   UT_EQ( "inner" , NString(*rit.Node()) )
-    rit.Next();                   UT_TRUE (   rit.IsValid())   UT_EQ( "inn1"  , NString(*rit.Node()) )
-    rit.Next();                   UT_TRUE (   rit.IsValid())   UT_EQ( "inn2"  , NString(*rit.Node()) )
+    StringTreeIterator<const AStringST> stit;
+    stit.SetPathGeneration(lang::Switch::On);
+    stit.Initialize( ctree.Root(), lang::Inclusion::Exclude );  UT_TRUE (   stit.IsValid())   UT_EQ( "aDir"  , NString(*stit.Node()) )
+    stit.Next();                                                UT_TRUE (   stit.IsValid())   UT_EQ( "inner" , NString(*stit.Node()) )
+    stit.Next();                                                UT_TRUE (   stit.IsValid())   UT_EQ( "inn1"  , NString(*stit.Node()) )
+    stit.Next();                                                UT_TRUE (   stit.IsValid())   UT_EQ( "inn2"  , NString(*stit.Node()) )
 
-    AStringST::ConstCursor node2= rit.Node();                  UT_EQ( "inn2"  , NString(*node2     ) )
-    node2.GoToPreviousSibling();  UT_TRUE ( node2.IsValid())   UT_EQ( "inn1"  , NString(*node2     ) )
-    rit.NextParentSibling();      UT_TRUE (   rit.IsValid())   UT_EQ( "dir2"  , NString(*rit.Node()) )
-    rit.NextParentSibling();      UT_FALSE(   rit.IsValid())
+    AStringST::ConstCursor node2= stit.Node();                  UT_EQ( "inn2"  , NString(*node2     ) )
+    node2.GoToPreviousSibling();                                UT_TRUE ( node2.IsValid())    UT_EQ( "inn1"  , NString(*node2     ) )
+    stit.NextParentSibling();                                   UT_TRUE (   stit.IsValid())   UT_EQ( "dir2"  , NString(*stit.Node()) )
+    stit.NextParentSibling();                                   UT_FALSE(   stit.IsValid())
 }
 
 

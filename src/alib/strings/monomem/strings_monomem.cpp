@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,13 +11,13 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/monomem/monomem.prepro.hpp"
 #if ALIB_MONOMEM && ALIB_DEBUG
 #   include <cstring>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings;
     import   ALib.Lang;
@@ -28,12 +28,12 @@
 #   include "ALib.Monomem.H"
 #endif
 
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if ALIB_MONOMEM && ALIB_DEBUG && !DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // Instantiation of monomem::DbgDumpStatistics for TMonoAllocator<lang::HeapAllocator>.
-// #################################################################################################
+//##################################################################################################
 #include "alib/strings/monomem/strings_monomem.t.inl"
 
 namespace alib::monomem {
@@ -75,4 +75,3 @@ namespace alib::monomem {
 #   include "alib/strings/detail/tastring_ca_impl.inl.inl"
 
 #undef ALIB_STRINGS_TASTRING_INSTANTIATION
-

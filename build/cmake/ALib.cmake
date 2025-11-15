@@ -13,17 +13,17 @@
 # --------------------------------------------------------------------------------------------------
     cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
 
+    # C++20 module support is deprecated!
     if( NOT DEFINED  ALIB_C20_MODULES )
-        set( ALIB_C20_MODULES               "Off"                                      CACHE   PATH
-             "If on, this script will compile ALib using C++20 Modules. Also, in this case, a symbol of the same name is passed to the compiler.")
+        set( ALIB_C20_MODULES               "Off")
+        #set( ALIB_C20_MODULES               "Off"                                      CACHE   PATH
+        #     "If on, this script will compile ALib using C++20 Modules. Also, in this case, a symbol of the same name is passed to the compiler.")
     endif()
 
     if( ALIB_C20_MODULES )
-        if ( NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
-            message( FATAL_ERROR "ALib.cmake: ALIB configured to use C++20 modules. As of today, this only works with Clang compiler! (Compiler is ${CMAKE_CXX_COMPILER_ID})" )
-        endif()
-        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+        message( FATAL_ERROR "ALib.cmake: ALIB configured to use C++20 modules. As of today, the effort to offer dual-compile support is dropped and not supported" )
     endif()
+    set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
     # check
     if (tmp_alib_included_marker)
@@ -105,10 +105,10 @@
 
 # --------- ALib Version  ---------
 
-set( ALIB_VERSION                   "2510R0"                                            CACHE STRING
+set( ALIB_VERSION                   "2511R0"                                            CACHE STRING
      "The ALib version. Not modifiable (will be overwritten on generation!)"        FORCE )
 
-set( ALIB_VERSION_NO                "2510" )
+set( ALIB_VERSION_NO                "2511" )
 set( ALIB_VERSION_REV               "0" )
 
 # --------- ALIB_DEBUG, ALIB_DEBUG_GLIB, ALIB_COVERAGE_COMPILE  ---------
@@ -178,7 +178,7 @@ if( NOT DEFINED  ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH )
 endif()
 
 CacheAsBool( ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH
-   "If true, no thread library is searched and bound to the target. If false, a thread library is searched and bound even if module Threads is not included. This is to allow debug assertions with multi-threaded use of a single-threaded ALib Build. Defaults to false." )
+   "If true, no thread library is searched and bound to the target. If false, a thread library is searched and bound even if module Threads is not included. This is to allow debug assertions with multithreaded use of a single-threaded ALib Build. Defaults to false." )
 
 
 # --------- Others  ---------
@@ -293,7 +293,7 @@ endif()
 if( "STRINGS" IN_LIST ALibBuild )
     if( NOT DEFINED  ALIB_FEAT_BOOST_REGEX )
         set( ALIB_FEAT_BOOST_REGEX          "Off"                                       CACHE   BOOL
-             "Defaults to false. If true, activates ALib classes that use boost regular expressions, for example strings::util::RegexMatcher. The corresponding boost library is searched and added to CMake variable ALIB_EXTERNAL_LIBS.")
+             "Defaults to false. If true, activates ALib classes that use boost regular expressions, for example, strings::util::RegexMatcher. The corresponding boost library is searched and added to CMake variable ALIB_EXTERNAL_LIBS.")
     endif()
 
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
@@ -369,13 +369,6 @@ if( NOT ALibAllModules )
             list( APPEND  ALIB_SYMBOLS    "ALIB_${module}"  )
         ENDIF()
     ENDFOREACH()
-endif()
-
-# symbol ALIB_C20_MODULES (mandatory to be given from outside for technical reasons!)
-if ( ALIB_C20_MODULES )
-    list( APPEND ALIB_SYMBOLS         "ALIB_C20_MODULES=1")
-else()
-    list( APPEND ALIB_SYMBOLS         "ALIB_C20_MODULES=0")
 endif()
 
 # debug
@@ -604,7 +597,7 @@ endif()
 if ( ${ALIB_FEAT_BOOST_REGEX} )
     set(Boost_USE_STATIC_LIBS     "On"  CACHE  BOOL  "Link boost statically" )
     if( NOT DEFINED ALIB_SINGLE_THREADED )
-        set(Boost_USE_MULTITHREADED      "On"  CACHE   BOOL "Use multi-threaded version of boost")
+        set(Boost_USE_MULTITHREADED      "On"  CACHE   BOOL "Use multithreaded version of boost")
     else()
         set(Boost_USE_MULTITHREADED      "Off" CACHE   BOOL "Use single-threaded version of boost")
     endif()
@@ -652,7 +645,6 @@ else()
         # add -H to generate output "!/x" for use of precompiled header
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wall"          )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wextra"        )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Werror"        )
         #list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"       )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-psabi"     )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"  )
@@ -675,7 +667,7 @@ else()
 
 
     # Clang: We are using -Weverything, although this is not recommended. We think it should be
-    #        recommended. ALib for example does not use old-style casts and explicitly cast each
+    #        recommended. ALib, for example, does not use old-style casts and explicitly cast each
     #        and every type change! The benefit for ALib users is that ALib code can be used in very
     #        strict build environments without using special warning flags.
     #        Of course, some very obvious warnings then have to be removed explicitly:
@@ -683,18 +675,21 @@ else()
         list( APPEND ALIB_COMPILER_WARNINGS   "-pedantic"                          )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"                           )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Weverything"                       )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-unknown-warning-option"        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++20-compat"                  )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat"                  )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat-pedantic"         )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-deprecated-declarations"       )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-global-constructors"           )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-exit-time-destructors"         )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-padded"                        )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-weak-vtables"                  )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-documentation-unknown-command" )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"        )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-covered-switch-default"        )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-decls-in-multiple-modules"     )
-        list( APPEND ALIB_COMPILER_WARNINGS   "-Werror"        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-deprecated-declarations"       )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-documentation-unknown-command" )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-exit-time-destructors"         )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-global-constructors"           )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-ms-bitfield-padding"           )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-padded"                        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-weak-vtables"                  )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-thread-safety-analysis"        )
 
         # Note: After fighting with this for a while and locally removing the warning in many
         #       places, we gave up with Clang 19 and C++20 module compilation. Strangely, with the
@@ -938,7 +933,6 @@ ELSE()
     message( "  Resulting Selection: All (${ALibBuild})"    )
 ENDIF()
 
-    message( "  C++20-Modules      : ${ALIB_C20_MODULES}"           )
     message( "  Single-Threaded    : ${ALIB_SINGLE_THREADED}"       )
 
     message( "  Library filename   : ${ALIB_LIBRARY_FILENAME}"      )
@@ -1119,9 +1113,7 @@ function( ALibSetCompilerAndLinker  target )
 
     IF(DEFINED ALIB_PRECOMPILED_HEADER)
       IF(ALIB_PRECOMPILED_HEADER)
-        IF( NOT ALIB_C20_MODULES )
-          target_precompile_headers(  ${target}  PRIVATE  "${ALIB_SOURCE_DIR}/alib_precompile.hpp" )
-        ENDIF()
+        target_precompile_headers(  ${target}  PRIVATE  "${ALIB_SOURCE_DIR}/alib_precompile.hpp" )
       ENDIF()
     ENDIF()
 
@@ -1157,12 +1149,6 @@ function( ALibAddStaticLibrary )
     add_library                ( ALib_StaticLib  STATIC  )
 
     target_sources             ( ALib_StaticLib  PRIVATE  ${ALIB_CPP} )
-    if( ALIB_C20_MODULES )
-        target_sources         ( ALib_StaticLib  PUBLIC   FILE_SET  alib_modules TYPE CXX_MODULES
-                                                          BASE_DIRS ${ALIB_BASE_DIR}
-                                                          FILES     ${ALIB_MPP}   )
-        target_sources         ( ALib_StaticLib  PUBLIC             ${ALIB_HPP}   )
-    endif() # ALIB_C20_MODULES
     message("ALib_SharedLib target added")
 
     ALibSetCompilerAndLinker   ( ALib_StaticLib )
@@ -1172,12 +1158,6 @@ endfunction()
 function( ALibAddSharedLibrary )
     add_library                ( ALib_SharedLib  SHARED    )
     target_sources             ( ALib_SharedLib  PRIVATE  ${ALIB_CPP} )
-    if( ALIB_C20_MODULES )
-        target_sources         ( ALib_SharedLib  PUBLIC   FILE_SET  alib_modules TYPE CXX_MODULES
-                                                          BASE_DIRS ${ALIB_BASE_DIR}
-                                                          FILES     ${ALIB_MPP}   )
-        target_sources         ( ALib_SharedLib  PUBLIC             ${ALIB_HPP}   )
-    endif() # ALIB_C20_MODULES
     message("ALib_SharedLib target added")
 
     ALibSetCompilerAndLinker   ( ALib_SharedLib )

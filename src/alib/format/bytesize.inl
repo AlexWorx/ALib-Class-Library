@@ -14,32 +14,32 @@ ALIB_EXPORT namespace alib { namespace  format {
 enum class ByteSizeUnits : uint8_t
 {
        IEC=  0,  ///< Begin of SI units.
-         B=  0,  ///<  2^  0, Bbyte     , factor 1.
-       KiB=  1,  ///<  2^ 10, Kibibyte  , factor 1024.
-       MiB=  2,  ///<  2^ 20, Mebibyte  , factor 1048576.
-       GiB=  3,  ///<  2^ 30, Gibibyte  , factor 1073741824.
-       TiB=  4,  ///<  2^ 40, Tebibyte  , factor 1099511627776.
-       PiB=  5,  ///<  2^ 50, Pebibyte  , factor 1125899906842624.
-       EiB=  6,  ///<  2^ 60, Exbibyte  , factor 1152921504606846976.
-       ZiB=  7,  ///<  2^ 70, Zebibyte  , factor 1180591620717411303424.
-       YiB=  8,  ///<  2^ 80, Yobibyte  , factor 1208925819614629174706176.
-       RiB=  9,  ///<  2^ 90, Robibyte  , factor 1237940039285380274899124224.
-       QiB= 10,  ///<  2^100, Quebibyte , factor 1267650600228229401496703205376.
+         B=  0,  ///< 2^ 0, Bbyte, factor 1.
+       KiB=  1,  ///< 2^ 10, Kibibyte, factor 1024.
+       MiB=  2,  ///< 2^ 20, Mebibyte, factor 1048576.
+       GiB=  3,  ///< 2^ 30, Gibibyte, factor 1073741824.
+       TiB=  4,  ///< 2^ 40, Tebibyte, factor 1099511627776.
+       PiB=  5,  ///< 2^ 50, Pebibyte, factor 1125899906842624.
+       EiB=  6,  ///< 2^ 60, Exbibyte, factor 1152921504606846976.
+       ZiB=  7,  ///< 2^ 70, Zebibyte, factor 1180591620717411303424.
+       YiB=  8,  ///< 2^ 80, Yobibyte, factor 1208925819614629174706176.
+       RiB=  9,  ///< 2^ 90, Robibyte, factor 1237940039285380274899124224.
+       QiB= 10,  ///< 2^100, Quebibyte, factor 1267650600228229401496703205376.
    IEC_END= 11,  ///< End of SI units
 
         SI= 11,  ///< Begin of IEC units.
-      B_SI= 11,  ///<  2^  0, Byte      , factor 1.
-        kB= 12,  ///< 10^  3, Kilobyte  , factor 100.
-        MB= 13,  ///< 10^  6, Megabyte  , factor 100000.
-        GB= 14,  ///< 10^  9, Gigabyte  , factor 100000000.
-        TB= 15,  ///< 10^ 12, Terabyte  , factor 100000000000.
-        PB= 16,  ///< 10^ 15, Petabyte  , factor 100000000000000.
-        EB= 17,  ///< 10^ 18, Exabyte   , factor 100000000000000000.
-        ZB= 18,  ///< 10^ 21, Zettabyte , factor 100000000000000000000.
-        YB= 19,  ///< 10^ 24, Yottabyte , factor 100000000000000000000000.
-        RB= 20,  ///< 10^ 27, Ronnabyte , factor 100000000000000000000000000.
+      B_SI= 11,  ///< 2^ 0, Byte, factor 1.
+        kB= 12,  ///< 10^ 3, Kilobyte, factor 100.
+        MB= 13,  ///< 10^ 6, Megabyte, factor 100000.
+        GB= 14,  ///< 10^ 9, Gigabyte, factor 100000000.
+        TB= 15,  ///< 10^ 12, Terabyte, factor 100000000000.
+        PB= 16,  ///< 10^ 15, Petabyte, factor 100000000000000.
+        EB= 17,  ///< 10^ 18, Exabyte, factor 100000000000000000.
+        ZB= 18,  ///< 10^ 21, Zettabyte, factor 100000000000000000000.
+        YB= 19,  ///< 10^ 24, Yottabyte, factor 100000000000000000000000.
+        RB= 20,  ///< 10^ 27, Ronnabyte, factor 100000000000000000000000000.
         QB= 21,  ///< 10^ 30, Quettabyte, factor 100000000000000000000000000000.
-   SI_END= 22,  ///< END of IEC units.
+    SI_END= 22,  ///< END of IEC units.
 };
 
 /// The \b NumberFormat singleton used with  \ref alib_strings_assembly_ttostring "appending"
@@ -56,7 +56,7 @@ extern NumberFormat*    BYTESIZE_NUMBER_FORMAT;
 /// This namespace function searches the next "fitting" magnitude of a given \p{byteSize}, so that
 /// it can be expressed as a floating point between \c 0 and \c 999, hence with three digits.
 /// The function is used for \ref alib_strings_assembly_ttostring "appending" byte sizes to
-/// to class \b %AString. Helper-types \alib{format;ByteSizeIEC} and \alib{format;ByteSizeSI}
+/// class \b %AString. Helper-types \alib{format;ByteSizeIEC} and \alib{format;ByteSizeSI}
 /// allow the convenient use of this method in combination with \b AString objects and with parameter
 /// lists of \alib formatter functions. When using these helpers, singleton
 /// \alib{format;BYTESIZE_NUMBER_FORMAT} is used.
@@ -69,7 +69,7 @@ extern NumberFormat*    BYTESIZE_NUMBER_FORMAT;
 /// @param target             The target string.
 /// @param byteSize           The value to print.
 /// @param magnitudeThreshold The lowest value to use with the next lower possible
-///                           magnitude. If for example to \c 900, then <em>0.9 GiB</em>
+///                           magnitude. If, for example, to \c 900, then <em>0.9 GiB</em>
 ///                           is preferred over <em>900.0 MiB</em>.
 /// @param unitSeparator      If not <c>'\0'</c>, this character is printed after the number and
 ///                           before the unit.
@@ -91,11 +91,11 @@ void FormatByteSize(AString& target, uinteger byteSize, uint16_t magnitudeThresh
 //==================================================================================================
 struct ByteSizeIEC
 {
-    uinteger    Value;              ///< The encapsulated value to print.
-    uint16_t    MagnitudeThreshold; ///< The lowest value to use with the next lower possible
-                                    ///< magnitude. If for example to \c 900, then <em>0.9 GiB</em>
-                                    ///< is preferred over <em>900.0 MiB</em>.
-    char        UnitSeparator;      ///< An optional character to separate the number from the unit.
+    uinteger   Value;              ///< The encapsulated value to print.
+    uint16_t   MagnitudeThreshold; ///< The lowest value to use with the next lower possible
+                                   ///< magnitude. If, for example, to \c 900, then <em>0.9 GiB</em>
+                                   ///< is preferred over <em>900.0 MiB</em>.
+    char       UnitSeparator;      ///< An optional character to separate the number from the unit.
 
     /// Constructor.
     /// @param value               The value to append/format.
@@ -133,11 +133,11 @@ struct ByteSizeIEC
 //==================================================================================================
 struct ByteSizeSI
 {
-    uinteger    Value;              ///< The encapsulated value to print.
-    uint16_t    MagnitudeThreshold; ///< The lowest value to use with the next lower possible
-                                    ///< magnitude. If for example to \c 900, then <em>0.9 GiB</em>
-                                    ///< is preferred over <em>900.0 MiB</em>.
-    char        UnitSeparator;      ///< An optional character to separate the number from the unit.
+    uinteger   Value;              ///< The encapsulated value to print.
+    uint16_t   MagnitudeThreshold; ///< The lowest value to use with the next lower possible
+                                   ///< magnitude. If, for example, to \c 900, then <em>0.9 GiB</em>
+                                   ///< is preferred over <em>900.0 MiB</em>.
+    char       UnitSeparator;      ///< An optional character to separate the number from the unit.
 
     /// Constructor.
     /// @param value                The value to append/format.
@@ -225,5 +225,3 @@ ALIB_ENUMS_ASSIGN_RECORD(     alib::format::ByteSizeUnits, ERSerializable )
 ALIB_BOXING_VTABLE_DECLARE( alib::format::ByteSizeIEC      , vt_lang_format_bytesize_iec )
 ALIB_BOXING_VTABLE_DECLARE( alib::format::ByteSizeSI       , vt_lang_format_bytesize_si  )
 ALIB_BOXING_VTABLE_DECLARE( alib::format::ByteSizeUnits    , vt_lang_format_bytesize_units )
-
-

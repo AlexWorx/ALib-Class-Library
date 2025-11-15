@@ -13,30 +13,30 @@ ALIB_EXPORT namespace alib { namespace files {
 /// thus to be filtered out.<br>
 /// Instead of the provision of an \b FInfo object, a cursor of an \b FTree is provided.
 /// This allows more detailed inspection of parent directories, if needed.
-/// In addition the full path string (the real path, all symbolic links translated) is provided.
+/// In addition, the full path string (the real path, all symbolic links translated) is provided.
 /// While this could be assembled from the given cursor \p{node}, the provision is made to allow
-/// highest execution performance, as the string is available during the scan process anyhow.
+/// the highest execution performance, as the string is available during the scan process anyhow.
 ///
-/// Instances of derived (non abstract) implementations, can optionally be attached to fields
+/// Instances of derived (non-abstract) implementations can optionally be attached to fields
 /// \alib{files::ScanParameters;FileFilter},
 /// \alib{files::ScanParameters;DirectoryFilterPreRecursion}, and
 /// \alib{files::ScanParameters;DirectoryFilterPostRecursion} of class
 /// \b ScanParameters to filter files during the scan process.
 ///
 /// Users of the API might also create code that uses this interface type for post-scan
-/// filtering, but in this case may of course  also rely on own implementations/mechanics.
+/// filtering, but in this case may of course also rely on their own implementations /mechanics.
 //==================================================================================================
 struct FFilter
 {
     /// Destructor
-    virtual ~FFilter() = default;
+    virtual ~FFilter()                                                                     =default;
 
     /// Abstract virtual method to evaluate the inclusion of the given \b FInfo object.
     /// @param file          The node in the file-tree to examine.
     /// @param parentPath    The absolute path to the parent directory that the file resides in.
     /// @return The result determines, whether the given file or directory has passed the filter or
     ///         not. Consequently, \c true means "passed" and \c false means "filtered out".
-    virtual bool Includes( const File& file, const system::PathString& parentPath )   = 0;
+    virtual bool Includes( const File& file, const system::PathString& parentPath )              =0;
 
 }; //class FFilter
 
@@ -53,5 +53,3 @@ using     FFilter =   files::FFilter;
 using SPFileFilter= files::SPFileFilter;
 
 }  // namespace [alib]
-
-

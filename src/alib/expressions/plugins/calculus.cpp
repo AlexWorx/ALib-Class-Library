@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/expressions/expressions.prepro.hpp"
 #include <vector>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions.Impl;
     import   ALib.Characters.Functions;
@@ -24,14 +24,14 @@
 #   include "ALib.Strings.H"
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
 namespace alib {  namespace expressions {  namespace plugins {
 
-// #################################################################################################
+//##################################################################################################
 // Operator setup helpers (unary and binary)
-// #################################################################################################
+//##################################################################################################
 void Calculus::AddOperator     ( const String&      op,
                                  Type               lhsType,
                                  Type               rhsType,
@@ -60,8 +60,7 @@ void Calculus::AddOperator     ( const String&      op,
     #endif
 }
 
-void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
-{
+void Calculus::AddOperators( OperatorTableEntry* table, size_t length ) {
     Operators.Reserve( integer(length), lang::ValueReference::Relative );
     ALIB_DBG( auto actBucketCount= Operators.BucketCount(); )
 
@@ -72,8 +71,7 @@ void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
     #define RESULTTYPE std::get<ALIB_REL_DBG(4,5)>( *(table + i) )
     #define CTINVOKE   std::get<ALIB_REL_DBG(5,6)>( *(table + i) )
 
-    for( size_t i= 0 ; i < length ; ++i )
-    {
+    for( size_t i= 0 ; i < length ; ++i ) {
         #if ALIB_DEBUG
             auto result=
             Operators.EmplaceIfNotExistent(
@@ -106,8 +104,7 @@ void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
     #undef CTINVOKE
 }
 
-void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const String& op )
-{
+void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const String& op ) {
     #if ALIB_DEBUG
         auto result=
         OperatorAliases.EmplaceIfNotExistent( OperatorKey { alias, lhs.TypeID(), rhs.TypeID() },
@@ -124,8 +121,7 @@ void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const 
     #endif
 }
 
-void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length )
-{
+void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length ) {
     OperatorAliases.Reserve( integer(length), lang::ValueReference::Relative );
 
     #define ALIAS      std::get<0>( *(table + i) )
@@ -133,8 +129,7 @@ void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length
     #define RHS_TYPE   std::get<2>( *(table + i) ).TypeID()
     #define OP         std::get<3>( *(table + i) )
 
-    for( size_t i= 0 ; i < length ; ++i )
-    {
+    for( size_t i= 0 ; i < length ; ++i ) {
         #if ALIB_DEBUG
             auto result=
             OperatorAliases.EmplaceIfNotExistent( OperatorKey { ALIAS, LHS_TYPE, RHS_TYPE },  OP );
@@ -156,11 +151,10 @@ void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length
     #undef OP
 }
 
-// #################################################################################################
+//##################################################################################################
 // Unary operators
-// #################################################################################################
-bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
-{
+//##################################################################################################
+bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp ) {
     Box& arg= ciUnaryOp.CompileTimeScope.Stack->at(0);
     OperatorKey key     =  { ciUnaryOp.Operator, arg.TypeID(), typeid(void) };
     auto        hashCode=  OperatorKey::Hash()( key );
@@ -181,8 +175,7 @@ bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
     auto& op= opIt.Mapped();
 
     // for constants, the callback might b invoked right away (optimizing cal out)
-    if( ciUnaryOp.ArgIsConst && std::get<2>(op) )
-    {
+    if( ciUnaryOp.ArgIsConst && std::get<2>(op) ) {
         // calculate constant value
         ciUnaryOp.TypeOrValue=  std::get<0>(op)( ciUnaryOp.CompileTimeScope,
                                                           ciUnaryOp.ArgsBegin,
@@ -206,11 +199,10 @@ ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
     return true;
 }
 
-// #################################################################################################
+//##################################################################################################
 // Binary operators
-// #################################################################################################
-void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length )
-{
+//##################################################################################################
+void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length ) {
     BinaryOperatorOptimizations.Reserve(  integer(length), lang::ValueReference::Relative );
 
     #define OP         std::get<0>( *(table + i) )
@@ -221,8 +213,7 @@ void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table,
     #define OTHERTYPE  std::get<3>( *(table + i) ).TypeID()
     #define RESULT     std::get<4>( *(table + i) )
 
-    for( size_t i= 0 ; i < length ; ++i )
-    {
+    for( size_t i= 0 ; i < length ; ++i ) {
         #if ALIB_DEBUG
             auto result=
                 BinaryOperatorOptimizations.EmplaceIfNotExistent( BinOpOptKey { OP, SIDE, CONSTVAL, OTHERTYPE },  RESULT );
@@ -247,8 +238,7 @@ void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table,
 }
 
 
-bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
-{
+bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp ) {
     Box& lhs= * ciBinaryOp.ArgsBegin;
     Box& rhs= *(ciBinaryOp.ArgsBegin + 1);
 
@@ -260,9 +250,7 @@ bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
         && HasBits( Cmplr.CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator ) )
     {
         ciBinaryOp.Operator= A_CHAR("==");
-    }
-    else
-    {
+    } else {
         auto aliasIt =  OperatorAliases.Find( key, hashCode );
         if(  aliasIt != OperatorAliases.end() )
             ciBinaryOp.Operator= aliasIt.Mapped();
@@ -283,10 +271,8 @@ bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
     auto& op= opIt.Mapped();
 
     // if both are constant, the callback might be invoked right away (optimizing the call out)
-    if( ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst )
-    {
-        if( CT_INVOKABLE )
-        {
+    if( ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst ) {
+        if( CT_INVOKABLE ) {
             // calculate constant value
             ciBinaryOp.TypeOrValue=  CBFUNC  ( ciBinaryOp.CompileTimeScope,
                                                ciBinaryOp.ArgsBegin,
@@ -302,13 +288,11 @@ ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                            
                 CompilerPlugin::Cmplr.TypeName(ciBinaryOp.TypeOrValue),
                                               &ciBinaryOp.TypeOrValue.TypeID() )
             return true;
-        }
-    }
+    }   }
 
 
     // if one is constant, we may find an entry in BinaryOpConsL/RHSOptimizations
-    else if( ciBinaryOp.LhsIsConst || ciBinaryOp.RhsIsConst )
-    {
+    else if( ciBinaryOp.LhsIsConst || ciBinaryOp.RhsIsConst ) {
         auto& nonConstType= (ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin + 1 )
                                                    :  *(ciBinaryOp.ArgsBegin     ) ).TypeID();
         auto& constValue=    ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin     )
@@ -319,8 +303,7 @@ ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                            
                                                           constValue,
                                                           nonConstType
                                                          } );
-        if( entryIt  != BinaryOperatorOptimizations.end() )
-        {
+        if( entryIt  != BinaryOperatorOptimizations.end() ) {
             // found! If it is an unset box, this tells us, that the result is the other side
             // (identity operation). Otherwise it is a constant.
             if( entryIt.Mapped().IsType<void>() )
@@ -328,8 +311,7 @@ ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                            
             else
                 ciBinaryOp.TypeOrValue        = entryIt.Mapped();
             return true;
-        }
-    }
+    }   }
 
 
     ciBinaryOp.Callback       = CBFUNC;
@@ -348,20 +330,16 @@ ALIB_DBG(
 }
 
 
-// #################################################################################################
+//##################################################################################################
 // Functions
-// #################################################################################################
-bool Calculus::TryCompilation( CIFunction& ciFunction )
-{
+//##################################################################################################
+bool Calculus::TryCompilation( CIFunction& ciFunction ) {
     String& name= ciFunction.Name;
 
     // search in constant identifiers
-    if( ciFunction.QtyArgs() == 0 )
-    {
-        for( auto& entry : ConstantIdentifiers )
-        {
-            if ( entry.Descriptor.Match( name ) )
-            {
+    if( ciFunction.QtyArgs() == 0 ) {
+        for( auto& entry : ConstantIdentifiers ) {
+            if ( entry.Descriptor.Match( name ) ) {
                 // check for wrong parentheses
                 if(     ciFunction.IsIdentifier
                     && !HasBits(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
@@ -378,15 +356,11 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
                 ciFunction.Name.Reset( entry.Descriptor );
                 ciFunction.TypeOrValue= entry.Result;
                 return true;
-            }
-        }
-    }
+    }   }   }
 
     // search in functions
-    for( auto& entry : Functions )
-    {
-        if( entry.Descriptor.Match( name ) )
-        {
+    for( auto& entry : Functions ) {
+        if( entry.Descriptor.Match( name ) ) {
             // collect information about given and requested parameters
             size_t qtyGiven      =  ciFunction.QtyArgs();
             size_t qtyRequired   =  entry.SignatureLength;
@@ -435,16 +409,14 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             // accept
             ciFunction.Name.Reset( entry.Descriptor );
 
-            if( !entry.Callback )
-            {
+            if( !entry.Callback ) {
                 ciFunction.TypeOrValue      = *entry.ResultType;
     ALIB_DBG(   ciFunction.DbgCallbackName  =  entry.DbgCallbackName; )
                 return true;
             }
 
             // for constants, the callback might b invoked right away (optimizing cal out)
-            if( ciFunction.AllArgsAreConst && entry.IsCTInvokable )
-            {
+            if( ciFunction.AllArgsAreConst && entry.IsCTInvokable ) {
                 // calculate constant value
                 ciFunction.TypeOrValue      = entry.Callback( ciFunction.CompileTimeScope,
                                                               ciFunction.ArgsBegin,
@@ -466,94 +438,80 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             ciFunction.TypeOrValue          = *entry.ResultType;
  ALIB_DBG(  ciFunction.DbgCallbackName      =  entry.DbgCallbackName; )
             return true;
-        }
-    }
+    }   }
 
     return false;
 }
 
-// #################################################################################################
+//##################################################################################################
 // Auto-Casts
-// #################################################################################################
+//##################################################################################################
 //! @cond NO_DOX
 namespace {
-    Calculus::AutoCastEntry* findAutoCastEntry( std::vector<Calculus::AutoCastEntry>& table,
-                                                Calculus::CIAutoCast&                 ciAutoCast,
-                                                int                                   argNo       )
-    {
-        Box& valueToCast= *(ciAutoCast.ArgsBegin + argNo);
+Calculus::AutoCastEntry* findAutoCastEntry( std::vector<Calculus::AutoCastEntry>& table,
+                                            Calculus::CIAutoCast&                 ciAutoCast,
+                                            int                                   argNo      ) {
+    Box& valueToCast= *(ciAutoCast.ArgsBegin + argNo);
 
-        // main loop over all table entries
-        for( auto& entry : table )
+    // main loop over all table entries
+    for( auto& entry : table ) {
+        // first check for source type
+        if( !entry.Type.IsSameType( valueToCast ) )
+            continue;
+
+        // operator included in list of accepted (if list given)?
+        bool operatorIsIn= true;
+        if(    entry.OperatorsAccepted != nullptr
+            && entry.OperatorsAccepted->size() > 0   )
         {
-            // first check for source type
-            if( !entry.Type.IsSameType( valueToCast ) )
-                continue;
+            operatorIsIn= false;
+            for( auto& op : *entry.OperatorsAccepted )
+                if( op.Equals<NC>( ciAutoCast.Operator ) ) {
+                    operatorIsIn= true;
+                    break;
+        }       }
 
-            // operator included in list of accepted (if list given)?
-            bool operatorIsIn= true;
-            if(    entry.OperatorsAccepted != nullptr
-                && entry.OperatorsAccepted->size() > 0   )
-            {
-                operatorIsIn= false;
-                for( auto& op : *entry.OperatorsAccepted )
-                    if( op.Equals<NC>( ciAutoCast.Operator ) )
-                    {
-                        operatorIsIn= true;
-                        break;
-                    }
-            }
+        // operator included in decline list?
+        if(    operatorIsIn
+            && entry.OperatorsDeclined != nullptr
+            && entry.OperatorsDeclined->size() > 0    )
+        {
+            for( auto& op : *entry.OperatorsDeclined )
+                if( op.Equals<NC>( ciAutoCast.Operator ) ) {
+                    operatorIsIn= false;
+                    break;
+        }       }
 
-            // operator included in decline list?
-            if(    operatorIsIn
-                && entry.OperatorsDeclined != nullptr
-                && entry.OperatorsDeclined->size() > 0    )
-            {
-                for( auto& op : *entry.OperatorsDeclined )
-                    if( op.Equals<NC>( ciAutoCast.Operator ) )
-                    {
-                        operatorIsIn= false;
-                        break;
-                    }
-            }
-
-            // found?
-            if( operatorIsIn )
-                return &entry;
-        }
-
-        return nullptr;
+        // found?
+        if( operatorIsIn )
+            return &entry;
     }
 
-    Box any2Int ( expressions::Scope&, ArgIterator argsBegin, ArgIterator )
-    {
-        return argsBegin->Data().Integrals.Array[0];
-    }
+    return nullptr;
+}
+
+Box any2Int ( expressions::Scope&, ArgIterator argsBegin, ArgIterator )
+{ return argsBegin->Data().Integrals.Array[0]; }
 
 } //anonymous namespace
 //! @endcond
 
 
-bool Calculus::TryCompilation( CIAutoCast& ciAutoCast )
-{
+bool Calculus::TryCompilation( CIAutoCast& ciAutoCast ) {
     bool result= false;
 
-    //-------- cast first arg -------
+  //----------------------------------------- cast first arg ---------------------------------------
     AutoCastEntry* entry= findAutoCastEntry( AutoCasts, ciAutoCast, 0 );
-    if( entry != nullptr )
-    {
+    if( entry != nullptr ) {
         result= true;
         ciAutoCast.ReverseCastFunctionName= entry->ReverseCastFunctionName;
 
         CallbackDecl callback;
-        if( entry->Callback == nullptr )
-        {
+        if( entry->Callback == nullptr ) {
            callback                  =  any2Int;
 ALIB_DBG(  ciAutoCast.DbgCallbackName=  "any2Int"; )
            ciAutoCast.TypeOrValue    =  Types::Integer;
-        }
-        else
-        {
+        } else {
            callback                  =  entry->Callback;
 ALIB_DBG(  ciAutoCast.DbgCallbackName=  entry->DbgCallbackName; )
            ciAutoCast.TypeOrValue    =  entry->ResultType;
@@ -571,23 +529,19 @@ ALIB_DBG(  ciAutoCast.DbgCallbackName=  entry->DbgCallbackName; )
     if(     ciAutoCast.ArgsBegin + 1 >= ciAutoCast.ArgsEnd )
         return result;
 
-    //-------- cast second arg (rhs) -------
+  //------------------------------------- cast second arg (rhs) ------------------------------------
     entry= findAutoCastEntry( AutoCasts, ciAutoCast, 1 );
-    if( entry != nullptr )
-    {
+    if( entry != nullptr ) {
         //
         result= true;
         ciAutoCast.ReverseCastFunctionNameRhs= entry->ReverseCastFunctionName;
 
         CallbackDecl callback;
-        if( entry->Callback == nullptr )
-        {
+        if( entry->Callback == nullptr ) {
            callback                     =  any2Int;
 ALIB_DBG(  ciAutoCast.DbgCallbackNameRhs=  "any2Int"; )
            ciAutoCast.TypeOrValueRhs    =  Types::Integer;
-        }
-        else
-        {
+        } else {
            callback                     =  entry->Callback;
 ALIB_DBG(  ciAutoCast.DbgCallbackNameRhs=  entry->DbgCallbackName; )
            ciAutoCast.TypeOrValueRhs    =  entry->ResultType;

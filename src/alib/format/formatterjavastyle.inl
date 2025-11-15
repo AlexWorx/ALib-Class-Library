@@ -19,11 +19,11 @@ namespace alib::format {
 /// In general, the original specification is covered quite well. The differences and specialties
 /// are:
 /// - In deviation of the Java specification, after creation, a formatter in this implementation
-///   does not produce locale aware output. Instead, number formatting is set to "computational",
+///   does not produce locale-aware output. Instead, number formatting is set to "computational",
 ///   hence the decimal point separator is <c>'.'</c> and the grouping character <c>','</c>.
 ///   As the syntax specification does not provide a feature to switch between standard and locale
-///   setting, the corresponding fields of #AlternativeNumberFormat are not used with this formatter.
-///   Instead, to enable localized output, method
+///   settings, the corresponding fields of #AlternativeNumberFormat are not used with this
+///   formatter. Instead, to enable localized output, method
 ///   \alib{strings;TNumberFormat::SetFromLocale;NumberFormat::SetFromLocale}
 ///   has to be invoked on field
 ///   \alib{format;FormatterStdImpl::DefaultNumberFormat;FormatterStdImpl::DefaultNumberFormat}.
@@ -53,20 +53,21 @@ namespace alib::format {
 ///     Due to this limitation, the default number of fractional digits is not set with type \c 'f',
 ///     while in Java it is set to \c 6. This is to allow higher numbers up to \c 1.e13 to be printed
 ///     in non-scientific format
-///   - When both, a \p{width} and a \p{precision} is given, then the \p{precision} determines the
+///   - When both, \p{width} and \p{precision} are given, then the \p{precision} determines the
 ///     fractional part, even if the type is \b 'g' or \b 'G'. This is different from the
 ///     corresponding specification of Java formatter, which uses \p{precision} as the overall
-///     width in case of types \b 'g' or \b 'G'.
+///     width in the case of types \b 'g' or \b 'G'.
 ///
 ///<p>
 /// - <b>Hexadecimal and Octal Numbers:</b>
 ///   - Hexadecimal and octal output is <b>cut in size</b> (!) when a field width is given that
-///     is smaller than the resulting amount of digits of the number arguments provided.
+///     is smaller than the resulting number of digits of the number arguments provided.
 ///       \note  This implies that a value written might not be equal to the value given.
-///              This is not a bug but a design decision. The rationale behind this is that with this
-///              behavior, there is no need to mask lower digits when passing the arguments to the
-///              format invocation. In other words, the formatter "assumes" that the given field width
-///              indicates that only a corresponding number of lower digits are of interest.
+///              This is not a bug but a design decision. The rationale behind this is that with
+///              this behavior, there is no need to mask lower digits when passing the arguments
+///              to the format invocation. In other words, the formatter "assumes" that the given
+///              field width indicates that only a corresponding number of lower digits are of
+///              interest.
 ///
 ///   - If no width is given and the argument contains a boxed pointer, then the platform-dependent
 ///     full output width of pointer types is used.
@@ -87,7 +88,7 @@ namespace alib::format {
 ///     \alib{format;FormatterStdImpl::DefaultNumberFormat;FormatterStdImpl::DefaultNumberFormat},
 ///     for lower case formats from
 ///     \alib{format;FormatterStdImpl::AlternativeNumberFormat;FormatterStdImpl::AlternativeNumberFormat}.
-///     All defaults may be changed by the user.
+///     The user may change all defaults.
 ///
 ///<p>
 /// - <b>Time and Date:</b>
@@ -116,133 +117,112 @@ namespace alib::format {
 //==================================================================================================
 class FormatterJavaStyle : public FormatterStdImpl
 {
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
-    protected:
-        /// Set of extended placeholder attributes, needed for this type of formatter in
-        /// addition to parent's \alib{format::FormatterStdImpl;PlaceholderAttributes}.
-        struct PlaceholderAttributesJS
-        {
-            /// The character after conversion type 't'/'T'.
-            character           DateTime;
+  //################################################################################################
+  // Protected fields
+  //################################################################################################
+  protected:
+    /// Set of extended placeholder attributes, needed for this type of formatter in
+    /// addition to parent's \alib{format::FormatterStdImpl;PlaceholderAttributes}.
+    struct PlaceholderAttributesJS
+    {
+        /// The character after conversion type 't'/'T'.
+        character           DateTime;
 
-            /// The value read from the precision field.
-            /// This is set to \c -1 in #resetPlaceholder.
-            int8_t              Precision;
+        /// The value read from the precision field.
+        /// This is set to \c -1 in #resetPlaceholder.
+        int8_t              Precision;
 
-            /// The default precision if not given.
-            /// This is set to \c 6 in #resetPlaceholder, but is changed when specified.
-            int8_t              DefaultPrecision;
+        /// The default precision if not given.
+        /// This is set to \c 6 in #resetPlaceholder, but is changed when specified.
+        int8_t              DefaultPrecision;
 
-            /// Convert to upper case.
-            bool                ConversionUpper;
+        /// Convert to upper case.
+        bool                ConversionUpper;
 
-            /// Alternate form given ('#').
-            bool                AlternateForm;
-        };
+        /// Alternate form given ('#').
+        bool                AlternateForm;
+    };
 
-        /// The extended placeholder attributes.
-        PlaceholderAttributesJS placeholderJS;
+    /// The extended placeholder attributes.
+    PlaceholderAttributesJS placeholderJS;
 
 
-    // #############################################################################################
-    //  Constructor/Destructor
-    // #############################################################################################
-    public:
-        //==========================================================================================
-        /// Constructs this formatter.
-        /// Inherited field #DefaultNumberFormat is initialized to meet the formatting defaults of
-        /// Java.
-        //==========================================================================================
-        ALIB_DLL
-        FormatterJavaStyle();
+  //################################################################################################
+  //  Constructor/Destructor
+  //################################################################################################
+  public:
+    /// Constructs this formatter.
+    /// Inherited field #DefaultNumberFormat is initialized to meet the formatting defaults of
+    /// Java.
+    ALIB_DLL
+    FormatterJavaStyle();
 
-        //==========================================================================================
-        /// Clones and returns a copy of this formatter.
-        ///
-        /// If the formatter attached to field
-        /// \alib{format;Formatter::Next} is of type \b %FormatterStdImpl, then that
-        /// formatter is copied as well.
-        ///
-        /// @returns An object of type \b %FormatterPythonStyle and with the same custom settings
-        ///          than this.
-        //==========================================================================================
-        ALIB_DLL virtual
-        SPFormatter         Clone()                                                        override;
+    /// Clones and returns a copy of this formatter.
+    ///
+    /// If the formatter attached to field
+    /// \alib{format;Formatter::Next} is of type \b %FormatterStdImpl, then that
+    /// formatter is copied as well.
+    ///
+    /// @returns An object of type \b %FormatterPythonStyle and with the same custom settings
+    ///          than this.
+    ALIB_DLL virtual
+    SPFormatter         Clone()                                                            override;
 
-    // #############################################################################################
-    //  Implementation of FormatterStdImpl interface
-    // #############################################################################################
-    protected:
+  //################################################################################################
+  //  Implementation of FormatterStdImpl interface
+  //################################################################################################
+  protected:
 
-        //==========================================================================================
-        /// Invokes parent implementation and then applies some changes to reflect what is defined as
-        /// default in the Java string format specification.
-        //==========================================================================================
-        ALIB_DLL
-        virtual void        resetPlaceholder()                                             override;
+    /// Invokes parent implementation and then applies some changes to reflect what is defined as
+    /// default in the Java string format specification.
+    ALIB_DLL
+    virtual void        resetPlaceholder()                                                 override;
 
-        //==========================================================================================
-        /// Searches for \c '\%' which is not '%%' or '%n'.
-        ///
-        /// @return The index found, -1 if not found.
-        //==========================================================================================
-        ALIB_DLL
-        virtual integer     findPlaceholder()                                              override;
+    /// Searches for \c '\%' which is not '%%' or '%n'.
+    ///
+    /// @return The index found, -1 if not found.
+    ALIB_DLL
+    virtual integer     findPlaceholder()                                                  override;
 
-        //==========================================================================================
-        /// Parses placeholder field in Java syntax. The portion \p{format_spec} is not set as this
-        /// is not supported by the syntax.
-        ///
-        /// @return \c true on success, \c false on errors.
-        //==========================================================================================
-        ALIB_DLL
-        virtual bool        parsePlaceholder()                                             override;
+    /// Parses placeholder field in Java syntax. The portion \p{format_spec} is not set as this
+    /// is not supported by the syntax.
+    ///
+    /// @return \c true on success, \c false on errors.
+    ALIB_DLL
+    virtual bool        parsePlaceholder()                                                 override;
 
-        //==========================================================================================
-        /// Does nothing. Java does not support custom format specifications.
-        ///
-        /// @return \c true to indicate success.
-        //==========================================================================================
-        virtual bool        parseStdFormatSpec()                                           override
-        {
-            return true;
-        }
+    /// Does nothing. Java does not support custom format specifications.
+    ///
+    /// @return \c true to indicate success.
+    virtual bool        parseStdFormatSpec()                               override { return true; }
 
-        //==========================================================================================
-        /// Implementation of abstract method \alib{format;FormatterStdImpl::writeStringPortion}.<br>
-        /// Replaces \c "%%" with \c '\%' and \c "%n" with ascii \c 0x0a. In addition applies
-        /// \alib{strings;TEscape;Escape} on \p{target} which replaces
-        /// standard codes like \c "\\n", \c "\\r" or \c "\\t" with corresponding ascii codes.
-        /// (The latter is an extension to the standard behavior of Java formatter.)
-        ///
-        /// @param length The number of characters to write.
-        //==========================================================================================
-        ALIB_DLL
-        virtual void        writeStringPortion( integer length )                           override;
+    /// Implementation of abstract method \alib{format;FormatterStdImpl::writeStringPortion}.<br>
+    /// Replaces \c "%%" with \c '\%' and \c "%n" with ascii \c 0x0a. In addition applies
+    /// \alib{strings;TEscape;Escape} on \p{target} which replaces
+    /// standard codes like \c "\\n", \c "\\r" or \c "\\t" with corresponding ascii codes.
+    /// (The latter is an extension to the standard behavior of Java formatter.)
+    ///
+    /// @param length The number of characters to write.
+    ALIB_DLL
+    virtual void        writeStringPortion( integer length )                               override;
 
-        //==========================================================================================
-        /// All that this formatter does with this overridden method is to convert strings to
-        /// upper case.
-        ///
-        /// @param startIdx  The index of the start of the field written in #targetString.
-        ///                  \c -1 indicates pre-phase.
-        /// @param target    The target string, only if different from field #targetString, which
-        ///                  indicates intermediate phase.
-        /// @return \c false, if the placeholder should be skipped (nothing is written for it).
-        ///         \c true otherwise.
-        //==========================================================================================
-        ALIB_DLL
-        virtual bool        preAndPostProcess( integer    startIdx,
-                                               AString*   target     )                     override;
+    /// All that this formatter does with this overridden method is to convert strings to
+    /// upper case.
+    ///
+    /// @param startIdx  The index of the start of the field written in #targetString.
+    ///                  \c -1 indicates pre-phase.
+    /// @param target    The target string, only if different from field #targetString, which
+    ///                  indicates intermediate phase.
+    /// @return \c false, if the placeholder should be skipped (nothing is written for it).
+    ///         \c true otherwise.
+    ALIB_DLL
+    virtual bool        preAndPostProcess( integer    startIdx,
+                                           AString*   target     )                         override;
 
-        //==========================================================================================
-        /// Makes some attribute adjustments and invokes standard implementation
-        /// @return \c true if OK, \c false if replacement should be aborted.
-        //==========================================================================================
-        ALIB_DLL
-        virtual bool        checkStdFieldAgainstArgument()                                 override;
+    /// Makes some attribute adjustments and invokes standard implementation
+    /// @return \c true if OK, \c false if replacement should be aborted.
+    ALIB_DLL
+    virtual bool        checkStdFieldAgainstArgument()                                     override;
 };
 
 } // namespace [alib::format]
@@ -251,4 +231,3 @@ ALIB_EXPORT namespace alib {
 /// Type alias in namespace \b alib.
 using  FormatterJavaStyle  =   format::FormatterJavaStyle;
 }
-

@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/variables/variables.prepro.hpp"
 #include <cstdarg>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Variables.ResourcePool;
     import   ALib.Strings.StdIOStream;
@@ -34,15 +34,14 @@
 #   include "ALib.Variables.H"
 #   include "ALib.Variables.ResourcePool.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if ALIB_RESOURCES
 
 namespace alib::variables {
 
 bool ConfigResourcePool::BootstrapAddOrReplace( const NString& category,
                                                 const NString& name,
-                                                const  String& resource     )
-{
+                                                const  String& resource     ) {
     Variable var( Self(), String(String256(category) << '/' <<  name), A_CHAR("S") );
     bool existed=  var.IsDefined();
     if(var.Define())
@@ -51,8 +50,7 @@ bool ConfigResourcePool::BootstrapAddOrReplace( const NString& category,
 }
 
 
-void ConfigResourcePool::BootstrapBulk( const nchar* category, ... )
-{
+void ConfigResourcePool::BootstrapBulk( const nchar* category, ... ) {
     va_list args;
     va_start(args, category);
     auto cursor= Self().Root();
@@ -62,8 +60,7 @@ void ConfigResourcePool::BootstrapBulk( const nchar* category, ... )
 #else
     ALIB_ASSERT_RESULT_EQUALS(cursor.GoToCreateChildIfNotExistent( category  ), true)
 #endif
-    for(;;)
-    {
+    for(;;) {
         NString name=  va_arg( args, const nchar* );
 
         if( name.IsNull() )
@@ -75,8 +72,7 @@ void ConfigResourcePool::BootstrapBulk( const nchar* category, ... )
         #else
           auto child= cursor.CreatePathIfNotExistent(name).first;
         #endif
-        if( !child.IsValid() )
-        {
+        if( !child.IsValid() ) {
             ALIB_WARNING("RESOURCES", "ConfigResourcePool: Resource value existed already. Name=",
                                       name)
             continue;
@@ -94,8 +90,8 @@ void ConfigResourcePool::BootstrapBulk( const nchar* category, ... )
 }
 
 
-const String& ConfigResourcePool::Get( const NString& category, const NString& name   ALIB_DBG(, bool dbgAssert ) )
-{
+const String& ConfigResourcePool::Get( const NString& category,
+                                       const NString& name       ALIB_DBG(, bool dbgAssert ) ) {
 
     String256 path(category); path << '/' << name;
     Variable var(Self());

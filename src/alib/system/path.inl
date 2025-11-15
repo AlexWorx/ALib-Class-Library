@@ -47,7 +47,7 @@ using PathStringPA   = strings::TAString<PathCharType, PoolAllocator >;
 #endif
 
 #if DOXYGEN
-/// A nulled path string. 
+/// A nulled path string.
 inline constexpr PathString NULL_PATH;
 
 /// An empty path string.
@@ -65,9 +65,9 @@ inline constexpr PathString EMPTY_PATH(A_PATH(""));
     inline constexpr PathCharType    DIRECTORY_SEPARATOR = '\\';
 #endif
 
-// #############################################################################################
+//##################################################################################################
 // MacOS System call wrappers (implemented in Objective-C)
-// #############################################################################################
+//##################################################################################################
 #if defined(__APPLE__)
 class Path;
 namespace macos
@@ -97,7 +97,7 @@ enum class SystemFolders
     /// - Using environment variable \e HOME (under WindowsOS a combination of \e HOMEDRIVE
     ///   and \e HOMEPATH), the home directory is determined.
     /// - If within this directory \e ".config" exists, it is used, otherwise
-    /// - if within this the directories \e "AppData/Roaming" exist, this is used.
+    /// - if within this direcotory the directories \e "AppData/Roaming" exist, this is used.
     HomeConfig,
 
     /// The directory of the executable of the process.
@@ -150,15 +150,15 @@ enum class SystemFolders
 /// \alib{strings;TLocalString;local strings} allows dynamic allocation if this should be exceeded
 /// (which usually is not expected with paths).
 ///
-/// The character type of this \b AString derivate is bound to type definition
+/// The character type of templated parent class \b AString is defined by the type definition
 /// \alib{system::PathCharType}, which in turn aliases <c>std::filesystem::path::value_type</c>.
 //==================================================================================================
 class Path : public  strings::TLocalString<PathCharType, 256>
 {
-    // #############################################################################################
-    // Fields
-    // #############################################################################################
-    public:
+  //################################################################################################
+  // Fields
+  //################################################################################################
+  public:
         /// Singleton containing the path for the use of enum value
         /// \alib{system;SystemFolders;SystemFolders::Temp}.
         /// This is evaluated once with the first use of \b %SystemFolders::Temp.
@@ -179,190 +179,174 @@ class Path : public  strings::TLocalString<PathCharType, 256>
         /// access to this variable is consequently protected with \alib{monomem;GLOBAL_ALLOCATOR_LOCK}.
         static      PathString          varTempDirEvaluatedOnce;
 
-    // #############################################################################################
-    // Constructors
-    // #############################################################################################
-    public:
-    using strings::TLocalString<PathCharType, 256>::TLocalString;
+  //################################################################################################
+  // Constructors
+  //################################################################################################
+  public:
+    using TLocalString<PathCharType, 256>::TLocalString;
 
-        //==========================================================================================
-        /// Constructs an object representing no directory.
-        /// Field #Path remains empty.
-        //==========================================================================================
-                                Path()
-        {}
+    /// Constructs an object representing no directory.
+    /// Field #Path remains empty.
+    Path()                                                                                        {}
 
-        //==========================================================================================
-        /// Constructs an object representing one of the known special directories.
-        /// @param special  The special directory to initialize this instance to.
-        //==========================================================================================
-                                Path( SystemFolders special )
-        {
-            Change( special );
-        }
+    /// Constructs an object representing one of the known special directories.
+    /// @param special  The special directory to initialize this instance to.
+    Path( SystemFolders special )                                             { Change( special ); }
 
-        //==========================================================================================
-        /// Constructs an object representing one of the known special directories.
-        /// @param special  The special directory to initialize this instance to.
-        /// @param fileName The filename in folder \p{special}.
-        //==========================================================================================
-                                Path( SystemFolders special, const PathString& fileName )
-        {
-            Change( special );
-            Add(fileName);
-        }
+    /// Constructs an object representing one of the known special directories.
+    /// @param special  The special directory to initialize this instance to.
+    /// @param fileName The filename in folder \p{special}.
+    Path( SystemFolders special, const PathString& fileName )  { Change( special ); Add(fileName); }
 
-        //==========================================================================================
-        /// Constructs an object representing the given path.
-        /// @param path  The initial path.
-        //==========================================================================================
-                                Path( const PathString& path )
-        : strings::TLocalString<PathCharType, 256>(path)                                         {}
+    /// Constructs an object representing the given path.
+    /// @param path  The initial path.
+    Path( const PathString& path )
+    : strings::TLocalString<PathCharType, 256>(path)                                              {}
 
 
-    // #############################################################################################
-    // Interface
-    // #############################################################################################
-    public:
-        //==========================================================================================
-        ///  Creates the directory of the given \p{path}. If a relative path is given, then
-        ///  it is appended to the currently stored path, otherwise the current path is replaced.
-        ///  @param path     Zero-terminated string defining the path to test.
-        ///  @return A value of enum type \alib{system;SystemErrors}.
-        //==========================================================================================
-        ALIB_DLL
-        SystemErrors     Create( const PathString& path );
+  //################################################################################################
+  // Interface
+  //################################################################################################
+  public:
+    /// Creates the directory of the given \p{path}. If a relative path is given, then
+    /// it is appended to the currently stored path, otherwise the current path is replaced.
+    /// @param path     Zero-terminated string defining the path to test.
+    /// @return A value of enum type \alib{system;SystemErrors}.
+    ALIB_DLL
+    SystemErrors            Create( const PathString& path );
 
-        //==========================================================================================
-        ///  Creates the directory represented by this object by invoking #Create(const PathString&)
-        ///  passing an empty String.
-        ///  @return A value of the enum type \alib{system;SystemErrors}.
-        //==========================================================================================
-        ALIB_DLL
-        SystemErrors     Create()                             { return Create(EMPTY_PATH); }
+    /// Creates the directory represented by this object by invoking #Create(const PathString&)
+    /// passing an empty String.
+    /// @return A value of the enum type \alib{system;SystemErrors}.
+    ALIB_DLL
+    SystemErrors            Create()                                  { return Create(EMPTY_PATH); }
 
-        //==========================================================================================
-        /// Changes the directory. If the given path is relative (e.g., a name of a subdirectory
-        /// or ".."), such path is added to the current #Path. Otherwise, this objects' path
-        /// string is replaced.
-        /// If the resulting destination directory is not valid, \c false is returned and this
-        /// object is not changed.
-        /// @param    path  The relative or absolute path to change to.
-        /// @returns \c true if the change was successful, \c false otherwise.
-        //==========================================================================================
-        ALIB_DLL   bool         Change( const PathString& path );
+    /// Changes the directory. If the given path is relative (e.g., a name of a subdirectory
+    /// or ".."), such path is added to the current #Path. Otherwise, this objects' path
+    /// string is replaced.
+    /// If the resulting destination directory is not valid, \c false is returned and this
+    /// object is not changed.
+    /// @param    path  The relative or absolute path to change to.
+    /// @returns \c true if the change was successful, \c false otherwise.
+    ALIB_DLL   bool         Change( const PathString& path );
 
-        //==========================================================================================
-        /// Changes the directory to one of the known special directories.
-        /// @param special  The special directory to change this instance to.
-        /// @returns \c true if the change was successful, \c false otherwise.
-        //==========================================================================================
-        ALIB_DLL   bool         Change( SystemFolders special );
+    /// Changes the directory to one of the known special directories.
+    /// @param special  The special directory to change this instance to.
+    /// @returns \c true if the change was successful, \c false otherwise.
+    ALIB_DLL   bool         Change( SystemFolders special );
 
-        //==========================================================================================
-        /// Changes the directory to one of the known special directories and adds the given
-        /// \p{fileName} to this path.
-        /// @param special  The special directory to change this instance to.
-        /// @param fileName The filename within \p{special}.
-        //==========================================================================================
-        inline    void         Change( SystemFolders special, const PathString& fileName )
-        {
-            Change( special );
-            Add(fileName);
-        }
+    /// Changes the directory to one of the known special directories and adds the given
+    /// \p{fileName} to this path.
+    /// @param special  The special directory to change this instance to.
+    /// @param fileName The filename within \p{special}.
+    inline    void          Change( SystemFolders special, const PathString& fileName )
+    {
+        Change( special );
+        Add(fileName);
+    }
+
+    /// In the case of directories, this path is set to the parent directory.
+    /// In the case of files, the file name is removed from the path.
+    ///
+    /// If the resulting destination directory is not valid, \c false is returned and this
+    /// object is not changed.
+    /// @returns \c true if the change was successful, \c false otherwise.
+    ///          I.e., in case this object represented the root folder \c false is returned.
+    ALIB_DLL   bool         ChangeToParent();
 
 
-        //==========================================================================================
-        /// Adds a directory or filename to the internal string. If the current string does not
-        /// end with a \alib{system;DIRECTORY_SEPARATOR}, one will be inserted first.
-        ///
-        /// @param dirOrFilename The path component to add.
-        /// @return \c *this to allow concatenated operations.
-        //==========================================================================================
-        inline    Path&         Add( const PathString& dirOrFilename )
-        {
-            if( CharAtEnd() != DIRECTORY_SEPARATOR )
-                _(DIRECTORY_SEPARATOR);
-            _(dirOrFilename);
+    /// Adds a directory or filename to the internal string. If the current string does not
+    /// end with a \alib{system;DIRECTORY_SEPARATOR}, one will be inserted first.
+    ///
+    /// @param dirOrFilename The path component to add.
+    /// @return \c *this to allow concatenated operations.
+    inline    Path&         Add( const PathString& dirOrFilename ) {
+        if( CharAtEnd() != DIRECTORY_SEPARATOR )
+            _(DIRECTORY_SEPARATOR);
+        _(dirOrFilename);
+        return *this;
+    }
+
+    /// Adds this processes' module name to the currently stored folder path.
+    ///
+    /// @param extension  An additional extension string that is added to the evaluated file
+    ///                   name, for example, <c>".jpg"</c>.
+    ALIB_DLL   void         AddModuleName( const PathString& extension );
+
+    /// Tests if this path represents an existing directory in the file system.
+    /// @return \c true if a directory was found, \c false if not found or the path represents
+    ///         a file.
+    ALIB_DLL
+    bool                    IsDirectory();
+
+    /// Invokes static overload of this method, passing this object.
+    /// @returns The result of a call to #IsAbsolute(const PathString&).
+    int                     IsAbsolute()                         const { return IsAbsolute(*this); }
+
+    /// Gets the name portion of the path.
+    /// @returns A string containing the characters after the last directory separator.
+    PathString              Name()                                                           const {
+        auto idx= LastIndexOf(DIRECTORY_SEPARATOR);
+        if( idx < 0 )
             return *this;
-        }
+        return Substring(idx + 1);
+    }
 
-        //==========================================================================================
-        /// Adds this processes' module name to the currently stored folder path.
-        ///
-        /// @param extension  An additional extension string that is added to the evaluated file
-        ///                   name, for example <c>".jpg"</c>.
-        //==========================================================================================
-        ALIB_DLL   void         AddModuleName( const PathString& extension );
-
-        //==========================================================================================
-        ///  Tests if this path represents an existing directory in the file system.
-        ///  @return \c true if a directory was found, \c false if not found or the path represents
-        ///             a file.
-        //==========================================================================================
-        ALIB_DLL
-        bool                    IsDirectory();
-
-        //==========================================================================================
-        /// Calls invokes static overload of this method, passing this object.
-        /// @returns The result of a call to #IsAbsolute(const PathString&).
-        //==========================================================================================
-        int                     IsAbsolute()                     const { return IsAbsolute(*this); }
-
-        //==========================================================================================
-        /// Gets the name portion of the path.
-        /// @returns A string containing the characters after the last directory separator.
-        //==========================================================================================
-        PathString              Name()                                                         const
-        {
-            auto idx= LastIndexOf(DIRECTORY_SEPARATOR);
-            if( idx < 0 )
+    /// In the case of directories, the path string to the parent directory is returned.
+    /// In the case of files, the directory that the file resides in is returned.
+    /// @returns A string containing the characters from the start to the last directory
+    ///          separator. If the currently stored string ends with a separator, this is
+    ///          returned first.
+    PathString              Parent()                                                         const {
+        integer startIdx= length;
+        if ( CharAtEnd() == DIRECTORY_SEPARATOR  ) {
+            if ( startIdx == 1 )
                 return *this;
-            return Substring(idx + 1);
+            --startIdx;
         }
 
-        //==========================================================================================
-        /// Resolves the path by removing all symbolic links and relative addressing.
-        /// @return \alib{system;SystemErrors;SystemErrors::OK} on success, otherwise
-        ///         an error code.
-        //==========================================================================================
-        ALIB_DLL
-        SystemErrors            MakeReal();
+        integer lastDirSep= LastIndexOf(DIRECTORY_SEPARATOR, startIdx);
+        if (lastDirSep==0)
+            ++lastDirSep;
+        return Substring(0, lastDirSep );
+    }
 
-        //==========================================================================================
-        /// Determines if the given string contains a path/filename with absolute addressing or
-        /// not.
-        /// \attention This method must be invoked on "real path strings" only. Assembled paths
-        ///            which contain redundant slashes return a false result.
-        /// @param    path  The relative or absolute path to check.
-        /// @returns \c 0 if \p{path} is relative. If absolute, the position of the first character
-        ///          that does not belong to the root symbol. For example, with windows OS, if
-        ///          <c>"C:\XYZ"</c> was given, \c 3 is returned.
-        ///          With other OSes "//" is searched.
-        //==========================================================================================
-        static  int             IsAbsolute( const PathString& path )
-        {
-            #if defined(_WIN32)
-               if( path.Length() >= 3 )
-               {
-                    if(    path.CharAt<NC>(1) == ':'
-                        && path.CharAt<NC>(2)== DIRECTORY_SEPARATOR    )
-                        return 3;
+    /// Resolves the path by removing all symbolic links and relative addressing.
+    /// @return \alib{system;SystemErrors;SystemErrors::OK} on success, otherwise
+    ///         an error code.
+    ALIB_DLL
+    SystemErrors            MakeReal();
 
-                    if (   path.CharAt<NC>(0) == DIRECTORY_SEPARATOR
-                        && path.CharAt<NC>(1) == DIRECTORY_SEPARATOR)
-                        return int(path.IndexOf<NC>( DIRECTORY_SEPARATOR, 2 ) + 1);
-               }
-               return 0;
-            #else
-                if( path.CharAtStart() == '/' )
-                    return 1;
-                auto slashSlashPos= path.IndexOf(A_PATH("//"));
-                if( slashSlashPos > 0 )
-                    return int(slashSlashPos + 2);
-                return 0;
-            #endif
-        }
+    /// Determines if the given string contains a path/filename with absolute addressing or
+    /// not.
+    /// \attention This method must be invoked on "real path strings" only. Assembled paths
+    ///            which contain redundant slashes return a false result.
+    /// @param    path  The relative or absolute path to check.
+    /// @returns \c 0 if \p{path} is relative. If absolute, the position of the first character
+    ///          that does not belong to the root symbol. For example, with windows OS, if
+    ///          <c>"C:\XYZ"</c> was given, \c 3 is returned.
+    ///          With other OSes "//" is searched.
+    static  int             IsAbsolute( const PathString& path ) {
+        #if defined(_WIN32)
+           if( path.Length() >= 3 ) {
+                if(    path.CharAt<NC>(1) == ':'
+                    && path.CharAt<NC>(2)== DIRECTORY_SEPARATOR    )
+                    return 3;
+
+                if (   path.CharAt<NC>(0) == DIRECTORY_SEPARATOR
+                    && path.CharAt<NC>(1) == DIRECTORY_SEPARATOR)
+                    return int(path.IndexOf<NC>( DIRECTORY_SEPARATOR, 2 ) + 1);
+           }
+           return 0;
+        #else
+            if( path.CharAtStart() == '/' )
+                return 1;
+            auto slashSlashPos= path.IndexOf(A_PATH("//"));
+            if( slashSlashPos > 0 )
+                return int(slashSlashPos + 2);
+            return 0;
+        #endif
+    }
 
 }; //class Path
 
@@ -395,9 +379,9 @@ using     Path=             system::Path;
 using     SystemFolders=    system::SystemFolders;
 
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ZTArrayTraits for  class Path
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 namespace characters {
 template<>
@@ -415,6 +399,3 @@ struct  ZTArrayTraits<system::Path, system::PathCharType>
 
 ALIB_ENUMS_ASSIGN_RECORD(   alib::system::SystemFolders, alib::enumrecords::ERSerializable )
 ALIB_BOXING_VTABLE_DECLARE( alib::system::Path*        , vt_system_path              )
-
-
-

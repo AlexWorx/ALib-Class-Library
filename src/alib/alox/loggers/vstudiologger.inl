@@ -27,9 +27,9 @@ ALIB_EXPORT namespace alib {  namespace lox::loggers {
 //==================================================================================================
 class VStudioLogger : public alib::lox::textlogger::PlainTextLogger
 {
-    // #############################################################################################
-    // Internal members
-    // #############################################################################################
+  //################################################################################################
+  // Internal members
+  //################################################################################################
     protected:
         /// A character buffer used for the creation of zero-terminated output strings
         /// required by the VStudio logger interface.
@@ -38,9 +38,9 @@ class VStudioLogger : public alib::lox::textlogger::PlainTextLogger
         /// characters.
         AString             outputString;
 
-    // #############################################################################################
-    // Constructor/destructor
-    // #############################################################################################
+  //################################################################################################
+  // Constructor/destructor
+  //################################################################################################
     public:
         /// Creates a VStudioLogger.
         /// @param name   (Optional) The name of the \e Logger, defaults to "VSTUDIO_CONSOLE".
@@ -50,9 +50,9 @@ class VStudioLogger : public alib::lox::textlogger::PlainTextLogger
         /// Destructs a VStudioLogger
         virtual            ~VStudioLogger()                                              override {}
 
-    // #############################################################################################
-    // Abstract method implementations
-    // #############################################################################################
+  //################################################################################################
+  // Abstract method implementations
+  //################################################################################################
     protected:
         /// Invokes parent method. Then performs some VStudio-related adoptions.
         ///
@@ -66,7 +66,7 @@ class VStudioLogger : public alib::lox::textlogger::PlainTextLogger
         /// @param phase  Indicates the beginning or end of a log operation.
         /// @return Always returns true.
         ALIB_DLL
-        virtual bool notifyLogOp(lang::Phase phase);
+        virtual bool notifyPlainTextLogOp(lang::Phase phase);
 
         /// Write the given region of the given AString to the destination buffer.
         ///
@@ -75,7 +75,7 @@ class VStudioLogger : public alib::lox::textlogger::PlainTextLogger
         /// @param length   The length of the portion in \p{buffer} to write out.
         /// @return The number of characters written, -1 on error.
         ALIB_DLL
-        virtual integer logSubstring( const String& buffer, integer start, integer length );
+        virtual integer logPlainTextPart( const String& buffer, integer start, integer length );
 
 
         ///  Empty implementation, not needed for this class
@@ -97,4 +97,3 @@ using     VStudioLogger=           lox::loggers::VStudioLogger;
 #endif // defined(_MSC_VER) && ALIB_DEBUG
 
 #endif // HPP_ALIB_LOX_VSTUDIO_LOGGER
-

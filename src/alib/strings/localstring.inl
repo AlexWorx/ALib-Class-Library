@@ -15,7 +15,7 @@ ALIB_EXPORT namespace alib { namespace strings {
 /// Assembled character strings often have a rather short lifetime and are disposed quickly
 /// after their usage. If the maximum length of the assembled string is known, such strings
 /// may be created as local values of this type, with that maximum length given as template
-/// parameter \p{TCapacity}. With that, the allocation and de-allocation of heap memory
+/// parameter \p{TCapacity}. With that, the allocation and deallocation of heap memory
 /// (or whatever is used with the provided allocator) for the string is omitted and allocation
 /// and destruction of the local string is performed in constant time O(1).
 ///
@@ -62,9 +62,9 @@ ALIB_EXPORT namespace alib { namespace strings {
 template <typename TChar, integer TCapacity, typename TAllocator= lang::HeapAllocator>
 class TLocalString : public TAString<TChar, TAllocator>
 {
-  // ###############################################################################################
+  //################################################################################################
   //  protected fields
-  // ###############################################################################################
+  //################################################################################################
   protected:
     /// The base AString-type.
     using base=   TAString<TChar, TAllocator>;
@@ -76,39 +76,31 @@ class TLocalString : public TAString<TChar, TAllocator>
     /// Passed as an external buffer to parent class \b AString.
     TChar         localBuffer[TCapacity];
 
-  // ###############################################################################################
+  //################################################################################################
   //  Constructors/Destructor
-  // ###############################################################################################
+  //################################################################################################
   public:
-    //==============================================================================================
     /// Constructs an empty \b %LocalString. Inherited field \alib{strings::TString;buffer}
     /// will be set as an the external buffer of parent \b AString.
     /// Unlike all other \alib string classes, objects of this type are not \e nulled
     /// after default construction.
     /// @param pAllocator      The allocator to use.
-    //==============================================================================================
     constexpr
     TLocalString(TAllocator& pAllocator)
     : base( pAllocator, localBuffer, TCapacity )
-    , localBuffer {}
-    {}
+    , localBuffer {}                                                                              {}
 
-    //==============================================================================================
     /// Constructs an empty \b %LocalString. Inherited field \alib{strings::TString;buffer}
     /// will be set as an the external buffer of parent \b AString.
     /// Unlike all other \alib string classes, objects of this type are not \e nulled
     /// after default construction.
-    //==============================================================================================
     constexpr
     TLocalString()
     : base( localBuffer, TCapacity )
-    , localBuffer {}
-    {}
+    , localBuffer {}                                                                              {}
 
-    //==============================================================================================
     /// Copy constructor. Copies the string data of parameter \p{copy} to this instance
     /// @param copy The object to copy the contents from.
-    //==============================================================================================
     TLocalString(const TLocalString& copy)
     : base( localBuffer, TCapacity )
     {
@@ -116,18 +108,14 @@ class TLocalString : public TAString<TChar, TAllocator>
         base::Append( copy.Buffer(), copy.Length() );
     }
 
-    //==============================================================================================
     /// Move constructor.
     /// See \ref alib_ns_strings_astring_copymove "Copy/Move Constructor and Assignment"
     /// for details.
     /// @param move The object to move.
-    //==============================================================================================
     TLocalString(TLocalString&& move)                                                   noexcept
-    : base( localBuffer, TCapacity )
-    {
+    : base( localBuffer, TCapacity ) {
         // given move object has external buffer: we have to copy
-        if ( !move.HasInternalBuffer() )
-        {
+        if ( !move.HasInternalBuffer() ) {
             ALIB_DBG( base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced; )
             base::Append( move );
             return;
@@ -143,27 +131,23 @@ class TLocalString : public TAString<TChar, TAllocator>
         move.capacity= 0;
 
         // in debug mode, more copying and more destructor prevention is needed
-#if ALIB_DEBUG
-        base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced;
-#if ALIB_DEBUG_STRINGS
-        base::debugLastAllocRequest  = move.debugLastAllocRequest;
-        move.buffer                 = nullptr;
-        move.length                 = 0;
-#endif
-#endif
+        #if ALIB_DEBUG
+            base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced;
+            #if ALIB_DEBUG_STRINGS
+                base::debugLastAllocRequest  = move.debugLastAllocRequest;
+                move.buffer                 = nullptr;
+                move.length                 = 0;
+            #endif
+        #endif
     }
 
-    //==============================================================================================
     /// Copy assign operator.
     /// Copies the contents of the given object \p{copy}.
     ///
     /// @param  copy  The object to copy the contents from.
     /// @return \c *this to allow concatenated calls.
-    //==============================================================================================
-    TLocalString& operator= (const TLocalString&  copy)
-    {
-        if ( copy.IsNull())
-        {
+    TLocalString& operator= (const TLocalString&  copy) {
+        if ( copy.IsNull()) {
             base::SetNull();
             return *this;
         }
@@ -171,25 +155,20 @@ class TLocalString : public TAString<TChar, TAllocator>
         return static_cast<TLocalString&>( base::template Append<NC>( copy.Buffer(), copy.Length() ) );
     }
 
-    //==============================================================================================
     /// Move assign operator.
     /// Copies the contents of the given object \p{copy}.
     ///
     /// @param  move  The object to move the contents from.
     /// @return \c *this to allow concatenated calls.
-    //==============================================================================================
-    TLocalString& operator= (TLocalString&&  move)
-    {
-        if( move.IsNull() )
-        {
+    TLocalString& operator= (TLocalString&&  move) {
+        if( move.IsNull() ) {
             ALIB_DBG( base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced; )
             base::SetNull();
             return *this;
         }
 
         // copy if move has its local buffer or this has lost its local buffer
-        if ( !move.HasInternalBuffer() || base::HasInternalBuffer() )
-        {
+        if ( !move.HasInternalBuffer() || base::HasInternalBuffer() ) {
             base::Reset( move );
             return *this;
         }
@@ -203,18 +182,17 @@ class TLocalString : public TAString<TChar, TAllocator>
         move.capacity= 0;
 
         // in debug mode, more copying and more destructor prevention is needed
-#if ALIB_DEBUG
-        base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced;
-#if ALIB_DEBUG_STRINGS
-        base::debugLastAllocRequest  = move.debugLastAllocRequest;
-        move.buffer                 = nullptr;
-        move.length                 = 0;
-#endif
-#endif
+        #if ALIB_DEBUG
+            base::dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced;
+            #if ALIB_DEBUG_STRINGS
+                base::debugLastAllocRequest  = move.debugLastAllocRequest;
+                move.buffer                 = nullptr;
+                move.length                 = 0;
+            #endif
+        #endif
         return *this;
     }
 
-    //==============================================================================================
     /// Constructs this instance and invokes parent's method \b %Append to create a string
     /// representation of the given "appendable" object \p{src}.
     ///
@@ -226,36 +204,26 @@ class TLocalString : public TAString<TChar, TAllocator>
     /// @tparam TAppendable  The type of parameter \p{src} that has a specialization of
     ///                      functor \alib{strings;AppendableTraits}.
     /// @param src  The source to take the buffer and length from of template type T.
-    //==============================================================================================
     template <typename TAppendable>
     TLocalString (const  TAppendable& src )
-    : base( localBuffer, TCapacity )
-    {
-        base::Append( src );
-    }
+    : base( localBuffer, TCapacity )                                        { base::Append( src ); }
 
 
-    //==============================================================================================
     /// Assign operator.
     /// Invokes inherited method \alib{strings::TAString;Reset(const TAppendable&)}.
     ///
     /// @tparam TAppendable The type of parameter \p{source}.
     /// @param  src         The source of type \p{TAppendable} to append.
     ///
-    /// @return  \c *this to allow concatenated calls.
-    //==============================================================================================
+    /// @return \c *this to allow concatenated calls.
     template <typename TAppendable>
-    TLocalString& operator= (const TAppendable& src )
-    {
-        base::Reset( src );
-        return *this;
-    }
+    TLocalString& operator= (const TAppendable& src )          { base::Reset( src ); return *this; }
 
 }; // class TLocalString
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits for this class String
-// #################################################################################################
+//##################################################################################################
 } namespace characters {
 #if !DOXYGEN
 template<typename TChar, integer TCapacity, typename TAllocator>
@@ -275,7 +243,7 @@ struct  ZTArrayTraits<strings::TLocalString<TChar,TCapacity,TAllocator>, TChar>
     static constexpr Policy       Access                                 = Policy::Implicit;
     static constexpr Policy       Construction                           = Policy::NONE;
     static constexpr const TChar* Buffer(const T& src)                   { return src.Terminate(); }
-    static constexpr integer      Length(const T& src)                   { return src.Length(); }
+    static constexpr integer      Length(const T& src)                      { return src.Length(); }
 };
 #endif // !DOXYGEN
 
@@ -286,7 +254,7 @@ struct  ZTArrayTraits<strings::TLocalString<TChar,TCapacity,TAllocator>, TChar>
 //==================================================================================================
 /// This simple specialization of \alib{strings;TLocalString} disables the warning about
 /// replacements of the internal buffer in debug-compilations. This may be used in situations,
-/// where it is not possible to disable this warning after construction, for example if a local
+/// where it is not possible to disable this warning after construction, for example, if a local
 /// string is <em>emplaced</em> in a container and extensions of it's local capacity are well
 /// accepted (for a minority of the emplaced strings).
 ///
@@ -304,9 +272,7 @@ struct  TLocalStringNoWarning : public TLocalString<TChar,TCapacity,TAllocator>
     constexpr
     TLocalStringNoWarning()
     : TLocalString<TChar,TCapacity>()
-    {
-        TAString<TChar,lang::HeapAllocator>::dbgWarnWhenExternalBufferIsReplaced= false;
-    }
+    { TAString<TChar,lang::HeapAllocator>::dbgWarnWhenExternalBufferIsReplaced= false; }
 
     /// Constructor taking a string to copy.
     /// @param src  The string to copy into this object.

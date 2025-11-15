@@ -256,11 +256,11 @@ pool.DeleteJob(myJob);
 // for execution to do it ourselves.
 pool.ScheduleVoid<MyJob>(123);
 
-// Wait a max of 1h for all threads to finish (with debug, warn after 1ms)
-pool.WaitForAllIdle( 1h  ALIB_DBG(, 1ms) );
+// Wait a max of 1 minute for all threads to finish (with debug, warn after 10 milliseconds)
+pool.WaitForAllIdle( 1min  ALIB_DBG(, 10ms) );
 
 // Shutdown the pool. Because this also waits until all jobs are processed and workers are
-// idle, whe wouldn't have needed the line above.
+// idle, we wouldn't have needed the line above.
 pool.Shutdown();
 DOX_MARKER( [DOX_THREADMODEL_POOL_SIMPLE])
 }

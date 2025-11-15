@@ -26,17 +26,16 @@ ALIB_EXPORT namespace alib::resources {
 /// debug-compilations, consider also methods #DbgGetList and #DbgGetCategories.
 ///
 /// \see
-///  Please consult the \ref alib_mod_resources "Programmer's Manual" of module \alib_resources_nl for
-///  details on the concept of resources.
-///  Some details on this specific type are given in chapter
-///  \ref alib_resources_interface_default.
-///
+///   Please consult the \ref alib_mod_resources "Programmer's Manual" of module \alib_resources_nl
+///   for details on the concept of resources.
+///   Some details on this specific type are given in chapter
+///   \ref alib_resources_interface_default.
 //==================================================================================================
 class LocalResourcePool  : public ResourcePool
 {
-    protected:
-        /// A hash map used to store static resources.
-        detail::StaticResourceMap       data;
+  protected:
+    /// A hash map used to store static resources.
+    detail::StaticResourceMap       data;
 
     #if ALIB_DEBUG_RESOURCES
     /// If set before bootstrapping (e.g., to <c>&std::cout</c>), then each found resource string
@@ -50,47 +49,41 @@ class LocalResourcePool  : public ResourcePool
     public: static std::ostream*    DbgResourceLoadObserver;
     #endif
 
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
-    public:
-        /// Constructor.
-        LocalResourcePool()
-        : data( monomem::GLOBAL_ALLOCATOR )
-        {}
+  //################################################################################################
+  // Constructor/Destructor
+  //################################################################################################
+  public:
+    /// Constructor.
+    LocalResourcePool()
+    : data( monomem::GLOBAL_ALLOCATOR )                                                           {}
 
-        /// Destructor.
-        ALIB_DLL
-        virtual
-        ~LocalResourcePool()                                                                override
-        {}
+    /// Destructor.
+    ALIB_DLL
+    virtual
+    ~LocalResourcePool()                                                                 override {}
 
-        /// Returns the internal table that maps a pair of category and name strings to the resource
-        /// string.
-        ///
-        /// Access to this map may be useful for two purposes:
-        /// 1. Debug inspection.
-        /// 2. Modification of the parameters of the hash table. (For example, the use of methods
-        ///    \alib{containers::HashTable;Reserve},
-        ///    \alib{containers::HashTable;BaseLoadFactor} or
-        ///    \alib{containers::HashTable;MaxLoadFactor}).
-        ///
-        /// Modifications on the returned object are allowed only while no threads have been started
-        /// by the software process (respectively no threads that use \alib ), which usually is true
-        /// during bootstrapping a process. Therefore , the prefix in this method's name.
-        ///
-        /// @return The internal hash map.
-        detail::StaticResourceMap&    BootstrapGetInternalHashMap()
-        {
-            return data;
-        }
+    /// Returns the internal table that maps a pair of category and name strings to the resource
+    /// string.
+    ///
+    /// Access to this map may be useful for two purposes:
+    /// 1. Debug inspection.
+    /// 2. Modification of the parameters of the hash table. (For example, the use of methods
+    ///    \alib{containers::HashTable;Reserve},
+    ///    \alib{containers::HashTable;BaseLoadFactor} or
+    ///    \alib{containers::HashTable;MaxLoadFactor}).
+    ///
+    /// Modifications on the returned object are allowed only while no threads have been started
+    /// by the software process (respectively no threads that use \alib ), which usually is true
+    /// during bootstrapping a process. Therefore , the prefix in this method's name.
+    ///
+    /// @return The internal hash map.
+    detail::StaticResourceMap&    BootstrapGetInternalHashMap()                     { return data; }
 
 
-    // #############################################################################################
-    // ResourcePool Interface
-    // #############################################################################################
+  //################################################################################################
+  // ResourcePool Interface
+  //################################################################################################
 
-    //==============================================================================================
     /// Implements abstract method \alib{resources;ResourcePool::BootstrapAddOrReplace}.
     /// \note
     ///   If the compiler-symbol \ref ALIB_DEBUG_RESOURCES is set on compilation and static field
@@ -102,20 +95,17 @@ class LocalResourcePool  : public ResourcePool
     /// @param name       Name string of the resource.
     /// @param data       The resource data.
     /// @return \c true if the resource did exist and was replaced, \c false if it was an insertion.
-    //==============================================================================================
     ALIB_DLL
     virtual
     bool BootstrapAddOrReplace( const NString& category,
                                 const NString& name,
                                 const  String& data        )                               override;
 
-    //==============================================================================================
     /// Implements abstract method \alib{resources;ResourcePool::BootstrapBulk}.
     ///
     /// @param category  The category of the resources given.
     /// @param ...       A list of pairs of <b>const nchar*</b> and <b>const character*</b>
     ///                  keys and data, including a terminating \c nullptr value.
-    //==============================================================================================
     ALIB_DLL
     virtual
     void BootstrapBulk( const nchar* category, ... )                                       override;
@@ -142,7 +132,7 @@ class LocalResourcePool  : public ResourcePool
                                                             ALIB_DBG(, bool dbgAssert) )   override;
 #endif
 
-    #if ALIB_DEBUG_RESOURCES 
+    #if ALIB_DEBUG_RESOURCES
         //==========================================================================================
         /// Returns a vector of tuples for each resourced element. Each tuple contains:
         /// 0. The category name
@@ -161,7 +151,7 @@ class LocalResourcePool  : public ResourcePool
         /// \attention
         ///   This function is implemented only with the default pool instance of type
         ///   \alib{resources;LocalResourcePool} is used.
-        ///   Otherwise, an \alib warning is raised and an empty vector is returned.
+        ///   Otherwise, an \alib_warning is raised and an empty vector is returned.
         ///
         /// \see
         ///   Methods #DbgGetCategories and #DbgDump.

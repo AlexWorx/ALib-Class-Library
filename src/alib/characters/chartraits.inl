@@ -367,26 +367,26 @@ concept IsExplicitZTArrayCast=     ZTArrayTraits<std::remove_cv_t<T>,TChar>::Con
 ALIB_WARNINGS_RESTORE // ignore docs due to clang not knowing concepts
 
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits and ZTArrayTraits for const and non-const character pointer types
-// #################################################################################################
+//##################################################################################################
 
 #if !DOXYGEN
-//------------------ Fixed length arrays ------------------
+//--------------------------------------- Fixed length arrays --------------------------------------
 template<size_t TCapacity, typename TChar>
 struct ArrayTraits<TChar[TCapacity], TChar>
 {
     static constexpr Policy         Access                                       = Policy::Implicit;
-    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
+    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] )         { return src; }
+    static constexpr integer        Length( TChar const (&   ) [TCapacity] ){ return TCapacity -1; }
 };
 
 template<size_t TCapacity, typename TChar>
 struct ZTArrayTraits<TChar[TCapacity], TChar>
 {
     static constexpr Policy         Access                                       = Policy::Implicit;
-    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
+    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] )         { return src; }
+    static constexpr integer        Length( TChar const (&   ) [TCapacity] ){ return TCapacity -1; }
 };
 
 // C++20 type 'char8_t'
@@ -407,7 +407,7 @@ struct ZTArrayTraits<char8_t[TCapacity], nchar>
 };
 
 
-// ------------------ constant character pointers ------------------
+//----------------------------------- constant character pointers ----------------------------------
 template<typename TChar> struct ArrayTraits<const TChar*, TChar>
 {
     static constexpr Policy         Access                                  = Policy::Implicit;
@@ -445,12 +445,12 @@ template<> struct ZTArrayTraits<const char8_t*, nchar>
     static           const char8_t* Construct(const nchar* array, integer ) { return reinterpret_cast<const char8_t*>(array); }
 };
 
-// ------------------ mutable character pointers ------------------
+//------------------------------------ mutable character pointers ----------------------------------
 template<typename TChar> struct ArrayTraits<TChar*, TChar>
 {
     static constexpr Policy         Access                                  = Policy::ExplicitOnly;
     static constexpr Policy         Construction                            = Policy::ExplicitOnly;
-    static constexpr const TChar*   Buffer(      TChar* const & src       ) { return src;  }
+    static constexpr const TChar*   Buffer(      TChar* const & src       ) { return src; }
     static constexpr integer        Length(      TChar* const & src       ) { return src ? integer( std::char_traits<TChar>::length(src) ) : 0; }
     static constexpr       TChar*   Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
 };
@@ -459,7 +459,7 @@ template<typename TChar> struct ZTArrayTraits<TChar*, TChar>
 {
     static constexpr Policy         Access                                  = Policy::ExplicitOnly;
     static constexpr Policy         Construction                            = Policy::ExplicitOnly;
-    static constexpr const TChar*   Buffer(     TChar* const & src        ) { return src;  }
+    static constexpr const TChar*   Buffer(     TChar* const & src        ) { return src; }
     static constexpr integer        Length(     TChar* const & src        ) { return src ? integer( std::char_traits<TChar>::length(src) ) : 0; }
     static constexpr       TChar*   Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
 };
@@ -471,7 +471,7 @@ template<> struct ArrayTraits<char8_t*, nchar>
     static constexpr Policy         Construction                            = Policy::ExplicitOnly;
     static           const nchar*   Buffer(      char8_t* const & src     ) { return reinterpret_cast<nchar*>(src);  }
     static constexpr integer        Length(      char8_t* const & src     ) { return src ? integer( std::char_traits<char8_t>::length(src) ) : 0; }
-    static                char8_t* Construct(const nchar* array, integer ) { return const_cast<char8_t*>( reinterpret_cast<const char8_t*>(array) ); }
+    static           char8_t*       Construct(const nchar* array, integer ) { return const_cast<char8_t*>( reinterpret_cast<const char8_t*>(array) ); }
 };
 
 template<> struct ZTArrayTraits<char8_t*, nchar>
@@ -480,14 +480,14 @@ template<> struct ZTArrayTraits<char8_t*, nchar>
     static constexpr Policy         Construction                            = Policy::ExplicitOnly;
     static           const nchar*   Buffer(   char8_t* const & src        ) { return reinterpret_cast<nchar*>(src);  }
     static constexpr integer        Length(   char8_t* const & src        ) { return src ? integer( std::char_traits<char8_t>::length(src) ) : 0; }
-    static                 char8_t* Construct(const nchar* array, integer ) { return const_cast<char8_t*>( reinterpret_cast<const char8_t*>(array) ); }
+    static           char8_t*       Construct(const nchar* array, integer ) { return const_cast<char8_t*>( reinterpret_cast<const char8_t*>(array) ); }
 };
 
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // Tools
-// #################################################################################################
+//##################################################################################################
 
 //==================================================================================================
 /// This templated alias type-definition provides the "complement" to the given character type.
@@ -557,4 +557,3 @@ constexpr integer  ArrayLength() {
 ALIB_WARNINGS_RESTORE
 
 } // namespace [alib::character]
-

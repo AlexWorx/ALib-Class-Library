@@ -174,10 +174,11 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.FormatterPythonStyle";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.ConvertIntegers";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.*";
-//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.StringWriterNLCorrection";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.OStreamWriterNLCorrection";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.Text*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.StringSearch";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.Token*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.OStreamWriterNLCorrection*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Custom*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Strings.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Strings.PropertyFormatter";
@@ -197,7 +198,7 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_ContMonoList.TestList";
 //    ::testing::GTEST_FLAG(filter) = "UT_ContMono.HashTable*";
 //    ::testing::GTEST_FLAG(filter) = "UT_ContMonoHashtable.HashTableRecycling";
-//    ::testing::GTEST_FLAG(filter) = "UT_ContMono_StringTree*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono_StringTree.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_ContMonoLRUCache*";
 //    ::testing::GTEST_FLAG(filter) = "UT_ContMonoHashtable*";
 
@@ -213,12 +214,12 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_Threads.Locks";
 //    ::testing::GTEST_FLAG(filter) = "UT_Threads.LockSpeedTest";
 //    ::testing::GTEST_FLAG(filter) = "UT_Threads.ThreadSimple";
-//    ::testing::GTEST_FLAG(filter) = "UT_Threads.SmartLock";
 //    ::testing::GTEST_FLAG(filter) = "UT_Threads.TRequest";
 
 //    ::testing::GTEST_FLAG(filter) = "UT_ThreadModel*";
 
-//    ::testing::GTEST_FLAG(filter) = "UT_System.Dir*";
+//    ::testing::GTEST_FLAG(filter) = "UT_System.Path*";
+//    ::testing::GTEST_FLAG(filter) = "UT_System.ShellCommand*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Containers.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Variables.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Variables.Basics";

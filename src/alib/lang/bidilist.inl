@@ -38,25 +38,25 @@ struct BidiNodeBase : public SidiNodeBase<TElement>
     TElement*  p;
 
     /// Default constructor. (Does not initialize the pointer!)
-    BidiNodeBase()                                                            noexcept    = default;
+    BidiNodeBase()                                                                noexcept =default;
 
     /// Deleted copy constructor. This is deleted because it is dangerous, respectively often
     /// not possible and also mostly not wanted to be able to create copies of derived type
     /// \p{TElement}
-    BidiNodeBase( const BidiNodeBase&  )                                                   = delete;
+    BidiNodeBase( const BidiNodeBase&  )                                                    =delete;
 
     /// Defaulted move constructor.
-    BidiNodeBase(       BidiNodeBase&& )                                      noexcept    = default;
+    BidiNodeBase(       BidiNodeBase&& )                                          noexcept =default;
 
     /// Deleted copy assignment operator. This is deleted because it is dangerous, respectively
     /// often not possible and also mostly not wanted to create copies of derived type \p{TElement}.
     /// @return Not defined.
-    BidiNodeBase& operator=( const BidiNodeBase& )                                         = delete;
+    BidiNodeBase& operator=( const BidiNodeBase& )                                          =delete;
 
     /// Defaulted move assignment operator.
     /// @return A reference to this object.
 
-    BidiNodeBase& operator=(       BidiNodeBase&& )                             noexcept  = default;
+    BidiNodeBase& operator=(       BidiNodeBase&& )                               noexcept =default;
 
     /// Constructor accepting a pointer to the next and previous elements.
     /// @param next Pointer to the next element. Assigned to the inherited field
@@ -77,8 +77,7 @@ struct BidiNodeBase : public SidiNodeBase<TElement>
 
     /// Hooks the given element before this node.
     /// @param elem The element to add.
-    void      addBefore( TElement* elem )                                                   noexcept
-    {
+    void      addBefore( TElement* elem )                                                 noexcept {
         elem->next( this );
         elem->prev( prev() );
         prev()->next(elem);
@@ -87,8 +86,7 @@ struct BidiNodeBase : public SidiNodeBase<TElement>
 
     /// Hooks the given element behind this node.
     /// @param elem The element to add.
-    void      addBehind( TElement* elem )                                                   noexcept
-    {
+    void      addBehind( TElement* elem )                                                 noexcept {
         elem->next( FWDNode::next() );
         elem->prev( this );
         FWDNode::next()->prev( elem );
@@ -96,16 +94,11 @@ struct BidiNodeBase : public SidiNodeBase<TElement>
     }
 
     /// Unhooks this node from a list.
-    void    remove()                                                                        noexcept
-    {
-        FWDNode::next()->prev(prev());
-        prev()->next( FWDNode::next());
-    }
+    void    remove()     noexcept { FWDNode::next()->prev(prev()); prev()->next( FWDNode::next()); }
 
     /// Unhooks the range of nodes starting with this node and ending with \p{last} a list.
     /// @param last  The last element of the range to remove.
-    void remove( TElement* last )                                                           noexcept
-    {
+    void remove( TElement* last )                                                         noexcept {
         last->next()->prev( prev() );
         prev()->next( last->next() );
     }
@@ -138,21 +131,15 @@ struct BidiListHook
     TNode hook;
 
     /// Default constructor. Initializes this list to be empty.
-    BidiListHook()                                                                          noexcept
-    {
-        hook.next(&hook);
-        hook.prev(&hook);
-    }
+    BidiListHook()                                  noexcept { hook.next(&hook); hook.prev(&hook); }
 
     /// Deleted copy constructor.
-    BidiListHook( const BidiListHook& )                                                    = delete;
+    BidiListHook( const BidiListHook& )                                                     =delete;
 
-    /// Move constructor. Takes elements of \p move and sets \p move to empty.
+    /// Move constructor. Takes elements of \p{move} and sets \p{move} to empty.
     /// @param move The list to move.
-    BidiListHook(       BidiListHook&& move)                                                noexcept
-    {
-        if( !move.isEmpty() )
-        {
+    BidiListHook(       BidiListHook&& move)                                              noexcept {
+        if( !move.isEmpty() ) {
             hook.next( move.hook.next() );
             hook.prev(move.hook.prev());
             move.reset();
@@ -163,16 +150,15 @@ struct BidiListHook
 
     /// Deleted copy assignment operator.
     /// @return A reference to this list object.
-    BidiListHook& operator=  ( const BidiListHook& )                                       = delete;
+    BidiListHook& operator=  ( const BidiListHook& )                                        =delete;
 
     /// Defaulted move assignment operator.
     /// @return A reference to this list object.
-    BidiListHook& operator=  (       BidiListHook&&)                            noexcept  = default;
+    BidiListHook& operator=  (       BidiListHook&&)                              noexcept =default;
 
     /// Constructor accepting a pointer to the first element.
     /// @param first  The element to use as the first element of this list.
-    explicit BidiListHook( TElement* first  )                                               noexcept
-    {
+    explicit BidiListHook( TElement* first  )                                             noexcept {
         hook.next( first );
         hook.prev( first );
         first->next( &hook );
@@ -182,8 +168,7 @@ struct BidiListHook
     /// Constructor accepting a pointer to the first and last element.
     /// @param first  The element to use as the first element of this list.
     /// @param last   The element to use as the last element of this list.
-    BidiListHook( TElement* first, TElement* last  )                                        noexcept
-    {
+    BidiListHook( TElement* first, TElement* last  )                                      noexcept {
         hook.next( first );
         hook.prev( last );
         first->prev( &hook );
@@ -249,14 +234,13 @@ struct BidiListHook
 
     /// Removes and returns the first element from this list.
     /// Must not be invoked on empty lists.
-    /// @return  A pointer to the first element (which was removed).
+    /// @return A pointer to the first element (which was removed).
     TElement* popFront()  noexcept { TElement* first= hook.next(); first->remove();  return first; }
 
     /// Removes and returns the last element from this list.
     /// Must not be invoked on empty lists.
-    /// @return  A pointer to the last element (which was removed).
-    TElement* popEnd()                                                                      noexcept
-    {
+    /// @return A pointer to the last element (which was removed).
+    TElement* popEnd()                                                                    noexcept {
         TElement* last= hook.prev();
         last->remove();
         return last;
@@ -268,15 +252,13 @@ struct BidiListHook
     ///              Defaults to a \c nullptr marking the end of the list.
     /// @return The number of elements in the range.
     [[nodiscard]]
-    integer  count( const TNode* end= nullptr )                                       const noexcept
-    {
+    integer  count( const TNode* end= nullptr )                                     const noexcept {
         if( end == nullptr )
             end= &hook;
 
         integer count= 0;
         const TNode* node= hook.next();
-        while( node != end )
-        {
+        while( node != end ) {
             node= node->next();
             ++count;
         }
@@ -286,4 +268,3 @@ struct BidiListHook
 
 
 } // namespace [alib::detail]
-

@@ -44,7 +44,7 @@ struct TPairDescriptor
     /// Returns the first element of the given <c>std::pair</c>.
     /// @param src The value to extract from.
     /// @return The key-portion of the given value.
-    TKey&       Key(std::pair<TKey, TMapped>& src)                      const { return src.first;  }
+    TKey&       Key(std::pair<TKey, TMapped>& src)                       const { return src.first; }
 
     /// Returns the second element of the given <c>std::pair</c>.
     /// @param src The value to extract from.
@@ -140,4 +140,3 @@ struct TSubsetKeyDescriptor
 };
 
 } // namespace [alib::containers]
-

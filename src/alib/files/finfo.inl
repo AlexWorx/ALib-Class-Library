@@ -14,8 +14,8 @@ class File;
 class FInfo
 {
   protected:
-    friend class FTree; ///< Allow access from within class File.
-    friend class File;           ///< Allow access from within class File.
+    friend class FTree;     ///< Allow access from within class File.
+    friend class File;      ///< Allow access from within class File.
     
   public:
     /// Enumeration of the possible file types. This is compatible with the posix list of types,
@@ -192,13 +192,12 @@ class FInfo
 
 
         /// Defaulted default constructor.
-        constexpr   DirectorySums()                                              noexcept = default;
+        constexpr   DirectorySums()                                               noexcept =default;
 
         /// Adds the values in the given summary object to this.
         /// @param rhs The values to add.
         /// @return A reference to <c>this</c>
-        DirectorySums& operator+= (const DirectorySums& rhs)
-        {
+        DirectorySums& operator+= (const DirectorySums& rhs) {
             Size                   += rhs.Size              ;
             for (size_t i = 0; i < size_t(Types::MARKER_TYPES_END); ++i)
                 TypeCounters[i]+= rhs.TypeCounters[i];
@@ -212,8 +211,7 @@ class FInfo
         /// Subtracts the values in the given summary object from this.
         /// @param rhs The values to subtract.
         /// @return A reference to <c>this</c>
-        DirectorySums& operator-= (const DirectorySums& rhs)
-        {
+        DirectorySums& operator-= (const DirectorySums& rhs) {
             Size                   -= rhs.Size              ;
             for (size_t i = 0; i < size_t(Types::MARKER_TYPES_END); ++i)
                 TypeCounters[i]-= rhs.TypeCounters[i];
@@ -231,16 +229,12 @@ class FInfo
         ///            \alib{files::FInfo;Types::DIRECTORY} or
         ///            \alib{files::FInfo;Types::SYMBOLIC_LINK_DIR}
         /// @return \c false if the given type does not represent a directory, \c true otherwise.
-        constexpr bool IsDirType(Types type)                                          const noexcept
-        {
-            return    int(type) < 2;
-        }
+        constexpr bool IsDirType(Types type)             const noexcept { return    int(type) < 2; }
 
         /// Adds a file/directory to the counters
         /// @param finfo The entry to add.
         /// @return A reference to <c>this</c>
-        constexpr DirectorySums& Add(const FInfo& finfo)                                    noexcept
-        {
+        constexpr DirectorySums& Add(const FInfo& finfo)                                  noexcept {
             ++TypeCounters[size_t(finfo.Type())];
             Size+= finfo.Size();
             return *this;
@@ -249,8 +243,7 @@ class FInfo
 
         /// Returns the cumulated number of entries (of any type).
         /// @return The number of entries counted.
-        uint32_t Count()                                                              const noexcept
-        {
+        uint32_t Count()                                                            const noexcept {
             uint32_t result= 0;
             for (size_t i = 0; i < size_t(Types::MARKER_TYPES_END); ++i)
                 result+= TypeCounters[i];
@@ -260,8 +253,7 @@ class FInfo
         /// Returns the number of entries of the given \p{type}.
         /// @param type The type to get the number of entries for.
         /// @return The number of directories or symbolic links to directories.
-        uint32_t Count(Types type)                                                    const noexcept
-        {
+        uint32_t Count(Types type)                                                  const noexcept {
             ALIB_ASSERT_ERROR( type < Types::MARKER_TYPES_END,
                "FILES", "Cant get count for file type \"{}\"", type )
             return    TypeCounters[size_t(type)];
@@ -271,8 +263,7 @@ class FInfo
         /// \alib{files::FInfo;Types::DIRECTORY} and
         /// \alib{files::FInfo;Types::SYMBOLIC_LINK_DIR}
         /// @return The number of directories or symbolic links to directories.
-        uint32_t CountDirectories()                                                   const noexcept
-        {
+        uint32_t CountDirectories()                                                 const noexcept {
             return    TypeCounters[size_t(Types::DIRECTORY)]
                     + TypeCounters[size_t(Types::SYMBOLIC_LINK_DIR)];
         }
@@ -281,8 +272,7 @@ class FInfo
         /// \alib{files::FInfo;Types::DIRECTORY} and
         /// \alib{files::FInfo;Types::SYMBOLIC_LINK_DIR}
         /// @return The number of regular files, fifo, sockets, etc.
-        uint32_t CountNonDirectories()                                                const noexcept
-        {
+        uint32_t CountNonDirectories()                                              const noexcept {
             uint32_t result= 0;
             for (size_t i = 2; i < size_t(Types::MARKER_TYPES_END); ++i)
                 result+= TypeCounters[i];
@@ -308,7 +298,7 @@ class FInfo
     struct  EISymLinkFile : public ExtendedEntryInfo
     {
         system::CPathString   Target;      ///< The target path.
-                                                 ///<  This is a zero-terminated \b CString.
+                                           ///< This is a zero-terminated \b CString.
         system::CPathString   RealTarget;  ///< The resolved real target path.
     };
 
@@ -339,14 +329,13 @@ class FInfo
     uint32_t            qtyHardLinks ; ///< The number of hard links to the file.
 
 
-
     /// A bitfield encoding various information.
     struct Bits {
         Types           Type                    : 4;  ///< The file type.
         bool            IsArtificialFS          : 1;  ///< Denotes whether the file resides in an artificial filesystem.
         bool            TargetIsArtificialFS    : 1;  ///< Denotes whether a link points into an artificial filesystem.
         bool            IsCrossingFS            : 1;  ///< Denotes whether the file is a mount point.
-        bool            TargetIsCrossingFS      : 1;  ///<  Denotes whether a link points to a mount point.
+        bool            TargetIsCrossingFS      : 1;  ///< Denotes whether a link points to a mount point.
         Permissions     Permission              : 13; ///< The unix file-permissions.
         Qualities       Quality                 : 5;  ///< The scan quality.
 
@@ -358,8 +347,7 @@ class FInfo
         , IsCrossingFS        {false}
         , TargetIsCrossingFS  {false}
         , Permission          {Permissions::NONE}
-        , Quality             {Qualities::NONE}
-        {}
+        , Quality             {Qualities::NONE}                                                   {}
     };
 
     Bits                      bits; ///< A bitfield encoding various information.
@@ -375,48 +363,46 @@ class FInfo
     #endif
 
 
-public:
-
+  public:
     /// @return Retrieves the permissions of the entry.
-    [[nodiscard]] constexpr Permissions  Perms               ()  const noexcept  { return bits.Permission; }
+    [[nodiscard]] constexpr Permissions  Perms               ()  const noexcept { return bits.Permission; }
     /// @return Retrieves the type of the entry
-    [[nodiscard]] constexpr Types        Type                ()  const noexcept  { return bits.Type; }
+    [[nodiscard]] constexpr Types        Type                ()  const noexcept { return bits.Type; }
     /// @return Checks type for being either directory or symbolic link pointing to one.
-    [[nodiscard]] constexpr bool         IsDirectory         ()  const noexcept  { return int(bits.Type) < 2; }
+    [[nodiscard]] constexpr bool         IsDirectory         ()  const noexcept { return int(bits.Type) < 2; }
     /// @return Checks type for being a symbolic link (to normal file or to a directory).
-    [[nodiscard]] constexpr bool         IsSymbolicLink      ()  const noexcept  { return    Type() == Types::SYMBOLIC_LINK
-                                                                                          || Type() == Types::SYMBOLIC_LINK_DIR; }
+    [[nodiscard]] constexpr bool         IsSymbolicLink      ()  const noexcept { return    Type() == Types::SYMBOLIC_LINK
+                                                                                         || Type() == Types::SYMBOLIC_LINK_DIR; }
     /// @return Retrieves the scan quality of the entry.
     [[nodiscard]] constexpr Qualities    Quality             ()  const noexcept { return bits.Quality; }
     /// @return Returns true if the entry resides on an artificial filesystem.
-    [[nodiscard]] constexpr bool         IsArtificialFS      ()  const noexcept  { return bits.IsArtificialFS; }
+    [[nodiscard]] constexpr bool         IsArtificialFS      ()  const noexcept { return bits.IsArtificialFS; }
     /// @return Returns true if the entry is a symlink and its target resides on an artificial filesystem.
-    [[nodiscard]] constexpr bool         TargetIsArtificialFS()  const noexcept  { return bits.TargetIsArtificialFS; }
+    [[nodiscard]] constexpr bool         TargetIsArtificialFS()  const noexcept { return bits.TargetIsArtificialFS; }
     /// @return Returns true if the entry resides on a different filesystem than it's parent.
-    [[nodiscard]] constexpr bool         IsCrossingFS        ()  const noexcept  { return bits.IsCrossingFS; }
+    [[nodiscard]] constexpr bool         IsCrossingFS        ()  const noexcept { return bits.IsCrossingFS; }
     /// @return Returns true if the entry is a symlink and resides on a different filesystem than the link.
-    [[nodiscard]] constexpr bool         TargetIsCrossingFS  ()  const noexcept  { return bits.TargetIsCrossingFS; }
+    [[nodiscard]] constexpr bool         TargetIsCrossingFS  ()  const noexcept { return bits.TargetIsCrossingFS; }
     /// @return Retrieves the file size.
-    [[nodiscard]] constexpr uinteger     Size                ()  const noexcept  { return  size; }
+    [[nodiscard]] constexpr uinteger     Size                ()  const noexcept { return  size; }
     /// @return Retrieves the \ref mDate "last modification date" of this file/folder.
-    [[nodiscard]] constexpr DateTime     MDate               ()  const noexcept  { return mDate; }
+    [[nodiscard]] constexpr DateTime     MDate               ()  const noexcept { return mDate; }
     /// @return Retrieves the \ref bDate "birth date" of this file/folder.
-    [[nodiscard]] constexpr DateTime     BDate               ()  const noexcept  { return bDate; }
+    [[nodiscard]] constexpr DateTime     BDate               ()  const noexcept { return bDate; }
     /// @return Retrieves the \ref cDate "change date" of this file/folder. If unavailable, same as #MDate.
-    [[nodiscard]] constexpr DateTime     CDate               ()  const noexcept  { return cDate; }
+    [[nodiscard]] constexpr DateTime     CDate               ()  const noexcept { return cDate; }
     /// @return Retrieves the \ref aDate "timestamp of last access" to this file/folder. If unavailable, same as #MDate.
-    [[nodiscard]] constexpr DateTime     ADate               ()  const noexcept  { return aDate; }
-    /// @return Retrieves the ID of the owner of the file/folder if available.  Otherwise set to #UnknownID.
-    [[nodiscard]] constexpr uint32_t     Owner               ()  const noexcept  { return owner; }
-    /// @return Retrieves the ID of the group of the file/folder if available.  Otherwise set to #UnknownID.
-    [[nodiscard]] constexpr uint32_t     Group               ()  const noexcept  { return group; }
+    [[nodiscard]] constexpr DateTime     ADate               ()  const noexcept { return aDate; }
+    /// @return Retrieves the ID of the owner of the file/folder if available. Otherwise set to #UnknownID.
+    [[nodiscard]] constexpr uint32_t     Owner               ()  const noexcept { return owner; }
+    /// @return Retrieves the ID of the group of the file/folder if available. Otherwise set to #UnknownID.
+    [[nodiscard]] constexpr uint32_t     Group               ()  const noexcept { return group; }
     /// @return Retrieves the number of hard links pointing to this file if available. Otherwise set to #UnknownID.
-    [[nodiscard]] constexpr uint32_t     QtyHardLinks        ()  const noexcept  { return qtyHardLinks; }
+    [[nodiscard]] constexpr uint32_t     QtyHardLinks        ()  const noexcept { return qtyHardLinks; }
 
     /// Retrieves the extended info object of this entry.
     /// @return The extended info object of this entry. If not available \c nullptr is returned.
-    [[nodiscard]] constexpr ExtendedEntryInfo*  GetExtendedInfo()  const
-    { return extendedInfo; }
+    [[nodiscard]] constexpr ExtendedEntryInfo*  GetExtendedInfo()     const { return extendedInfo; }
 
     /// Sets the extended information object. As with all set functions, this method should only
     /// be used from certain code entities, like file scanners. If used, the object passed here
@@ -424,13 +410,11 @@ public:
     /// The object will be freed with the deletion of the corresponding string tree node
     /// (respectively \b File instance).
     /// @param extInfo A pointer to the information object to use.
-    constexpr void          SetExtendedInfo(ExtendedEntryInfo* extInfo)
-    { extendedInfo= extInfo; }
+    constexpr void          SetExtendedInfo(ExtendedEntryInfo* extInfo)   { extendedInfo= extInfo; }
 
     /// Retrieves the directory sums of this directory or symbolic link to directory.
     /// @return A reference to the sums.
-    [[nodiscard]] constexpr DirectorySums&  Sums()  const
-    {
+    [[nodiscard]] constexpr DirectorySums&  Sums()                                           const {
         #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
             ALIB_ASSERT_ERROR( IsDirectory(), "FILES",
                           "Requesting sums for FInfo that is not a directory.")
@@ -444,10 +428,8 @@ public:
 
     /// Sets the sums of the extended info object of this entry.
     /// @param sums The sums to set.
-    constexpr void          SetSums(const DirectorySums& sums)                                 const
-    {
-        if( Type() == FInfo::Types::DIRECTORY )
-        {
+    constexpr void          SetSums(const DirectorySums& sums)                               const {
+        if( Type() == FInfo::Types::DIRECTORY ) {
             static_cast<EIDirectory*>(extendedInfo)->Sums= sums;
             return;
         }
@@ -469,8 +451,7 @@ public:
     /// asserts that #Type returns either \alib{files::FInfo;Types::SYMBOLIC_LINK}
     /// or \alib{files::FInfo;Types::SYMBOLIC_LINK_DIR}.
     /// @return A reference to a copy of the zero-terminated string stored in the symbolic link file.
-    [[nodiscard]] system::CPathString&  GetLinkTarget()  const noexcept
-    {
+    [[nodiscard]] system::CPathString&  GetLinkTarget()                             const noexcept {
         ALIB_ASSERT_ERROR(    Type() == FInfo::Types::SYMBOLIC_LINK
                            || Type() == FInfo::Types::SYMBOLIC_LINK_DIR,
                           "FILES", "Given node is not a symbolic link."  )
@@ -483,8 +464,7 @@ public:
     /// \alib{files::FInfo;Types::SYMBOLIC_LINK_DIR}.
     /// @return A reference to a zero-terminated string giving the translated real path that a
     ///        symbolic link points to.
-    [[nodiscard]] system::CPathString&  GetRealLinkTarget()  const noexcept
-    {
+    [[nodiscard]] system::CPathString&  GetRealLinkTarget()                         const noexcept {
         ALIB_ASSERT_ERROR(    Type() == FInfo::Types::SYMBOLIC_LINK
                            || Type() == FInfo::Types::SYMBOLIC_LINK_DIR,
                           "FILES", "Given node is not a symbolic link."  )
@@ -492,36 +472,61 @@ public:
         return static_cast<EISymLinkFile*>(extendedInfo)->RealTarget;
     }
 
-    /// Sets the permissions of the entry. \param v The value to set.
-                  void         SetPerms      (Permissions  v) noexcept  { bits.Permission= v; }
-    /// Sets the type of the entry. \param v The value to set.
-                  void         SetType       (Types        v) noexcept  { bits.Type= v; }
-    /// Sets the quality of scan of the entry. \param v The value to set.
-                  void         SetQuality    (Qualities    v) noexcept  { bits.Quality= v; }
+    /// Sets the permissions of the entry.
+    /// @param v The value to set.
+    void SetPerms      (Permissions  v)                             noexcept { bits.Permission= v; }
+
+    /// Sets the type of the entry.
+    /// @param v The value to set.
+    void SetType       (Types        v)                                   noexcept { bits.Type= v; }
+
+    /// Sets the quality of scan of the entry.
+    /// @param v The value to set.
+    void SetQuality    (Qualities    v)                                noexcept { bits.Quality= v; }
+
     /// Mark the entry as residing on an artificial filesystem.
-                  void         SetArtificialFS()              noexcept  { bits.IsArtificialFS= true; }
+    void SetArtificialFS()                                   noexcept { bits.IsArtificialFS= true; }
+
     /// Mark the entry as a symlink who's target is residing on an artificial filesystem.
-                  void         SetTargetArtificialFS()        noexcept  { bits.TargetIsArtificialFS= true; }
+    void SetTargetArtificialFS()                        noexcept { bits.TargetIsArtificialFS=true; }
+
     /// Mark the entry as residing on a different filesystem than its parent.
-                  void         SetCrossingFS()                noexcept  { bits.IsCrossingFS= true; }
+    void SetCrossingFS()                                       noexcept { bits.IsCrossingFS= true; }
+
     /// Mark the entry as a symlink who's target is residing on a different filesystem than the symlink.
-                  void         SetTargetCrossingFS()          noexcept  { bits.TargetIsCrossingFS= true; }
-    /// Sets the file size. \param v The value to set.
-                  void         SetSize       (uinteger    v)  noexcept  { size = v; }
-    /// Sets the \ref mDate "last modification date" of this file/folder. \param v The value to set.
-                  void         SetMDate      (DateTime    v)  noexcept  { mDate= v; }
-    /// Sets the \ref bDate "birth date" of this file/folder. \param v The value to set.
-                  void         SetBDate      (DateTime    v)  noexcept  { bDate= v; }
-    /// Sets the \ref cDate "change date" of this file/folder.  \param v The value to set.
-                  void         SetCDate      (DateTime    v)  noexcept  { cDate= v; }
-    /// Sets the \ref aDate "time of last access" of this file/folder.  \param v The value to set.
-                  void         SetADate      (DateTime    v)  noexcept  { aDate= v; }
-    /// Sets the ID of the owner of the file/folder. \param v The value to set.
-                  void         SetOwner      (uint32_t    v)  noexcept  { owner= v; }
-    /// Sets the ID of the group of the file/folder. \param v The value to set.
-                  void         SetGroup      (uint32_t    v)  noexcept  { group= v; }
-    /// Sets the number of hard links that point to this file. \param v The value to set.
-                  void         SetQtyHardlinks(uint32_t   v)  noexcept  { qtyHardLinks= v; }
+    void SetTargetCrossingFS()                            noexcept { bits.TargetIsCrossingFS=true; }
+
+    /// Sets the file size.
+    /// @param v The value to set.
+    void SetSize        (uinteger    v)                                       noexcept { size = v; }
+
+    /// Sets the \ref mDate "last modification date" of this file/folder.
+    /// @param v The value to set.
+    void SetMDate       (DateTime    v)                                       noexcept { mDate= v; }
+
+    /// Sets the \ref bDate "birth date" of this file/folder.
+    /// @param v The value to set.
+    void SetBDate       (DateTime    v)                                       noexcept { bDate= v; }
+
+    /// Sets the \ref cDate "change date" of this file/folder.
+    /// @param v The value to set.
+    void SetCDate       (DateTime    v)                                       noexcept { cDate= v; }
+
+    /// Sets the \ref aDate "time of last access" of this file/folder.
+    /// @param v The value to set.
+    void SetADate       (DateTime    v)                                       noexcept { aDate= v; }
+
+    /// Sets the ID of the owner of the file/folder.
+    /// @param v The value to set.
+    void SetOwner       (uint32_t    v)                                       noexcept { owner= v; }
+
+    /// Sets the ID of the group of the file/folder.
+    /// @param v The value to set.
+    void SetGroup       (uint32_t    v)                                       noexcept { group= v; }
+
+    /// Sets the number of hard links that point to this file.
+    /// @param v The value to set.
+    void SetQtyHardlinks(uint32_t    v)                                noexcept { qtyHardLinks= v; }
 }; // class FInfo
 
 
@@ -537,11 +542,11 @@ class OwnerAndGroupResolver
   protected:
 
     #if !defined( _WIN32)
-        /// The owner name cache.
-        LRUCacheMap<PoolAllocator, FInfo::TOwnerAndGroupID, NString32> ownerCache;
+    /// The owner name cache.
+    LRUCacheMap<PoolAllocator, FInfo::TOwnerAndGroupID, NString32> ownerCache;
 
-        /// The group name cache.
-        LRUCacheMap<PoolAllocator, FInfo::TOwnerAndGroupID, NString32> groupCache;
+    /// The group name cache.
+    LRUCacheMap<PoolAllocator, FInfo::TOwnerAndGroupID, NString32> groupCache;
     #endif
 
   public:
@@ -572,10 +577,10 @@ class OwnerAndGroupResolver
     /// @param entriesPerList The maximum length of each cache list.
     void SetGroupCacheCapacity( integer numberOfLists, integer entriesPerList );
     #elif !defined( _WIN32)
-        void SetOwnerCacheCapacity( integer numberOfLists, integer entriesPerList )
-        { ownerCache.Reserve( numberOfLists, entriesPerList );  }
-        void SetGroupCacheCapacity( integer numberOfLists, integer entriesPerList )
-        { groupCache.Reserve( numberOfLists, entriesPerList); }
+    void SetOwnerCacheCapacity( integer numberOfLists, integer entriesPerList )
+    { ownerCache.Reserve( numberOfLists, entriesPerList );  }
+    void SetGroupCacheCapacity( integer numberOfLists, integer entriesPerList )
+    { groupCache.Reserve( numberOfLists, entriesPerList); }
     #else //_WIN32:
         void SetOwnerCacheCapacity( integer, integer )                                            {}
         void SetGroupCacheCapacity( integer, integer )                                            {}
@@ -629,4 +634,3 @@ ALIB_BOXING_VTABLE_DECLARE( alib::files::FInfo::TypeNames2Letters   , vt_files_t
 ALIB_BOXING_VTABLE_DECLARE( alib::files::FInfo::TypeNames3Letters   , vt_files_type3  )
 ALIB_BOXING_VTABLE_DECLARE( alib::files::FInfo::Qualities           , vt_files_qual   )
 ALIB_BOXING_VTABLE_DECLARE( alib::files::FInfo::Qualities3Letters   , vt_files_qual3  )
-

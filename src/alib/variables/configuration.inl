@@ -34,10 +34,10 @@ class Entry
 
   public:
     /// Deleted copy-constructor.
-    Entry(const Entry&)                                                                    = delete;
+    Entry(const Entry&)                                                                     =delete;
 
     /// Deleted move-constructor.
-    Entry(Entry&&)                                                                         = delete;
+    Entry(Entry&&)                                                                          =delete;
 
     /// Defaulted default constructor.
     Entry() : data(nullptr), meta{nullptr}, declaration{nullptr}, priority{Priority::NONE}        {}
@@ -66,16 +66,15 @@ struct ConfigNodeHandler
     using NameStringType =  strings::TString<character>;
 
     /// Copies the node's name to the local string.
-    ///
+    /// @param  node  The node that was just created. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               \alib{MonoAllocator} that the tree uses for the allocation of nodes.
-    /// @param  node  The node that was just created. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     inline static
-    void InitializeNode( TTree& tree, TTree::Node&  node );
+    void InitializeNode( TTree::Node& node, TTree& tree );
 
 
     /// This implementation frees any dynamically allocated memory of the node's name and in
@@ -89,17 +88,17 @@ struct ConfigNodeHandler
     ///               custom value data. While the parent and sibling nodes are likewise accessible,
     ///               it is strictly forbidden to modify those.
     static ALIB_DLL
-    void FreeNode( TTree& tree, TTree::Node& node );  // inline implementation is below
+    void FreeNode( TTree::Node& node, TTree& tree );  // inline implementation is below
 };  // struct ConfigNodeHandler
 
 } // namespace detail
 
 
 
-// =================================================================================================
-///  Abstract virtual interface type to implement types observing configuration changes.
-///  @see Chapter \ref alib_variables_monitoring of the Programmer's Manual of camp \alib_variables_nl.
-// =================================================================================================
+//==================================================================================================
+/// Abstract virtual interface type to implement types observing configuration changes.
+/// @see Chapter \ref alib_variables_monitoring of the Programmer's Manual of camp \alib_variables_nl.
+//==================================================================================================
 struct ConfigurationListener
 {
     /// The type of change that imposes the notification of a listener.
@@ -121,7 +120,7 @@ struct ConfigurationListener
     /// @param previousPriority  The priority of the variable before event type
     ///                          \alib{variables;ConfigurationListener::Event;Event::Definition}.<p>
     ///                          With other events, this parameter is undefined.
-    virtual void    Notify( const Variable& variable, Event event, Priority previousPriority )  = 0;
+    virtual void    Notify( const Variable& variable, Event event, Priority previousPriority )   =0;
 
 }; // struct ConfigurationListener
 
@@ -131,7 +130,7 @@ struct ConfigurationListener
 /// at the moment those are requested.
 ///
 /// The rationale for this concept is that some external configuration sources may provide a lot of
-/// data that is not related to an application. This is for example true for environment
+/// data that is not related to an application. This is, for example, true for environment
 /// variables, the windows registry or the Gnome variable systems <em>gconf/dconf</em>.
 /// In these cases, variables have to be read into the \alib variable system only at the moment
 /// they are declared.
@@ -160,7 +159,7 @@ class ConfigurationPlugin  : public lang::Plugin<Configuration, Priority>
 
   public:
     /// Virtual Destructor.
-    virtual ~ConfigurationPlugin() {}
+    virtual ~ConfigurationPlugin()                                                                {}
 
     /// Derived types may return a different, customized implementation specific to their needs.
     /// This default implementation returns field #stringEscaper.
@@ -168,27 +167,25 @@ class ConfigurationPlugin  : public lang::Plugin<Configuration, Priority>
     ///         by a configuration source that is based on serialization of variable values to and
     ///         from ASCII/unicode strings which are human-readable and placeable in text files,
     ///         command line parameters, etc.
-    virtual const StringEscaper&   GetEscaper()                     const  { return stringEscaper; }
+    virtual const StringEscaper&   GetEscaper()                      const { return stringEscaper; }
 
     /// Abstract method. Descendents need to return a plug-in name. The name may be used in human
     /// readable output, e.g., log-files or exception messages to tell a user for example, which
     /// plug-in loaded a variable containing a syntax error.
     /// @return The name of the plug-in.
-    virtual String                  Name()                                               const   =0;
+    virtual String                  Name()                                                 const =0;
 
-    //==============================================================================================
     /// Abstract method that has to be overwritten by descendants.
     /// Searches and retrieves the value of a configuration variable.
     /// @param      name    The name of the variable to retrieve.
     /// @param[out] target  A reference to the buffer to write the variable's exported value to.
     /// @return \c true if variable was found within this configuration source, \c false if not.
-    //==============================================================================================
     ALIB_DLL
     virtual bool  Get( const String& name, AString& target )                                     =0;
 };
 
 
-// =================================================================================================
+//==================================================================================================
 /// This class is the container for \alib variables.<br>
 /// The use of this type is documented with the \ref alib_mod_variables "Programmer's Manual" of
 /// camp \alib_variables_nl.
@@ -197,11 +194,11 @@ class ConfigurationPlugin  : public lang::Plugin<Configuration, Priority>
 /// \alib{containers;StringTree} and \alib{lang;PluginContainer} are available for use.
 ///
 /// @see
-///  Note that a general configuration object is provided with \alibcamps.
-///  Usually one instance is shared between all \alibcamps_nl.
-///  By \ref alib_mod_bs_customize "customizing the bootstrap process",
-///  dedicated configuration instances for built-in or custom \alibcamps_nl can be created.
-// =================================================================================================
+///   Note that a general configuration object is provided with \alibcamps.
+///   Usually one instance is shared between all \alibcamps_nl.
+///   By \ref alib_mod_bs_customize "customizing the bootstrap process",
+///   dedicated configuration instances for built-in or custom \alibcamps_nl can be created.
+//==================================================================================================
 class Configuration : public StringTree<MonoAllocator,detail::Entry, detail::ConfigNodeHandler>
                     , public lang::PluginContainer<ConfigurationPlugin, Priority>
 {
@@ -223,7 +220,7 @@ class Configuration : public StringTree<MonoAllocator,detail::Entry, detail::Con
     /// code.
     PoolAllocator               Pool;
 
-protected:
+  protected:
     /// Record used to manage registered listeners.
     struct ListenerRecord
     {
@@ -289,9 +286,9 @@ protected:
     RDHashTable                                 replacementDeclarations;
 
     /// The list of registered listeners.
-    List<MonoAllocator, ListenerRecord>         listeners;
+    ListMA<ListenerRecord>         listeners;
 
-  //==================================     Protected Methods     ===================================
+  //======================================= Protected Methods ======================================
     /// Implementation of \alib{variables;Configuration::RegisterType}.
     /// @tparam TVMeta    The meta-information type of the type to register.
     template<typename TVMeta>
@@ -340,7 +337,7 @@ protected:
                                      const String&      variablePath,
                                      Priority           previousPriority  );
 
-  //=====================================     Public Members     ===================================
+  //========================================= Public Members =======================================
   public:
     /// Number format definition used to read and write int and float values.
     /// Can be tweaked to change the way external information is parsed.
@@ -359,13 +356,13 @@ protected:
     /// If this field is set, then field #SubstitutionVariableDelimiters is ignored. If this
     /// field is nullptr (the default) or empty, it is ignored and characters in field
     /// #SubstitutionVariableDelimiters are used to identify the end of the variable.
-    String                              SubstitutionVariableEnd                      = A_CHAR("}");
+    String                              SubstitutionVariableEnd                        =A_CHAR("}");
 
     /// The delimiters used to identify the end of a substitutable variable.
     /// If field #SubstitutionVariableEnd is not empty, this field is ignored. Otherwise, all
     /// characters defined in this string are used to identify the end of a substitution
     /// variable.
-    CString            SubstitutionVariableDelimiters=  A_CHAR(" $@,.;:\"\'+-*\\§%&()[]{}<>=?'`~#");
+    CString            SubstitutionVariableDelimiters =A_CHAR(" $@,.;:\"\'+-*\\§%&()[]{}<>=?'`~#");
 
     /// This is a list that holds pairs of type \alib{strings::util::Token} which is used by the
     /// built-in boolean variable type (type name "B").
@@ -397,10 +394,10 @@ protected:
     ///    4    |   <c>---   I 1</c>  | <c>OK    I 2</c>
     ///
     /// @see Methods #ParseBooleanToken and #WriteBooleanToken.
-    List<MonoAllocator, std::pair<Token,Token>, Recycling::None> BooleanTokens;
+    ListMA<std::pair<Token,Token>, Recycling::None> BooleanTokens;
 
 
-  //=============================       Constructor/destructor     =================================
+  //===================================== Constructor/destructor ===================================
     /// Constructs a Configuration.
     ///
     /// If \p{addDefaultPlugins} is \c true, registers the initial plug-ins as follows:
@@ -414,7 +411,7 @@ protected:
     ///
     /// Modifications (in respect to plug-ins and registered types) should
     /// be performed during bootstrap, right after construction of this type (when no parallel
-    /// threads are active) or with prior  locking the \alib{variables;Configuration} instance.
+    /// threads are active) or with prior locking the \alib{variables;Configuration} instance.
     ///
     /// @param allocator      The allocator to use.
     /// @param createDefaults Determines if default plug-ins are to be created.
@@ -426,7 +423,7 @@ protected:
     /// Destructor.
     ALIB_DLL ~Configuration();
 
-//========================================    Interface    =======================================
+//============================================ Interface ===========================================
     /// Registers a variable type with this configuration. The only parameter is the template
     /// parameter \p{TVMeta}. The function will create the singleton of this type and store
     /// it in a hash table of types. When a variable associated with this configuration object
@@ -465,7 +462,7 @@ protected:
     ///
     /// The purpose of this method is to fill the configuration system with variables
     /// (usually during or right after bootstrap) regardless of their later use, which depends
-    /// on the concrete execution path of a run of software. The rationale to do this is is
+    /// on the concrete execution path of a run of software. The rationale to do this is
     /// twofold:
     /// 1. To allow external configuaration plug-ins to set all variable's values, which is not
     ///    possible if a variable is not declared, yet, and thus its type is not known. In
@@ -482,7 +479,7 @@ protected:
     ///    For example, built-in class \alib{variables;IniFileFeeder} supports such "population"
     ///    of for INI-fles through its \b Export methods.
     ///
-    /// Altogether, the use of this method does not not impose much of an overhead, because:
+    /// Altogether, the use of this method does not impose much of an overhead, because:
     /// - as explained above, the need of method \alib{variables;Configuration::PresetImportString}
     ///   is avoided for all variables that do not contain placeholders, and because
     /// - most variables would anyhow be declared later during the run of software
@@ -541,7 +538,7 @@ protected:
     /// This is a convenience method. Full access to the underlying \alib{containers;StringTree}
     /// is provided by public inheritance, which offers many other ways of manipulating
     /// variable data. As an example, consider the implementation of this method:
-    /// \snippet "variables/configuration.cpp"  DOX_VARIABLES_DELETE_SAMPLE
+    /// \snippet "variables/configuration.cpp"    DOX_VARIABLES_DELETE_SAMPLE
     ///
     ///
     /// @param path     The path in the variable tree.
@@ -549,7 +546,6 @@ protected:
     ALIB_DLL
     bool                      DeletePath( const String& path );
 
-    //==============================================================================================
     /// Utility method that checks if a given value represents boolean \b true.
     ///
     /// @see Field #BooleanTokens, which is used by this function and sibling method
@@ -558,7 +554,6 @@ protected:
     /// @param src  The input string to check.
     /// @return   Returns the value found and the index of the pair of tokens that matched.
     ///           If no token matched <c>(false,-1)</c> is returned.
-    //==============================================================================================
     ALIB_DLL
     std::pair<bool,int8_t>    ParseBooleanToken( const String&  src );
 
@@ -576,7 +571,7 @@ protected:
     AString&                  WriteBooleanToken( bool value, int8_t index, AString& dest );
 
 
-    // ===============================   Listener Registration   ===================================
+  //===================================== Listener Registration ====================================
 
     /// Inserts or removes a listener to a specific variable.
     /// Note that this version of the method cannot be used to fetch declaration events,
@@ -591,8 +586,7 @@ protected:
     void MonitorDistinctVariable( lang::ContainerOp               insertOrRemove,
                                   ConfigurationListener*          listener,
                                   ConfigurationListener::Event    event,
-                                  const Variable&                 variable       )
-    {
+                                  const Variable&                 variable       ) {
         ALIB_ASSERT_WARNING( event != ConfigurationListener::Event::Creation, "VARIABLES",
                     "Event::Creation will never be invoked with this listener-registration-type.")
         registerListener( listener,
@@ -613,8 +607,7 @@ protected:
     void MonitorVariablesByName( lang::ContainerOp              insertOrRemove,
                                  ConfigurationListener*         listener,
                                  ConfigurationListener::Event   event,
-                                 const String&                  variableName )
-    {
+                                 const String&                  variableName ) {
         ALIB_ASSERT_ERROR( variableName.IsNotEmpty(), "VARIABLES", "Empty variable name given.")
         registerListener( listener, insertOrRemove, int(event),
                           nullptr, nullptr, variableName, NULL_STRING, NULL_STRING );
@@ -634,8 +627,7 @@ protected:
     void MonitorPath(  lang::ContainerOp               insertOrRemove,
                        ConfigurationListener*          listener,
                        ConfigurationListener::Event    event,
-                       const Configuration::Cursor&    cursor            )
-    {
+                       const Configuration::Cursor&    cursor            ) {
         registerListener( listener,
                           insertOrRemove,
                           int(event),
@@ -658,8 +650,7 @@ protected:
     void MonitorPathPrefix( lang::ContainerOp               insertOrRemove,
                             ConfigurationListener*          listener,
                             ConfigurationListener::Event    event,
-                            const String&                   pathPrefix      )
-    {
+                            const String&                   pathPrefix      ) {
         ALIB_ASSERT_ERROR( pathPrefix.IsNotEmpty(), "VARIABLES", "Empty path prefix given.")
         registerListener( listener,
                           insertOrRemove,
@@ -681,8 +672,7 @@ protected:
     void MonitorPathSubstring( lang::ContainerOp               insertOrRemove,
                                ConfigurationListener*          listener,
                                ConfigurationListener::Event    event,
-                               const String&                   pathSubstring  )
-    {
+                               const String&                   pathSubstring  ) {
         ALIB_ASSERT_ERROR( pathSubstring.IsNotEmpty(), "VARIABLES", "Empty path substring given.")
         registerListener( listener,
                           insertOrRemove,
@@ -700,10 +690,8 @@ protected:
 
 }; // struct Configuration
 
-void detail::ConfigNodeHandler::InitializeNode( TTree& tree, typename TTree::Node&  node )
-{
-    node.name.storage.Allocate(static_cast<Configuration&>(tree).Pool, node.name.key );
-}
+void detail::ConfigNodeHandler::InitializeNode( typename TTree::Node&  node, TTree& tree )
+{ node.name.storage.Allocate(static_cast<Configuration&>(tree).Pool, node.name.key ); }
 
 
 //==================================================================================================
@@ -764,21 +752,21 @@ class Variable : protected Configuration::Cursor
     inline VMeta* getMeta()                                   const { return Cursor::Value().meta; }
 
 
-    // #############################################################################################
-    // Constructors
-    // #############################################################################################
+  //################################################################################################
+  // Constructors
+  //################################################################################################
   public:
     /// Default constructor.
     /// \note
     ///   A variable that was default-constructed cannot be used later, without assigning
-    ///   a configuration with declaration. If for example a field member of type variable
+    ///   a configuration with declaration. If, for example, a field member of type variable
     ///   cannot be constructed with the provision of a corresponding \b Configuration, one of
     ///   the following options has to be taken:
     ///   - The variable value gets a newly constructed instance assigned at a later stage
     ///     when the  configuration is known, or
     ///   - the configuration is provided with one of the overloaded #Declare methods that
     ///     accept a configuration.
-    Variable()                                                                            = default;
+    Variable()                                                                             =default;
 
     /// Constructs an instance of this type from its base type.
     /// This constructor is for advanced use when direct operations with class \b StringTree and
@@ -828,7 +816,7 @@ class Variable : protected Configuration::Cursor
     /// @param cfg The configuration to use.
     /// @param decl The declaration to use.
     Variable(Configuration& cfg, const Declaration* decl)
-    : Cursor(cfg.Root())                                                         {Declare( decl ); }
+    : Cursor(cfg.Root())                                                        { Declare( decl ); }
 
     /// Constructs and declares this variable.
     /// @see Overloaded namespace functions \alib{variables;CampVariable} which become accessible
@@ -873,9 +861,9 @@ class Variable : protected Configuration::Cursor
     /// @return This instance cast 'down' to its protected base class.
     const Cursor& AsCursor()                     const { return static_cast<const Cursor&>(*this); }
 
-  // #############################################################################################
+  //################################################################################################
   // Declaration
-  // #############################################################################################
+  //################################################################################################
   public:
     /// Declares this variable, without using or allocating a declaration struct.
     ///
@@ -907,7 +895,7 @@ class Variable : protected Configuration::Cursor
     /// @return The priority of the variable's data.
     template<typename TEnum>
     requires ( EnumRecords<TEnum>::template AreOfType<Declaration>() )
-    Variable&      Declare( TEnum Enum )              {  return Declare( Declaration::Get(Enum) ); }
+    Variable&      Declare( TEnum Enum )               { return Declare( Declaration::Get(Enum) ); }
 
 
     /// Declares this variable.
@@ -929,7 +917,7 @@ class Variable : protected Configuration::Cursor
     }
 
     /// Returns \c true if this variable is declared. If \c false is returned,
-    /// this the is just a path node inside the \b StringTree of the \b Configuration.<br>
+    /// this is just a path node inside the \b StringTree of the \b Configuration.<br>
     ///
     /// \c false will be returned only if:
     /// - An instance of a variable was created with the constructor that only accepts a
@@ -1004,15 +992,13 @@ class Variable : protected Configuration::Cursor
     /// @param target The string buffer to append this variable's name to.
     /// @return The given \b AString to allow concatenated operations.
     AString&            Name(AString& target)                                                  const
-    {
-        return AssemblePath(target, Tree().Root(), lang::CurrentData::Keep);
-    }
+    { return AssemblePath(target, Tree().Root(), lang::CurrentData::Keep); }
 
 
-    // #############################################################################################
-    // Get/Delete
-    // #############################################################################################
-    public:
+  //################################################################################################
+  // Get/Delete
+  //################################################################################################
+  public:
 
     /// Increases the reported priority of this variable to the value given. If the current value
     /// is higher than the given one, it is not increased and \c false is returned.
@@ -1024,13 +1010,14 @@ class Variable : protected Configuration::Cursor
     ///   For this reason, this method is attributed <c>[[nodiscard]]</c>.<br>
     ///
     /// \note
-    ///   If the return value is to be ignored for good reason (for example if
+    ///   If the return value is to be ignored for good reason (for example, if
     ///   \alib{variables;Priority;Priority::Protected} is passed, add a simple <c>(void)</c> before
     ///   the call.
     ///
     /// @see
-    ///  - Chapter \ref alib_variables_definition of the Programmer's Manual for more information.
-    ///  - Chapter \ref alib_variables_monitoring to learn about how to monitor changes of variables.
+    ///   - Chapter \ref alib_variables_definition of the Programmer's Manual for more information.
+    ///   - Chapter \ref alib_variables_monitoring to learn about how to monitor changes of
+    ///     variables.
     ///
     /// @param requestedPriority The new, higher priority to set.
     /// @return \c true, if the current priority was lower or equal to the given one, \c false
@@ -1051,11 +1038,11 @@ class Variable : protected Configuration::Cursor
     ///
     /// @return \c nullptr, if no declaration struct was given. Otherwise, the singleton declaration
     ///         object provided.
-    const  Declaration* GetDeclaration()             const  { return Cursor::Value().declaration; }
+    const  Declaration* GetDeclaration()               const { return Cursor::Value().declaration; }
 
     /// Returns a \c reference to the configuration this variable resides in.
     /// @return The associated configuration instance.
-    Configuration&      GetConfiguration()                const   { return  Tree<Configuration>(); }
+    Configuration&      GetConfiguration()                  const { return  Tree<Configuration>(); }
 
     /// The priority of a variable indicates "who" or "what" defined the variable and provided
     /// the current value. It may be defaulted values, values coming from external configuration
@@ -1102,12 +1089,11 @@ class Variable : protected Configuration::Cursor
     /// @return \c true if data contained has a higher priority than \alib{variables;Priority;Standard},
     ///         \c false if not.
     inline
-    bool                    IsDefinedExternally()  const {return Priority() > Priority::Standard;}
-
+    bool                    IsDefinedExternally()  const { return Priority() > Priority::Standard; }
 
 
     /// Imports a variable value from a serialized string representation. Internally, this is
-    /// performed by calling \alib{variables;VMeta::imPort}  on the virtual meta object
+    /// performed by calling \alib{variables;VMeta::imPort} on the virtual meta object
     /// associated with this variable's type.
     /// @param src      The source string.
     /// @param priority The priority of the import. If the variable is already defined in a
@@ -1132,8 +1118,7 @@ class Variable : protected Configuration::Cursor
     ///               a \alib{variables;ConfigurationPlugin} invokes this method to write-back the
     ///               contents of a variable, it would pass its own suitable implementation here.
     /// @return \p{dest} to allow concatenated operations.
-    AString&    Export(AString& dest, const StringEscaper* escaper= nullptr)                    const
-    {
+    AString&    Export(AString& dest, const StringEscaper* escaper= nullptr)                 const {
         StringEscaper nonEscaper;
         if( !escaper )
             escaper= &nonEscaper;
@@ -1167,8 +1152,7 @@ class Variable : protected Configuration::Cursor
     ///
     /// @tparam T The type to receive.
     /// @return A reference to the value of the variable.
-    template<typename T>        T& Get()
-    {
+    template<typename T>        T& Get() {
         ALIB_ASSERT_ERROR( !Cursor::IsRoot(), "VARIABLES",
                   "Requesting value from undeclared variable \"{}\"", this )
         ALIB_ASSERT_ERROR( IsDefined(), "VARIABLES",
@@ -1187,8 +1171,7 @@ class Variable : protected Configuration::Cursor
     ///
     /// @tparam T The type to receive.
     /// @return A reference to the value of the variable.
-    template<typename T>  const T& Get()                                                    const
-    {
+    template<typename T>  const T& Get()                                                     const {
         ALIB_ASSERT_ERROR( Cursor::Value().data != nullptr, "VARIABLES",
                   "Requested value from unset variable: ", *this )
         ALIB_ASSERT_ERROR( IsDefined(), "VARIABLES",
@@ -1203,28 +1186,28 @@ class Variable : protected Configuration::Cursor
         return Cursor::Value().data->As<T>();
     }
 
-    operator bool            ()                   { return Get<Bool     >(); }                     ///< @return Calls and returns \ref Get "Get\<Bool\>()".
-    operator integer         ()                   { return Get<integer  >(); }                     ///< @return Calls and returns \ref Get "Get\<integer\>()".
-    operator float           ()                   { return float(Get<double>()); }                 ///< @return Calls and returns \ref Get "Get\<double\>()" cast to \c float.
-    operator double          ()                   { return Get<double   >(); }                     ///< @return Calls and returns \ref Get "Get\<double\>()".
-    operator const String&   ()                   { return Get<AStringPA>(); }                     ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
-    operator const Substring ()                   { return Get<AStringPA>(); }                     ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
+    operator bool            ()                   { return Get<Bool     >(); }              ///< @return Calls and returns \ref Get "Get\<Bool\>()".
+    operator integer         ()                   { return Get<integer  >(); }              ///< @return Calls and returns \ref Get "Get\<integer\>()".
+    operator float           ()                   { return float(Get<double>()); }          ///< @return Calls and returns \ref Get "Get\<double\>()" cast to \c float.
+    operator double          ()                   { return Get<double   >(); }              ///< @return Calls and returns \ref Get "Get\<double\>()".
+    operator const String&   ()                   { return Get<AStringPA>(); }              ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
+    operator const Substring ()                   { return Get<AStringPA>(); }              ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
 
-                  bool         GetBool()          { return Get<Bool     >(); }                     ///< @return Calls and returns \ref Get "Get\<Bool\>()".
-                  integer      GetInt()           { return Get<integer  >(); }                     ///< @return Calls and returns \ref Get "Get\<integer\>()".
-                  float        GetFloat()         { return float(Get<double>()); }                 ///< @return Calls and returns \ref Get "Get\<double\>()" cast to \c float.
-                  double       GetDouble()        { return Get<double   >(); }                     ///< @return Calls and returns \ref Get "Get\<double\>()".
-                  Box&         GetBox()           { return Get<Box      >(); }                     ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
-                  AStringPA&   GetString()        { return Get<AStringPA>(); }                     ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
-               StringVectorPA& GetStrings()       { return Get<StringVectorPA>(); }                ///< @return Calls and returns \ref Get "Get\<StringVectorPA\>()".
-                  String&      GetString(int idx) { return Get<StringVectorPA>().at(size_t(idx)); }///< @param idx The index of the requested string. @return Calls and returns \ref Get "Get\<StringVectorPA\>().Lines.at(idx)".
-                  int          Size()             { return int(Get<StringVectorPA>().size()); }    ///< @return Calls and returns \ref Get "Get\<StringVectorPA\>().Lines.size()".
+    bool            GetBool()          { return Get<Bool     >(); }                         ///< @return Calls and returns \ref Get "Get\<Bool\>()".
+    integer         GetInt()           { return Get<integer  >(); }                         ///< @return Calls and returns \ref Get "Get\<integer\>()".
+    float           GetFloat()         { return float(Get<double>()); }                     ///< @return Calls and returns \ref Get "Get\<double\>()" cast to \c float.
+    double          GetDouble()        { return Get<double   >(); }                         ///< @return Calls and returns \ref Get "Get\<double\>()".
+    Box&            GetBox()           { return Get<Box      >(); }                         ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
+    AStringPA&      GetString()        { return Get<AStringPA>(); }                         ///< @return Calls and returns \ref Get "Get\<AStringPA\>()".
+    StringVectorPA& GetStrings()       { return Get<StringVectorPA>(); }                    ///< @return Calls and returns \ref Get "Get\<StringVectorPA\>()".
+    String&         GetString(int idx) { return Get<StringVectorPA>().at(size_t(idx)); }    ///< @param idx The index of the requested string. @return Calls and returns \ref Get "Get\<StringVectorPA\>().Lines.at(idx)".
+    int             Size()             { return int(Get<StringVectorPA>().size()); }        ///< @return Calls and returns \ref Get "Get\<StringVectorPA\>().Lines.size()".
 
-    bool          operator= (bool          val) { return Get<Bool      >()= val; }                 ///< Calls \ref Get "Get\<Bool\>()" and assigns \p{val}.                    @param val The value to assign. @return The \p{val} given.
-    integer       operator= (integer       val) { return Get<integer   >()= val; }                 ///< Calls \ref Get "Get\<integer\>()" and assigns \p{val}.                 @param val The value to assign. @return The \p{val} given.
-    float         operator= (float         val) { Get<double>()= double(val); return val; }        ///< Calls \ref Get "Get\<double\>()" and assigns \p{val}.        @param val The value to assign. @return The \p{val} given.
-    double        operator= (double        val) { return Get<double    >()= val; }                 ///< Calls \ref Get "Get\<double\>()" and assigns \p{val}.                  @param val The value to assign. @return The \p{val} given.
-    const String& operator= (const String& val) { return Get<AStringPA>().Reset(val); }            ///< Calls \ref Get "Get\<AStringPA\>()" and resets the string to \p{val}.  @param val The value to assign. @return The \p{val} given.
+    bool          operator= (bool          val) { return Get<Bool      >()= val; }          ///< Calls \ref Get "Get\<Bool\>()" and assigns \p{val}.                    @param val The value to assign. @return The \p{val} given.
+    integer       operator= (integer       val) { return Get<integer   >()= val; }          ///< Calls \ref Get "Get\<integer\>()" and assigns \p{val}.                 @param val The value to assign. @return The \p{val} given.
+    float         operator= (float         val) { Get<double>()= double(val); return val; } ///< Calls \ref Get "Get\<double\>()" and assigns \p{val}.        @param val The value to assign. @return The \p{val} given.
+    double        operator= (double        val) { return Get<double    >()= val; }          ///< Calls \ref Get "Get\<double\>()" and assigns \p{val}.                  @param val The value to assign. @return The \p{val} given.
+    const String& operator= (const String& val) { return Get<AStringPA>().Reset(val); }     ///< Calls \ref Get "Get\<AStringPA\>()" and resets the string to \p{val}.  @param val The value to assign. @return The \p{val} given.
 
 
 
@@ -1235,8 +1218,7 @@ class Variable : protected Configuration::Cursor
     ///                  Defaults to \alib{variables;Priority;DefaultValues}.
     /// @return \c false if data of any priority is available in this variable, \c true if not.
     inline
-    String&   GetOrSetDefault( const String& value, Priority priority= Priority::DefaultValues )
-    {
+    String&   GetOrSetDefault( const String& value, Priority priority= Priority::DefaultValues ) {
         if(IsDefined())
             return Get<AStringPA>();
 
@@ -1251,8 +1233,7 @@ class Variable : protected Configuration::Cursor
     ///                  Defaults to \alib{variables;Priority;DefaultValues}.
     /// @return \c false if data of any priority is available in this variable, \c true if not.
     inline
-    bool    GetOrSetDefault( bool value, Priority priority= Priority::DefaultValues )
-    {
+    bool    GetOrSetDefault( bool value, Priority priority= Priority::DefaultValues ) {
         if(IsDefined())
             return Get<Bool>();
 
@@ -1267,8 +1248,7 @@ class Variable : protected Configuration::Cursor
     ///                  Defaults to \alib{variables;Priority;DefaultValues}.
     /// @return \c false if data of any priority is available in this variable, \c true if not.
     inline
-    bool    GetOrSetDefault( integer value, Priority priority= Priority::DefaultValues )
-    {
+    bool    GetOrSetDefault( integer value, Priority priority= Priority::DefaultValues ) {
         if(IsDefined())
             return GetInt();
 
@@ -1279,14 +1259,13 @@ class Variable : protected Configuration::Cursor
 
 }; // class Variable
 
-// =================================================================================================
+//==================================================================================================
 // Definition of inline Configuration methods that deal with class Variable
-// =================================================================================================
+//==================================================================================================
 #if !DOXYGEN
 template<typename TEnum>
 requires ( EnumRecords<TEnum>::template AreOfType<Declaration>() )
-void Configuration::PreloadVariables()
-{
+void Configuration::PreloadVariables() {
     for( auto recordIt=  EnumRecords<TEnum>::begin()
          ;    recordIt!= EnumRecords<TEnum>::end  ()
          ; ++ recordIt                                 )
@@ -1294,8 +1273,7 @@ void Configuration::PreloadVariables()
         const Declaration* decl= Declaration::Get( recordIt.Enum() );
         if(decl->EnumElementName.IndexOf('%') < 0)
             Variable(*this, decl);
-    }
-}
+}   }
 #endif
 
 /// Utility type which implements \alib{monomem;TSharedMonoVal} with class
@@ -1327,7 +1305,7 @@ class TSharedConfiguration : public  monomem::TSharedMonoVal<Configuration, Heap
 
   public:
     /// Constructs an empty instance, hence a cleared automatic pointer.
-    TSharedConfiguration()                                                                = default;
+    TSharedConfiguration()                                                                 =default;
 
     /// Constructs an empty instance from \c std::nullptr.
     /// This constructor is necessary to allow assignment of \c nullptr to values of this type,
@@ -1352,10 +1330,9 @@ class TSharedConfiguration : public  monomem::TSharedMonoVal<Configuration, Heap
     /// @param createDefaults        Determines if default plug-ins are to be created.
     ///                              Defaults to \c Yes.
     TSharedConfiguration( size_t              initialBufferSizeInKB,
-                         unsigned int         bufferGrowthInPercent = 200,
+                         unsigned             bufferGrowthInPercent = 200,
                          lang::CreateDefaults createDefaults= lang::CreateDefaults::Yes  )
-    : Base(initialBufferSizeInKB, bufferGrowthInPercent)
-    {
+    : Base(initialBufferSizeInKB, bufferGrowthInPercent) {
         Base::ConstructT( Base::GetAllocator(), createDefaults );
         DbgCriticalSections(lang::Switch::On);
         ALIB_DBG(Base::GetAllocator().DbgName= "Configuration";)
@@ -1363,11 +1340,11 @@ class TSharedConfiguration : public  monomem::TSharedMonoVal<Configuration, Heap
     }
 
     /// Defaulted copy-constructor.
-    TSharedConfiguration( const TSharedConfiguration& ) = default;
+    TSharedConfiguration( const TSharedConfiguration& )                                    =default;
 
     /// Defaulted copy-assignment operator.
     /// @return A reference to <c>this</c>.
-    TSharedConfiguration& operator=(const TSharedConfiguration&)                          = default;
+    TSharedConfiguration& operator=(const TSharedConfiguration&)                           =default;
 
 
     /// Destructor.
@@ -1384,22 +1361,20 @@ class TSharedConfiguration : public  monomem::TSharedMonoVal<Configuration, Heap
     #else
         template<typename TRequires= typename Base::LockType>
         requires (!std::same_as<TRequires, void>)
-        void DbgCriticalSections(lang::Switch onOff)
-        {
-            #if ALIB_DEBUG_CRITICAL_SECTIONS
-            if ( !Base::IsNulled() )
-            {
-                if( onOff == lang::Switch::On )    Base::Self().NodeTable().dcs.DCSLock= &Base::GetLock();
-                else                               Base::Self().NodeTable().dcs.DCSLock= nullptr;
-            }
-            #else
-                (void) onOff;
-            #endif
+    void DbgCriticalSections(lang::Switch onOff) {
+        #if ALIB_DEBUG_CRITICAL_SECTIONS
+        if ( !Base::IsNulled() ) {
+            if( onOff == lang::Switch::On )    Base::Self().NodeTable().dcs.DCSLock= &Base::GetLock();
+            else                               Base::Self().NodeTable().dcs.DCSLock= nullptr;
         }
+        #else
+            (void) onOff;
+        #endif
+    }
 
         template<typename TRequires= typename Base::LockType>
         requires std::same_as<TRequires, void>
-        void DbgCriticalSections(lang::Switch)                                                    {}
+    void DbgCriticalSections(lang::Switch)                                                        {}
     #endif
 
     /// Clears all data, plugins, type-registrations, etc., from this configuration.
@@ -1409,8 +1384,7 @@ class TSharedConfiguration : public  monomem::TSharedMonoVal<Configuration, Heap
     /// All shared instances remain valid (while, of course, their content is likewise reset).
     /// @param createDefaults Determines if default plug-ins are to be created.
     ///                       Defaults to \c Yes.
-    void            Reset(lang::CreateDefaults createDefaults= lang::CreateDefaults::Yes)
-    {
+    void            Reset(lang::CreateDefaults createDefaults= lang::CreateDefaults::Yes) {
         DbgCriticalSections(lang::Switch::Off);
         Base::Reset( Base::GetAllocator(), createDefaults );
         DbgCriticalSections(lang::Switch::On);
@@ -1437,9 +1411,9 @@ using Variable             = variables::Variable;                          ///< 
 
 
 
-// #################################################################################################
+//##################################################################################################
 // struct AppendableTraits<Variable>
-// #################################################################################################
+//##################################################################################################
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -1473,6 +1447,3 @@ template<> struct       AppendableTraits<variables::Variable, wchar, lang::HeapA
 
 ALIB_BOXING_VTABLE_DECLARE(   alib::variables::Configuration::ConstCursor, vt_config_constcursor )
 ALIB_BOXING_VTABLE_DECLARE(   alib::variables::Variable     , vt_config_variable      )
-
-
-

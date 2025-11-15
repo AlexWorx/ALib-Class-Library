@@ -16,13 +16,12 @@ ALIB_EXPORT namespace alib { namespace  system {
 //==================================================================================================
 struct EnvironmentVariables
 {
-    //==============================================================================================
     /// Reads an environment variable into an \alib string.
     ///
     /// \attention
     ///    1. While under posix compatible operating systems, environment variable names are
     ///       case-sensitive, under Microsoft windows they are not.
-    ///    <br><br> 
+    ///    <br><br>
     ///    2. As documented with
     ///    \https{std::getenv,en.cppreference.com/w/cpp/utility/program/getenv}, the operation is
     ///    not thread-safe against changes of the environment in parallel threads.
@@ -43,12 +42,11 @@ struct EnvironmentVariables
     ///   to retrieve certain default paths, and that performs conversion when necessary
     ///   internally.
     ///
-    ///  @param varName      The name of the variable to be retrieved.
-    ///  @param target       An AString to write the result to.
-    ///  @param targetData   If \c CurrentData::Keep, the parameter \p{target} is not cleared
-    ///                      before the result is written. Defaults to \c CurrentData::Clear.
-    ///  @return \c true if variable was found.
-    //==============================================================================================
+    /// @param varName      The name of the variable to be retrieved.
+    /// @param target       An AString to write the result to.
+    /// @param targetData   If \c CurrentData::Keep, the parameter \p{target} is not cleared
+    ///                     before the result is written. Defaults to \c CurrentData::Clear.
+    /// @return \c true if variable was found.
     ALIB_DLL static
     bool  Get(  const CString&    varName,
                 AString&          target,
@@ -61,5 +59,3 @@ struct EnvironmentVariables
 using     EnvironmentVariables=        system::EnvironmentVariables;
 
 }  // namespace [alib]
-
-

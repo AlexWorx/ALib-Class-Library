@@ -9,17 +9,14 @@ ALIB_EXPORT namespace alib::lang {
 
 // CodeMarker_CommonEnums
 
-//==================================================================================================
 /// Denotes Alignments.
-//==================================================================================================
 enum class Alignment
 {
-    Left,         ///<  Chooses left alignment.
-    Right,        ///<  Chooses right alignment.
-    Center        ///<  Chooses centered alignment.
+    Left,      ///< Chooses left alignment.
+    Right,     ///< Chooses right alignment.
+    Center     ///< Chooses centered alignment.
 };
 
-//==================================================================================================
 /// Enumeration representing a boolean value. While the use of this enumeration type seems senseless
 /// at the first sight (as the C++ has keywords \c bool, \c false and \c true), the reason for its
 /// existence is to have write and parse methods in place using the concept of
@@ -28,16 +25,13 @@ enum class Alignment
 /// The default name translation table is equipped with various 'overloaded' element entries like
 /// "yes", "no", "on", "off", "1" or "0". Furthermore, if other languages should be supported,
 /// this can even be extended at run-time.
-//==================================================================================================
 enum class Bool                 : bool
 {
     False,        ///< False value
     True          ///< True value
 };
 
-//==================================================================================================
 /// Denotes if a cache mechanism is enabled or disabled.
-//==================================================================================================
 enum class Caching
 {
     Disabled,  ///< Caching is disabled.
@@ -45,22 +39,18 @@ enum class Caching
     Auto,      ///< Auto/default mode.
 };
 
-//==================================================================================================
 /// Denotes upper and lower case character treatment.
-//==================================================================================================
 DOX_MARKER( [DOX_ENUMS_MAKE_PARSABLE_1] )
 enum class Case                 : bool
 {
     Sensitive,    ///< Chooses an operation mode which differs between lower and upper case letters
                   ///< (usually the default).
-    Ignore        ///< Chooses an operation mode which does not differ between between lower and
-                  ///< upper case letters.
+    Ignore        ///< Chooses an operation mode which does not differ between lower and upper case
+                  ///< letters.
 };
 DOX_MARKER( [DOX_ENUMS_MAKE_PARSABLE_1] )
 
-//==================================================================================================
 /// Denotes standard container operations.
-//==================================================================================================
 enum class ContainerOp
 {
     Insert,       ///< Denotes insertions.
@@ -70,46 +60,36 @@ enum class ContainerOp
     Create        ///< Denotes to create data.
 };
 
-//==================================================================================================
 /// Denotes whether default entities should be created or not.
-//==================================================================================================
 enum class CreateDefaults       : bool
 {
     No,           ///< Do not create.
     Yes           ///< Create default values.
 };
 
-//==================================================================================================
 /// Denotes whether something should be created if it does not exist.
-//==================================================================================================
 enum class CreateIfNotExists    : bool
 {
     No,           ///< Do not create.
     Yes           ///< Create if something does not exist.
 };
 
-//==================================================================================================
 /// Denotes if current, existing data should be cleared or if new data should be
 /// appended or otherwise added.
-//==================================================================================================
 enum class CurrentData          : bool
 {
-    Keep,         ///<  Chooses not no clear existing data.
-    Clear,        ///<  Chooses to clear existing data.
+    Keep,         ///< Chooses not no clear existing data.
+    Clear,        ///< Chooses to clear existing data.
 };
 
-//==================================================================================================
 /// Denotes how members of a set something should be taken into account.
-//==================================================================================================
 enum class Inclusion            : bool
 {
-    Include,      ///<  Chooses inclusion.
-    Exclude,      ///<  Chooses exclusion.
+    Include,      ///< Chooses inclusion.
+    Exclude,      ///< Chooses exclusion.
 };
 
-//==================================================================================================
-/// Used for example with constructors that allow to suppress initialization of members.
-//==================================================================================================
+/// Used, for example, with constructors that allow to suppress initialization of members.
 enum class Initialization
 {
     Suppress,     ///< Suppress initialization.
@@ -120,110 +100,100 @@ enum class Initialization
                   ///< Writes "Nulled", reads in addition "Zero".
 };
 
-//==================================================================================================
+/// Denotes line-feed encoding sequences <c>"\n"</c> and <c>"\r\n"</c>.
+enum class LineFeeds {
+    None       = 0 ,          ///< No line-feeds, not specified, etc.
+    Ignore     = 0 ,          ///< Same as 'None'
+    Unix       = 1 ,          ///< Unix-style line-feeds <c>"\n"</c>.
+    WindowsOS  = 2 ,          ///< WindowsOS style line-feeds <c>"\r\n"</c>.
+    #if !defined(_WIN32) || DOXYGEN
+    Platform   = Unix         ///< Platform specific. Equals to either 'Unix' or 'WindowsOS'.
+    #else
+    Platform   = WindowsOS
+    #endif
+};
+
+
 /// Denotes a phase, e.g.,of a transaction.
-//==================================================================================================
 enum class Phase
 {
     Begin         = (1 << 0),    ///< The start of a transaction.
     End           = (1 << 1),    ///< The end of a transaction.
 };
 
-//==================================================================================================
 /// Denotes whether a e.g a setting should be propagated.
-//==================================================================================================
 enum class Propagation          : bool
 {
     Omit,         ///< Do not propagate changes.
     ToDescendants ///< Propagate changes to descendants/children/subcomponents.
 };
 
-//==================================================================================================
 /// Denotes the reach of something.
-//==================================================================================================
 enum class Reach                : bool
 {
     Global,       ///< Denotes global reach.
     Local         ///< Denotes local reach.
 };
 
-//==================================================================================================
 /// Denotes whether recursion is performed/allowed or not.
-//==================================================================================================
 enum class Recursive            : bool
 {
     No,           ///< Denotes non-recursive.
     Yes           ///< Denotes recursion.
 };
 
-//==================================================================================================
 /// Denotes whether the responsibility for something is kept or passed. This is useful, e.g., in
 /// situations where objects are shared to determine if the responsibility for the deletion
 /// of object is transferred over to the receiver or kept by the sender of the object.
-//==================================================================================================
 enum class Responsibility       : bool
 {
-    KeepWithSender,  ///<  Keeps responsibility, e.g., when passing an object.
-    Transfer,        ///<  Transfers responsibility to the receiving party.
+    KeepWithSender,  ///< Keeps responsibility, e.g., when passing an object.
+    Transfer,        ///< Transfers responsibility to the receiving party.
 };
 
-//==================================================================================================
 /// Denotes whether something should be performed in a safe or unsafe fashion.
-//==================================================================================================
 enum class Safeness             : bool
 {
-    Safe,         ///<  Do it or treat it with safety.
-    Unsafe,       ///<  Omit checks or perform unsafe operations.
+    Safe,         ///< Do it or treat it with safety.
+    Unsafe,       ///< Omit checks or perform unsafe operations.
 };
 
-//==================================================================================================
 /// Denotes if something is left or right.
-//==================================================================================================
 enum class Side                 : bool
 {
     Left,          ///< Denotes the left side of something.
     Right          ///< Denotes the right side of something.
 };
 
-//==================================================================================================
 /// Denotes sort order.
-//==================================================================================================
 enum class SortOrder            : bool
 {
-    Ascending,    ///<  Chooses ascending sort oder.
-    Descending,   ///<  Chooses descending sort oder.
+    Ascending,    ///< Chooses ascending sort oder.
+    Descending,   ///< Chooses descending sort oder.
 };
 
-//==================================================================================================
 /// Denotes if the source data should be moved or copied.
-//==================================================================================================
 enum class SourceData           : bool
 {
-    Copy,         ///<  Chooses not to clear existing data.
-    Move,         ///<  Chooses to clear existing data.
+    Copy,         ///< Chooses not to clear existing data.
+    Move,         ///< Chooses to clear existing data.
 };
 
-//==================================================================================================
 /// Denotes if sth. is switched on or off.
-//==================================================================================================
 enum class Switch               : bool
 {
     Off,          ///< Switch it off, switched off, etc.
     On            ///< Switch it on, switched on, etc.
 };
 
-//==================================================================================================
 /// Denotes whether a time value represents local time or UTC.
-//==================================================================================================
 enum class Timezone             : bool
 {
-    Local,        ///<  Denotes local time.
-    UTC,          ///<  Denotes UTC (coordinated universal time).
+    Local,        ///< Denotes local time.
+    UTC,          ///< Denotes UTC (coordinated universal time).
 };
 
-//==================================================================================================
 /// Denotes if asynchronous tasks become synchronized.
-//==================================================================================================
 enum class Timing
 {
     Async,    ///< The end of a transaction.
@@ -233,18 +203,14 @@ enum class Timing
               ///< "on", "true", "1".
 };
 
-//==================================================================================================
 /// Denotes if a value is interpreted as an absolute or relative number.
-//==================================================================================================
 enum class  ValueReference
 {
     Absolute,  ///< Referring to an absolute value.
     Relative,  ///< Referring to a relative value.
 };
 
-//==================================================================================================
 /// Denotes whether a string is trimmed or not
-//==================================================================================================
 enum class Whitespaces          : bool
 {
     Trim,         ///< Trim whitespaces away.

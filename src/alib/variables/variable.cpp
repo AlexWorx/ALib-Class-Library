@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,20 +11,20 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/variables/variables.prepro.hpp"
 #include "ALib.Strings.StdFunctors.H"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Variables;
 #else
 #   include "ALib.Variables.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib::variables {
 
-const String&    Variable::substitute( const String& orig, AString& buf, const StringEscaper* escaper )
-{
+const String&    Variable::substitute( const String&  orig,
+                                       AString&       buf , const StringEscaper* escaper ) {
     Configuration& cfg= GetConfiguration();
     String substitutionVariableStart= cfg.SubstitutionVariableStart;
     if( substitutionVariableStart.IsEmpty() )
@@ -48,20 +48,16 @@ const String&    Variable::substitute( const String& orig, AString& buf, const S
         integer varLen;
 
         // search end in two different ways depending on setting of public field "SubstitutionVariableEnd"
-        if ( substitutionVariableEnd.IsEmpty() )
-        {
+        if ( substitutionVariableEnd.IsEmpty() ) {
             integer idx=   orig.IndexOfAny<lang::Inclusion::Include>( substitutionVariableDelimiters, varStart );
             if ( idx < 0 )
                 idx= orig.Length();
 
             varLen= idx - varStart;
             searchStartIdx= idx;
-        }
-        else
-        {
+        } else {
             integer idx=   orig.IndexOf( substitutionVariableEnd, varStart );
-            if (idx < 0 )
-            {
+            if (idx < 0 ) {
                 ALIB_DBG( String256 namebuf; )
                 ALIB_WARNING( "VARIABLES", "End of substitution variable not found "
                                          "(while start was found). Variable name: ", Name(namebuf) )
@@ -74,8 +70,7 @@ const String&    Variable::substitute( const String& orig, AString& buf, const S
 
         // get variable name string
         Substring    replVarName= orig.Substring( varStart, varLen );
-        if ( replVarName.IsEmpty() )
-        {
+        if ( replVarName.IsEmpty() ) {
             buf << substitutionVariableStart;
             continue;
         }
@@ -89,11 +84,9 @@ const String&    Variable::substitute( const String& orig, AString& buf, const S
         Variable replVar(cfg);
         if( replVar.Try(replVarName) )
             replVar.Export( buf, escaper );
-        else
-        {
+        else {
             replVar.Declare(replVarName, A_CHAR("S") );
-            if( !replVar.IsDefined() )
-            {
+            if( !replVar.IsDefined() ) {
                 replVar.Delete();
                 continue;
             }
@@ -105,8 +98,7 @@ const String&    Variable::substitute( const String& orig, AString& buf, const S
     }
     while( --maxReplacements );
 
-    if( maxReplacements < 50)
-    {
+    if( maxReplacements < 50) {
         buf << orig.Substring( searchStartIdx );
         return buf;
 
@@ -115,8 +107,7 @@ const String&    Variable::substitute( const String& orig, AString& buf, const S
 }
 
 
-void           Variable::create( const String& typeName, const String& defaultValue )
-{
+void           Variable::create( const String& typeName, const String& defaultValue ) {
     auto it= Tree<Configuration>().types.Find(typeName);
     ALIB_ASSERT_ERROR( it != Tree<Configuration>().types.end(), "VARIABLES",
           "No Meta-Handler found for given variable type \"{}\".\n"
@@ -125,7 +116,7 @@ void           Variable::create( const String& typeName, const String& defaultVa
                     "'PrepareConfig' to register your custom types.", typeName)
     auto*  meta= Cursor::Value().meta= *it;
 
-    // -------- declare ----
+  //-------------------------------------------- declare -------------------------------------------
     Cursor::Value().data    =  reinterpret_cast<detail::VDATA*>(Tree<Configuration>().Pool().Alloc( meta->size(), alignof(detail::VDATA)));
     meta->construct(Cursor::Value().data, Tree<Configuration>().Pool );
     Cursor::Value().priority= Priority::NONE;
@@ -139,23 +130,19 @@ void           Variable::create( const String& typeName, const String& defaultVa
                                            Priority::NONE    );
 
 
-    // ------------------ check for definitions (plugins, preset or default values) ----------------
-    // Plugins?
+  //------------------- check for definitions (plugins, preset or default values) ------------------
+  // Plugins?
     {
         String256 buf;
-        for (int i = 0; i < Tree<Configuration>().CountPlugins(); ++i)
-        {
+        for (int i = 0; i < Tree<Configuration>().CountPlugins(); ++i) {
             auto& plugin= *Tree<Configuration>().GetPlugin(i);
             auto  plPrio= plugin.GetPriority();
-            if( Cursor::Value().priority <= plPrio  && plugin.Get(varName, buf) )
-            {
+            if( Cursor::Value().priority <= plPrio  && plugin.Get(varName, buf) ) {
                 String512 substBuf;
                 Cursor::Value().priority= plPrio;
                 Cursor::Value().meta->imPort( Cursor::Value().data, GetConfiguration(), plugin.GetEscaper(),
                                               substitute(buf, substBuf, &plugin.GetEscaper())  );
-            }
-        }
-    }
+    }   }   }
 
     // Preset value?
     auto cursor= Tree<Configuration>().Root();
@@ -180,8 +167,7 @@ void           Variable::create( const String& typeName, const String& defaultVa
     }
 
     // default value?
-    if( Cursor::Value().priority <= Priority::DefaultValues  &&  defaultValue.IsNotEmpty() )
-    {
+    if( Cursor::Value().priority <= Priority::DefaultValues  &&  defaultValue.IsNotEmpty() ) {
         StringEscaper escaper;
         String512 substBuf;
         Cursor::Value().priority= Priority::DefaultValues;
@@ -198,8 +184,8 @@ void           Variable::create( const String& typeName, const String& defaultVa
 
 } // Variable::initialize()
 
-Variable&      Variable::Declare( const String& name, const String& typeName, const String& defaultValue )
-{
+Variable&      Variable::Declare( const String& name        , const String& typeName,
+                                  const String& defaultValue                            ) {
     ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "STRINGTREE",
       "Invalid Variable. Not associated with a Configuration. Probably a default constructed "
       "instance.\nCopy or move a valid Variable object before usage.")
@@ -214,16 +200,14 @@ Variable&      Variable::Declare( const String& name, const String& typeName, co
     {
         #if ALIB_DEBUG
             auto it=  Tree<Configuration>().types.Find(typeName);
-            if( it == Tree<Configuration>().types.end() )
-            {
+            if( it == Tree<Configuration>().types.end() ) {
               ALIB_ERROR( "VARIABLES",
                 "No Meta-Handler found for given variable type \"{}\".\n"
                 "Probably the type was not registered during bootstrap.\n"
                 "Use macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
                 "'PrepareConfig' to register your custom types.", typeName )
             }
-            if( *it != Cursor::Value().meta )
-            {
+            if( *it != Cursor::Value().meta ) {
               ALIB_ERROR( "VARIABLES",
                  "Variable \"{}\" redeclared with a different typename.\n"
                  "Previous typename: ", Cursor::Value().meta->typeName(), typeName )
@@ -238,8 +222,7 @@ Variable&      Variable::Declare( const String& name, const String& typeName, co
     return *this;
 }
 
-Variable&      Variable::Declare( const Declaration* decl )
-{
+Variable&      Variable::Declare( const Declaration* decl ) {
     ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "STRINGTREE",
       "Invalid Variable. Not associated with a Configuration.\n"
       "Probably a default constructed instance.\n"
@@ -250,8 +233,7 @@ Variable&      Variable::Declare( const Declaration* decl )
 
     // Variable existed?
     GoToRoot();
-    if( 0 == GoToCreatedPathIfNotExistent( decl->Name() ))
-    {
+    if( 0 == GoToCreatedPathIfNotExistent( decl->Name() )) {
         #if ALIB_DEBUG
             ALIB_ASSERT_WARNING( GetDeclaration() == nullptr || GetDeclaration() == decl, "CONFIG/VARDECL",
              "Variable \"{}\" redeclared with different declaration record pointer.\n"
@@ -259,8 +241,7 @@ Variable&      Variable::Declare( const Declaration* decl )
              "that of the variable. New record will be ignored.", decl->Name() )
 
             auto it= Tree<Configuration>().types.Find(decl->typeName);
-            if( it == Tree<Configuration>().types.end() )
-            {
+            if( it == Tree<Configuration>().types.end() ) {
               ALIB_ERROR( "VARIABLES",
               "No Meta-Handler found for given variable type \"{}\".\n"
               "Probably the type was not registered during bootstrap.\n"
@@ -277,8 +258,7 @@ Variable&      Variable::Declare( const Declaration* decl )
     return *this;
 }
 
-bool Variable::Define(Priority requestedPriority)
-{
+bool Variable::Define(Priority requestedPriority) {
     if( Cursor::Value().priority > requestedPriority )
         return false;
     auto prevPriority= Cursor::Value().priority;
@@ -290,8 +270,7 @@ bool Variable::Define(Priority requestedPriority)
     return true;
 }
 
-void      Variable::Delete()
-{
+void      Variable::Delete() {
     Tree<Configuration>().notifyListeners( int(ConfigurationListener::Event::Deletion),
                                            *this,
                                            nullptr,
@@ -300,8 +279,7 @@ void      Variable::Delete()
     Cursor::node= nullptr;
 }
 
-bool Variable::Try(const String& name, const String& typeName)
-{
+bool Variable::Try(const String& name, const String& typeName) {
     ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "STRINGTREE",
       "Invalid Variable. Not associated with a Configuration. Probably a default constructed "
       "instance.\nCopy or move a valid Variable object before usage.")
@@ -313,13 +291,11 @@ bool Variable::Try(const String& name, const String& typeName)
 
     // check if a preset exists
     auto cursor= Tree<Configuration>().Root();
-    if( cursor.GoToChild(A_CHAR("$PRESETS")) && cursor.GoTo(name).IsEmpty() )
-    {
+    if( cursor.GoToChild(A_CHAR("$PRESETS")) && cursor.GoTo(name).IsEmpty() ) {
         ALIB_ASSERT_ERROR( Variable(cursor).GetString().IsNotNull(), "VARIABLES",
                            "Internal error. This must never happen.")
         Declare( name, typeName );
-        if( Cursor::Value().priority < cursor->priority)
-        {
+        if( Cursor::Value().priority < cursor->priority) {
             StringEscaper voidEscaper;
             auto* escaper=  cursor->declaration ? reinterpret_cast<const StringEscaper*>( cursor->declaration )
                                                 : &voidEscaper;
@@ -335,10 +311,8 @@ bool Variable::Try(const String& name, const String& typeName)
     return false;
 }
 
-bool Variable::Try(const Declaration* decl)
-{
-    if( Try(decl->Name(), decl->TypeName()) )
-    {
+bool Variable::Try(const Declaration* decl) {
+    if( Try(decl->Name(), decl->TypeName()) ) {
         // already declared, add the declaration struct, if not set, yet.
         ALIB_ASSERT_WARNING(   Cursor::Value().declaration== nullptr
                             || Cursor::Value().declaration == decl,          "CONFIG/VARDECL",
@@ -354,22 +328,18 @@ bool Variable::Try(const Declaration* decl)
     return false;
 }
 
-void Variable::Import( const String& src, Priority priority, const StringEscaper* escaper )
-{
+void Variable::Import( const String& src, Priority priority, const StringEscaper* escaper ) {
     ALIB_ASSERT_ERROR( src.IsNotNull(), "VARIABLES",
        "Tried to import nulled string for variable \"{}\"", this )
 
      StringEscaper exVoid;
      if( !escaper )
          escaper= &exVoid;
-     if(Define(priority))
-     {
+     if(Define(priority)) {
         String512 substBuf;
         getMeta()->imPort( Cursor::Value().data, GetConfiguration(), *escaper,
                            substitute(src, substBuf, escaper) );
-    }
-}
+}   }
 
 
 } // namespace [alib::variables]
-

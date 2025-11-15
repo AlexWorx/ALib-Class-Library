@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::loggers - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,13 +11,13 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #ifndef H_ALIB_ALOX
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/alox/alox.prepro.hpp"
 #endif
 #include <fstream>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -28,20 +28,19 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib;
 
 TextFileLogger::TextFileLogger( const alib::String&  fileName,
                                 const alib::NString& loggerName )
-: PlainTextLogger( loggerName, "TEXTFILE", false )
-{
+: PlainTextLogger( loggerName, "TEXTFILE" )
+, ma( ALIB_DBG("TextFileLogger",) 8 ) {
     FileName << fileName;
 
     // test open file for test
     ALIB_STRINGS_TO_NARROW(FileName,nFileName,1024)
     auto* os= new std::ofstream( nFileName, std::ios::app );
-    if ( !os->is_open() )
-    {
+    if ( !os->is_open() ) {
         LastSystemError= SystemErrors(errno);
         ALIB_WARNING( "ALOX", "Could not open file: \"{}\". System error code: {}",
                       FileName, LastSystemError )
@@ -53,59 +52,48 @@ TextFileLogger::TextFileLogger( const alib::String&  fileName,
     delete os;
 }
 
-void TextFileLogger::openFile()
-{
+void TextFileLogger::openFile() {
     ALIB_STRINGS_TO_NARROW(FileName,nFileName,1024)
-    auto* os= new std::ofstream( nFileName, std::ios::app );
-    if ( !os->is_open() )
-    {
-        writer.SetStream( nullptr );
+    ofs= new std::ofstream( nFileName, std::ios::app );
+    if ( !ofs->is_open() ) {
         LastSystemError= SystemErrors(errno);
         ALIB_WARNING( "ALOX", "Could not open file: \"{}\". System error code: {}",
                       FileName, LastSystemError )
-        delete os;  os= nullptr;
+        delete ofs;  ofs= nullptr;
         return;
     }
-    else
-        LastSystemError= SystemErrors::None;
 
-    writer.SetStream( os );
+    LastSystemError= SystemErrors::None;
+    writer.Construct( *ofs, ma );
 }
 
-void TextFileLogger::closeFile()
-{
-    auto* stream= writer.GetStream();
-    if( stream == nullptr )
+void TextFileLogger::closeFile() {
+    if( ofs == nullptr )
         return;
 
-    auto* os= dynamic_cast<std::ofstream*>(stream);
-    os->close();
-    delete os;
-    writer.SetStream( nullptr );
+    writer.Destruct();
+    ofs->close();
+    delete ofs;
 }
 
 
-void TextFileLogger::notifyMultiLineOp( lang::Phase phase )
-{
+void TextFileLogger::notifyMultiLineOp( lang::Phase phase ) {
     // save state (to have it in logText)
     currentlyInMultiLineOp= (phase == lang::Phase::Begin);
 
     // open/close the file
     if ( phase == lang::Phase::Begin )
         openFile();
-    else if( writer.GetStream() != nullptr )
+    else if( ofs != nullptr )
         closeFile();
 }
 
-bool TextFileLogger::notifyLogOp( lang::Phase phase )
-{
-    auto* stream= writer.GetStream();
-    if ( stream != nullptr && phase == lang::Phase::End )
-        *stream << std::endl;
+bool TextFileLogger::notifyPlainTextLogOp( lang::Phase phase ) {
+    if ( ofs != nullptr && phase == lang::Phase::End )
+        (*ofs) << std::endl;
 
     // open/close
-    if( !currentlyInMultiLineOp )
-    {
+    if( !currentlyInMultiLineOp ) {
         if ( phase == lang::Phase::Begin )
             openFile();
         else
@@ -115,10 +103,10 @@ bool TextFileLogger::notifyLogOp( lang::Phase phase )
     return LastSystemError == SystemErrors::None;
 }
 
-integer TextFileLogger::logSubstring( const String& buffer, integer start, integer length )
-{
-    if (writer.GetStream() != nullptr && LastSystemError == SystemErrors::None)
-        return writer.WriteAndGetWideLength( buffer.Substring<NC>( start, length ) );
-    return 0;
+integer TextFileLogger::logPlainTextPart( const String& buffer, integer start, integer length ) {
+    if (ofs == nullptr || LastSystemError != SystemErrors::None)
+        return 0;
+    integer printedWidth;
+    writer->Write( buffer.Substring<NC>( start, length ), &printedWidth );
+    return printedWidth;
 }
-

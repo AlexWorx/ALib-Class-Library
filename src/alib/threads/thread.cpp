@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #if !ALIB_SINGLE_THREADED
 #   include <condition_variable>
@@ -24,7 +24,7 @@
 #   include <vector>
 #   include <any>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module   ALib.Threads;
     import   ALib.Lang;
@@ -58,7 +58,7 @@
 #   include "ALib.EnumRecords.Bootstrap.H"
 #   include "ALib.Resources.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #if !ALIB_SINGLE_THREADED
 namespace alib {
 
@@ -79,9 +79,9 @@ namespace alib {
 //==================================================================================================
 namespace threads {
 
-// #################################################################################################
+//##################################################################################################
 // Anonymous data
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 namespace {
 
@@ -101,14 +101,13 @@ namespace {
 #endif
 
 
-// #################################################################################################
+//##################################################################################################
 // Details
-// #################################################################################################
+//##################################################################################################
 /// Details of namespace #alib::threads.
 namespace detail {
 
-void threadStart( Thread* thread )
-{
+void threadStart( Thread* thread ) {
     THIS_THREAD= thread;
     thread->state           = Thread::State::Running;
     thread->Run();
@@ -121,11 +120,11 @@ void threadStart( Thread* thread )
 
 using namespace detail;
 
-// #################################################################################################
+//##################################################################################################
 // Namespace functions
-// #################################################################################################
+//##################################################################################################
 #if ALIB_DEBUG && !DOXYGEN
-    namespace{ unsigned int initFlag= 0; }
+namespace{ unsigned initFlag= 0; }
 #endif // !DOXYGEN
 
 void BootstrapThreadMap( integer qty ) {
@@ -158,8 +157,7 @@ void bootstrap() {
 }
 
 
-void shutdown()
-{
+void shutdown() {
     ALIB_ASSERT_ERROR( initFlag == 0x92A3EF61, "THREADS", "Not initialized when calling shutdown." )
     ALIB_DBG(initFlag= 1);
 
@@ -177,8 +175,7 @@ void shutdown()
             auto qtyThreads= THREAD_MAP.size();
         #endif
 
-        if( qtyThreads != 1 )
-        {
+        if( qtyThreads != 1 ) {
             #if ALIB_DEBUG
                 std::vector<std::any> msgs;
                 msgs.reserve( 50 );
@@ -188,7 +185,7 @@ void shutdown()
                 for( auto& it : THREAD_MAP  ) {
                     msgs.emplace_back("  {}: {},\tState::{}\n");
                     msgs.emplace_back(++tNr);
-                    msgs.emplace_back(it.second); 
+                    msgs.emplace_back(it.second);
                     msgs.emplace_back(it.second->state);
                 }
                 assert::raise( ALIB_CALLER_PRUNED, 1,  "THREADS", msgs );
@@ -208,14 +205,13 @@ void shutdown()
         #if ALIB_MONOMEM && ALIB_CONTAINERS
             THREAD_MAP.Reset();
         #endif
-    }
-}
+}   }
 
 #   include "ALib.Lang.CIMethods.H"
 
-// #################################################################################################
+//##################################################################################################
 // class Thread
-// #################################################################################################
+//##################################################################################################
 thread_local Thread* THIS_THREAD                                                          = nullptr;
 
 Thread::Thread( Runnable* target , const character* pName )
@@ -226,19 +222,16 @@ Thread::Thread( Runnable* target , const character* pName )
     id=  nextThreadIdx++;
 }
 
-void Thread::destruct()
-{
-    ALIB_ASSERT_WARNING( GetState() != Thread::State::Unstarted , "MGTHR",
+void Thread::destruct() {
+    ALIB_ASSERT_WARNING( GetState() != Thread::State::Unstarted , "TMOD",
      "Thread \"{}\" destructed, while it was never started.", this )
 
-    if( c11Thread != nullptr )
-    {
+    if( c11Thread != nullptr ) {
         ALIB_WARNING( "THREADS",
           "Thread \"{}\" was not terminated before destruction.\n"
           "Use Thread::Join() to avoid this message. Joining now...", this )
         Join();
-    }
-}
+}   }
 
 #if defined(_MSC_VER)
 Thread*    Thread::GetCurrent() {
@@ -248,10 +241,8 @@ Thread*    Thread::GetCurrent() {
 }
 #endif
 
-void Thread::Join()
-{
-    if( c11Thread != nullptr )
-    {
+void Thread::Join() {
+    if( c11Thread != nullptr ) {
         ALIB_ASSERT_WARNING( state == State::Done, "THREADS",
           "Terminating thread \"{}\" which is not in state 'Done'. State: {}.",
           this, state )
@@ -279,8 +270,7 @@ void Thread::Join()
     }
 
     // c11Thread == nullptr
-    else
-    {
+    else {
         if( state == State::Terminated )
             ALIB_WARNING( "THREADS",
                           "Double invocation of Thread::Terminate for thread \"{}\".", this )
@@ -288,21 +278,17 @@ void Thread::Join()
             ALIB_WARNING( "THREADS",
                           "Terminating thread \"{}\" which is not started or not managed by ALIB.",
                           this )
-    }
-}
+}   }
 
 
 
-void  Thread::Start()
-{
-    if ( c11Thread != nullptr )
-    {
+void  Thread::Start() {
+    if ( c11Thread != nullptr ) {
         ALIB_ERROR( "THREADS", "Thread with ID {} was already started.", GetID() )
         return;
     }
 
-    if ( id <= 0 )
-    {
+    if ( id <= 0 ) {
         ALIB_ERROR( "THREADS", "System threads cannot be started. (ID={}).", GetID() )
         return;
     }
@@ -318,16 +304,14 @@ void  Thread::Start()
             #else
                 THREAD_MAP.insert( std::make_pair( nativeID, this) );
             #endif
-    }
-}
+}   }
 
-// #################################################################################################
+//##################################################################################################
 // static methods
-// #################################################################################################
+//##################################################################################################
 #   include "ALib.Lang.CIFunctions.H"
-Thread* Thread::GetMain()           { return MAIN_THREAD; }
-Thread* Thread::Get( std::thread::id nativeID )
-{
+Thread* Thread::GetMain()                                                    { return MAIN_THREAD; }
+Thread* Thread::Get( std::thread::id nativeID ) {
     // check for nulled nativeID or not initialized
     if( lang::IsNull(nativeID) || !MAIN_THREAD )
         return nullptr ;
@@ -348,8 +332,7 @@ Thread* Thread::Get( std::thread::id nativeID )
             result= search->second;
 
         // not found, this is a system thread!
-        else
-        {
+        else {
             result                 = new Thread( reinterpret_cast<Runnable*>(-1), nullptr );
             result->id             = nextSystemThreadId--;
             result->state          = Thread::State::Running;  // we just "guess" here, as documented
@@ -359,8 +342,7 @@ Thread* Thread::Get( std::thread::id nativeID )
             #else
                 THREAD_MAP.insert( std::make_pair( nativeID, result) );
             #endif
-        }
-    }
+    }   }
 
     return result;
 }

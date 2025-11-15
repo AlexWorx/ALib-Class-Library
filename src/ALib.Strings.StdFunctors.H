@@ -30,13 +30,13 @@
 }}}
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // #### std::hash and std::equal_to for ALib string types
-// #################################################################################################
+//##################################################################################################
 #if DOXYGEN
     namespace alib::strings::compatibility::std {
 #else
-    namespace std {
+namespace std {
 #endif
 
 //==================================================================================================
@@ -58,7 +58,7 @@ struct hash<alib::strings::TString<TChar>> {
     /// Calculates the hash code for \alib strings.
     /// @param src The string object to hash.
     /// @return The hash code.
-    std::size_t operator()(const alib::strings::TString<TChar>& src) const
+    std::size_t operator()(const alib::strings::TString<TChar>& src)                           const
     { return src.Hashcode(); }
 };
 
@@ -79,16 +79,14 @@ struct hash<alib::strings::TString<TChar>> {
 template<typename TChar>
 struct equal_to<alib::strings::TString<TChar>>
 {
-    /// Invokes  \alib{strings;TString::Equals;String::Equals} on \p{lhs}, passing \p{rhs}
+    /// Invokes \alib{strings;TString::Equals;String::Equals} on \p{lhs}, passing \p{rhs}
     /// and returns the result.
     /// @param lhs The first string object.
     /// @param rhs The second string object.
     /// @return The result of the comparison.
     bool operator()(const alib::strings::TString<TChar>& lhs,
-                    const alib::strings::TString<TChar>& rhs   ) const
-    {
-        return lhs.Equals( rhs );
-    }
+                    const alib::strings::TString<TChar>& rhs   )                               const
+    { return lhs.Equals( rhs ); }
 };
 
 //==================================================================================================
@@ -114,10 +112,8 @@ struct less<alib::strings::TString<TChar>>
     /// @param rhs The right-hand side string.
     /// @return The result of the comparison.
     bool operator()(const alib::strings::TString<TChar>& lhs,
-                    const alib::strings::TString<TChar>& rhs) const
-    {
-        return  lhs.CompareTo(rhs) < 0;
-    }
+                    const alib::strings::TString<TChar>& rhs)                                  const
+    { return  lhs.CompareTo(rhs) < 0; }
 };
 
 #if !DOXYGEN
@@ -151,10 +147,7 @@ struct hash_string_ignore_case
     /// Calculates the hash code \alib strings, ignoring the letter case.
     /// @param src The string object to hash.
     /// @return The hash code.
-    size_t operator()(const strings::TString<TChar>& src) const
-    {
-        return src.HashcodeIgnoreCase();
-    }
+    size_t operator()(const strings::TString<TChar>& src) const { return src.HashcodeIgnoreCase(); }
 };
 
 //==================================================================================================
@@ -188,10 +181,8 @@ struct equal_to_string_ignore_case
     /// @param rhs The second string object.
     /// @return The result of the comparison.
     bool operator()(const strings::TString<TChar>& lhs,
-                    const strings::TString<TChar>& rhs  ) const
-    {
-        return lhs.template Equals<alib::CHK, lang::Case::Ignore>( rhs );
-    }
+                    const strings::TString<TChar>& rhs  )                                      const
+    { return lhs.template Equals<alib::CHK, lang::Case::Ignore>( rhs ); }
 };
 
 //==================================================================================================
@@ -218,15 +209,11 @@ struct less_string_ignore_case
     /// @param rhs The right-hand side string.
     /// @return \c true if \p{lhs} is less than \p{rhs}.
     bool operator()(const strings::TString<TChar>& lhs,
-                    const strings::TString<TChar>& rhs) const
-    {
-        return  lhs.template CompareTo<lang::Case::Ignore>( rhs ) < 0;
-    }
+                    const strings::TString<TChar>& rhs)                                        const
+    { return  lhs.template CompareTo<lang::Case::Ignore>( rhs ) < 0; }
 };
 
 } // namespace alib
 
 #endif // ALIB_STRINGS
 #endif // H_ALIB_STRINGS_STDFUNCTORS
-
-

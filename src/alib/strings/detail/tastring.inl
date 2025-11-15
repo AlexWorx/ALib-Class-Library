@@ -148,7 +148,7 @@ concept IsAppendable = requires(TAString<TChar, TAllocator>& target,  const T& v
 /// #operator[] is extended by a non-const version that returns a reference to a character instead
 /// of just the character value.
 ///
-/// \anchor  alib_ns_strings_astring_appendto
+/// \anchor alib_ns_strings_astring_appendto
 /// <b>Appending Objects to AStrings:</b><br>
 /// This class is used to provide a global concept of having a sort of <b>"ToString"</b> method
 /// with any C++ class. For this, the class provides method #Append, which uses template
@@ -166,30 +166,29 @@ concept IsAppendable = requires(TAString<TChar, TAllocator>& target,  const T& v
 ///                    \alib{characters;strangeChar} are provided in namespace #alib with type ,
 ///                    definitions \alib{AString}, \alib{NAString} \alib{WAString}, \alib{XAString},
 ///                    \alib{ComplementAString} and \alib{StrangeAString}.
-/// @tparam TAllocator The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator The \alib{lang;Allocator;allocator type} to use.
 //==================================================================================================
-template<typename TChar, typename TAllocator>
+template<typename TChar, typename TAllocator= lang::HeapAllocator>
 requires alib::lang::IsAllocator<TAllocator>
 class TAString : public TString<TChar>
                , public lang::AllocatorMember<TAllocator>
 {
-  // ###############################################################################################
+  //################################################################################################
   // Protected fields
-  // ###############################################################################################
+  //################################################################################################
   protected:
     /// The base string-type.
     using base=        TString<TChar>;
 
-    /// The allocator type that \p{TAllocator} specifies.
+    /// The type of the base class that stores the allocator.
     using allocBase=   lang::AllocatorMember<TAllocator>;
 
-        /// The current size of the buffer excluding the trailing <c>'\0'</c>.
-        /// If no buffer is allocated, this field is \c 0.
-        /// If an external Buffer not managed by this class is used, then the size of that buffer is
-        /// stored as a negative value. Method #Capacity therefore returns the absolute value
-        /// of this field.
-        integer                         capacity;
-
+    /// The current size of the buffer excluding the trailing <c>'\0'</c>.
+    /// If no buffer is allocated, this field is \c 0.
+    /// If an external Buffer not managed by this class is used, then the size of that buffer is
+    /// stored as a negative value. Method #Capacity therefore returns the absolute value
+    /// of this field.
+    integer                         capacity;
 
   #if ALIB_DEBUG_STRINGS
   protected:
@@ -199,10 +198,10 @@ class TAString : public TString<TChar>
     integer     debugLastAllocRequest                                                            =0;
 
   public:
-  // ###############################################################################################
+  //################################################################################################
   /// @name Debug Features
   /// @{
-  // ###############################################################################################
+  //################################################################################################
     /// Checks this object's state. This method is internally invoked with almost
     /// every other method of this class, but only if the compiler-symbol
     /// \ref ALIB_DEBUG_STRINGS is \c true.<br>
@@ -227,14 +226,14 @@ class TAString : public TString<TChar>
     /// \see
     ///    See method #DbgDisableBufferReplacementWarning for more information.
     #if ALIB_DEBUG
-        bool    dbgWarnWhenExternalBufferIsReplaced                                          = true;
+    bool    dbgWarnWhenExternalBufferIsReplaced                                               =true;
     #endif
 
   public:
-  // ###############################################################################################
+  //################################################################################################
   /// @name Debug Features
   /// @{
-  // ###############################################################################################
+  //################################################################################################
     /// Used to disable warnings that are by default raised in debug-compilations of
     /// method #SetBuffer.
     ///
@@ -243,15 +242,13 @@ class TAString : public TString<TChar>
     ///
     /// \see See method #SetBuffer for more information.
     void        DbgDisableBufferReplacementWarning()
-    {
-        ALIB_DBG( dbgWarnWhenExternalBufferIsReplaced= false; )
-    }
+    { ALIB_DBG( dbgWarnWhenExternalBufferIsReplaced= false; ) }
     /// @}
 
   protected:
-  // ###############################################################################################
+  //################################################################################################
   // Protected Constructors
-  // ###############################################################################################
+  //################################################################################################
     /// Constructs an \b %AString with the given external buffer and allocator.
     /// The given buffer's life-cycle is considered to be managed externally.<br>
     /// This constructor is protected and provided for derived classes that dispose of
@@ -304,9 +301,9 @@ class TAString : public TString<TChar>
     /// Exposes the allocator type specified by template parameter \p{TAllocator}.
     using AllocatorType=        TAllocator;
 
-  // ###############################################################################################
+  //################################################################################################
   // Constructors, Destructor and Assignment
-  // ###############################################################################################
+  //################################################################################################
     /// Constructs an empty, \e nulled \b %AString (does not allocate a buffer).
     explicit constexpr        TAString()
     : base(nullptr, 0)
@@ -341,11 +338,9 @@ class TAString : public TString<TChar>
     /// for details.
     /// @param move The object to move.
     TAString(TAString&& move)                                                               noexcept
-    : allocBase(move)
-    {
+    : allocBase(move) {
         // given move object has external buffer: we have to copy
-        if ( !move.HasInternalBuffer() )
-        {
+        if ( !move.HasInternalBuffer() ) {
             base::buffer= nullptr;
             base::length= 0;
                 capacity= 0;
@@ -384,14 +379,10 @@ class TAString : public TString<TChar>
     explicit
     TAString (const  TAppendable& src )
     : base(nullptr, 0)
-    , capacity      (0)
-    {
-        Append( src );
-    }
+    , capacity(0)                                                                 { Append( src ); }
 
     /// Destructs an \b %AString object. An internally allocated buffer will be deleted.
-    ~TAString() noexcept
-    {
+    ~TAString()                                                                           noexcept {
         ALIB_STRING_DBG_CHK(this)
         if ( HasInternalBuffer() )
             allocBase::GetAllocator().free( base::vbuffer
@@ -405,7 +396,7 @@ class TAString : public TString<TChar>
                                            );
     }
 
-    // ##############################    casting  back    ######################################
+  //######################################### casting  back ########################################
     /// Templated \b implicit <c>cast operator</c> constructing an instance of type \p{T} from
     /// this string instance.
     /// This operator requires the type \p{T} satisfying the concept
@@ -510,10 +501,8 @@ class TAString : public TString<TChar>
     ///
     /// @param  copy  The object to copy the contents from.
     /// @return \c *this to allow concatenated calls.
-    TAString& operator= (const TAString&  copy)
-    {
-        if ( copy.IsNull() )
-        {
+    TAString& operator= (const TAString&  copy) {
+        if ( copy.IsNull() ) {
             SetNull();
             return *this;
         }
@@ -521,9 +510,9 @@ class TAString : public TString<TChar>
         return Reset().Append( copy.Buffer(), copy.Length() );
     }
 
-  // ###############################################################################################
+  //################################################################################################
   /// @name Memory allocation and buffer access
-  // ###############################################################################################
+  //################################################################################################
 
     /// Resizes the buffer to meet exactly the given size.
     ///
@@ -609,8 +598,7 @@ class TAString : public TString<TChar>
     /// plus the given growth value.
     ///
     /// @param spaceNeeded  The desired growth of the length of the string represented by this.
-    void     EnsureRemainingCapacity( integer spaceNeeded )
-    {
+    void     EnsureRemainingCapacity( integer spaceNeeded ) {
         #if ALIB_DEBUG_STRINGS
             ALIB_ASSERT_ERROR( base::length <= debugLastAllocRequest,
                                "STRINGS", "Previous allocation request was too short: {} >= {}",
@@ -637,11 +625,7 @@ class TAString : public TString<TChar>
     /// In other words, the internal memory available is the size returned here plus one.
     ///
     /// @return The size of the allocated buffer.
-    integer Capacity()                                                                     const
-    {
-        return  capacity >= 0   ?  capacity
-                                : -capacity;
-    }
+    integer Capacity()                        const { return capacity >= 0 ? capacity : -capacity; }
 
     /// Returns \c true, if the buffer was allocated by this class itself. If the buffer was
     /// set using #SetBuffer(TChar*,integer,integer,lang::Responsibility) with parameter
@@ -655,16 +639,10 @@ class TAString : public TString<TChar>
     ///
     /// @return \c true if the buffer is internally allocated and will be deleted with the
     ///         deletion of this object. False otherwise.
-    bool HasInternalBuffer()                                                               const
-    {
-        return  capacity > 0;
-    }
+    bool HasInternalBuffer()                                         const { return  capacity > 0; }
 
     /// Invokes \ref SetBuffer "SetBuffer(0)".
-    void           SetNull()
-    {
-        SetBuffer( 0 );
-    }
+    void           SetNull()                                                     { SetBuffer( 0 ); }
 
     /// Writes a zero-termination character <c>'\0'</c> to the end of the used part of the
     /// internal string buffer and returns the pointer to the start.
@@ -679,17 +657,16 @@ class TAString : public TString<TChar>
     /// a call to this method.
     ///
     /// @return The pointer to the zero-terminated character buffer.
-    constexpr const TChar* Terminate()                                                         const
-    {
+    constexpr const TChar* Terminate()                                                       const {
         if ( base::vbuffer )
              base::vbuffer[ base::length ]= '\0';
 
         return base::buffer;
     }
 
-  // ###############################################################################################
+  //################################################################################################
   /// @name Writable Buffer Access
-  // ###############################################################################################
+  //################################################################################################
 
     /// The internal buffer character array provided as non constant character pointer.
     /// \see Chapter
@@ -697,10 +674,7 @@ class TAString : public TString<TChar>
     /// of the reference documentation of this class.
     ///
     /// @return The internal buffer array.
-    TChar*          VBuffer()                                                                  const
-    {
-        return base::vbuffer;
-    }
+    TChar*          VBuffer()                                        const { return base::vbuffer; }
 
     /// Sets the character at the given index. A range check is performed. If this fails,
     /// nothing is done.
@@ -718,27 +692,22 @@ class TAString : public TString<TChar>
     /// @param idx     The index of the character to write.
     /// @param c       The character to write.
     template<typename TCheck =CHK>
-    void        SetCharAt( integer idx, TChar c )
-    {
+    void        SetCharAt( integer idx, TChar c ) {
         ALIB_ASSERT_ERROR( c != '\0' || idx==base::length,
                            "STRINGS", "Can't write character '\0'" )
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if(    (idx >= 0  && idx <  base::length )
                 || ( c =='\0' && idx == base::length ) )
                 *(base::vbuffer + idx )= c;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( idx >= 0 && idx < base::length, "STRINGS",
                 "Non-checking invocation: ","Index out of range: 0 <= {} < {}", idx, base::length )
             *(base::vbuffer + idx )= c;
-        }
-    }
+    }   }
 
     /// Provides read/write access to single characters.
     /// Overrides \alib{strings;TString::operator[];String::operator[]} returning a reference to
-    /// a \p{TChar} value, which  allows  changing the character stored.
+    /// a \p{TChar} value, which allows changing the character stored.
     ///
     /// \attention
     ///   No parameter check is performed (other than an assertions in debug-compilation of
@@ -746,8 +715,7 @@ class TAString : public TString<TChar>
     ///
     /// @param idx The index of the character within this object's buffer.
     /// @returns If the character contained (or, if lvalue the one to set).
-    TChar&      operator[] (integer  idx)
-    {
+    TChar&      operator[] (integer  idx) {
         ALIB_ASSERT_ERROR( idx >= 0  && idx < base::length , "STRINGS",
                            "Index out of range: 0 <= {} < {}", idx, base::length )
         return base::vbuffer[idx];
@@ -768,8 +736,7 @@ class TAString : public TString<TChar>
     ///
     /// @param newLength  The new length of the \b %AString. Must be between 0 and
     ///                   #Capacity.
-    void    SetLength( integer newLength )
-    {
+    void    SetLength( integer newLength ) {
         ALIB_ASSERT_ERROR( newLength >= 0         ,
                            "STRINGS", "Negative AString length {} requested", newLength )
         ALIB_ASSERT_ERROR( newLength <= Capacity(),
@@ -783,16 +750,20 @@ class TAString : public TString<TChar>
     /// string.
     /// In debug-compilations, the detected length is smaller or equal to the buffer's capacity.
     ///
-    /// This method may be used in the (seldom) situation, where the strings's buffer is
-    /// exposed to other libraries (for example many operating system calls), which internally
+    /// This method may be used in situations, where the strings's buffer is
+    /// exposed to other libraries (for example, many operating system calls), which internally
     /// fill a given character buffer, zero-terminate it, but just do not return it's length.
-    void    DetectLength()
-    {
-        base::length= characters::Length( base::Buffer() );
+    /// @param offset The offset for searching the termination byte \c '\0'.
+    ///               Defaults to \c 0. Using this parameter allows faster detection in the case
+    ///               a minimum length is known.
+    /// @return Returns the new length of this string for convenience.
+    integer    DetectLength(integer offset = 0) {
+        base::length= characters::Length( base::Buffer() + offset ) + offset;
         ALIB_ASSERT_ERROR( base::length <= Capacity(),
                            "STRINGS", "Detected AString length {} exceeds capacity {}",
                            base::length, Capacity() )
         ALIB_STRING_DBG_CHK(this)
+        return base::length;
     }
 
     /// Sets the length of the string to a shorter (or equal) value.
@@ -813,8 +784,7 @@ class TAString : public TString<TChar>
     /// @param newLength  The new length of this \b %AString. Must be between 0 and the current
     ///                   length.
     /// @return    \c *this to allow concatenated calls.
-    TAString&    ShortenTo( integer newLength )
-    {
+    TAString&    ShortenTo( integer newLength ) {
         ALIB_ASSERT_ERROR( newLength >= 0,
                            "STRINGS", "Negative AString length {} requested", newLength )
         ALIB_ASSERT_ERROR( newLength <= base::length,
@@ -829,10 +799,17 @@ class TAString : public TString<TChar>
         return *this;
     }
 
+    /// Same as #ShortenTo, but accepts a value interpreted as the difference to the current length.
+    /// @param charsToRemove  The number of characters to remove.
+    /// @return   \c *this to allow concatenated calls.
+    TAString&    ShortenBy( integer charsToRemove ) {
+        return ShortenTo( base::Length() - charsToRemove );
+    }
+    
 
-  // ###############################################################################################
+  //################################################################################################
   /// @name Append-Methods
-  // ###############################################################################################
+  //################################################################################################
 
     /// Appends an array of an incompatible character type.
     ///
@@ -852,13 +829,11 @@ class TAString : public TString<TChar>
 
         if constexpr ( std::same_as<TCheck, alib::CHK> ) {
             if( !src )  return *this;
-            if ( srcLength <= 0 )
-            {
+            if ( srcLength <= 0 ) {
                 if ( base::IsNull() )
                     SetBuffer( 15 );
                 return *this;
-            }
-        }
+        }   }
 
         // We have to know what the "real" types are.
         #if !DOXYGEN
@@ -876,27 +851,24 @@ class TAString : public TString<TChar>
 
             // wchar -> nchar
             if constexpr ( std::same_as<TCharSrc, REAL_WCHAR> ) {
-                //--------- Windows Version ---------
+              //---------------------------------- Windows Version ---------------------------------
                 #if defined( _WIN32 )
 
                     // loop until reserved size is big enough
-                    for(integer bufSizeFactor= 2; bufSizeFactor < 8; ++bufSizeFactor)
-                    {
+                    for(integer bufSizeFactor= 2; bufSizeFactor < 8; ++bufSizeFactor) {
                         EnsureRemainingCapacity( srcLength * bufSizeFactor );
                         int conversionSize= WideCharToMultiByte( CP_UTF8, 0,
                                                                  src, int( srcLength),
                                                                  base::vbuffer + base::length, int( Capacity() - base::length ),
                                                                  NULL, NULL );
-                        if ( conversionSize > 0 )
-                        {
+                        if ( conversionSize > 0 ) {
                             base::length+= conversionSize;
                             return *this;
                         }
 
                         // not enough space?
                         int error= GetLastError();
-                        if (error == ERROR_INSUFFICIENT_BUFFER )
-                        {
+                        if (error == ERROR_INSUFFICIENT_BUFFER ) {
                             EnsureRemainingCapacity( srcLength );
                             continue;
                         }
@@ -916,7 +888,7 @@ class TAString : public TString<TChar>
                                             "UTF-8. Error: ERROR_INSUFFICIENT_BUFFER" )
                     return *this;
 
-                //--------- __GLIBCXX__ Version ---------
+              //-------------------------------- __GLIBCXX__ Version -------------------------------
                 #elif defined (__GLIBCXX__)  || defined(_LIBCPP_VERSION) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
                     integer maxConversionSize= integer(MB_CUR_MAX) * srcLength;
@@ -926,15 +898,13 @@ class TAString : public TString<TChar>
                     memset( &ps, 0, sizeof(mbstate_t) );
                     const REAL_WCHAR* srcp= src;
                     size_t conversionSize= wcsnrtombs( base::vbuffer + base::length, &srcp, size_t(srcLength), size_t(maxConversionSize),  &ps);
-                    if ( conversionSize == size_t( -1 ) )
-                    {
+                    if ( conversionSize == size_t( -1 ) ) {
                         ALIB_WARNING( "STRINGS", "Cannot convert WCS to MBCS. "
                                                  "Check locale settings (should be UTF-8)" )
                         return *this;
                     }
 
-                    if ( conversionSize < 1 )
-                    {
+                    if ( conversionSize < 1 ) {
                         ALIB_ERROR( "STRINGS", "Error converting WCS to MBCS." )
                         return *this;
                     }
@@ -966,7 +936,7 @@ class TAString : public TString<TChar>
             // nchar -> wchar_t
             if constexpr ( std::same_as<TCharSrc, nchar> ) {
                 EnsureRemainingCapacity( srcLength );
-                //--------- Windows Version ----------
+              //---------------------------------- Windows Version ---------------------------------
                 #if defined( _WIN32 )
                     if( srcLength == 0)
                         return *this;
@@ -976,8 +946,7 @@ class TAString : public TString<TChar>
                                                                  int( Capacity() - base::length ) );
                     // check for errors
                     #if ALIB_DEBUG
-                        if ( conversionSize == 0 )
-                        {
+                        if ( conversionSize == 0 ) {
                             // not enough space?
                             int error= GetLastError();
 
@@ -1001,15 +970,13 @@ class TAString : public TString<TChar>
                     return *this;
 
 
-                //--------- __GLIBCXX__ Version ---------
+              //-------------------------------- __GLIBCXX__ Version -------------------------------
                 #elif defined (__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
                     // copy loop
-                    while(srcLength > 0 )
-                    {
+                    while(srcLength > 0 ) {
                         integer actConversionLenght= srcLength;
-                        for( int pass= 0 ; pass < 2 ; ++pass )
-                        {
+                        for( int pass= 0 ; pass < 2 ; ++pass ) {
 
                             mbstate_t    ps;    memset( &ps, 0, sizeof(mbstate_t) );
                             const nchar* srcp= src;
@@ -1018,15 +985,13 @@ class TAString : public TString<TChar>
                                                                 size_t(Capacity() - base::length), &ps );
 
                             // single character failed?
-                            if( wcWritten == static_cast<size_t >(-1) )
-                            {
+                            if( wcWritten == static_cast<size_t >(-1) ) {
                                 // already repeated?
                                 // This can't (must not) happen! If it did, release code does infinite loop!
                                 ALIB_ASSERT( pass == 0, "STRINGS" )
 
                                 // first character that failed?
-                                if( srcp == src )
-                                {
+                                if( srcp == src ) {
                                     ++src;
                                     --srcLength;
                                     *(base::vbuffer + base::length++)= '?';
@@ -1042,8 +1007,7 @@ class TAString : public TString<TChar>
                             src+=       wcWritten;
                             srcLength-= actConversionLenght;
                             break;
-                        }
-                    }
+                    }   }
                     return *this;
 
                 #else
@@ -1060,47 +1024,37 @@ class TAString : public TString<TChar>
 
                 // convert UTF16 to UTF32
                 const char16_t* srcEnd=    src + srcLength;
-                while (src < srcEnd)
-                {
-                    const char32_t uc = *src++;
-                    if ((uc - 0xd800) >= 2048) // not surrogate
-                    {
+                while (src < srcEnd) {
+                    const char32_t uc = char32_t(*src++);
+                    if ((uc - 0xd800) >= 2048)  { // not surrogate
                         base::vbuffer[base::length++] = static_cast<wchar_t>(uc);
-                    }
-                    else
-                    {
+                    } else {
                         ALIB_ASSERT_ERROR(    src < srcEnd                        // has one more?
                                            && ((uc    & 0xfffffc00) == 0xd800)    // is low
                                            && ((*src  & 0xfffffc00) == 0xdc00),   // is high
                                            "STRINGS", "Error decoding UTF16" )
                         base::vbuffer[base::length++]=  static_cast<wchar_t>(     (uc << 10)
                                                                        +  ((*src++) - 0x35fdc00 ) );
-                    }
-                }
+                }   }
 
               #else
                 // convert UTF32 to UTF16
                 EnsureRemainingCapacity( srcLength * 2 );
 
                 const char32_t* srcEnd=    src + srcLength;
-                while (src < srcEnd)
-                {
+                while (src < srcEnd) {
                     uinteger uc= *src++;
                     ALIB_ASSERT_ERROR(       uc <  0xd800
                                         || ( uc >= 0xe000 && uc <= 0x10ffff ),
                                         "STRINGS", "Illegal unicode 32 bit codepoint"       )
 
-                    if( uc < 0x10000 )
-                    {
+                    if( uc < 0x10000 ) {
                           base::vbuffer[base::length++]=  static_cast<wchar_t>( uc );
-                    }
-                    else
-                    {
+                    } else {
                         uc-= 0x10000;
                         base::vbuffer[base::length++]= static_cast<wchar_t>(  ( uc >> 10    ) + 0xd800  );
                         base::vbuffer[base::length++]= static_cast<wchar_t>(  ( uc &  0x3ff ) + 0xdc00  );
-                    }
-                }
+                }   }
 
                 return *this;
               #endif
@@ -1116,15 +1070,11 @@ class TAString : public TString<TChar>
 
                 // convert UTF16 to UTF32
                 const wchar_t* srcEnd=    src + srcLength;
-                while (src < srcEnd)
-                {
+                while (src < srcEnd) {
                     const char32_t uc = *src++;
-                    if ((uc - 0xd800) >= 2048) // not surrogate
-                    {
+                    if ((uc - 0xd800) >= 2048)  { // not surrogate
                         base::vbuffer[base::length++] = static_cast<REAL_XCHAR>(uc);
-                    }
-                    else
-                    {
+                    } else {
                         ALIB_ASSERT_ERROR(    src < srcEnd                        // has one more?
                                            && ((uc    & 0xfffffc00) == 0xd800)    // is low
                                            && ((*src  & 0xfffffc00) == 0xdc00),   // is high
@@ -1132,32 +1082,26 @@ class TAString : public TString<TChar>
 
                         base::vbuffer[base::length++]= static_cast<REAL_XCHAR>(     (uc << 10)
                                                                                  +  ((*src++) - 0x35fdc00 ) );
-                    }
-                }
+                }   }
 
               #else
                 // convert UTF32 to UTF16
                 EnsureRemainingCapacity( srcLength * 2 ); // can potentially double!
 
                 const wchar_t* srcEnd=    src + srcLength;
-                while (src < srcEnd)
-                {
+                while (src < srcEnd) {
                     uinteger uc= uinteger( *src++ );
                     ALIB_ASSERT_ERROR(       uc <  0xd800
                                         || ( uc >= 0xe000 && uc <= 0x10ffff ),
                                         "STRINGS", "Illegal unicode 32 bit codepoint"   )
 
-                    if( uc < 0x10000 )
-                    {
+                    if( uc < 0x10000 ) {
                           base::vbuffer[base::length++]=  static_cast<REAL_XCHAR>( uc );
-                    }
-                    else
-                    {
+                    } else {
                         uc-= 0x10000;
                         base::vbuffer[base::length++]= static_cast<REAL_XCHAR>(  ( uc >> 10    ) + 0xd800  );
                         base::vbuffer[base::length++]= static_cast<REAL_XCHAR>(  ( uc &  0x3ff ) + 0xdc00  );
-                    }
-                }
+                }   }
               #endif
             } // wchar_t -> REAL_XCHAR
 
@@ -1194,27 +1138,22 @@ class TAString : public TString<TChar>
     /// @return    \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
     TAString&
-    Append( const TChar* src, integer srcLength )
-    {
+    Append( const TChar* src, integer srcLength ) {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if (!src)
                 return *this;
 
             // check empty
-            if ( srcLength <= 0 )
-            {
+            if ( srcLength <= 0 ) {
                 // set "un-nulled"
                 if ( base::IsNull() )
                     SetBuffer( 15 );
 
                 return *this;
             }
-        }
-        else
-        {
+        } else {
             ALIB_STRING_DBG_CHK(this)
             ALIB_ASSERT_ERROR( src || srcLength == 0, "STRINGS",
                                "Nullptr passed with non-checking method version." )
@@ -1242,14 +1181,11 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString& Append( const TString<TChar>& src, integer regionStart, integer regionLength =MAX_LEN )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString& Append(const TString<TChar>& src, integer regionStart, integer regionLength =MAX_LEN){
+        if constexpr ( TCheck::value ) {
             if ( src.IsNull() )
                 return *this;
-            if ( src.base::AdjustRegion( regionStart, regionLength ) )
-            {
+            if ( src.base::AdjustRegion( regionStart, regionLength ) ) {
                 // special treatment if currently nothing is allocated and a blank string ("") is added:
                 // we allocate, which means, we are not a nulled object anymore!
                 // (...also, in this case we check the src parameter)
@@ -1257,9 +1193,7 @@ class TAString : public TString<TChar>
                     SetBuffer( 15 );
                 return *this;
             }
-        }
-        else
-        {
+        } else {
             //---- non-checking version ----
             ALIB_ASSERT_ERROR(    regionStart >= 0 && regionLength >= 0
                                && regionLength !=strings::MAX_LEN
@@ -1288,11 +1222,10 @@ class TAString : public TString<TChar>
     ///                     If \alib{NC} is given, a \e nulled string may remain \e nulled.
     /// @tparam TAppendable The type of parameter \p{src}.
     /// @param  src         The object to "stringify" and append.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     template<typename TCheck= CHK, typename TAppendable>
     requires alib::strings::IsAppendable<TAppendable, TChar,TAllocator>
-    TAString& Append(const  TAppendable& src )
-    {
+    TAString& Append(const  TAppendable& src ) {
         AppendableTraits<TAppendable, TChar,TAllocator>()( *this,  src );
 
         if ( TCheck::value && base::IsNull() )
@@ -1309,14 +1242,13 @@ class TAString : public TString<TChar>
     ///                       this method has undefined behavior.
     /// @tparam TStringSource The type of parameter \p{src}.
     /// @param  src    The string-type object to append.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     template< typename TCheck= CHK, typename TStringSource>
     requires (     alib::characters::IsImplicitZTArraySource<TStringSource,
                                                           characters::ZTType<TStringSource>>
                ||  alib::characters::IsImplicitArraySource <TStringSource,
                                                           characters::Type<TStringSource>> )
-    TAString& Append(const  TStringSource& src )
-    {
+    TAString& Append(const  TStringSource& src ) {
         // implicit
         if constexpr ( characters::IsImplicitArraySource<TStringSource, characters::Type<TStringSource>> ) {
             using TSrc=  characters::Type<TStringSource>;
@@ -1329,13 +1261,12 @@ class TAString : public TString<TChar>
             using TCA=  characters::ZTArrayTraits<TStringSource,TSrc>;
             const TSrc* buf=     TCA::Buffer( src );
             return Append<TCheck>( buf, TCA::Length( src ) );
-        }
-    }
+    }   }
 
     /// Appends platform-specific new line character(s) by appending literal string
     /// \alib{NEW_LINE}.
     /// @return \c *this to allow concatenated calls.
-    TAString&          NewLine()     { return Append<NC>( CStringConstantsTraits<TChar>::NewLine() ); }
+    TAString&          NewLine()  { return Append<NC>( CStringConstantsTraits<TChar>::NewLine() ); }
 
 
     /// Appends a single character of compatible type.
@@ -1344,10 +1275,9 @@ class TAString : public TString<TChar>
     ///                this instance will switch to \e empty state if it was \e nulled before.
     ///                If \alib{NC} is given, \p{src} is \b not checked for being \c 0.
     /// @param  src    The character object to append.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     template<typename TCheck= CHK>
-    TAString&   Append(TChar src )
-    {
+    TAString&   Append(TChar src ) {
         if constexpr ( TCheck::value ) {
             if ( src == 0 ) {
                 if (base::IsNull() )
@@ -1373,10 +1303,9 @@ class TAString : public TString<TChar>
     ///                If \alib{NC} is given, \p{src} is \b not checked for being \c 0.
     /// @param  src    The character value to append. Only values of types that satisfy
     ///                the concept \alib{characters;IsCharacter} are accepted.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     template< typename TCheck= CHK>
-    TAString& Append( characters::IsCharacter auto src )
-    {
+    TAString& Append( characters::IsCharacter auto src ) {
         // check for 0
         if ( TCheck::value && src == 0 ) {
             if (base::IsNull() )
@@ -1386,8 +1315,7 @@ class TAString : public TString<TChar>
 
 
         // this is an AString<nchar>?
-        if constexpr ( std::same_as< TChar, nchar > )
-        {
+        if constexpr ( std::same_as< TChar, nchar > ) {
             wchar wc=  static_cast<wchar>( src );
             int mbLength;
             #if defined(_WIN32)
@@ -1395,8 +1323,7 @@ class TAString : public TString<TChar>
                 mbLength= WideCharToMultiByte( CP_UTF8, 0, &wc, 1,
                                                ((nchar*) base::vbuffer) + base::length,
                                                MB_LEN_MAX * 2, NULL, NULL );
-                if ( mbLength <= 0 )
-                {
+                if ( mbLength <= 0 ) {
                     ALIB_DBG( DWORD error= GetLastError(); )
                     ALIB_WARNING( "STRINGS", "Cannot convert wide character string to UTF-8. Error: {} ({})",
                      (   error == ERROR_INSUFFICIENT_BUFFER    ? "ERROR_INSUFFICIENT_BUFFER"
@@ -1412,8 +1339,7 @@ class TAString : public TString<TChar>
                                                          + base::length, wc );
             #endif
 
-            if ( mbLength <= 0 )
-            {
+            if ( mbLength <= 0 ) {
                 ALIB_WARNING( "STRINGS", "Cannot convert WC to MBC." )
                 return *this;
             }
@@ -1487,26 +1413,26 @@ class TAString : public TString<TChar>
     ///         myString  += "hello"  += "world";  // Compilation error: parentheses are required
     ///         (myString += "hello") += "world";  // Correct.
     ///         myString  << "hello"  << "world";  // Correct without parentheses
-    ///   \endcode 
+    ///   \endcode
     /// \note
     ///   Because <c>operator<<</c> typically expresses a streaming-like behavior, it avoids such
     ///   ambiguity or precedence issues and is more straightforward for chaining multiple append
     ///   operations. Hence, it is recommended to prefer <c><<</c> over <c>+=</c> when performing
     ///   multiple appends within a single expression.
-    ///   
+    ///
     /// @tparam TAppendable  The type of parameter \p{source}.
     /// @param  src   The object of type T to append.
     /// @return \c *this to allow concatenated calls.
     template <typename TAppendable>
     TAString& operator+= (const  TAppendable& src )                     { return Append<CHK>(src); }
 
-  // ###############################################################################################
+  //################################################################################################
   /// @name Insert and Delete
-  // ###############################################################################################
+  //################################################################################################
 
     /// Sets the length of this string to zero. A \e nulled object remains \e nulled.
     /// @return \c *this to allow concatenated calls.
-    TAString&    Reset()         { ALIB_STRING_DBG_CHK(this)  base::length=    0;   return *this;  }
+    TAString&    Reset()          { ALIB_STRING_DBG_CHK(this)  base::length=    0;   return *this; }
 
     /// Sets the length of the string to zero and then invokes one of the overloaded methods
     /// #Append.
@@ -1516,10 +1442,9 @@ class TAString : public TString<TChar>
     /// @tparam TAppendable The type of parameter \p{source}.
     /// @param  src         The source of type \p{TAppendable} to append.
     ///
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK, typename TAppendable>
-    TAString& Reset(const TAppendable& src )
-    {
+    TAString& Reset(const TAppendable& src ) {
         ALIB_STRING_DBG_CHK(this)
         base::length=    0;
         Append<TCheck>( src );
@@ -1529,8 +1454,7 @@ class TAString : public TString<TChar>
     /// Sets the length of the string to zero. Same as method #Reset.
     /// Provided for compatibility with C# and Java versions of \alib.
     /// @return \c *this to allow concatenated calls.
-    TAString&    _()
-    {
+    TAString&    _() {
         ALIB_STRING_DBG_CHK(this)
         base::length=    0;
         return *this;
@@ -1549,17 +1473,13 @@ class TAString : public TString<TChar>
     /// @param  pos      The position to insert \p{src}.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString&   InsertAt( const TString<TChar>& src, integer pos )
-    {
+    TAString&   InsertAt( const TString<TChar>& src, integer pos ) {
         ALIB_STRING_DBG_CHK(this)
         integer srcLength= src.Length();
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( srcLength == 0 || pos < 0 || pos > base::length )
                 return *this;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( srcLength > 0 && pos >=0 && pos <= base::length, "STRINGS",
             "Non-checking invocation: ","Illegal insertion position 0 <= {} < {}.", pos, base::length )
         }
@@ -1584,10 +1504,8 @@ class TAString : public TString<TChar>
     /// @param qty   The quantity of characters to insert.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString&   InsertChars( TChar c, integer qty )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString&   InsertChars( TChar c, integer qty ) {
+        if constexpr ( TCheck::value ) {
             if ( qty <= 0 )
                 return *this;
         }
@@ -1613,15 +1531,11 @@ class TAString : public TString<TChar>
     /// @param pos   The index in this object where \p{c} is inserted \p{qty} times.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString&   InsertChars( TChar c, integer qty, integer pos )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString&   InsertChars( TChar c, integer qty, integer pos ) {
+        if constexpr ( TCheck::value ) {
             if ( qty <= 0 || pos < 0 ||  pos > base::length )
                 return *this;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( qty >= 0, "STRINGS",
                                "Non-checking invocation: ", "Negative quantity {} given", qty )
             ALIB_ASSERT_ERROR( pos >= 0 && pos <= base::length, "STRINGS",
@@ -1661,26 +1575,21 @@ class TAString : public TString<TChar>
     /// @param regionLength  The length of the region to delete. Defaults to \b %MAX_LEN.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK >
-    TAString&    Delete( integer regionStart, integer regionLength =MAX_LEN )
-    {
+    TAString&    Delete( integer regionStart, integer regionLength =MAX_LEN ) {
         ALIB_STRING_DBG_CHK(this)
 
         integer regionEnd;
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( base::AdjustRegion( regionStart, regionLength ) )
                 return *this;
 
             // delete over the end?
-            if ( (regionEnd= regionStart + regionLength) >= base::length )
-            {
+            if ( (regionEnd= regionStart + regionLength) >= base::length ) {
                 base::length= regionStart;
                 return *this;
             }
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR(     regionStart  >= 0
                                &&  regionStart  <= base::length   , "STRINGS",
               "Non-checking invocation: ", "Illegal arguments. Region start: 0 <= {} < {}.",
@@ -1690,12 +1599,10 @@ class TAString : public TString<TChar>
               regionLength )
 
             // delete over the end?
-            if ( (regionEnd= regionStart + regionLength) >= base::length )
-            {
+            if ( (regionEnd= regionStart + regionLength) >= base::length ) {
                 base::length= regionStart;
                 return *this;
-            }
-        }
+        }   }
 
         // both versions
         characters::Move( base::vbuffer + regionEnd,
@@ -1717,22 +1624,17 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK >
-    TAString&                 DeleteStart( integer regionLength )
-    {
+    TAString&                 DeleteStart( integer regionLength ) {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
-            if ( regionLength <= 0 )
-            {
+        if constexpr ( TCheck::value ) {
+            if ( regionLength <= 0 ) {
                 ALIB_STRING_DBG_CHK(this)
                 return *this;
             }
             if ( regionLength >= base::length )
                 return Reset();
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR(  regionLength >=0 && regionLength <= base::length, "STRINGS",
                 "Non-checking invocation: ", "Region length out of range: 0 <= {} < {}.",
                 regionLength, base::length )
@@ -1751,8 +1653,7 @@ class TAString : public TString<TChar>
     /// @param deleteIfMatch  The string to be deleted at the start.
     ///
     /// @return \c *this to allow concatenated calls.
-    TAString&                DeleteStart( const TString<TChar>& deleteIfMatch )
-    {
+    TAString&                DeleteStart( const TString<TChar>& deleteIfMatch ) {
         ALIB_STRING_DBG_CHK(this)
         if( deleteIfMatch.IsNotEmpty() && base::StartsWith(deleteIfMatch) )
             return DeleteStart(deleteIfMatch.Length());
@@ -1769,22 +1670,17 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK >
-    TAString&                DeleteEnd( integer regionLength  )
-    {
+    TAString&                DeleteEnd( integer regionLength  ) {
         ALIB_STRING_DBG_CHK(this)
 
-        if constexpr ( TCheck::value )
-        {
-            if ( regionLength > 0 )
-            {
+        if constexpr ( TCheck::value ) {
+            if ( regionLength > 0 ) {
                 if ( regionLength >= base::length )
                     base::length= 0;
                 else
                     base::length-= regionLength;
             }
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR(  regionLength >=0 && regionLength <= base::length,  "STRINGS",
                    "Non-checking invocation: ", "Region length out of range: 0 <= {} < {}.",
                     regionLength, base::length )
@@ -1800,8 +1696,7 @@ class TAString : public TString<TChar>
     /// @param deleteIfMatch  The string to be deleted at the end.
     ///
     /// @return \c *this to allow concatenated calls.
-    TAString&                DeleteEnd( const TString<TChar>& deleteIfMatch )
-    {
+    TAString&                DeleteEnd( const TString<TChar>& deleteIfMatch ) {
         ALIB_STRING_DBG_CHK(this)
         if( deleteIfMatch.IsNotEmpty() && base::EndsWith(deleteIfMatch) )
             return DeleteEnd(deleteIfMatch.Length());
@@ -1815,7 +1710,7 @@ class TAString : public TString<TChar>
     ///
     /// @param trimChars   Pointer to a zero-terminated set of characters to be omitted.
     ///                    Defaults to \ref DEFAULT_WHITESPACES.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     ALIB_DLL
     TAString& Trim( const TCString<TChar>& trimChars
                                             = CStringConstantsTraits<TChar>::DefaultWhitespaces() );
@@ -1830,8 +1725,8 @@ class TAString : public TString<TChar>
     ///                    and <em>Length() -1</em>.
     /// @param trimChars   Pointer to a zero-terminated set of characters to be omitted.
     ///                    Defaults to \ref DEFAULT_WHITESPACES.
-    /// @return  The index of the first character of those characters that were behind the
-    ///          trimmed region.
+    /// @return The index of the first character of those characters that were behind the
+    ///         trimmed region.
     ALIB_DLL
     integer  TrimAt( integer idx, const TCString<TChar>& trimChars
                                             = CStringConstantsTraits<TChar>::DefaultWhitespaces() );
@@ -1842,10 +1737,9 @@ class TAString : public TString<TChar>
     ///
     /// @param trimChars   Pointer to a zero-terminated set of characters to be omitted.
     ///                    Defaults to \ref DEFAULT_WHITESPACES.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     TAString& TrimStart( const TCString<TChar>& trimChars
-                                             = CStringConstantsTraits<TChar>::DefaultWhitespaces() )
-    {
+                                           = CStringConstantsTraits<TChar>::DefaultWhitespaces() ) {
         if (base::length == 0 || trimChars.IsEmpty() )
             return *this;
 
@@ -1864,10 +1758,9 @@ class TAString : public TString<TChar>
     ///
     /// @param trimChars   Pointer to a zero-terminated set of characters to be omitted.
     ///                    Defaults to \ref DEFAULT_WHITESPACES.
-    /// @return  \c *this to allow concatenated calls.
+    /// @return \c *this to allow concatenated calls.
     TAString& TrimEnd( const TCString<TChar>& trimChars
-                                             = CStringConstantsTraits<TChar>::DefaultWhitespaces() )
-    {
+                                           = CStringConstantsTraits<TChar>::DefaultWhitespaces() ) {
         if( base::length > 0 &&  trimChars.IsNotEmpty() )
             base::length=
                 base::template LastIndexOfAny<lang::Inclusion::Exclude, NC>(
@@ -1875,9 +1768,9 @@ class TAString : public TString<TChar>
         return *this;
     }
 
-// ###############################################################################################
+//##################################################################################################
 /// @name Replace
-// ###############################################################################################
+//##################################################################################################
 
     /// Replaces a region in this object by a given string.
     /// The given region is adjusted to this string's bounds.
@@ -1893,15 +1786,12 @@ class TAString : public TString<TChar>
     /// @param regionLength    The length of the region.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString&   ReplaceSubstring( const TString<TChar>& src, integer regionStart, integer regionLength )
-    {
+    TAString&   ReplaceSubstring( const TString<TChar>& src,
+                                  integer regionStart, integer regionLength ) {
         ALIB_STRING_DBG_CHK(this)
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             base::AdjustRegion( regionStart, regionLength );
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( src.IsNotNull(), "STRINGS",
                                "Non-checking invocation: ", "Source string is nulled" )
             #if ALIB_DEBUG
@@ -1947,15 +1837,11 @@ class TAString : public TString<TChar>
     /// @param c               The character to set in the region.
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString&   ReplaceRegion( TChar c, integer regionStart, integer regionLength )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString&   ReplaceRegion( TChar c, integer regionStart, integer regionLength ) {
+        if constexpr ( TCheck::value ) {
             if ( base::AdjustRegion( regionStart, regionLength ) )
                 return *this;
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs=  regionStart;
                 integer rl=  regionLength;
@@ -2018,15 +1904,11 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString& ToUpper( integer regionStart= 0, integer regionLength =MAX_LEN )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString& ToUpper( integer regionStart= 0, integer regionLength =MAX_LEN ) {
+        if constexpr ( TCheck::value ) {
             if ( base::AdjustRegion( regionStart, regionLength ) )
                 return *this;
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs=  regionStart;
                 integer rl=  regionLength;
@@ -2049,15 +1931,11 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString& ToLower( integer regionStart= 0, integer regionLength =MAX_LEN )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString& ToLower( integer regionStart= 0, integer regionLength =MAX_LEN ) {
+        if constexpr ( TCheck::value ) {
             if ( base::AdjustRegion( regionStart, regionLength ) )
                 return *this;
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs=  regionStart;
                 integer rl=  regionLength;
@@ -2079,15 +1957,11 @@ class TAString : public TString<TChar>
     ///
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
-    TAString& Reverse( integer regionStart= 0, integer regionLength =MAX_LEN )
-    {
-        if constexpr ( TCheck::value )
-        {
+    TAString& Reverse( integer regionStart= 0, integer regionLength =MAX_LEN ) {
+        if constexpr ( TCheck::value ) {
             if ( base::AdjustRegion( regionStart, regionLength ) )
                 return *this;
-        }
-        else
-        {
+        } else {
             #if ALIB_DEBUG
                 integer rs=  regionStart;
                 integer rl=  regionLength;
@@ -2117,9 +1991,9 @@ class TAString : public TString<TChar>
     /// Same as #iterator, but working from the end to the start of the string.
     using reverse_iterator  = std::reverse_iterator<iterator>;
 
-  // ###############################################################################################
+  //################################################################################################
   /// @name std::iterator_traits
-  // ###############################################################################################
+  //################################################################################################
 
     /// Returns an iterator pointing to a constant character at the start of this string.
     /// @return The start of this string.
@@ -2152,9 +2026,9 @@ class TAString : public TString<TChar>
 
 }; // class TAString
 
-// #################################################################################################
+//##################################################################################################
 // TAString type aliases
-// #################################################################################################
+//##################################################################################################
 }
 
 DOX_MARKER( [DOX_MONOMEM_ALLOCMEMBER])
@@ -2177,9 +2051,9 @@ using  WAString         =     strings::TAString   <wchar          , lang::HeapAl
 /// Type alias in namespace \b alib.
 using  XAString         =     strings::TAString   <xchar          , lang::HeapAllocator>;
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits for this class String
-// #################################################################################################
+//##################################################################################################
 namespace characters {
 #if !DOXYGEN
 template<typename TChar, typename TAllocator>
@@ -2188,9 +2062,9 @@ struct ArrayTraits<strings::TAString<TChar,TAllocator>, TChar>
     using T= strings::TAString<TChar,TAllocator>;
     static constexpr Policy       Access                               = Policy::Implicit;
     static constexpr Policy       Construction                         = Policy::ExplicitOnly;
-    static constexpr const TChar* Buffer   (const T& src)              { return src.Buffer(); }
-    static constexpr integer      Length   (const T& src)              { return src.Length(); }
-    static constexpr T            Construct(const TChar* b, integer l) { return T().Append(b, l); }
+    static constexpr const TChar* Buffer   (const T& src)                   { return src.Buffer(); }
+    static constexpr integer      Length   (const T& src)                   { return src.Length(); }
+    static constexpr T            Construct(const TChar* b, integer l)  { return T().Append(b, l); }
 };
 
 template<typename TChar, typename TAllocator>
@@ -2199,9 +2073,9 @@ struct ZTArrayTraits<strings::TAString<TChar,TAllocator>, TChar>
     using T= strings::TAString<TChar,TAllocator>;
     static constexpr Policy       Access                               = Policy::Implicit;
     static constexpr Policy       Construction                         = Policy::ExplicitOnly;
-    static constexpr const TChar* Buffer   (const T& src)              { return src.Terminate(); }
-    static constexpr integer      Length   (const T& src)              { return src.Length(); }
-    static constexpr T            Construct(const TChar* b, integer l) { return T().Append(b, l); }
+    static constexpr const TChar* Buffer   (const T& src)                { return src.Terminate(); }
+    static constexpr integer      Length   (const T& src)                   { return src.Length(); }
+    static constexpr T            Construct(const TChar* b, integer l)  { return T().Append(b, l); }
 };
 #endif // !DOXYGEN
 } namespace strings {
@@ -2239,7 +2113,7 @@ class TStringLengthResetter
     /// @return Never called.
     void* operator new[](size_t, void*);
     /// Private assignment operator.
-    void  operator =    (const TStringLengthResetter& );
+    void  operator                                                 =(const TStringLengthResetter& );
 
   public:
     /// Constructor taking the string. Stores the current length in field #originalLength.
@@ -2315,5 +2189,3 @@ auto operator<=> (const TAString<TChar,TAllocator>& lhs, const T&     rhs)
 
 } // namespace [alib::strings]
 #endif // !DOXYGEN
-
-

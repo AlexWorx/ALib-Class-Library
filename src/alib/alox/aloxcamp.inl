@@ -10,11 +10,11 @@ ALIB_EXPORT namespace alib {  namespace lox {
 //==================================================================================================
 /// Configuration variables uses by ALox.
 /// \note
-///  As required by module \alib_variables, this enumerations is equipped with
-///  \ref alib_enums_records "ALib Enum Records" of type \alib{variables;Declaration}  and resourced
-///  with this module \alib_alox_nl.<br>
-///  Hence, all variable categories, names, default values and such can be modified
-///  by modifying the resource data of the singleton of class \alib{camp;Basecamp}.
+///   As required by module \alib_variables, this enumerations is equipped with
+///   \ref alib_enums_records "ALib Enum Records" of type \alib{variables;Declaration}  and resourced
+///   with this module \alib_alox_nl.<br>
+///   Hence, all variable categories, names, default values and such can be modified
+///   by modifying the resource data of the singleton of class \alib{camp;Basecamp}.
 //==================================================================================================
 enum class Variables
 {
@@ -100,11 +100,10 @@ struct CVVerbosities : protected StringVectorPA
     using StringVectorPA::Size;
 
     /// @return \c true if this vector is empty, \c false otherwise.
-    bool    IsEmpty()   { return empty(); }
+    bool    IsEmpty()                                                            { return empty(); }
 
     /// Frees all allocated strings and clears vector.
-    void Clear()
-    {
+    void Clear() {
         for ( auto it = begin() ; it != end() ; ++it )
             it->Free( GetAllocator() );
         clear();
@@ -119,14 +118,14 @@ struct CVVerbosities : protected StringVectorPA
 //==================================================================================================
 class ALoxCamp : public camp::Camp
 {
-    public:
-        /// Constructor.<br>
-        /// While this is public, it must not be invoked as this is a strict singleton type.
-        /// (See notes in \ref alib_camp_camp).
-        ALoxCamp();
+  public:
+    /// Constructor.<br>
+    /// While this is public, it must not be invoked as this is a strict singleton type.
+    /// (See notes in \ref alib_camp_camp).
+    ALoxCamp();
 
     // Public fields
-    public:
+  public:
 
         #if defined(_WIN32)
             /// Attributes of corresponding configuration variable \ref alxcvALOX_CODEPAGE
@@ -134,26 +133,26 @@ class ALoxCamp : public camp::Camp
             ALIB_DLL static  variables::Declaration CODEPAGE;
         #endif
 
-        /// Resets this object. Concretely, the following steps are performed:
-        /// - If the debug lox singleton exists, it is deleted.
-        /// - It is asserted that no other lox object is registered.
-        /// - The \alox path of the configuration is deleted.
-        ///
-        /// \attention
-        ///   This method was introduced to support resetting \alox in the unit tests.
-        ///   In real applications, this method should NOT be used.
-        ///   Side effects might appear using this method and it is not tested otherwise than
-        ///   used in tests!
-        ALIB_DLL void   Reset();
+    /// Resets this object. Concretely, the following steps are performed:
+    /// - If the debug lox singleton exists, it is deleted.
+    /// - It is asserted that no other lox object is registered.
+    /// - The \alox path of the configuration is deleted.
+    ///
+    /// \attention
+    ///   This method was introduced to support resetting \alox in the unit tests.
+    ///   In real applications, this method should NOT be used.
+    ///   Side effects might appear using this method and it is not tested otherwise than
+    ///   used in tests!
+    ALIB_DLL void   Reset();
     
     // Internals
-    protected:
-        /// Implementation of \alib{camp;Camp::Bootstrap}.
-        virtual void    Bootstrap()                                                        override;
+  protected:
+    /// Implementation of \alib{camp;Camp::Bootstrap}.
+    virtual void    Bootstrap()                                                            override;
 
-        /// Implementation of \alib{camp;Camp::Shutdown}.
-        /// @param phase  The shutdown phase to perform.
-        virtual void    Shutdown( ShutdownPhases phase )                                   override;
+    /// Implementation of \alib{camp;Camp::Shutdown}.
+    /// @param phase  The shutdown phase to perform.
+    virtual void    Shutdown( ShutdownPhases phase )                                       override;
 
 };// class ALoxCamp
 
@@ -167,9 +166,9 @@ extern ALIB_DLL lox::ALoxCamp ALOX;
 ALIB_ENUMS_ASSIGN_RECORD( alib::lox::Variables, alib::variables::Declaration )
 ALIB_RESOURCED_IN_MODULE( alib::lox::Variables, alib::ALOX, "Var" )
 
-// #################################################################################################
+//##################################################################################################
 // AppendableTraits<Scope> / AppendableTraits<Verbosity>
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 ALIB_EXPORT namespace alib::strings {
 
@@ -189,5 +188,3 @@ template<> struct       AppendableTraits<Pair<Verbosity, Priority>,nchar, lang::
 #endif // !DOXYGEN
 
 ALIB_VARIABLES_DEFINE_TYPE_WITH_POOL_CONSTRUCTOR( alib::lox::, CVVerbosities, A_CHAR("ALOXV") )
-
-

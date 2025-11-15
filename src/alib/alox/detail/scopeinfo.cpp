@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::detail - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,14 +11,14 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/system/system.prepro.hpp"
 #include "alib/alox/alox.prepro.hpp"
 #include <vector>
 #   include "ALib.Strings.StdFunctors.H"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -47,15 +47,15 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 using namespace alib::system;
 
 namespace alib {  namespace lox { namespace detail {
 
-// #################################################################################################
+//##################################################################################################
 // Static
-// #################################################################################################
+//##################################################################################################
 
 std::vector<ScopeInfo::SourcePathTrimRule>  ScopeInfo::GlobalSPTRs;
 bool                                        ScopeInfo::GlobalSPTRsReadFromConfig       = false;
@@ -86,14 +86,11 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
         Variable variable= variables::CampVariable(ALOX);
         
         // check if done... or set list
-        if ( trimInfoNo == 0 )
-        {
+        if ( trimInfoNo == 0 ) {
             trimInfoList= &LocalSPTRs;
             ALIB_STRINGS_FROM_NARROW(loxName,sLoxName, 1024)
             variable.Declare( Variables::SPTR_LOX,  sLoxName );
-        }
-        else
-        {
+        } else {
             if ( GlobalSPTRsReadFromConfig )
                 continue;
             GlobalSPTRsReadFromConfig= true;
@@ -102,12 +99,10 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
             variable.Declare( Variables::SPTR_GLOBAL );
         }
 
-        if( variable.IsDefined()  )
-        {
+        if( variable.IsDefined()  ) {
             Tokenizer tokOuter;
             tokOuter.Set(variable, ';', true);
-            while(tokOuter.HasNext())
-            {
+            while(tokOuter.HasNext()) {
                 Tokenizer ruleTknzr( tokOuter.Next(), ',' );
                 trimInfoList->emplace_back();
                 SourcePathTrimRule& rule=trimInfoList->back();
@@ -120,8 +115,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
                 if ( rule.Path.CharAtEnd() == '*' )
                     rule.Path.DeleteEnd( 1 );
 
-                if ( rule.Path.IsEmpty() )
-                {
+                if ( rule.Path.IsEmpty() ) {
                     trimInfoList->pop_back();
                     continue;
                 }
@@ -136,13 +130,9 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
                 enumrecords::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, lang::Case::Ignore, lang::Case::Sensitive );
 
                 rule.TrimReplacement.Reset( ruleTknzr.Next() );
-            }
-        }
-    }
-}
+}   }   }   }
 
-void ScopeInfo::Set ( const lang::CallerInfo& ci )
-{
+void ScopeInfo::Set ( const lang::CallerInfo& ci ) {
     ++callStackSize;
     ALIB_ASSERT( callStackSize < 8, "ALOX")
     if( callStack.size() == size_t(callStackSize) )
@@ -171,14 +161,12 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
                                         lang::Case          sensitivity,
                                         const NString&      trimReplacement,
                                         lang::Reach         reach,
-                                        Priority            priority )
-{
+                                        Priority            priority ) {
     // clear cache to have lazy variables reset with the next invocation
     parsedFileNameCache.Clear();
 
     // clear command
-    if ( trimOffset == 999999 )
-    {
+    if ( trimOffset == 999999 ) {
         LocalSPTRs.clear();
         if ( reach == lang::Reach::Global )
             GlobalSPTRs.clear();
@@ -207,8 +195,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
     rule.Path._(path, (rule.IsPrefix= (path.CharAtStart() != '*') ) == true  ? 0 : 1 );
     if ( rule.Path.CharAtEnd() == '*' )
         rule.Path.DeleteEnd( 1 );
-    if ( rule.Path.IsEmpty() )
-    {
+    if ( rule.Path.IsEmpty() ) {
         trimInfoList->erase( it );
         return;
     }
@@ -229,14 +216,12 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
 }
 
 
-void ScopeInfo::trimPath()
-{
+void ScopeInfo::trimPath() {
     bool trimmed= false;
 
     ParsedFileName* actual= callStack[size_t(callStackSize)].Parsed;
     integer idx= getPathLength();
-    if( idx < 0 )
-    {
+    if( idx < 0 ) {
         actual->trimmedPath= "";
         return;
     }
@@ -244,16 +229,14 @@ void ScopeInfo::trimPath()
 
 
     // do 2 times, 0== local list, 1== global list
-    for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
-    {
+    for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo ) {
         // choose local or global list
         std::vector<SourcePathTrimRule>* trimInfoList=
                    trimInfoNo == 0   ? &LocalSPTRs
                                      : &GlobalSPTRs;
 
         // loop over trimInfo
-        for ( auto& ti : *trimInfoList )
-        {
+        for ( auto& ti : *trimInfoList ) {
             if( ti.IsPrefix )
                 idx= ( ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.StartsWith<CHK,lang::Case::Sensitive>( ti.Path )
                                                                 : actual->trimmedPath.StartsWith<CHK,lang::Case::Ignore   >( ti.Path )
@@ -263,16 +246,14 @@ void ScopeInfo::trimPath()
             else
                 idx= ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.IndexOf<CHK, lang::Case::Sensitive>( ti.Path )
                                                               : actual->trimmedPath.IndexOf<CHK, lang::Case::Ignore   >( ti.Path );
-            if ( idx >= 0 )
-            {
+            if ( idx >= 0 ) {
                 integer startIdx= idx + ( ti.IncludeString == lang::Inclusion::Include ? ti.Path.Length() : 0 ) + ti.TrimOffset;
                 actual->trimmedPath=        actual->trimmedPath.Substring( startIdx, actual->trimmedPath.Length() - startIdx );
                 actual->trimmedPathPrefix=  ti.TrimReplacement;
 
                 trimmed= true;
                 break;
-            }
-        }
+        }   }
 
         if (trimmed)
             break;
@@ -280,8 +261,7 @@ void ScopeInfo::trimPath()
 
     // if nothing was found and the flag is still set, try once to auto-detect rule
     // from the 'difference' of source path and current working directory
-    if( !trimmed && AutoDetectTrimableSourcePath )
-    {
+    if( !trimmed && AutoDetectTrimableSourcePath ) {
         AutoDetectTrimableSourcePath= false; // do this only once
 
         // get system execution path and compare to file path
@@ -297,8 +277,7 @@ void ScopeInfo::trimPath()
                                == characters::ToUpper( character(actual->trimmedPath[i]) )  )
             ++i;
 
-        if ( i > 1 )
-        {
+        if ( i > 1 ) {
             currentDir.ShortenTo( i );
             NCString origFile= actual->origFile;
             ALIB_PATH_TO_NARROW(currentDir,nCurrentDir,1024)
@@ -306,9 +285,7 @@ void ScopeInfo::trimPath()
                                    lang::Reach::Local, Priority::AutoDetected );
             actual->origFile= origFile;
             trimPath(); // one recursive call
-        }
-    }
-}
+}   }   }
 
 
 }}} // namespace [alib::lox::detail]
@@ -316,4 +293,3 @@ void ScopeInfo::trimPath()
 #if defined(_MSC_VER)
     #pragma warning( pop )
 #endif
-

@@ -29,9 +29,9 @@
 
 
 
-// #################################################################################################
-// #################################   ArrayTraits<std::xyz>   #####################################
-// #################################################################################################
+//##################################################################################################
+//###################################### ArrayTraits<std::xyz> #####################################
+//##################################################################################################
 
 namespace alib::characters {
 #if DOXYGEN
@@ -47,7 +47,7 @@ namespace compatibility {
 namespace std {
 #endif
 
-// ####################################   std::string_view    ######################################
+//######################################### std::string_view #######################################
 /// Specialization of the type trait \alib{characters;ArrayTraits} for type
 /// <c>std::basic_string_view<TChar></c>:
 /// - Character array data (string data) is allowed to be implicitly accessed.
@@ -124,7 +124,7 @@ struct   ZTArrayTraits<std::basic_string_view<char8_t>, nchar>
   #endif
 };
 
-// ####################################   std::string         ######################################
+//########################################### std::string ##########################################
 
 /// Specialization of the type trait \alib{characters;ArrayTraits} for type
 /// <c>std::basic_string<TChar></c>:
@@ -209,7 +209,7 @@ struct     ZTArrayTraits<std::basic_string<TChar>, TChar>
 };
 
 
-// ####################################   std::vector<char>   ######################################
+//######################################## std::vector<char> #######################################
 /// Specialization of the type trait \alib{characters;ArrayTraits} for type <c>std::vector<TChar></c>:
 /// - Character array data (string data) is allowed to be implicitly accessed.
 /// - The construction from character arrays is defined to be allowed in explicit fashion only,
@@ -225,22 +225,21 @@ struct     ArrayTraits<std::vector<TChar>, TChar>
     #if !DOXYGEN
         static constexpr Policy              Access                                    = Policy::Implicit;
         static constexpr Policy              Construction                              = Policy::ExplicitOnly;
-        static constexpr const TChar*        Buffer   (std::vector<TChar> const & src) { return          src.data()  ; }
-        static constexpr integer             Length   (std::vector<TChar> const & src) { return integer( src.size() ); }
-        static std::vector<TChar>            Construct(const TChar* array, integer length )
-        {
-            std::vector<TChar> result;
-            result.reserve( size_t(length) );
-            const TChar* end= array + length;
-            while( array < end )
-                result.push_back( *array++ );
-            return  result;
-        }
+    static constexpr const TChar*        Buffer   (std::vector<TChar> const & src) { return          src.data()  ; }
+    static constexpr integer             Length   (std::vector<TChar> const & src) { return integer( src.size() ); }
+    static std::vector<TChar>            Construct(const TChar* array, integer length ) {
+        std::vector<TChar> result;
+        result.reserve( size_t(length) );
+        const TChar* end= array + length;
+        while( array < end )
+            result.push_back( *array++ );
+        return  result;
+    }
     #endif
 };
 
 /// Specialization of the type trait \alib{characters;ZTArrayTraits} for type
-///  <c>std::vector<TChar></c>:
+/// <c>std::vector<TChar></c>:
 /// - Character array data (string data) is allowed to be implicitly accessed.
 /// - The construction from zero-terminated character arrays is defined to be allowed in explicit
 ///   fashion only, because \c std::vector is a heavy-weight type which will copy the data to an
@@ -260,8 +259,7 @@ struct ZTArrayTraits<std::vector<TChar>, TChar >
     static constexpr Policy              Construction                              = Policy::ExplicitOnly;
     static constexpr const TChar*        Buffer   (std::vector<TChar> const & src) { return          src.data()  ; }
     static constexpr integer             Length   (std::vector<TChar> const & src) { return integer( src.size() ); }
-    static constexpr std::vector<TChar>  Construct(const TChar* array, integer length )
-    {
+    static constexpr std::vector<TChar>  Construct(const TChar* array, integer length ) {
         std::vector<TChar> result;
         result.reserve( size_t(length) );
         const TChar* end= array + length;
@@ -272,7 +270,7 @@ struct ZTArrayTraits<std::vector<TChar>, TChar >
   #endif
 };
 
-// ####################################   std::array    ######################################
+//############################################ std::array ##########################################
 /// Specialization of the type trait \alib{characters;ArrayTraits} for type
 /// <c>std::array<TChar></c>:
 /// - Character array data (string data) is allowed to be implicitly accessed.
@@ -313,7 +311,7 @@ struct   ZTArrayTraits<std::array<TChar, TLength>, TChar>
   #endif
 };
 
-// ####################################   std::span    ######################################
+//############################################ std::span ###########################################
 /// Specialization of the type trait \alib{characters;ArrayTraits} for type
 /// <c>std::span<const TChar></c>:
 /// - Character array data (string data) is allowed to be implicitly accessed.
@@ -368,25 +366,24 @@ struct   ZTArrayTraits<std::span<const TChar>, TChar>
 // documented with ZTArrayTraits<std::basic_string> above.
 #if !DOXYGEN
 namespace alib {  namespace strings {
-
-  template<typename TChar>                   struct NoAutoCastTraits<TCString<TChar>       , characters::Policy::ExplicitOnly, std::basic_string<TChar> > : std::true_type {};
-  template<typename TChar, typename TAlloc>  struct NoAutoCastTraits<TAString<TChar,TAlloc>, characters::Policy::ExplicitOnly, std::basic_string<TChar> > : std::true_type {};
+template<typename TChar>                   struct NoAutoCastTraits<TCString<TChar>       , characters::Policy::ExplicitOnly, std::basic_string<TChar> > : std::true_type {};
+template<typename TChar, typename TAlloc>  struct NoAutoCastTraits<TAString<TChar,TAlloc>, characters::Policy::ExplicitOnly, std::basic_string<TChar> > : std::true_type {};
 }}
 #endif
 
 
 
-// #################################################################################################
-// ##########################   std::formatter<alib::strings::xyz>   ###############################
-// #################################################################################################
+//##################################################################################################
+//################################ std::formatter<alib::strings::xyz> ##############################
+//##################################################################################################
 
 #if DOXYGEN
 namespace alib::strings::compatibility::std {
 #else
 #   if __has_include(<format>)
-       namespace std {
+namespace std {
 #   else
-       namespace fmt {
+namespace fmt {
 #   endif
 #endif
 
@@ -402,7 +399,7 @@ namespace alib::strings::compatibility::std {
 template<typename TChar>
 struct formatter<alib::strings::TString<TChar>, TChar>
   : formatter<std::basic_string_view<TChar>, TChar> {
-    // No need to override parse() since the base class does the work
+// No need to override parse() since the base class does the work
 
     /// This function converts the given \p{str} <c>std::basic_string_view<TChar></c> and
     /// then calls the base class's formatter, which is fully constexpr-capable.
@@ -411,7 +408,7 @@ struct formatter<alib::strings::TString<TChar>, TChar>
     /// @param ctx The formatting context provided by \c std::format.
     /// @return An iterator to the end of the output range.
     template<typename TContext>
-    auto format(const alib::strings::TString<TChar>& str, TContext& ctx) const {
+    auto format(const alib::strings::TString<TChar>& str, TContext& ctx)                     const {
         // Delegate formatting to the std::basic_string_view<TChar> formatter
         return formatter<std::basic_string_view<TChar>, TChar>::format(
             static_cast<std::basic_string_view<TChar>>(str), ctx);
@@ -429,7 +426,7 @@ struct formatter<alib::strings::TString<TChar>, TChar>
 template<typename TChar>
 struct formatter<alib::strings::TCString<TChar>, TChar>
   : formatter<std::basic_string_view<TChar>, TChar> {
-    // No need to override parse() since the base class does the work
+// No need to override parse() since the base class does the work
 
     /// This function converts the given \p{str} <c>std::basic_string_view<TChar></c> and
     /// then calls the base class's formatter, which is fully constexpr-capable.
@@ -438,7 +435,7 @@ struct formatter<alib::strings::TCString<TChar>, TChar>
     /// @param ctx The formatting context provided by \c std::format.
     /// @return An iterator to the end of the output range.
     template<typename TContext>
-    auto format(const alib::strings::TCString<TChar>& str, TContext& ctx) const {
+    auto format(const alib::strings::TCString<TChar>& str, TContext& ctx)                    const {
         // Delegate formatting to the std::basic_string_view<TChar> formatter
         return formatter<std::basic_string_view<TChar>, TChar>::format(
             static_cast<std::basic_string_view<TChar>>(str), ctx);
@@ -464,7 +461,7 @@ struct formatter<alib::strings::TAString<TChar, TAllocator>, TChar>
     /// @param ctx The formatting context provided by \c std::format.
     /// @return An iterator to the end of the output range.
     template<typename TContext>
-    auto format(const alib::strings::TAString<TChar, TAllocator>& str, TContext& ctx) const {
+    auto format(const alib::strings::TAString<TChar, TAllocator>& str, TContext& ctx)        const {
         return formatter<std::basic_string_view<TChar>, TChar>::format(
             static_cast<std::basic_string_view<TChar>>(str), ctx);
     }
@@ -481,7 +478,7 @@ struct formatter<alib::strings::TAString<TChar, TAllocator>, TChar>
 template<typename TChar>
 struct formatter<alib::strings::TSubstring<TChar>, TChar>
   : formatter<std::basic_string_view<TChar>, TChar> {
-    // No need to override parse() since the base class does the work
+// No need to override parse() since the base class does the work
 
     /// This function converts the given \p{str} <c>std::basic_string_view<TChar></c> and
     /// then calls the base class's formatter, which is fully constexpr-capable.
@@ -490,7 +487,7 @@ struct formatter<alib::strings::TSubstring<TChar>, TChar>
     /// @param ctx The formatting context provided by \c std::format.
     /// @return An iterator to the end of the output range.
     template<typename TContext>
-    auto format(const alib::strings::TSubstring<TChar>& str, TContext& ctx) const {
+    auto format(const alib::strings::TSubstring<TChar>& str, TContext& ctx)                  const {
         // Delegate formatting to the std::basic_string_view<TChar> formatter
         return formatter<std::basic_string_view<TChar>, TChar>::format(
             static_cast<std::basic_string_view<TChar>>(str), ctx);
@@ -508,7 +505,7 @@ struct formatter<alib::strings::TSubstring<TChar>, TChar>
 template<typename TChar, alib::integer TCapacity, typename TAllocator>
 struct formatter<alib::strings::TLocalString<TChar,TCapacity,TAllocator>, TChar>
   : formatter<std::basic_string_view<TChar>, TChar> {
-    // No need to override parse() since the base class does the work
+// No need to override parse() since the base class does the work
 
     /// This function converts the given \p{str} <c>std::basic_string_view<TChar></c> and
     /// then calls the base class's formatter, which is fully constexpr-capable.
@@ -518,7 +515,7 @@ struct formatter<alib::strings::TLocalString<TChar,TCapacity,TAllocator>, TChar>
     /// @return An iterator to the end of the output range.
     template<typename TContext>
     auto format(const alib::strings::TLocalString<TChar,TCapacity,TAllocator>& str,
-                TContext&                                                      ctx ) const {
+                TContext&                                                      ctx )         const {
         // Delegate formatting to the std::basic_string_view<TChar> formatter
         return formatter<std::basic_string_view<TChar>, TChar>::format(
             static_cast<std::basic_string_view<TChar>>(str), ctx);
@@ -527,9 +524,9 @@ struct formatter<alib::strings::TLocalString<TChar,TCapacity,TAllocator>, TChar>
 
 } // namespace [std]
 
-// #################################################################################################
-// ###########################   std::formatter<alib::Appendable>   ################################
-// #################################################################################################
+//##################################################################################################
+//################################# std::formatter<alib::Appendable> ###############################
+//##################################################################################################
 
 #if DOXYGEN
 namespace alib::strings::APPENDABLES {
@@ -566,7 +563,7 @@ struct Appendable {
 /// C++17 Deduction Guide to construct the type \alib{strings::APPENDABLES;Appendable}.
 /// @tparam TAppendable  The type of the wrapped appendable.
 template<typename TAppendable>
-Appendable(const TAppendable& ) -> Appendable<TAppendable>;
+Appendable(const TAppendable& ) -> Appendable<TAppendable>                                        ;
 
 
 } // namespace [alib::strings[::APPENDABLES]]
@@ -574,11 +571,11 @@ Appendable(const TAppendable& ) -> Appendable<TAppendable>;
 #if DOXYGEN
 namespace alib::strings::compatibility::std {
 #else
-#   if __has_include(<format>)
-       namespace std {
-#   else
-       namespace fmt {
-#   endif
+# if __has_include(<format>)
+namespace std {
+# else
+namespace fmt {
+# endif
 #endif
 
 
@@ -599,7 +596,7 @@ namespace alib::strings::compatibility::std {
 template <typename TAppendable, typename TChar>
 requires alib::strings::IsAppendable<TAppendable, TChar, alib::lang::HeapAllocator>
 struct formatter<alib::strings::Appendable<TAppendable>, TChar>
-     : formatter<std::basic_string_view<TChar>, TChar> {
+ : formatter<std::basic_string_view<TChar>, TChar> {
     /// Creates an intermediate local string (avoiding dynamic allocation in most cases),
     /// appends the value wrapped in \p{wrapper} to it, and then delegates formatting to the
     /// \c std::basic_string_view<TChar> formatter.
@@ -657,7 +654,7 @@ namespace alib::strings {
 ///
 /// @see Chapter \ref alib_strings_stdformat of the Programmer's Manual of the module
 ///      \alib_strings_nl.
-///      
+///
 /// @tparam TChar  The character type of the \b %TAString and the format string.
 /// @tparam TArgs  Variadic template parameters representing the types of the formatting arguments.
 template<typename TChar, typename... TArgs>
@@ -691,8 +688,8 @@ struct  AppendableTraits<TStdFormat<char, Args...> ,char,TAllocator>
     /// The functor operator.
     /// @param target     The target string-buffer.
     /// @param fmtpackage The packaged argumentds to \c std::format.
-    void operator()( TAString<char,TAllocator>& target, const TStdFormat<char, Args...>& fmtpackage )
-    {
+    void operator()( TAString<char,TAllocator>&         target,
+                     const TStdFormat<char, Args...>&   fmtpackage ) {
         std::back_insert_iterator<TAString<char, TAllocator>> it(target);
 
         #if __has_include(<format>)
@@ -718,8 +715,8 @@ struct  AppendableTraits<TStdFormat<wchar_t, Args...> ,wchar_t,TAllocator>
     /// The functor operator.
     /// @param target     The target string-buffer.
     /// @param fmtpackage The packaged argumentds to \c std::format.
-    void operator()( TAString<wchar_t,TAllocator>& target, const TStdFormat<wchar_t, Args...>& fmtpackage )
-    {
+    void operator()( TAString<wchar_t,TAllocator>&       target,
+                     const TStdFormat<wchar_t, Args...>& fmtpackage ) {
         std::back_insert_iterator<TAString<wchar_t, TAllocator>> it(target);
 
         // Use std::apply to expand the tuple and pass each argument to make_format_args.
@@ -758,5 +755,3 @@ namespace alib {
 
 #endif // ALIB_STRINGS
 #endif // H_ALIB_STRINGS_STDSTRINGS
-
-

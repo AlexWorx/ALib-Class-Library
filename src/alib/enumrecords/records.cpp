@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/enumrecords/enumrecords.prepro.hpp"
 #if !ALIB_MONOMEM || !ALIB_CONTAINERS
 #    include <unordered_map>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.EnumRecords;
     import   ALib.EnumRecords.Bootstrap;
@@ -34,7 +34,7 @@
 #     include "ALib.Containers.HashTable.H"
 #   endif
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib::enumrecords::detail {
 
 namespace {
@@ -59,8 +59,7 @@ namespace {
 #endif
 }
 
-void  setEnumRecord( const std::type_info& rtti, integer elementValue, const void* record )
-{
+void  setEnumRecord( const std::type_info& rtti, integer elementValue, const void* record ) {
     #if ALIB_MONOMEM && ALIB_CONTAINERS
         ENUM_RECORD_MAP.EmplaceIfNotExistent( EnumRecordKey(rtti, elementValue ), record );
     #else
@@ -68,8 +67,7 @@ void  setEnumRecord( const std::type_info& rtti, integer elementValue, const voi
     #endif
 }
 
-const void* getEnumRecord( const std::type_info& rtti, integer elementValue )
-{
+const void* getEnumRecord( const std::type_info& rtti, integer elementValue ) {
 
 #if ALIB_MONOMEM && ALIB_CONTAINERS
     auto it= ENUM_RECORD_MAP.Find( EnumRecordKey( rtti, elementValue ) );
@@ -86,22 +84,20 @@ const void* getEnumRecord( const std::type_info& rtti, integer elementValue )
 HashMap           < MonoAllocator,
                     EnumRecordKey, const void*,
                     EnumRecordKey::Hash,
-                    EnumRecordKey::EqualTo       >&  getInternalRecordMap()
+                    EnumRecordKey::EqualTo     >& getInternalRecordMap() { return ENUM_RECORD_MAP; }
 #else
 std::unordered_map< EnumRecordKey, const void*,
                     EnumRecordKey::Hash,
-                    EnumRecordKey::EqualTo       >&  getInternalRecordMap()
+                    EnumRecordKey::EqualTo     >& getInternalRecordMap() { return ENUM_RECORD_MAP; }
 #endif
-{
-    return ENUM_RECORD_MAP;
-}
+
 
 } // namespace [alib::enumrecords::detail]
 
 
-// #################################################################################################
+//##################################################################################################
 // Implementation of parsing methods of built-in record types.
-// #################################################################################################
+//##################################################################################################
 namespace alib::enumrecords {
 void ERSerializable::Parse() {
     bootstrap::EnumRecordParser::Get( EnumElementName     );
@@ -110,9 +106,9 @@ void ERSerializable::Parse() {
 
 
 
-// #################################################################################################
+//##################################################################################################
 // EnumRecordPrototype (Doxygen only)
-// #################################################################################################
+//##################################################################################################
 
 #if DOXYGEN
 namespace alib::enumrecords {
@@ -185,4 +181,3 @@ struct EnumRecordPrototype
 
 } // namespace [alib::enumrecords]
 #endif // DOXYGEN
-

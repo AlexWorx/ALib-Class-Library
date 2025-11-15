@@ -137,8 +137,8 @@ namespace detail { class Entry; }
 //==================================================================================================
 class Declaration : public enumrecords::ERSerializable
 {
-  friend class alib::variables::Configuration;
-  friend class alib::variables::Variable;
+    friend class alib::variables::Configuration;
+    friend class alib::variables::Variable;
 
   protected:
     /// The type of the variable. Corresponds to what is defined with macros
@@ -162,9 +162,8 @@ class Declaration : public enumrecords::ERSerializable
 
   public:
     /// Default constructor.
-    Declaration()                                                                        = default;
+    Declaration()                                                                          =default;
 
-    //==============================================================================================
     /// Constructor usually used with static variable declarations (declarations that are not
     /// using enumeration types associated with \ref alib_enums_records "ALib Enum Records" of this
     /// type).
@@ -179,14 +178,12 @@ class Declaration : public enumrecords::ERSerializable
     /// @param pTypeName     Value for field #typeName.
     /// @param pDefaultValue Value for field #defaultValue.
     /// @param pComments     Value for field #comments.
-    //==============================================================================================
     Declaration(  const String&  pName,           const String&  pTypeName,
                   const String&  pDefaultValue,   const String&  pComments   )
     : ERSerializable(pName               )
     , typeName      (pTypeName           )
     , defaultValue  (pDefaultValue       )
-    , comments      (pComments           )
-    {}
+    , comments      (pComments           )                                                        {}
 
     /// Implementation of \alib{enumrecords;EnumRecordPrototype::Parse}.
     /// \note Field \alib{enumrecords;ERSerializable::MinimumRecognitionLength} is not read from the
@@ -194,7 +191,6 @@ class Declaration : public enumrecords::ERSerializable
     ALIB_DLL
     void Parse();
 
-    //==============================================================================================
     /// Static method that accepts an element of a C++ enum type equipped with
     /// \ref alib_enums_records "ALib Enum Records" of this type, that contains the declaration data.
     ///
@@ -206,18 +202,15 @@ class Declaration : public enumrecords::ERSerializable
     /// @param  element  The desired variable (aka element of type \p{TEnum}.
     /// @return The resourced declaration associated with the given enumeration \p{element} of type
     ///         \p{TEnum}.
-    //==============================================================================================
     template<typename TEnum>
     requires (EnumRecords<TEnum>::template AreOfType<Declaration>())
-    static const Declaration* Get(TEnum element)
-    {
+    static const Declaration* Get(TEnum element) {
         // get enum record singleton
         const Declaration* result=  &enumrecords::GetRecord(element);
 
         // if resourced, check for default value and comments
         #if ALIB_RESOURCES
-        if constexpr( resources::HasResources<TEnum>)
-        {
+        if constexpr( resources::HasResources<TEnum>) {
             NString128 resName;
             resName << resources::ResourcedTraits<TEnum>::Name() << "_D";
             integer codePos = resName.Length() - 1;
@@ -237,7 +230,7 @@ class Declaration : public enumrecords::ERSerializable
 
     /// Returns this configuration variable's type.
     /// @return The name of this variable.
-    const String&           TypeName()                            const        { return  typeName; }
+    const String&           TypeName()                                   const { return  typeName; }
 
     /// Returns this configuration variable's name.
     /// @return The name of this variable.
@@ -248,11 +241,11 @@ class Declaration : public enumrecords::ERSerializable
     /// \alib{variables;Priority;Priority::DefaultValues}.
     ///
     /// @return The contents of field #defaultValue.
-    const String&           DefaultValue()                        const    { return  defaultValue; }
+    const String&           DefaultValue()                           const { return  defaultValue; }
 
     /// Returns this configuration variable's comments.
     /// @return The comments of this variable.
-    const String&           Comments()                            const        { return  comments; }
+    const String&           Comments()                                   const { return  comments; }
 
 }; // struct Declaration
 

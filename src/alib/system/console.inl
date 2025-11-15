@@ -8,27 +8,25 @@
 ALIB_EXPORT namespace alib { namespace  system {
 
 //==================================================================================================
-/// This class provides system dependent features in respect the console attached to a process.
+/// This class provides system-dependent features in respect the console attached to a process.
 //==================================================================================================
 class Console
 {
-    protected:
+  protected:
         /// Console text width.
         ALIB_DLL static
         int                 lastReceivedWidth;
 
-    public:
-        //==========================================================================================
-        /// Tries to detect the current width of the console. Returns \c 0 in case of failure.
-        ///
-        /// @param forceRedetect If \c true, the console size is tried to be detected, even if it
-        ///                      had been done before (and even if it failed before).<br>
-        ///                      Defaults to \c false.
-        ///
-        /// @return The console width.
-        //==========================================================================================
-        ALIB_DLL static
-        int                  GetWidth( bool forceRedetect = false );
+  public:
+    /// Tries to detect the current width of the console. Returns \c 0 in case of failure.
+    ///
+    /// @param forceRedetect If \c true, the console size is tried to be detected, even if it
+    ///                      had been done before (and even if it failed before).<br>
+    ///                      Defaults to \c false.
+    ///
+    /// @return The console width.
+    ALIB_DLL static
+    int                  GetWidth( bool forceRedetect = false );
 };
 
 } // namespace alib[::system]
@@ -37,5 +35,3 @@ class Console
 using     Console=        system::Console;
 
 } // namespace [alib]
-
-

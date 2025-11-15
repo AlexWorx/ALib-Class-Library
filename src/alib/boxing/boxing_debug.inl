@@ -103,7 +103,7 @@ void getFunctionTypes( const detail::FunctionTable&                             
                        std::vector<std::pair<const std::type_info*,uinteger>>&  output  );
 
 /// Collects all function declarator types, with type-specific implementations.
-/// Parameter \p{vtable} might for example be retrieved from a box instance with
+/// Parameter \p{vtable} might, for example, be retrieved from a box instance with
 /// \alib{boxing;Box::DbgGetVTable}.
 ///
 /// \see
@@ -189,4 +189,3 @@ ALIB_DLL extern std::vector<String>  RemovableNamespaces;
 }} // namespace [alib::boxing::debug]
 
 #endif // ALIB_DEBUG_BOXING
-

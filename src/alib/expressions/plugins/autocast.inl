@@ -33,27 +33,19 @@ ALIB_EXPORT namespace alib {  namespace expressions { namespace plugins {
 //==================================================================================================
 struct AutoCast  : public CompilerPlugin
 {
-    //==============================================================================================
     /// Constructor.
     /// @param compiler The compiler we will get attached to.
-    //==============================================================================================
     ALIB_DLL        AutoCast( Compiler& compiler );
 
-    //==============================================================================================
     /// Virtual destructor.
-    //==============================================================================================
-    virtual        ~AutoCast()                                                              override
-    {}
+    virtual        ~AutoCast()                                                           override {}
 
-    //==============================================================================================
     /// Offers auto-cast functions for built-in types.
     ///
     /// @param[out] ciAutoCast  The compilation result.
     /// @return \c true if an entry was found. \c false otherwise.
-    //==============================================================================================
     ALIB_DLL
     virtual bool    TryCompilation( CIAutoCast& ciAutoCast )                               override;
 };
 
 }}} // namespace [alib::expressions::detail]
-

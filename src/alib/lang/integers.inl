@@ -7,9 +7,9 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib { namespace lang {
 
-// #################################################################################################
+//##################################################################################################
 // types integer, uinteger, intGap_t and uintGap_t
-// #################################################################################################
+//##################################################################################################
 #if DOXYGEN
 
     #define ALIB_SIZEOF_INTEGER
@@ -94,7 +94,7 @@ using uintGap_t=                    platform_specific;
 
 
 
-// #############   set according to symbols     #############
+//##################################### set according to symbols ###################################
 
 #if ALIB_SIZEOF_INTEGER   == 4
     using  integer =                    int32_t;
@@ -111,7 +111,7 @@ using uintGap_t=       unsigned  ALIB_INTGAP_TYPE;
 
 
 
-// #############   checks     #############
+//############################################## checks ############################################
 #define ERROR_DETECTING \
 "Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
@@ -160,15 +160,12 @@ using uintGap_t      = lang::uintGap_t;
 } // namespace [alib]
 
 
-// #################################################################################################
+//##################################################################################################
 // static assertions for the platform
-// #################################################################################################
+//##################################################################################################
 static_assert(         sizeof(alib::integer )       ==        sizeof(alib::uinteger ),          "Error in ALib type definitions" );
 static_assert(         sizeof(alib::integer )       ==         sizeof(std::size_t    ),         "Error in ALib type definitions" );
 static_assert(std::is_signed< alib::integer>::value == std::is_signed<std::ptrdiff_t >::value,  "Error in ALib type definitions" );
 static_assert(std::is_signed< alib::integer>::value != std::is_signed<std::size_t    >::value,  "Error in ALib type definitions" );
 static_assert(std::is_signed<alib::uinteger>::value == std::is_signed<std::size_t    >::value,  "Error in ALib type definitions" );
 static_assert(std::is_signed<alib::uinteger>::value != std::is_signed<std::ptrdiff_t >::value,  "Error in ALib type definitions" );
-
-
-

@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings.AutoSizes;
     import ALib.Strings.Tokenizer;
@@ -21,20 +21,17 @@
 #   include "ALib.Strings.AutoSizes.H"
 #   include "ALib.Strings.Tokenizer.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace strings { namespace util  {
 
-integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPadding )
-{
+integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPadding ) {
     // grow arrays as needed
-    while ( data.size() <= ActualIndex )
-    {
+    while ( data.size() <= ActualIndex ) {
         data.emplace_back( type, -1, -1 );
         dirty= true;
     }
 
-    if ( data[ActualIndex].type != type )
-    {
+    if ( data[ActualIndex].type != type ) {
         data[ActualIndex].type  = type;
         data[ActualIndex].actual=  0;
         data[ActualIndex].session= -1;
@@ -46,16 +43,14 @@ integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPa
 
     // set measured size as it would be for the next session
     integer& session=   data[ ActualIndex ].session;
-    if ( session < requestedSize )
-    {
+    if ( session < requestedSize ) {
         session=  requestedSize;
         dirty= true;
     }
 
     // get size as it is for actual values (max of imported and session)
     integer& actual=    data[ ActualIndex ].actual;
-    if ( actual <  requestedSize )
-    {
+    if ( actual <  requestedSize ) {
         actual=  (requestedSize + ( actual    < 0 ? 0 : growthPadding ));
         dirty= true;
     }
@@ -63,14 +58,12 @@ integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPa
     return actual;
 }
 
-void    AutoSizes::Export( AString& target  )
-{
+void    AutoSizes::Export( AString& target  ) {
     if( WriteProtected )
         target._( "! ");
     
     auto it= data.begin();
-    while( it!=data.end() )
-    {
+    while( it!=data.end() ) {
         target <<  ((*it).type == Types::Tabstop ? 'T' : 'F'     )
                <<  (*it).actual;
         if( !WriteProtected && (*it).session != (*it).actual)
@@ -93,8 +86,7 @@ void    AutoSizes::Export( AString& target  )
     dirty= false;
 }
 
-void    AutoSizes::Import( const String& src, lang::CurrentData session  )
-{
+void    AutoSizes::Import( const String& src, lang::CurrentData session  ) {
     Reset();
     dirty= false;
 
@@ -111,8 +103,7 @@ void    AutoSizes::Import( const String& src, lang::CurrentData session  )
         return;
 
     Tokenizer tknzr( parser, '/' );
-    while(tknzr.HasNext())
-    {
+    while(tknzr.HasNext()) {
         parser= tknzr.Next();
         Types type;
              if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'T' ) )  type= Types::Tabstop;
@@ -135,41 +126,31 @@ void    AutoSizes::Import( const String& src, lang::CurrentData session  )
         Consolidate();
 }
 
-void    AutoSizes::Consolidate()
-{
+void    AutoSizes::Consolidate() {
     integer tabDiff     = 0;
     integer lastTabStop = 0;
-    for( auto& entry : data )
-    {
+    for( auto& entry : data ) {
         integer actDiff=  entry.session - entry.actual;
         if( actDiff > 0 )  // should never happen. Maybe improper data import?
             actDiff= 0;
-        if( entry.type == Types::Tabstop )
-        {
+        if( entry.type == Types::Tabstop ) {
             // reset tab difference if (for some strange application-specific reason) this
             // tab stop is smaller than the previous one. Obviously some multi-line tab stop
-            // is used (does not happen for example with ALox)
-            if( entry.actual > lastTabStop )
-            {
+            // is used (does not happen with ALox)
+            if( entry.actual > lastTabStop ) {
                 lastTabStop= entry.actual;
                 entry.actual= entry.session + tabDiff;
-            }
-            else
-            {
+            } else {
                 lastTabStop= entry.actual;
                 tabDiff= 0;
                 entry.actual= entry.session + tabDiff;
             }
-        }
-        else
-        {
+        } else {
             entry.actual     = entry.session;
         }
         tabDiff+= actDiff;
         entry.session  = -1;
-    }
-}
+}   }
 
 
 }}} // namespace [alib::strings::util]
-

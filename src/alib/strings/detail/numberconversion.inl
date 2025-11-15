@@ -217,7 +217,7 @@ double ParseFloat( const TString<TChar>& src, integer& idx, const TNumberFormat<
 /// @param minWidth  The minimum width of the output.
 ///                  If \c 0, the value of \b DecMinimumFieldWidth of argument \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -238,7 +238,7 @@ integer  WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int minWi
 /// @param minWidth  The minimum width of the output.
 ///                  If \c 0, the value of \b DecMinimumFieldWidth in \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -260,19 +260,19 @@ integer  WriteDecSigned( int64_t value, TChar* buffer, integer idx, int minWidth
 /// of the \b NumberFormat object given with \p{nf}.
 ///
 /// The minimum width of the output is taken from field \alib{strings::TNumberFormat;BinFieldWidth}
-///  unless overwritten by parameter \p{minWidth}. If the width is greater than digits found in
-///  \p{value}, \c '0' digits are prepended. The width is taking group characters into account.
+/// unless overwritten by parameter \p{minWidth}. If the width is greater than digits found in
+/// \p{value}, \c '0' digits are prepended. The width is taking group characters into account.
 ///
 /// \attention
 ///   The function does not (and cannot) check an overflow of the given character buffer
 ///   when writing.
 ///
 /// \attention
-///  If the value is greater than can be represented by the output width, these greater
-///  digits are cut. This is true for this function as well as for #WriteHex and #WriteOct. The
-///  rationale behind this is that this way, larger numbers do not need to be masked before
-///  writing.
-///  (In other words: it is assumed that there is a reason for providing the width).
+///   If the value is greater than can be represented by the output width, these greater
+///   digits are cut. This is true for this function as well as for #WriteHex and #WriteOct. The
+///   rationale behind this is that this way, larger numbers do not need to be masked before
+///   writing.
+///   (In other words: it is assumed that there is a reason for providing the width).
 ///
 /// \note
 ///   The literal prefix found in field \alib{strings::TNumberFormat;BinLiteralPrefix} of \p{nf}
@@ -286,7 +286,7 @@ integer  WriteDecSigned( int64_t value, TChar* buffer, integer idx, int minWidth
 /// @param minWidth  The minimum width of the output.
 ///                  If \c 0, the value of \b BinFieldWidth of argument \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -316,11 +316,11 @@ integer  WriteBin( uint64_t value, TChar* buffer, integer idx, int minWidth,
 ///   when writing.
 ///
 /// \attention
-///  If the value is greater than can be represented by the output width, these greater
-///  digits are cut. This is true for this function as well as #WriteBin and writeOct. The
-///  rationale behind this is that this way, larger numbers do not need to be masked before
-///  writing.
-///  (In other words: it is assumed that there is a reason for providing the width).
+///   If the value is greater than can be represented by the output width, these greater
+///   digits are cut. This is true for this function as well as #WriteBin and writeOct. The
+///   rationale behind this is that this way, larger numbers do not need to be masked before
+///   writing.
+///   (In other words: it is assumed that there is a reason for providing the width).
 ///
 /// \note
 ///   The literal prefix found in field \alib{strings::TNumberFormat;HexLiteralPrefix} of \p{nf}
@@ -334,7 +334,7 @@ integer  WriteBin( uint64_t value, TChar* buffer, integer idx, int minWidth,
 /// @param minWidth  The minimum width of the output.
 ///                  If \c 0, the value of \b HexFieldWidth of argument \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -361,11 +361,11 @@ integer  WriteHex( uint64_t value, TChar* buffer, integer idx, int minWidth,
 ///   when writing.
 ///
 /// \attention
-///  If the value is greater than can be represented by the output width, these greater
-///  digits are cut. This is true for this function as well as #WriteBin and writeHex. The
-///  rationale behind this is that this way, larger numbers do not need to be masked before
-///  writing.
-///  (In other words: it is assumed that there is a reason for providing the width).
+///   If the value is greater than can be represented by the output width, these greater
+///   digits are cut. This is true for this function as well as #WriteBin and writeHex. The
+///   rationale behind this is that this way, larger numbers do not need to be masked before
+///   writing.
+///   (In other words: it is assumed that there is a reason for providing the width).
 ///
 /// \note
 ///   The literal prefix found in field \alib{strings::TNumberFormat;OctLiteralPrefix} of \p{nf}
@@ -379,7 +379,7 @@ integer  WriteHex( uint64_t value, TChar* buffer, integer idx, int minWidth,
 /// @param minWidth  The minimum width of the output.
 ///                  If \c 0, the value of \b OctFieldWidth of argument \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -429,7 +429,7 @@ integer  WriteOct( uint64_t value, TChar* buffer, integer idx, int minWidth,
 /// @param minWidth  The minimum width of the integral part of the output.
 ///                  If \c 0, the value of \b IntegralPartMinimumWidth of argument \p{nf} is used.
 /// @param nf        Number format definitions.
-/// @return  The index pointing to behind the last character written in \b buffer.
+/// @return The index pointing to behind the last character written in \b buffer.
 //==================================================================================================
 template<typename TChar>
 ALIB_DLL
@@ -437,9 +437,9 @@ integer  WriteFloat( double value, TChar*  buffer, integer idx, int minWidth,
                      const TNumberFormat<TChar>& nf );
 
 
-// #################################################################################################
+//##################################################################################################
 // Template instantiation declarations
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
 extern template ALIB_DLL uint64_t ParseDecDigits  <nchar>( const TString<nchar>&, integer& );
@@ -487,5 +487,3 @@ extern template ALIB_DLL integer  WriteFloat      <xchar>( double  , xchar*, int
 
 
 }}} // namespace [alib::strings::detail]
-
-

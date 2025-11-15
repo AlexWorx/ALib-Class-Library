@@ -33,4 +33,3 @@ void ALIB_APPLE_OC_NSHomeDirectory( Path& target)
 } // namespace [alib::system::macos]
 
 #endif
-

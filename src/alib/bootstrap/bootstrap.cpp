@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/singletons/singletons.prepro.hpp"
 #include "alib/monomem/monomem.prepro.hpp"
 #include "alib/strings/strings.prepro.hpp"
@@ -51,7 +51,7 @@
 #  include <thread>
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
       module ALib.Bootstrap;
       import   ALib.Lang;
@@ -137,7 +137,7 @@
 #   include "ALib.Files.H"
 #endif
 
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 namespace alib {
 
@@ -197,11 +197,10 @@ CompilationFlagMeaningsEntry COMPILATION_FLAG_MEANINGS[40]=  {
 };
 
 
-void AssertALibVersionAndFlags( int alibVersion, int alibRevision, TCompilationFlags compilationFlags )
-{
+void AssertALibVersionAndFlags( int alibVersion, int alibRevision,
+                                TCompilationFlags compilationFlags ) {
     // verify requested ALib version is met
-    if (VERSION != alibVersion || REVISION != alibRevision )
-    {
+    if (VERSION != alibVersion || REVISION != alibRevision ) {
         std::cerr << "!!! Error in ALox library compilation: linked against wrong version of ALib" << std::endl;
         std::cerr << "!!! ALib library version:   " <<     VERSION   << "R" << int(REVISION) << std::endl;
         std::cerr << "!!! ALib requested version: " << alibVersion   << "R" << alibRevision << std::endl;
@@ -223,8 +222,7 @@ void AssertALibVersionAndFlags( int alibVersion, int alibRevision, TCompilationF
     std::cerr << std::left << std::setw(35) <<  "Symbol" << '|' << std::setw(5) << " Lib" <<'|' << " Comp. Unit"  << std::endl;
     std::cerr<< std::setw(62) <<  std::setfill('-') << ' ' << std::endl <<  std::setfill(' ');
 
-    for( auto& p : COMPILATION_FLAG_MEANINGS )
-    {
+    for( auto& p : COMPILATION_FLAG_MEANINGS ) {
         bool libFlag= (COMPILATION_FLAGS.bits[p.Flag/8] & (1 << (p.Flag % 8))) != 0;
         bool reqFlag= (compilationFlags.bits[p.Flag/8] & (1 << (p.Flag % 8))) != 0;
 
@@ -243,7 +241,7 @@ bool                NonCampModulesInitialized     = false;
 
 
 //==================================================================================================
-//================================     Non-Camp Version      =======================================
+//========================================= Non-Camp Version =======================================
 //==================================================================================================
 #if !ALIB_CAMP
 void     Bootstrap( int alibVersion, int alibRevision, TCompilationFlags compilationFlags )
@@ -265,7 +263,7 @@ void     Bootstrap( int alibVersion, int alibRevision, TCompilationFlags compila
             Formatter::Default      .InsertDerived<FormatterPythonStyle>();
             Formatter::Default->Next.InsertDerived<FormatterJavaStyle  >();
         #   if !ALIB_SINGLE_THREADED
-                Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";
+                ALIB_DBG(Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";)
         #       if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
                     Formatter::Default->DCSLock= &Formatter::DefaultLock;
                     Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";
@@ -273,36 +271,47 @@ void     Bootstrap( int alibVersion, int alibRevision, TCompilationFlags compila
         #   endif
         #endif
 
-        //------------------------------------------------------------------------------------------
-        //--- Non-resourced versions of enum records
-        //------------------------------------------------------------------------------------------
+      //--------------------------------------------------------------------------------------------
+      //--- Non-resourced versions of enum records
+      //--------------------------------------------------------------------------------------------
 #if ALIB_ENUMRECORDS
 
+// CodeMarker_CommonEnums
+
+enumrecords::bootstrap::Bootstrap<lang::Alignment>( {
+    { lang::Alignment::Left                , A_CHAR("Left"  )        , 1 },
+    { lang::Alignment::Right               , A_CHAR("Right" )        , 1 },
+    { lang::Alignment::Center              , A_CHAR("Center")        , 1 },
+} );
+
 DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS])
-enumrecords::bootstrap::Bootstrap<lang::Bool>(
-{
-    { lang::Bool::True , A_CHAR("False"), 1 },
-    { lang::Bool::False, A_CHAR("True" ), 1 },
-    { lang::Bool::True , A_CHAR("0"    ), 1 },
-    { lang::Bool::False, A_CHAR("1"    ), 1 },
-    { lang::Bool::True , A_CHAR("No"   ), 1 },
-    { lang::Bool::False, A_CHAR("Yes"  ), 1 },
-    { lang::Bool::True , A_CHAR("Off"  ), 2 },
-    { lang::Bool::False, A_CHAR("On"   ), 2 },
-    { lang::Bool::True , A_CHAR("-"    ), 1 },
-    { lang::Bool::False, A_CHAR("Ok"   ), 2 }
+enumrecords::bootstrap::Bootstrap<lang::Bool>( {
+    { lang::Bool::False, A_CHAR("False"), 1 },
+    { lang::Bool::True , A_CHAR("True" ), 1 },
+    { lang::Bool::False, A_CHAR("0"    ), 1 },
+    { lang::Bool::True , A_CHAR("1"    ), 1 },
+    { lang::Bool::False, A_CHAR("No"   ), 1 },
+    { lang::Bool::True , A_CHAR("Yes"  ), 1 },
+    { lang::Bool::False, A_CHAR("Off"  ), 2 },
+    { lang::Bool::True , A_CHAR("On"   ), 2 },
+    { lang::Bool::False, A_CHAR("-"    ), 1 },
+    { lang::Bool::True , A_CHAR("Ok"   ), 2 }
 } );
 DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS])
 
-enumrecords::bootstrap::Bootstrap<lang::Case>(
-{
+enumrecords::bootstrap::Bootstrap<lang::Caching>( {
+    { lang::Caching::Disabled              , A_CHAR("Disabled")      , 1 },
+    { lang::Caching::Enabled               , A_CHAR("Enabled" )      , 1 },
+    { lang::Caching::Auto                  , A_CHAR("Auto"    )      , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Case>( {
     { lang::Case::Sensitive, A_CHAR("Sensitive"), 1 },
     { lang::Case::Ignore   , A_CHAR("Ignore"   ), 1 },
 } );
 
 DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS_2])
-enumrecords::bootstrap::Bootstrap<lang::ContainerOp>(
-{
+enumrecords::bootstrap::Bootstrap<lang::ContainerOp>( {
     { lang::ContainerOp::Insert   , A_CHAR("Insert"   ), 1 }, // integral 0
     { lang::ContainerOp::Remove   , A_CHAR("Remove"   ), 1 }, // integral 1
     { lang::ContainerOp::GetCreate, A_CHAR("GetCreate"), 4 }, // integral 3 <-- Switched order
@@ -311,94 +320,43 @@ enumrecords::bootstrap::Bootstrap<lang::ContainerOp>(
 } );
 DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS_2])
 
-enumrecords::bootstrap::Bootstrap<lang::Switch>(
-{
-    { lang::Switch::Off                    , A_CHAR("Off")           , 2 },
-    { lang::Switch::On                     , A_CHAR("On" )           , 2 },
+enumrecords::bootstrap::Bootstrap<lang::CreateDefaults>( {
+    { lang::CreateDefaults::No , A_CHAR("False"), 1 },
+    { lang::CreateDefaults::Yes, A_CHAR("True" ), 1 },
+    { lang::CreateDefaults::No , A_CHAR("0"    ), 1 },
+    { lang::CreateDefaults::Yes, A_CHAR("1"    ), 1 },
+    { lang::CreateDefaults::No , A_CHAR("No"   ), 1 },
+    { lang::CreateDefaults::Yes, A_CHAR("Yes"  ), 1 },
+    { lang::CreateDefaults::No , A_CHAR("Off"  ), 2 },
+    { lang::CreateDefaults::Yes, A_CHAR("On"   ), 2 },
+    { lang::CreateDefaults::No , A_CHAR("-"    ), 1 },
+    { lang::CreateDefaults::Yes, A_CHAR("Ok"   ), 2 }
 } );
 
-enumrecords::bootstrap::Bootstrap<lang::Alignment>(
-{
-    { lang::Alignment::Left                , A_CHAR("Left"  )        , 1 },
-    { lang::Alignment::Right               , A_CHAR("Right" )        , 1 },
-    { lang::Alignment::Center              , A_CHAR("Center")        , 1 },
+enumrecords::bootstrap::Bootstrap<lang::CreateIfNotExists>( {
+    { lang::CreateIfNotExists::No , A_CHAR("False"), 1 },
+    { lang::CreateIfNotExists::Yes, A_CHAR("True" ), 1 },
+    { lang::CreateIfNotExists::No , A_CHAR("0"    ), 1 },
+    { lang::CreateIfNotExists::Yes, A_CHAR("1"    ), 1 },
+    { lang::CreateIfNotExists::No , A_CHAR("No"   ), 1 },
+    { lang::CreateIfNotExists::Yes, A_CHAR("Yes"  ), 1 },
+    { lang::CreateIfNotExists::No , A_CHAR("Off"  ), 2 },
+    { lang::CreateIfNotExists::Yes, A_CHAR("On"   ), 2 },
+    { lang::CreateIfNotExists::No , A_CHAR("-"    ), 1 },
+    { lang::CreateIfNotExists::Yes, A_CHAR("Ok"   ), 2 }
 } );
 
-enumrecords::bootstrap::Bootstrap<lang::SortOrder>(
-{
-    { lang::SortOrder::Ascending           , A_CHAR("Ascending" )    , 1 },
-    { lang::SortOrder::Descending          , A_CHAR("Descending")    , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Inclusion>(
-{
-    { lang::Inclusion::Include             , A_CHAR("Include")       , 1 },
-    { lang::Inclusion::Exclude             , A_CHAR("Exclude")       , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Reach>(
-{
-    { lang::Reach::Global                  , A_CHAR("Global")        , 1 },
-    { lang::Reach::Local                   , A_CHAR("Local" )        , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::CurrentData>(
-{
+enumrecords::bootstrap::Bootstrap<lang::CurrentData>( {
     { lang::CurrentData::Keep              , A_CHAR("Keep" )         , 1 },
     { lang::CurrentData::Clear             , A_CHAR("Clear")         , 1 },
 } );
 
-enumrecords::bootstrap::Bootstrap<lang::SourceData>(
-{
-    { lang::SourceData::Copy               , A_CHAR("Copy")          , 1 },
-    { lang::SourceData::Move               , A_CHAR("Move")          , 1 },
+enumrecords::bootstrap::Bootstrap<lang::Inclusion>( {
+    { lang::Inclusion::Include               , A_CHAR("Include")       , 1 },
+    { lang::Inclusion::Exclude               , A_CHAR("Exclude")       , 1 },
 } );
 
-
-enumrecords::bootstrap::Bootstrap<lang::Safeness>(
-{
-    { lang::Safeness::Safe                 , A_CHAR("Safe"  )        , 1 },
-    { lang::Safeness::Unsafe               , A_CHAR("Unsafe")        , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Responsibility>(
-{
-    { lang::Responsibility::KeepWithSender , A_CHAR("KeepWithSender"), 1 },
-    { lang::Responsibility::Transfer       , A_CHAR("Transfer"      ), 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Side>(
-{
-    { lang::Side::Left                     , A_CHAR("Left" )         , 1 },
-    { lang::Side::Right                    , A_CHAR("Right")         , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Timezone>(
-{
-    { lang::Timezone::Local                , A_CHAR("v"  )           , 1 },
-    { lang::Timezone::UTC                  , A_CHAR("UTC")           , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Whitespaces>(
-{
-    { lang::Whitespaces::Trim              , A_CHAR("Trim")          , 1 },
-    { lang::Whitespaces::Keep              , A_CHAR("Keep")          , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Propagation>(
-{
-    { lang::Propagation::Omit              , A_CHAR("Omit"         ) , 1 },
-    { lang::Propagation::ToDescendants     , A_CHAR("ToDescendants") , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Phase>(
-{
-    { lang::Phase::Begin                   , A_CHAR("Begin")         , 1 },
-    { lang::Phase::End                     , A_CHAR("End"  )         , 1 },
-} );
-
-enumrecords::bootstrap::Bootstrap<lang::Initialization>(
-{
+enumrecords::bootstrap::Bootstrap<lang::Initialization>( {
     { lang::Initialization::Suppress         , A_CHAR("Suppress"  )    , 1 },
     { lang::Initialization::Default          , A_CHAR("Default"   )    , 1 },
     { lang::Initialization::Nulled           , A_CHAR("Nulled"    )    , 1 },
@@ -407,8 +365,78 @@ enumrecords::bootstrap::Bootstrap<lang::Initialization>(
     { lang::Initialization::Nulled           , A_CHAR("Zero"      )    , 1 },
 } );
 
-enumrecords::bootstrap::Bootstrap<lang::Timing>(
-{
+enumrecords::bootstrap::Bootstrap<lang::LineFeeds>( {
+    { lang::LineFeeds::None                  , A_CHAR("None"     )     , 1 },
+    { lang::LineFeeds::Ignore                , A_CHAR("Ignore"   )     , 1 },
+    { lang::LineFeeds::Unix                  , A_CHAR("Unix"     )     , 1 },
+    { lang::LineFeeds::WindowsOS             , A_CHAR("WindowsOS")     , 1 },
+    { lang::LineFeeds::Platform              , A_CHAR("Platform" )     , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Phase>( {
+    { lang::Phase::Begin                     , A_CHAR("Begin")         , 1 },
+    { lang::Phase::End                       , A_CHAR("End"  )         , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Propagation>( {
+    { lang::Propagation::Omit                , A_CHAR("Omit"         ) , 1 },
+    { lang::Propagation::ToDescendants       , A_CHAR("ToDescendants") , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Reach>( {
+    { lang::Reach::Global                    , A_CHAR("Global")        , 1 },
+    { lang::Reach::Local                     , A_CHAR("Local" )        , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Recursive>( {
+    { lang::Recursive::No , A_CHAR("False"), 1 },
+    { lang::Recursive::Yes, A_CHAR("True" ), 1 },
+    { lang::Recursive::No , A_CHAR("0"    ), 1 },
+    { lang::Recursive::Yes, A_CHAR("1"    ), 1 },
+    { lang::Recursive::No , A_CHAR("No"   ), 1 },
+    { lang::Recursive::Yes, A_CHAR("Yes"  ), 1 },
+    { lang::Recursive::No , A_CHAR("Off"  ), 2 },
+    { lang::Recursive::Yes, A_CHAR("On"   ), 2 },
+    { lang::Recursive::No , A_CHAR("-"    ), 1 },
+    { lang::Recursive::Yes, A_CHAR("Ok"   ), 2 }
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Responsibility>( {
+    { lang::Responsibility::KeepWithSender , A_CHAR("KeepWithSender") , 1 },
+    { lang::Responsibility::Transfer       , A_CHAR("Transfer"      ) , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Safeness>( {
+    { lang::Safeness::Safe                 , A_CHAR("Safe"  )        , 1 },
+    { lang::Safeness::Unsafe               , A_CHAR("Unsafe")        , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Side>( {
+    { lang::Side::Left                     , A_CHAR("Left" )         , 1 },
+    { lang::Side::Right                    , A_CHAR("Right")         , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::SortOrder>( {
+    { lang::SortOrder::Ascending           , A_CHAR("Ascending" )    , 1 },
+    { lang::SortOrder::Descending          , A_CHAR("Descending")    , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::SourceData>( {
+    { lang::SourceData::Copy               , A_CHAR("Copy")          , 1 },
+    { lang::SourceData::Move               , A_CHAR("Move")          , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Switch>( {
+    { lang::Switch::Off                    , A_CHAR("Off")           , 2 },
+    { lang::Switch::On                     , A_CHAR("On" )           , 2 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Timezone>( {
+    { lang::Timezone::Local                , A_CHAR("Local" )        , 1 },
+    { lang::Timezone::UTC                  , A_CHAR("UTC")           , 1 },
+} );
+
+enumrecords::bootstrap::Bootstrap<lang::Timing>( {
     { lang::Timing::Async                  , A_CHAR("Async"  )       , 1 },
     { lang::Timing::Sync                   , A_CHAR("Sync"   )       , 1 },
     { lang::Timing::Async                  , A_CHAR("Asynchronous")  , 1 },
@@ -416,17 +444,20 @@ enumrecords::bootstrap::Bootstrap<lang::Timing>(
     { lang::Timing::Sync                   , A_CHAR("Synchronized")  , 1 },
 } );
 
-enumrecords::bootstrap::Bootstrap<lang::Caching>(
-{
-    { lang::Caching::Disabled              , A_CHAR("Disabled")      , 1 },
-    { lang::Caching::Enabled               , A_CHAR("Enabled" )      , 1 },
-    { lang::Caching::Auto                  , A_CHAR("Auto"    )      , 1 },
+enumrecords::bootstrap::Bootstrap<lang::ValueReference>( {
+    { lang::ValueReference::Absolute       , A_CHAR("Absolute")      , 1 },
+    { lang::ValueReference::Relative       , A_CHAR("Relative")      , 1 },
 } );
+
+        enumrecords::bootstrap::Bootstrap<lang::Whitespaces>( {
+    { lang::Whitespaces::Trim              , A_CHAR("Trim")          , 1 },
+    { lang::Whitespaces::Keep              , A_CHAR("Keep")          , 1 },
+} );
+
 
 // Threads
 #if !ALIB_SINGLE_THREADED
-enumrecords::bootstrap::Bootstrap<alib::threads::Thread::State>(
-{
+enumrecords::bootstrap::Bootstrap<alib::threads::Thread::State>( {
     { alib::threads::Thread::State::Unstarted , A_CHAR("Unstarted" )  },
     { alib::threads::Thread::State::Started   , A_CHAR("Started"   )  },
     { alib::threads::Thread::State::Running   , A_CHAR("Running"   )  },
@@ -488,8 +519,7 @@ enumrecords::bootstrap::Bootstrap<format::ByteSizeUnits>({
     { format::ByteSizeUnits::QB    , A_CHAR("QB"  )      , 2 },
 } );
         
-enumrecords::bootstrap::Bootstrap<format::FMTExceptions>(
-{
+enumrecords::bootstrap::Bootstrap<format::FMTExceptions>( {
     A_CHAR(
     // general formatter errors
           "11,ArgumentIndexIs0,"                       "Argument index 0 not allowed.\n"
@@ -587,8 +617,7 @@ enumrecords::bootstrap::Bootstrap<bitbuffer::ac_v1::ArrayCompressor::Algorithm>(
 #endif
 
 #if ALIB_THREADMODEL
-enumrecords::bootstrap::Bootstrap<threadmodel::Priority>(
-{
+enumrecords::bootstrap::Bootstrap<threadmodel::Priority>( {
     { threadmodel::Priority::Lowest          , A_CHAR("Lowest"             ), 4 },
     { threadmodel::Priority::DeferredDeletion, A_CHAR("DeferredDeletion"   ), 1 },
     { threadmodel::Priority::Low             , A_CHAR("Low"                ), 1 },
@@ -599,9 +628,9 @@ enumrecords::bootstrap::Bootstrap<threadmodel::Priority>(
 #endif
 
 
-//------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 //--- END: Non-resourced versions of enum records
-//------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 #endif // ALIB_ENUMRECORDS
 
         NonCampModulesInitialized= true;
@@ -643,16 +672,15 @@ void Shutdown()
 
 #else
 //==================================================================================================
-//==================================     Camp Version      =========================================
+//=========================================== Camp Version =========================================
 //==================================================================================================
 
 #if !DOXYGEN
-List<MonoAllocator, camp::Camp*>   CAMPS(monomem::GLOBAL_ALLOCATOR);
+ListMA<camp::Camp*>   CAMPS(monomem::GLOBAL_ALLOCATOR);
 #   include "ALib.Lang.CIFunctions.H"
 #endif
 
-void BootstrapAddDefaultCamps()
-{
+void BootstrapAddDefaultCamps() {
     // if the global allocator was not initialized from outside, then we have to do it.
     if (!monomem::GLOBAL_ALLOCATOR.IsInitialized())
         new (&monomem::GLOBAL_ALLOCATOR) MonoAllocator(ALIB_DBG("Global",) 128);
@@ -668,8 +696,7 @@ void BootstrapAddDefaultCamps()
 
 void Bootstrap( BootstrapPhases     targetPhase,
                 camp::Camp*         targetCamp,
-                int alibVersion, int alibRevision, TCompilationFlags compilationFlags )
-{
+                int alibVersion, int alibRevision, TCompilationFlags compilationFlags ) {
     // verify ALib
     AssertALibVersionAndFlags( alibVersion, alibRevision, compilationFlags );
 
@@ -683,8 +710,7 @@ void Bootstrap( BootstrapPhases     targetPhase,
     //std::cout << "Camp::Bootstrap called on: '" << this->ResourceCategory << "', target phase: " << int(targetPhase) << std::endl;
 
     // Initialize non-camp modules once
-    if( !NonCampModulesInitialized )
-    {
+    if( !NonCampModulesInitialized ) {
         IF_ALIB_BOXING ( boxing             ::bootstrap(); )
         IF_ALIB_THREADS( threads            ::bootstrap(); )
 
@@ -719,13 +745,11 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
         BootstrapPhases actualPhase = BootstrapPhases( phaseIntegral );
 
         // phase 1: distribute a resource pool
-        if ( actualPhase == BootstrapPhases::PrepareResources  )
-        {
+        if ( actualPhase == BootstrapPhases::PrepareResources  ) {
             bool skipOne= false;
             
             // create a resource pool?
-            if ( targetCamp->GetResourcePool() == nullptr )
-            {
+            if ( targetCamp->GetResourcePool() == nullptr ) {
                 camp::Camp::SPResourcePool spPool;
                 spPool.InsertDerived<resources::LocalResourcePool>(monomem::GLOBAL_ALLOCATOR);
                 resources::LocalResourcePool* lPool= dynamic_cast<resources::LocalResourcePool*>(spPool.Get());
@@ -765,12 +789,10 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
         }
 
         // phase 2: create and distribute a configuration
-        else if ( actualPhase == BootstrapPhases::PrepareConfig)
-        {
+        else if ( actualPhase == BootstrapPhases::PrepareConfig) {
             // create a configuration?
             bool skipOne= false;
-            if ( targetCamp->GetConfig() == nullptr )
-            {
+            if ( targetCamp->GetConfig() == nullptr ) {
                 targetCamp->BootstrapSetConfig(SharedConfiguration(16u));
                 #if ALIB_DEBUG_CRITICAL_SECTIONS
                 targetCamp->GetConfig()->NodeTable().dcs.DCSName= "Camp.Config-bootstrap-created";
@@ -783,8 +805,7 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 
             // loop in reverse order over modules, start with this module
             SharedConfiguration* actConfig= &targetCamp->GetConfig();
-            for(auto module=   targetCampIt ; module != CAMPS.rend() ; ++module )
-            {
+            for(auto module=   targetCampIt ; module != CAMPS.rend() ; ++module ) {
                 if ( skipOne ) { skipOne= false; continue; }
 
                 // if a different config object is set, then use that one from now on
@@ -798,8 +819,7 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 
         // initialize modules on this phase
         ALIB_DBG( bool foundThisModuleInList = false; )
-        for ( auto* camp : CAMPS )
-        {
+        for ( auto* camp : CAMPS ) {
             // bootstrap camp
             if(int(camp->GetBootstrapState()) >= int(actualPhase ) )
                  continue;
@@ -813,12 +833,10 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
             camp->Bootstrap();
 
             // stop if this is us
-            if (camp == targetCamp )
-            {
+            if (camp == targetCamp ) {
                 ALIB_DBG( foundThisModuleInList = true );
                 break;
-            }
-        }
+        }   }
         ALIB_ASSERT_ERROR( foundThisModuleInList, "CAMPS",
           "The target camp of function Bootstrap is not included in list alib::CAMPS "
           "or was already bootstrapped for this phase!\n"
@@ -826,17 +844,14 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
     }
 
     // Are all camps finalized?
-    if ( targetPhase == BootstrapPhases::Final && targetCamp == CAMPS.back() )
-    {
+    if ( targetPhase == BootstrapPhases::Final && targetCamp == CAMPS.back() ) {
         #if ALIB_DEBUG_CRITICAL_SECTIONS &&  ALIB_MONOMEM
             monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= &monomem::GLOBAL_ALLOCATOR_LOCK;
             monomem::GLOBAL_ALLOCATOR_LOCK.Dbg.Name= "GlobalAllocator";
         #endif
-    }
-}
+}   }
 
-void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
-{
+void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp ) {
     #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
         monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
         Formatter::Default->DCSLock= nullptr;
@@ -868,16 +883,14 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
         ShutdownPhases actualPhase = ShutdownPhases( phaseIntegral );
 
         // shutdown in reverse order
-        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt )
-        {
+        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt ) {
             ALIB_ASSERT_ERROR(    int(( *campIt )->GetBootstrapState()) < 0
                                || int(( *campIt )->GetBootstrapState()) == int(BootstrapPhases::Final),
                 "CAMPS", "Trying to terminate a not (fully) initialized module. "
                          "Module Name (resource category): ", targetCamp->ResourceCategory )
 
             // shutdown module
-            if (int(( *campIt )->GetBootstrapState()) > -int(actualPhase) )
-            {
+            if (int(( *campIt )->GetBootstrapState()) > -int(actualPhase) ) {
                 //std::cout << "Camp::Shutdown '" << (*campIt)->ResourceCategory << "', phase: " << int(actualPhase) << std::endl;
 
                 ALIB_ASSERT_ERROR(    ( int(( *campIt )->GetBootstrapState()) == 3  &&  phaseIntegral == 1 )
@@ -895,8 +908,7 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
 
             if(( *campIt ) == targetCamp )
                 break;
-        }
-    }
+    }   }
     ALIB_ASSERT_ERROR( foundThisModuleInList, "CAMPS",
       "The target camp of function Shutdown is not included in list alib::CAMPS "
       "or was already shutdown for this phase!\n"
@@ -912,8 +924,7 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
 
     // delete resources/config
     if( targetPhase == ShutdownPhases::Destruct)
-        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt )
-        {
+        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt ) {
             ( *campIt )->BootstrapSetResourcePool(nullptr);
             ( *campIt )->BootstrapSetConfig(nullptr);
 
@@ -935,8 +946,7 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
 
         CAMPS.Reset();
         NonCampModulesInitialized= false;
-    }
-}
+}   }
 
 #endif // ALIB_CAMP
 } // namespace [alib]
@@ -944,8 +954,3 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp )
 
 
 #   include "ALib.Lang.CIMethods.H"
-
-
-
-
-

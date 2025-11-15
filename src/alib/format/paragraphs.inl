@@ -21,9 +21,9 @@ namespace format {
 //==================================================================================================
 class Paragraphs
 {
-    // #############################################################################################
-    // Fields
-    // #############################################################################################
+  //################################################################################################
+  // Fields
+  //################################################################################################
   protected:
     /// Allocator used for internal container types.
     MonoAllocator           allocator;
@@ -60,7 +60,7 @@ class Paragraphs
 
     /// The bullet used with increasing bullet depths.
     /// Defaults to <c>'*'</c>, <c>'-'</c>, <c>'*'</c>, <c>'-'</c>, <c>'*'</c>, <c>'-'</c>.
-    StdVectorMono<character>    MarkerBullets;
+    StdVectorMA<character>      MarkerBullets;
 
     /// Used as parameter \p{indent} of static method invocations.<br>
     /// The indent string of the first line.
@@ -78,11 +78,11 @@ class Paragraphs
 
     /// The stack of indent substring sizes in string #IndentFirstLine.
     /// Used with #PushIndent and #PopIndent.
-    std::stack<integer, StdDequeMono<integer>>  IndentSizesFirstLine;
+    std::stack<integer, StdDequeMA<integer>>  IndentSizesFirstLine;
 
     /// The stack of indent substring sizes in string #IndentOtherLines.
     /// Used with #PushIndent and #PopIndent.
-    std::stack<integer, StdDequeMono<integer>>  IndentSizesOtherLines;
+    std::stack<integer, StdDequeMA<integer>>  IndentSizesOtherLines;
 
     /// This field is increased whenever a line of text added is longer than its current
     /// value.
@@ -101,9 +101,9 @@ class Paragraphs
     /// Buffer for processing marked text.
     size_t                      markerBulletLevel                                                =0;
 
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
+  //################################################################################################
+  // Constructor/Destructor
+  //################################################################################################
   public:
     /// Parameterless constructor.
     /// Internal buffer #text will be used with reference #Buffer.
@@ -114,11 +114,10 @@ class Paragraphs
     /// @param externalBuffer The external buffer to use and fill.
     ALIB_DLL                 Paragraphs( AString& externalBuffer );
 
-    // #############################################################################################
-    // Interface
-    // #############################################################################################
+  //################################################################################################
+  // Interface
+  //################################################################################################
   public:
-    //==============================================================================================
     /// Formats one or more paragraphs (separated by \b NewLine symbols) with three optional
     /// features:
     ///
@@ -149,7 +148,6 @@ class Paragraphs
     /// @param[out] maxLineWidth Provides the maximum width of all text lines written.
     /// @param indentFirstLine   The indent string of the first line. Defaults to \c nullptr.
     /// @param indentOtherLines  The indent string of subsequent lines. Defaults to \c nullptr.
-    //==============================================================================================
     ALIB_DLL
     static
     void    Format( AString&      text,
@@ -160,7 +158,6 @@ class Paragraphs
                     const String& indentFirstLine = nullptr,
                     const String& indentOtherLines= nullptr  );
 
-    //==============================================================================================
     /// Appends the given objects \p{args} to the internal #Buffer with the help of member
     /// #Formatter. Then, static method #Format is invoked, providing our public
     /// members as parameters. Finally, a newline sequence is added to #Buffer, but only if the
@@ -170,26 +167,21 @@ class Paragraphs
     ///         Rethrows exceptions from the formatter caused by errors in provided \p{args}.
     ///
     /// @param args   The list of arguments to add.
-    //==============================================================================================
     template<typename TAllocatorArgs>
     void    Add( boxing::TBoxes<TAllocatorArgs>&  args );
 
-    //==============================================================================================
     /// Variadic template argument version of #Add.
     ///
     /// @param args   The variadic list of arguments to add.
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     template <typename... BoxedObjects>
-    Paragraphs&  Add( const BoxedObjects&... args )
-    {
+    Paragraphs&  Add( const BoxedObjects&... args ) {
         boxes.clear();
         boxes.Add( args... );
         Add( boxes );
         return *this;
     }
 
-    //==============================================================================================
     /// This method implements a pre-processing of the text before #Add paragraphs found in
     /// the text.
     ///
@@ -218,11 +210,9 @@ class Paragraphs
     ///   - Rethrows formatter exceptions occurring due to errors in provided \p{args}.
     ///
     /// @param args       The list of arguments to add.
-    //==============================================================================================
     template<typename TAllocatorArgs>
     void            AddMarked( boxing::TBoxes<TAllocatorArgs>&  args );
 
-    //==============================================================================================
     /// Variadic template argument version of #AddMarked.
     ///
     /// @throws <b>alib::format::FMTExceptions</b>
@@ -231,38 +221,30 @@ class Paragraphs
     ///
     /// @param args   The variadic list of arguments to add.
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     template <typename... BoxedObjects>
-    Paragraphs&     AddMarked( const BoxedObjects&... args )
-    {
+    Paragraphs&     AddMarked( const BoxedObjects&... args ) {
         boxes.clear();
         boxes.Add( args... );
         AddMarked( boxes );
         return *this;
     }
 
-    //==============================================================================================
     /// Removes the last new line character at the end of the #Buffer.
     ///
     /// @return A reference to the text object.
-    //==============================================================================================
-    AString&        RemoveLastNewLine()
-    {
+    AString&        RemoveLastNewLine() {
         if( Buffer.EndsWith( NEW_LINE ) )
             Buffer.template DeleteEnd<NC>( NEW_LINE.Length() );
         return Buffer;
     }
 
-    //==============================================================================================
     /// Clears field #Buffer.
     ///
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     ALIB_DLL
     Paragraphs&     Clear();
 
 
-    //==============================================================================================
     /// Add a given number of characters (default is spaces) to the indentation strings
     /// #IndentFirstLine and #IndentOtherLines.
     ///
@@ -271,11 +253,9 @@ class Paragraphs
     /// @param qty       The quantity of characters to add or remove
     /// @param fillChar  The character (used only if \p{qty} is positive).
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     ALIB_DLL
     Paragraphs&     PushIndent( uinteger qty, character fillChar = ' ' );
 
-    //==============================================================================================
     /// Add the given strings to members #IndentFirstLine and #IndentOtherLines.
     ///
     /// @param indentFirstLine   The string to add to the current indentation stored in
@@ -285,15 +265,12 @@ class Paragraphs
     ///                          Defaults to \b NULL_STRING, which sets it to the same value as
     ///                          \p{indentFirstLine}.
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     ALIB_DLL
     Paragraphs&     PushIndent( const String& indentFirstLine,
                            const String& indentOtherLines=nullptr);
 
-    //==============================================================================================
     /// Removes the most recently added indent.
     /// @return A reference to ourselves to allow concatenated calls.
-    //==============================================================================================
     ALIB_DLL
     Paragraphs&     PopIndent();
 }; // class Paragraphs
@@ -313,5 +290,3 @@ template<> ALIB_DLL  void    Paragraphs::AddMarked( boxing::TBoxes<PoolAllocator
 using  Paragraphs          =   format::Paragraphs;
 
 } // namespace [alib]
-
-

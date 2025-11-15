@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
 #if !ALIB_SINGLE_THREADED
 #   include <condition_variable>
@@ -19,7 +19,7 @@
 #endif // !ALIB_SINGLE_THREADED
 #include <unordered_map>
 #include <future>
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module   ALib.Threads;
     import   ALib.Lang;
@@ -31,13 +31,12 @@
 #   include "ALib.Threads.H"
 #   include "ALib.Strings.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 #if !ALIB_SINGLE_THREADED && ALIB_DEBUG && ALIB_STRINGS && !DOXYGEN
 namespace alib::threads {
 
-void  Promise::Fulfill(const CallerInfo& ci, State state)
-{
+void  Promise::Fulfill(const CallerInfo& ci, State state) {
     ALIB_ASSERT_ERROR( DbgFulfillCI.File == nullptr, "THREADS",
                        "Promise was already fulfilled. Repeated calls not allowed.\n"
                        "  This call:    {}\n"
@@ -47,14 +46,12 @@ void  Promise::Fulfill(const CallerInfo& ci, State state)
     promise.set_value(state);
 }
 
-Promise::State Promise::Wait(const CallerInfo& ci)
-{
+Promise::State Promise::Wait(const CallerInfo& ci) {
     ALIB_ASSERT_ERROR( DbgWaitCI.File == nullptr, "THREADS",
                        "Promise was already awaited. Repeated calls not allowed.\n"
                        "  Received with: ", DbgWaitCI )
 
-    if ( !DbgWaitTimeLimit.IsZero() )
-    {
+    if ( !DbgWaitTimeLimit.IsZero() ) {
         Ticks::Duration waitDuration=  DbgWaitTimeLimit;
         Ticks overallTimer;
         Ticks waitTimer;
@@ -66,14 +63,13 @@ Promise::State Promise::Wait(const CallerInfo& ci)
 
             ALIB_WARNING( "THREADS", "Waiting for a Promise since {}.", overallTimer.Age() )
             waitTimer.Reset();
-        }
-    }
+    }   }
 
     DbgWaitCI= ci;
     return future.get();
 }
-Promise::State Promise::WaitFor( const Ticks::Duration::TDuration& maxWaitTimeSpan, const CallerInfo& ci )
-{
+Promise::State Promise::WaitFor( const Ticks::Duration::TDuration& maxWaitTimeSpan,
+                                 const CallerInfo&                 ci               ) {
     ALIB_ASSERT_ERROR( DbgWaitCI.File == nullptr, "THREADS",
                        "Promise was already awaited. Repeated calls not allowed.\n"
                        "  Received with: ", DbgWaitCI )
@@ -85,8 +81,7 @@ Promise::State Promise::WaitFor( const Ticks::Duration::TDuration& maxWaitTimeSp
     return future.get();
 }
 
-Promise::State Promise::WaitUntil( const Ticks& wakeUpTime, const CallerInfo& ci )
-{
+Promise::State Promise::WaitUntil( const Ticks& wakeUpTime, const CallerInfo& ci ) {
     ALIB_ASSERT_ERROR( DbgWaitCI.File == nullptr, "THREADS",
                        "Promise was already awaited. Repeated calls not allowed.\n"
                        "  Received with: ", DbgWaitCI )

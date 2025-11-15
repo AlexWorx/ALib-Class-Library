@@ -13,7 +13,7 @@
 
 namespace alib::monomem {
 
-// =============================   Construction/Destruction/Deletion   =============================
+//================================ Construction/Destruction/Deletion ===============================
 template<typename TAllocator, size_t TAlignment>
 TPoolAllocator<TAllocator,TAlignment>::TPoolAllocator   ( TAllocator& pAllocator )
 : allocMember(pAllocator)
@@ -42,8 +42,7 @@ ALIB_DBG(,DbgName(pAllocator.DbgName))
 }
 
 template<typename TAllocator, size_t TAlignment>
-TPoolAllocator<TAllocator,TAlignment>::~TPoolAllocator   ()
-{
+TPoolAllocator<TAllocator,TAlignment>::~TPoolAllocator   () {
     if ( hooks == nullptr )
         return;
 
@@ -52,8 +51,7 @@ TPoolAllocator<TAllocator,TAlignment>::~TPoolAllocator   ()
     ALIB_DBG( hooks= nullptr; )
 
     #if ALIB_DEBUG_ALLOCATIONS
-        for (short i = 0; i < qtyHooks(); ++i)
-        {
+        for (short i = 0; i < qtyHooks(); ++i) {
             if ( dbgOpenAllocations[i] > 0)
                 ALIB_WARNING( "MONOMEM",
                       "PoolAllocator '{}' destructor: There are still {} objects of size {}"
@@ -70,26 +68,23 @@ TPoolAllocator<TAllocator,TAlignment>::~TPoolAllocator   ()
 
 
 template<typename TAllocator, size_t TAlignment>
-void TPoolAllocator<TAllocator,TAlignment>::deletePool()
-{
-    for (int idx = 0; idx < qtyHooks(); ++idx)
-    {
+void TPoolAllocator<TAllocator,TAlignment>::deletePool() {
+    for (int idx = 0; idx < qtyHooks(); ++idx) {
         size_t allocSize= lang::DbgAlloc::extSize( size_t(1) <<  (idx + minimumHookIndex()) );
         void* elem= hooks[idx];
-        while( elem )
-        {
+        while( elem ) {
             void* next= *reinterpret_cast<void**>( elem );
             allocMember::GetAllocator().free( elem, allocSize );
             elem= next;
-        }
-    }
-}
+}   }   }
 
 
-// =======================================    Allocation    ========================================
+//============================================ Allocation ==========================================
 template<typename TAllocator, size_t TAlignment>
-void* TPoolAllocator<TAllocator,TAlignment>::reallocate( void* mem, size_t oldSize, size_t& newSize, size_t pAlignment )
-{
+void* TPoolAllocator<TAllocator,TAlignment>::reallocate( void*   mem,
+                                                         size_t  oldSize,
+                                                         size_t& newSize,
+                                                         size_t  pAlignment ) {
     short oldSizeIdx;
     short newSizeIdx;
 
@@ -118,8 +113,7 @@ void* TPoolAllocator<TAllocator,TAlignment>::reallocate( void* mem, size_t oldSi
 }
 
 template<typename TAllocator, size_t TAlignment>
-void*    TPoolAllocator<TAllocator,TAlignment>::AllocateByAllocationInfo(int allocInfo)
-{ALIB_DCS
+void*    TPoolAllocator<TAllocator,TAlignment>::AllocateByAllocationInfo(int allocInfo)    {ALIB_DCS
     #if ALIB_DEBUG_ALLOCATIONS
         // if not set, then this method had been called directly from outside and we store
         // the hook index instead of the true requested size.
@@ -137,8 +131,7 @@ void*    TPoolAllocator<TAllocator,TAlignment>::AllocateByAllocationInfo(int all
     void** hook= &hooks[allocInfo];
 
     // found a recyclable?
-    if( *hook )
-    {
+    if( *hook ) {
         void* mem= *hook;
         *hook= *reinterpret_cast<void**>(mem);
 
@@ -161,15 +154,13 @@ void*    TPoolAllocator<TAllocator,TAlignment>::AllocateByAllocationInfo(int all
     return mem;
 }
 
-// =========================================    Other    ===========================================
+//============================================== Other =============================================
 
 template<typename TAllocator, size_t TAlignment>
-integer TPoolAllocator<TAllocator,TAlignment>::TPoolAllocator::GetPoolSize(size_t size)
-{
+integer TPoolAllocator<TAllocator,TAlignment>::TPoolAllocator::GetPoolSize(size_t size) {
     integer result= 0;
     void* node= hooks[hookIndex(size)];
-    while( node )
-    {
+    while( node ) {
         node= *reinterpret_cast<void**>(node);
         ++result;
     }
@@ -179,4 +170,3 @@ integer TPoolAllocator<TAllocator,TAlignment>::TPoolAllocator::GetPoolSize(size_
 } // namespace [alib::monomem]
 
 #endif //  !DOXYGEN
-

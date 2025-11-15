@@ -24,5 +24,3 @@
 #endif
 
 #endif // H_ALIB_STRINGS_AUTOSIZES
-
-

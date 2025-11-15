@@ -13,13 +13,12 @@
 #endif
 #if ALIB_ENUMRECORDS
 
-// #################################################################################################
+//##################################################################################################
 // Symbols introduced by module ALib.Enums
-// #################################################################################################
+//##################################################################################################
 #define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                                                \
 namespace alib::enumrecords {                                                                            \
 template<> struct RecordsTraits<TEnum>     { using  Type=  TRecord; };   }
 
 #endif
 #endif // HPP_ALIB_ENUMRECORDS_PP
-

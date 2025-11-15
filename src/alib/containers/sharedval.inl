@@ -61,7 +61,7 @@ class SharedVal
         T                           custom;
 
         /// The reference counter used to implement the <c>std::shared_ptr</c> behavior.
-        std::atomic<unsigned int>   refCount;
+        std::atomic<unsigned>       refCount;
 
         /// Alternative constructor missing the allocator instance.
         /// This is used only with allocators that are default-constructible
@@ -86,7 +86,7 @@ class SharedVal
         T                           custom;
 
         /// The reference counter used to implement the <c>std::shared_ptr</c> behavior.
-        std::atomic<unsigned int>   refCount;
+        std::atomic<unsigned>       refCount;
 
         /// The allocator used.
         TAllocator&                 allocator;
@@ -138,12 +138,12 @@ class SharedVal
     using StoredType   = T;
 
     /// Default Constructor. Leaves this object \e nulled.
-    SharedVal()                                                    noexcept    : members(nullptr) {}
+    SharedVal()                                                    noexcept : members(nullptr) {}
 
     /// Constructs an empty instance from \c std::nullptr.
     /// This constructor is necessary to allow assignment of \c std::nullptr to values of this type,
     /// which clears the automatic pointer.
-    SharedVal(std::nullptr_t)                                      noexcept    : members(nullptr) {}
+    SharedVal(std::nullptr_t)                                      noexcept : members(nullptr) {}
 
     /// Copy Constructor. Increases the reference counter of the shared pointer (in case given
     /// \p{other} is not nulled).
@@ -272,7 +272,7 @@ class SharedVal
     /// @return \c The number of shared usages.
     ///            If this instance was default-constructed, moved, method #SetNulled was called,
     ///            or \c nullptr was assigned, then \c 0 is returned.
-    unsigned int      UseCount()                                                      const noexcept
+    unsigned          UseCount()                                                      const noexcept
     { return members != nullptr ? members->refCount.load() : 0; }
 
     /// Returns \c true if the #UseCount is \c 1.

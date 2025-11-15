@@ -893,7 +893,7 @@ UT_METHOD( TTab )
     ms.Reset();    ms._( 'x' );   ms._(Tab( 2 ))  ._( '-' );        UT_EQ( A_CHAR("x -")   , ms )
     ms.Reset();    ms._( 'x' );   ms._(Tab( 3 ))  ._( '-' );        UT_EQ( A_CHAR("x  -")  , ms )
 
-    // tabs with tab reference set (designed for multi line tabs)
+    // tabs with tab reference set (designed for multi-line tabs)
     ms.Reset(A_CHAR("ABC")).NewLine();
     ms._( A_CHAR("12345") )._(Tab( 5 , -1))
       ._( A_CHAR("1234") ) ._(Tab( 5 , -1))

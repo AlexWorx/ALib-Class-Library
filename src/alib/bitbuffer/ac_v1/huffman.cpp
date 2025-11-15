@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/bitbuffer/bitbuffer.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.BitBuffer;
     import   ALib.Containers.FixedCapacityVector;
@@ -33,79 +33,81 @@ namespace alib {  namespace bitbuffer { namespace ac_v1 {
 #if !DOXYGEN
 namespace
 {
-    /// Internal struct representing nodes of the huffman code tree.
-    class Node
+/// Internal struct representing nodes of the huffman code tree.
+class Node
+{
+    using Symbol= HuffmanEncoder::Symbol;
+
+  protected:
+    /// Either a pointer to a left subtree or to a symbol.
+    /// The latter makes the node a leaf.
+    union LeftPointer
     {
-        using Symbol= HuffmanEncoder::Symbol;
+        Symbol*         symbol;      ///< The symbol represented by this node (if not \c nullptr).
+        Node*           left;        ///< The left subtree.
 
-        protected:
-            /// Either a pointer to a left subtree or to a symbol.
-            /// The latter makes the node a leaf.
-            union LeftPointer
-            {
-                Symbol*         symbol;      ///< The symbol represented by this node (if not \c nullptr).
-                Node*           left;        ///< The left subtree.
+        LeftPointer()  = default;    ///< Non-initializing default constructor.
 
-                LeftPointer()  = default;    ///< Non-initializing default constructor.
+        /// Constructs this union with a symbol pointer.
+        /// @param s The symbol to set.
+        LeftPointer( Symbol* s )
+        : symbol( s )                                                                             {}
 
-                /// Constructs this union with a symbol pointer.
-                /// @param s The symbol to set.
-                LeftPointer( Symbol* s )
-                : symbol( s )
-                {}
+        /// Constructs this union with a cursor.
+        /// @param l The node to set.
+        LeftPointer( Node* l )
+        : left ( l )                                                                              {}
+    };
 
-                /// Constructs this union with a cursor.
-                /// @param l The node to set.
-                LeftPointer( Node* l )
-                : left ( l )
-                {}
-            };
-
-            LeftPointer left;   ///< If #right set, then this is a pointer to the left subtree,
-                                ///< otherwise a pointer to a symbol.
-            Node*       right;  ///< The right subtree.
+    LeftPointer left;   ///< If #right set, then this is a pointer to the left subtree,
+                        ///< otherwise a pointer to a symbol.
+    Node*       right;  ///< The right subtree.
 
 
-        public:
-            size_t     frequency;    ///< The frequency of the symbol or the sum of the two subtrees.
+  public:
+    size_t     frequency;    ///< The frequency of the symbol or the sum of the two subtrees.
 
-            /// Default constructor used when defining arrays of nodes on stack memory.
-            Node() = default;
+    /// Default constructor used when defining arrays of nodes on stack memory.
+    Node()                                                                                 =default;
 
-           /// Constructs a node representing a symbol (leaf).
-           /// Left and right pointers are set to nullptr
-           /// @param s Pointer to the symbol in #symbols, that this node represents.
-            Node(Symbol* s)
-            : left      (s)
-            , right     (nullptr)
-            , frequency (s->frequency)
-            {}
+    /// Constructs a node representing a symbol (leaf).
+    /// Left and right pointers are set to nullptr
+    /// @param s Pointer to the symbol in #symbols, that this node represents.
+    Node(Symbol* s)
+    : left      (s)
+    , right     (nullptr)
+    , frequency (s->frequency)                                                                    {}
 
-           /// Constructs a node as an internal non-leaf node.
-           /// Left and right pointers are set to as given.
-           /// @param l Pointer to the left node.
-           /// @param r Pointer to the right node.
-            Node(Node* l, Node* r)
-            : left      (l)
-            , right     (r)
-            , frequency (l->frequency + r->frequency)
-            {}
+    /// Constructs a node as an internal non-leaf node.
+    /// Left and right pointers are set to as given.
+    /// @param l Pointer to the left node.
+    /// @param r Pointer to the right node.
+    Node(Node* l, Node* r)
+    : left      (l)
+    , right     (r)
+    , frequency (l->frequency + r->frequency)                                                     {}
 
-            bool    isLeaf()    const  { return right == nullptr; } ///< Determines if this a leaf node.
-                                                                    ///< @returns \c true if this is a leaf node.
-            Symbol* getSymbol() const  { return left.symbol; }      ///< Must be called only for leaf nodes.
-                                                                    ///< @returns The pointer to the symbol.
-            Node*   getLeft()   const  { return left.left; }        ///< Must be called only for non-leaf nodes.
-                                                                    ///< @returns The left node.
-            Node*   getRight()  const  { return right;     }        ///< @returns The right node.
-    }; //struct Node
+    /// Determines if this is a leaf node.
+    /// @returns \c true if this is a leaf node.
+    bool    isLeaf()                                              const { return right == nullptr; }
+
+    /// Must be called only for leaf nodes.
+    /// @returns The pointer to the symbol.
+    Symbol* getSymbol()                                                const { return left.symbol; }
+
+    /// Must be called only for non-leaf nodes.
+    /// @returns The left node.
+    Node*   getLeft()                                                    const { return left.left; }
+
+    /// @returns The right node.
+    Node*   getRight()                                                       const { return right; }
+}; //struct Node
 } // anonymous namespace
 
 #endif
 
 
-void HuffmanEncoder::Generate()
-{
+void HuffmanEncoder::Generate() {
     constexpr int maxNodesNeeded= 256 + 255;
     Node nodePool[maxNodesNeeded];
 
@@ -128,8 +130,7 @@ void HuffmanEncoder::Generate()
 
 ALIB_DBG( dbgAllValuesAreSame= (sortedNodes.size() == 1);  )
         // Merge two front nodes into one, until one node remains
-        while (sortedNodes.size() > 1)
-        {
+        while (sortedNodes.size() > 1) {
             // Extract two least freq nodes
             Node* left = sortedNodes.top();   sortedNodes.pop();
             Node* right= sortedNodes.top();   sortedNodes.pop();
@@ -159,18 +160,16 @@ ALIB_DBG( dbgAllValuesAreSame= (sortedNodes.size() == 1);  )
 TEMP_PT(Log_Warning("------ Huffman Encoding Table ----------")    )
 
         // 'recursion loop'
-        while(depth>=0)
-        {
+        while(depth>=0) {
             auto* node= stack[depth].node;
 
             auto wordNo= depth / WORD_SIZE;
             auto bitNo = depth % WORD_SIZE;
 
             // leaf?
-            if( node->isLeaf() )
-            {
+            if( node->isLeaf() ) {
                 // write '1' for leaf and symbol value
-                bw.Write<9>( 1 | static_cast<unsigned int>(node->getSymbol() - symbols) << 1  );
+                bw.Write<9>( 1 | static_cast<unsigned>(node->getSymbol() - symbols) << 1  );
 
                 // store word length and words to symbol's data
                 node->getSymbol()->wordLength= depth;
@@ -186,7 +185,7 @@ TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbo
                              node->symbol->frequency )              )
 
                 // clear last bit and step up
-                words[wordNo]&= ~(1 << ( bitNo ) );
+                words[wordNo]&= ~(uint32_t(1) << ( bitNo ) );
                 --depth;
                 continue;
             }
@@ -195,8 +194,7 @@ TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbo
             bw.Write<1>( 0u );
 
             // process left child
-            if( stack[depth].walked == 0)
-            {
+            if( stack[depth].walked == 0) {
                 stack[depth].walked++;
                 stack[depth+1]= Stack{ node->getLeft()  , 0};
                 depth++;
@@ -204,8 +202,7 @@ TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbo
             }
 
             // process right child
-            if( stack[depth].walked == 1)
-            {
+            if( stack[depth].walked == 1) {
                 stack[depth].walked++;
                 words[wordNo] |= (1 << ( bitNo ) );
                 stack[depth+1]= Stack{ node->getRight()  , 0};
@@ -214,15 +211,13 @@ TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbo
             }
 
             // clear last bit and step up
-            words[wordNo]&= ~(1 << ( bitNo ) );
+            words[wordNo]&= ~(uint32_t(1) << ( bitNo ) );
             --depth;
         }
 TEMP_PT(  Log_Warning("------End of Huffman Encoding Table ----------")  )
-    }
-}
+}   }
 
-void HuffmanDecoder::ReadTree()
-{
+void HuffmanDecoder::ReadTree() {
 TEMP_PT(  Log_Warning("------ Huffman Decoding Table ----------")    )
 TEMP_PT( String512 dbgWord; )
     struct Stack
@@ -234,12 +229,10 @@ TEMP_PT( String512 dbgWord; )
     int     depth;
     Stack   stack[HuffmanEncoder::MAX_CODE_LENGTH];
     stack[depth= 0]= Stack{ &tree, 0 };
-    while(depth>=0)
-    {
+    while(depth>=0) {
         auto* node= stack[depth].node;
         // leaf?
-        if( br.Read<1>() )
-        {
+        if( br.Read<1>() ) {
             node->symbol= uint8_t(br.Read<8>());
 TEMP_PT(        Log_Warning("HM D: {:3}: {:5} (len={})",
                         (node->symbol),
@@ -252,8 +245,7 @@ TEMP_PT(        dbgWord.DeleteEnd(1);   )
         }
 
         // left 'recursion'
-        if( stack[depth].read == 0)
-        {
+        if( stack[depth].read == 0) {
             ++stack[depth].read;
             node->left= new ( nodePool + npNext++ ) Node();
 TEMP_PT(        dbgWord << '0';          )
@@ -263,8 +255,7 @@ TEMP_PT(        dbgWord << '0';          )
         }
 
         // right 'recursion'
-        if( stack[depth].read == 1)
-        {
+        if( stack[depth].read == 1) {
             ++stack[depth].read;
 TEMP_PT(        dbgWord << '1';    )
             node->right= new ( nodePool + npNext++ ) Node();
@@ -288,4 +279,3 @@ TEMP_PT(  Log_Warning("------End of Huffman Decoding Table ----------")  )
 #undef TEMP_PT
 
 }}} // namespace [alib::bitbuffer::ac_v1]
-

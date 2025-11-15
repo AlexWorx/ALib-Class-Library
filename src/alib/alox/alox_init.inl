@@ -26,7 +26,7 @@ ALIB_EXPORT namespace alib {  namespace lox {
 ///
 /// \alox, when executing a statement, checks both values against each other.
 /// A <em>Log Statement</em> is executed, when the <em>\<Logger/%Log Domain\></em> setting is set
-/// to the same or a 'higher level'.  For example if a <em>\<Logger/%Log Domain\></em> setting is
+/// to the same or a 'higher level'. For example, if a <em>\<Logger/%Log Domain\></em> setting is
 /// \b %Warning, then <em>Log Statements</em> with associated \e %Verbosity \b %Warning and
 /// \b %Error are executed and those with \b %Info and \b %Verbose are suppressed.
 ///
@@ -97,7 +97,7 @@ enum class Verbosity : uint8_t
 ///   Therefore, in release-logging, the use of \e Scopes 'Path', 'Filename' and
 ///   'Method' will just default to an empty scope and therefore the all reflect the same,
 ///   shared scope, which is not very helpful. Therefore, for standard release logging,
-///   the use of the scope mechanisms should be be avoided, unless scope information is
+///   the use of the scope mechanisms should be avoided, unless scope information is
 ///   explicitly enabled.<br>
 ///   For more information on how to change the defaults, see documentation of preprocessor
 ///   symbols \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI.
@@ -120,7 +120,7 @@ enum class Scope
     Method,
 
     /// Denotes the actual thread as the scope. When used with <em>Scope Domains</em>,
-    ///  'inner' scopes can be defined optionally by multiple definitions.
+    /// 'inner' scopes can be defined optionally by multiple definitions.
     ThreadInner,
 
     /// Denotes the actual source path as the scope. By adding positive integral values
@@ -189,11 +189,9 @@ class ESC
 
     static constexpr    character  EOMETA     [4]{ A_CHAR("\033A0") }; ///< End of meta-information in log string
 
-    //==============================================================================================
     /// Replaces ESC codes in a string reversely to "ESC::XXX".
     /// @param target   The string to replace in.
     /// @param startIdx The index to start searching for ESC codes.
-    //==============================================================================================
     ALIB_DLL
     static void ReplaceToReadable( AString& target, integer startIdx );
 }; // class ESC
@@ -203,24 +201,24 @@ class ESC
 /// different parts of the state receive.
 enum class StateInfo
 {
-   NONE                     = 0,       ///< No state
-   Basic                    = 1 <<  0, ///< Name and number of log calls
-   Version                  = 1 <<  1, ///< Library Version and thread safeness
-   Loggers                  = 1 <<  2, ///< Loggers
+    NONE                     = 0,       ///< No state
+    Basic                    = 1 <<  0, ///< Name and number of log calls
+    Version                  = 1 <<  1, ///< Library Version and thread safeness
+    Loggers                  = 1 <<  2, ///< Loggers
 
-   Domains                  = 1 <<  3, ///< Log domains currently registered
-   InternalDomains          = 1 <<  4, ///< Internal domains
-   ScopeDomains             = 1 <<  5, ///< Scope domains
-   DSR                      = 1 <<  6, ///< Domain substitution rules
-   PrefixLogables           = 1 <<  7, ///< Prefix logables
-   Once                     = 1 <<  8, ///< Log once counters
-   LogData                  = 1 <<  9, ///< Log data objects
-   ThreadMappings           = 1 << 10, ///< Named threads
+    Domains                  = 1 <<  3, ///< Log domains currently registered
+    InternalDomains          = 1 <<  4, ///< Internal domains
+    ScopeDomains             = 1 <<  5, ///< Scope domains
+    DSR                      = 1 <<  6, ///< Domain substitution rules
+    PrefixLogables           = 1 <<  7, ///< Prefix logables
+    Once                     = 1 <<  8, ///< Log once counters
+    LogData                  = 1 <<  9, ///< Log data objects
+    ThreadMappings           = 1 << 10, ///< Named threads
 
-   SPTR                     = 1 << 20, ///< Source path trim rules
-   CompilationFlags         = 1 << 21, ///< \alib/\alox compilation flags
+    SPTR                     = 1 << 20, ///< Source path trim rules
+    CompilationFlags         = 1 << 21, ///< \alib/\alox compilation flags
 
-   All                      =     ~0L, ///< All flags set.
+    All                      =     ~0L, ///< All flags set.
 };
 
 
@@ -249,5 +247,3 @@ ALIB_ENUMS_MAKE_ARITHMETICAL( alib::lox::Scope     )
 
 
 ALIB_ENUMS_ASSIGN_RECORD( alib::lox::StateInfo, alib::enumrecords::ERSerializable )
-
-

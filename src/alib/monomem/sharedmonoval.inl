@@ -14,7 +14,7 @@ ALIB_EXPORT namespace alib {  namespace monomem {
 /// - A custom type defined by template parameter \p{T} is placed at the beginning of
 ///   that buffer.
 /// - Along with the custom type, the \b MonoAllocator that receives this first buffer is likewise
-///   emplaced in the buffer.
+///   placed in the buffer.
 /// - Finally, an atomic usage counter is placed as a third member inside that buffer.
 /// - Only one pointer into this first buffer is stored with this type.
 /// - This type overloads #operator->() and #operator*() to access the members of the custom type.
@@ -78,12 +78,12 @@ class TSharedMonoVal
         #if !DOXYGEN
         lang::Placeholder<T>        custom;
         TMonoAllocator<TAllocator>  allocator;
-        std::atomic<unsigned int>   refCount;
+        std::atomic<unsigned>       refCount;
 
         FieldMembersNoLock( TAllocator&     pAllocator,
                             detail::Buffer* firstBuffer,
                             size_t          initialBufferSize,
-                            unsigned int    bufferGrowthInPercent )
+                            unsigned        bufferGrowthInPercent )
         : allocator( pAllocator, firstBuffer, initialBufferSize, bufferGrowthInPercent )
         , refCount(1)                                                                             {}
 
@@ -91,7 +91,7 @@ class TSharedMonoVal
         requires std::default_initializable<TRequires>
         FieldMembersNoLock( detail::Buffer* firstBuffer,
                             size_t          initialBufferSize,
-                            unsigned int    bufferGrowthInPercent )
+                            unsigned        bufferGrowthInPercent )
         : allocator(ALIB_DBG("ShardMonoVal",) firstBuffer, initialBufferSize, bufferGrowthInPercent)
         , refCount(1)                                                                             {}
         #endif
@@ -108,7 +108,7 @@ class TSharedMonoVal
         TMonoAllocator<TAllocator>  allocator;
 
         /// The reference counter used to implement the <c>std::shared_ptr</c> behavior.
-        std::atomic<unsigned int>   refCount;
+        std::atomic<unsigned>       refCount;
 
         /// The embedded lock.
         TLock                       lock;
@@ -125,7 +125,7 @@ class TSharedMonoVal
         FieldMembersWithLock( TAllocator&     pAllocator,
                               detail::Buffer* firstBuffer,
                               size_t          initialBufferSize,
-                              unsigned int    bufferGrowthInPercent )
+                              unsigned        bufferGrowthInPercent )
         : allocator( pAllocator, firstBuffer, initialBufferSize, bufferGrowthInPercent )
         , refCount(1)                                                                             {}
 
@@ -142,7 +142,7 @@ class TSharedMonoVal
         requires std::default_initializable<TRequires>
         FieldMembersWithLock( detail::Buffer* firstBuffer,
                               size_t          initialBufferSize,
-                              unsigned int    bufferGrowthInPercent )
+                              unsigned        bufferGrowthInPercent )
         : allocator( ALIB_DBG("ShardMonoVal",)
                      firstBuffer, initialBufferSize, bufferGrowthInPercent )
         , refCount(1)                                                                             {}
@@ -150,7 +150,7 @@ class TSharedMonoVal
 
     #if !DOXYGEN
         #if ALIB_DEBUG && !DOXYGEN
-            void dbgassert() const { ALIB_ASSERT_ERROR(members,"MONOMEM", "Empty shared instance") }
+    void dbgassert()         const { ALIB_ASSERT_ERROR(members,"MONOMEM", "Empty shared instance") }
         #else
             void dbgassert() const {}
         #endif
@@ -166,9 +166,9 @@ class TSharedMonoVal
     /// Contains \p{T}, the allocator itself, and a reference counter.
     FieldMembers*     members;
 
-    //==============================================================================================
-    //===  The self-contained implementation of this type
-    //==============================================================================================
+  //================================================================================================
+  //===  The self-contained implementation of this type
+  //================================================================================================
   public:
     /// Exposes the monotonic allocator used. Equals to <c>TMonoAllocator<TAllocator></c>.
     using AllocatorType = TMonoAllocator<TAllocator>;
@@ -195,8 +195,7 @@ class TSharedMonoVal
     ///                              Should be set to \c 200, to double the size with each
     ///                              allocation.
     TSharedMonoVal( TAllocator& allocator,
-                   size_t initialBufferSizeInKB, unsigned int bufferGrowthInPercent )
-    {
+                   size_t initialBufferSizeInKB, unsigned bufferGrowthInPercent ) {
         auto size= initialBufferSizeInKB * 1024;
         void* mem= allocator.allocate( size, alignof(detail::Buffer) );
         auto* buffer= new (mem) detail::Buffer( size );
@@ -224,8 +223,7 @@ class TSharedMonoVal
     ///                              with each next buffer allocation.
     ///                              Should be set to \c 200, to double the size with each
     ///                              allocation.
-    TSharedMonoVal( size_t initialBufferSizeInKB, unsigned int bufferGrowthInPercent )
-    {
+    TSharedMonoVal( size_t initialBufferSizeInKB, unsigned bufferGrowthInPercent ) {
         auto size= initialBufferSizeInKB * 1024;
         void* mem= TAllocator().allocate( size, alignof(detail::Buffer) );
         auto* buffer= new (mem) detail::Buffer( size );
@@ -239,19 +237,16 @@ class TSharedMonoVal
 
     /// Destructor. If this is the last copy, the destructors of \p{T} and of the
     /// \b MonoAllocator are invoked.
-    ~TSharedMonoVal()
-    {
+    ~TSharedMonoVal() {
         ALIB_STATIC_ASSERT( Locks_not_supported_when_module_ALibThreads_is_exlcuded,
                             !ALIB_SINGLE_THREADED || std::same_as<void ALIB_COMMA TLock>,
         "Template parameter TLock of class TSharedMonoVal must be <void> if module ALib Threads is "
         "not included in the ALib Build."  )
 
-        if (members && members->refCount.fetch_sub(1) == 1)
-        {
+        if (members && members->refCount.fetch_sub(1) == 1) {
             members->custom.Destruct();          // Destruct the contained object first,
             lang::Destruct( members->allocator); // then the allocator.
-        }
-    }
+    }   }
 
     /// Resets the monotonic allocator that this object is contained in to the snapshot created
     /// right after construction.
@@ -268,8 +263,7 @@ class TSharedMonoVal
     /// @tparam  TArgs    The argument types used for re-constructing \p{T}.
     /// @param   args     The arguments to re-construct the instance of \p{T}.
     template<typename... TArgs>
-    void    Reset( TArgs&&... args )
-    {
+    void    Reset( TArgs&&... args ) {
         // Destruct custom object first
         members->custom.Destruct();
 
@@ -323,27 +317,27 @@ class TSharedMonoVal
     /// @return A constant pointer to \p{T}.
     const T*        operator->()       const noexcept { dbgassert(); return members->custom.Get(); }
 
-    /// Overloaded operator to access members of custom type \p{T}
+    /// Overloaded operator to access members of the custom type \p{T}
     /// @return A pointer to \p{T}.
     T&              operator*()                   noexcept { dbgassert(); return *members->custom; }
 
-    /// Overloaded operator to access members of custom type \p{T}
+    /// Overloaded operator to access members of the custom type \p{T}
     /// @return A constant pointer to \p{T}.
     const T&        operator*()             const noexcept { dbgassert(); return *members->custom; }
 
 
-    //==============================================================================================
-    //===  The automatic pointer implementation of this type
-    //==============================================================================================
+  //================================================================================================
+  //===  The automatic pointer implementation of this type
+  //================================================================================================
     /// Default Constructor. Leaves this object \e nulled.
-    TSharedMonoVal()                                               noexcept    : members(nullptr) {}
+    TSharedMonoVal()                                               noexcept : members(nullptr)    {}
 
     /// Constructs an empty instance from \c std::nullptr.
     /// This constructor is necessary to allow assignment of \c std::nullptr to values of this type,
     /// which clears the automatic pointer.
     /// \note As the common way to use this class is to derive an own type, this own type should
     ///       have this same constructor. Only then, the assignment of \c std::nullptr is possible.
-    TSharedMonoVal(std::nullptr_t)                                 noexcept    : members(nullptr) {}
+    TSharedMonoVal(std::nullptr_t)                                 noexcept : members(nullptr)    {}
 
     /// Copy Constructor. Increases the reference counter of the shared pointer (in case given
     /// \p{other} is not nulled).
@@ -363,15 +357,13 @@ class TSharedMonoVal
     /// necessary, and then the object in \p{other} is copied to this object.
     /// @param other The object to copy into this one.
     /// @return A reference to \c this.
-    TSharedMonoVal& operator=(const TSharedMonoVal& other)                                  noexcept
-    {
+    TSharedMonoVal& operator=(const TSharedMonoVal& other)                                noexcept {
         // handle self assignment and assignment with same contents
         if (this == &other || this->members == other.members)
             return *this;
 
         // decrement the old reference count and delete the old data if needed
-        if (members && members->refCount.fetch_sub(1) == 1)
-        {
+        if (members && members->refCount.fetch_sub(1) == 1) {
             members->custom.Destruct();          // Destruct the contained object first,
             lang::Destruct( members->allocator); // then the allocator.
         }
@@ -387,15 +379,13 @@ class TSharedMonoVal
     /// Otherwise, the object in \p{other} is copied to this.
     /// @param other The object to move into this one.
     /// @return A reference to \c this.
-    TSharedMonoVal& operator=(TSharedMonoVal&& other)                                       noexcept
-    {
+    TSharedMonoVal& operator=(TSharedMonoVal&& other)                                     noexcept {
         // handle self assignment
         if (this == &other)
             return *this;
 
         // decrement the old reference count and delete the old data if needed
-        if (members && members != other.members && members->refCount.fetch_sub(1) == 1)
-        {
+        if (members && members != other.members && members->refCount.fetch_sub(1) == 1) {
             members->custom.Destruct();          // Destruct the contained object first,
             lang::Destruct( members->allocator); // then the allocator.
         }
@@ -411,13 +401,12 @@ class TSharedMonoVal
     /// @return \c The number of shared usages.
     ///            If this instance was default-constructed, moved, method #SetNulled was called,
     ///            or \c nullptr was assigned, then \c 0 is returned.
-    unsigned int      UseCount()                                                      const noexcept
+    unsigned          UseCount()                                                      const noexcept
     { return members != nullptr ? members->refCount.load() : 0; }
 
     /// Returns \c true if the #UseCount is \c 1.
     /// @return \c true if this instance is set but not shared.
-    bool              Unique()                                                        const noexcept
-    { return members && members->refCount.load() == 1; }
+    bool              Unique()   const noexcept { return members && members->refCount.load() == 1; }
 
     /// Sets this object to \e nulled state, as if default constructed or \c nullptr was assigned.
     /// If no shared copy exists, all data is destructed and memory is freed.<br>
@@ -445,15 +434,15 @@ class TSharedMonoVal
 
     /// Returns a constant reference to the stored object of type \p{T}.
     /// @return A constant reference to \p{T}.
-    const T* Get()                      const noexcept { dbgassert(); return members->custom.Get(); }
+    const T* Get()                     const noexcept { dbgassert(); return members->custom.Get(); }
 
     /// @return \c true if this instance is not \e nulled, \c false otherwise.
     operator bool()                                    const noexcept { return members != nullptr; }
 
 
-    //==============================================================================================
-    //===  The threads::XYZLock implementation of this type
-    //==============================================================================================
+  //================================================================================================
+  //===  The threads::XYZLock implementation of this type
+  //================================================================================================
     #if DOXYGEN
     /// Returns the embedded \p{TLock}.
     /// This method is available only if the template parameter \p{TLock} is not equal to
@@ -613,55 +602,55 @@ class TSharedMonoVal
     #elif !ALIB_SINGLE_THREADED
         #define ATPASS ALIB_STATIC_ASSERT(ForbiddenTemplateParameterGiven, std::same_as<TRq ALIB_COMMA TLock>, "Template parameter of this method is deduced by the compiler and must not be given!");
         template<typename TRq= TLock>  requires (!std::same_as<TRq, void> )
-        TRq& GetLock()                            const noexcept  {  ATPASS dbgassert(); return members->lock; }
+    TRq& GetLock()                  const noexcept { ATPASS dbgassert(); return members->lock; }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, Acquire,ALIB_DBG(CallerInfo())) )
-        void Acquire(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.Acquire (ALIB_DBG(ci)); }
+    void Acquire(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.Acquire (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquire,ALIB_DBG(CallerInfo())) )
-        bool TryAcquire(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquire (ALIB_DBG(ci)); }
+    bool TryAcquire(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquire (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, Release,ALIB_DBG(CallerInfo())) )
-        void Release(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.Release (ALIB_DBG(ci)); }
+    void Release(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.Release (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, AcquireRecursive,ALIB_DBG(CallerInfo())) )
-        void AcquireRecursive(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.AcquireRecursive (ALIB_DBG(ci)); }
+    void AcquireRecursive(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.AcquireRecursive (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, ReleaseRecursive,ALIB_DBG(CallerInfo())) )
-        void ReleaseRecursive(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.ReleaseRecursive (ALIB_DBG(ci)); }
+    void ReleaseRecursive(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.ReleaseRecursive (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, AcquireShared,ALIB_DBG(CallerInfo())) )
-        void AcquireShared(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.AcquireShared (ALIB_DBG(ci)); }
+    void AcquireShared(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.AcquireShared (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireShared,ALIB_DBG(CallerInfo())) )
-        bool TryAcquireShared(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireShared (ALIB_DBG(ci)); }
+    bool TryAcquireShared(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireShared (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, ReleaseShared,ALIB_DBG(CallerInfo())) )
-        void ReleaseShared(ALIB_DBG(const CallerInfo& ci)) const noexcept  { ATPASS dbgassert(); members->lock.ReleaseShared (ALIB_DBG(ci)); }
+    void ReleaseShared(ALIB_DBG(const CallerInfo& ci)) const noexcept { ATPASS dbgassert(); members->lock.ReleaseShared (ALIB_DBG(ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireTimed, Ticks::Duration() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireTimed( const Ticks::Duration& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireTimed( const Ticks::Duration& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireTimed, Ticks::Duration().Export() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireTimed( const Ticks::Duration::TDuration t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireTimed( const Ticks::Duration::TDuration t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireTimed, Ticks() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireTimed( const Ticks& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireTimed( const Ticks& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireTimed, Ticks().Export() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireTimed( const Ticks::TTimePoint& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireTimed( const Ticks::TTimePoint& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireSharedTimed, Ticks::Duration() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireSharedTimed( const Ticks::Duration& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireSharedTimed( const Ticks::Duration& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireSharedTimed, Ticks::Duration().Export() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireSharedTimed( const Ticks::Duration::TDuration t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireSharedTimed( const Ticks::Duration::TDuration t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireSharedTimed, Ticks() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireSharedTimed( const Ticks& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireSharedTimed( const Ticks& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
 
         template<typename TRq= TLock>  requires ( ALIB_HAS_METHOD(TRq, TryAcquireSharedTimed, Ticks().Export() ALIB_DBG(,CallerInfo())) )
-        bool TryAcquireSharedTimed( const Ticks::TTimePoint& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept  { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
+    bool TryAcquireSharedTimed( const Ticks::TTimePoint& t ALIB_DBG(,const CallerInfo& ci) ) const noexcept { ATPASS dbgassert(); return members->lock.TryAcquireSharedTimed( t ALIB_DBG(,ci)); }
 
         #undef ATPASS
     #endif
@@ -677,5 +666,3 @@ using TSharedMonoVal =  monomem::TSharedMonoVal<T, TAllocator, TLock>;
 DOX_MARKER([DOX_MANUAL_ALIASES_SHAREDMONOVAL])
 
 } // namespace [alib]
-
-

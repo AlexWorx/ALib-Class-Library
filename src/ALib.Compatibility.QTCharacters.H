@@ -181,4 +181,3 @@ template<> struct  ZTArrayTraits<QVector<uint>, ALIB_QTCHAR_4>
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
 #endif // HPP_ALIB_COMPATIBILITY_QT_CHARACTERS
-

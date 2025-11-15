@@ -7,12 +7,12 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib { namespace files {
 
-                            class   FTree;
+class   FTree;
 template<typename TLock>    struct  TSharedFTree;
-                            class   File;
+class   File;
 
- /// This namespace implements internals of namespace #alib::files.
- namespace detail {
+/// This namespace implements internals of namespace #alib::files.
+namespace detail {
 
 struct FTreeNodeHandler;
 
@@ -22,7 +22,7 @@ using TTree= alib::containers::detail::StringTreeBase< MonoAllocator,
                                                        FTreeNodeHandler,
                                                        Recycling::Private>;
                                               
-/// Specialized  \ref alib_ns_containers_stringtree_referencedoc "TNodeHandler" for class
+/// Specialized \ref alib_ns_containers_stringtree_referencedoc "TNodeHandler" for class
 /// \alib{files;FTree} which recycles extended information objects of type
 /// \alib{files;FInfo::EIDirectory}, \alib{files;FInfo::EISymLinkFile}, and
 /// \alib{files;FInfo::EISymLinkDir} with node deletion.
@@ -45,35 +45,35 @@ struct FTreeNodeHandler
 
     /// Copies the node's name to the local string.
     ///
+    /// @param  node  The node that was just created. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               \alib{MonoAllocator} that the tree uses for the allocation of nodes.
-    /// @param  node  The node that was just created. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     static
     inline
-    void InitializeNode( TTree& tree, TTree::Node&  node );
+    void InitializeNode( TTree::Node& node, TTree& tree );
 
     /// This implementation frees any dynamically allocated memory of the node's name and in
     /// addition recycles any extended information object attached to the \alib{files;FInfo}
     /// object.
+    /// @param  node  The node that is to be removed. Allows access to the key and
+    ///               custom value data. While the parent and sibling nodes are likewise accessible,
+    ///               it is strictly forbidden to modify those.
     /// @param  tree  The instance of struct \alib{containers;detail::StringTreeBase} that invokes
     ///               this method. Any member may be accessed, including
     ///               \alib{containers::detail::StringTreeBase;nodeTable} which contains the
     ///               \alib{MonoAllocator} that the tree uses for the allocation of nodes.
-    /// @param  node  The node that is to be removed. Allows access to the key and
-    ///               custom value data. While the parent and sibling nodes are likewise accessible,
-    ///               it is strictly forbidden to modify those.
     static
     inline
-    void FreeNode( TTree& tree, TTree::Node& node );
+    void FreeNode( TTree::Node& node, TTree& tree );
     
     /// Implements \alib{files;FTree::AllocateExtendedInfo}.
-    ///  \param node             The node add extended information to.
-    ///  \param symLinkDest      In case of symbolic link types, the symbolic link target.
-    ///  \param symLinkRealPath  In case of symbolic link types, the symbolic link target as real path.
+    /// @param node             The node add extended information to.
+    /// @param symLinkDest      In case of symbolic link types, the symbolic link target.
+    /// @param symLinkRealPath  In case of symbolic link types, the symbolic link target as real path.
     ALIB_DLL
     static
     void AllocateExtendedInfo( StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>::Cursor& node,
@@ -84,12 +84,11 @@ struct FTreeNodeHandler
 } // namespace alib::files[::detail]
 
 
-// =================================================================================================
-///  Abstract virtual interface type to implement types observing changes in instances of class
-///  \alib{files;FTree}.
-///  @see
-///    Chapter \ref alib_files_monitoring of the Programmer's Manual of camp \alib_files_nl.
-// =================================================================================================
+//==================================================================================================
+/// Abstract virtual interface type to implement types observing changes in instances of class
+/// \alib{files;FTree}.
+/// @see Chapter \ref alib_files_monitoring of the Programmer's Manual of camp \alib_files_nl.
+//==================================================================================================
 struct FTreeListener
 {
     /// The type of change that imposes the notification of a listener.
@@ -105,7 +104,7 @@ struct FTreeListener
     /// The virtual notification method.
     /// @param file   The file or directory that was modified.
     /// @param event  The type of modification.
-    virtual void    Notify( File& file, Event event )  = 0;
+    virtual void    Notify( File& file, Event event )                                            =0;
 
 }; // struct FTreeListener
 
@@ -180,19 +179,19 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
     /// Record used to manage registered listeners.
     struct ListenerRecord
     {
-        FTreeListener*              listener;      ///< The listener to register or dispose.
-        FTreeListener::Event        event;         ///< The event to listen to.
-        ConstCursorHandle           file;          ///< If given, the files to listen to.
-        ConstCursorHandle           subTree;       ///< If given, the path of files to listen to.
+        FTreeListener*        listener;      ///< The listener to register or dispose.
+        FTreeListener::Event  event;         ///< The event to listen to.
+        ConstCursorHandle     file;          ///< If given, the files to listen to.
+        ConstCursorHandle     subTree;       ///< If given, the path of files to listen to.
         system::PathStringPA  fileName;      ///< If given, the file's name to listen to.
         system::PathStringPA  pathPrefix;    ///< If given, the start string of the file path
-                                                   ///< to monitor.
+                                             ///< to monitor.
         system::PathStringPA  pathSubstring; ///< If given, the substring to match in the path
-                                                   ///< (including the file name) of files to monitor.
+                                             ///< (including the file name) of files to monitor.
     };
 
     /// The list of registered listeners.
-    List<MonoAllocator, ListenerRecord>   listeners;
+    ListMA<ListenerRecord>   listeners;
 
     /// Implements the various overloaded listener registration methods.
     /// @param listener         The listener to register or dispose.
@@ -226,10 +225,10 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
                                      SharedLock*                        lock,
                                      const system::PathString&    filePath );
     #else
-        ALIB_DLL  void notifyListeners(  FTreeListener::Event               event,
-                                         File&                              file
-                      IF_ALIB_THREADS( , SharedLock*                        lock) ,
-                                         const system::PathString&    filePath  );
+    ALIB_DLL  void notifyListeners(  FTreeListener::Event               event,
+                                     File&                              file
+                  IF_ALIB_THREADS( , SharedLock*                        lock) ,
+                                     const system::PathString&    filePath  );
     #endif
 
   public:
@@ -257,15 +256,14 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
     /// In debug compilations, this is asserted. It is likewise asserted that the sybolic link
     /// information strings are empty in case the type is \alib{files::FInfo::Types;DIRECTORY}.
     ///
-    ///  \param node             The node add extended information to.
-    ///  \param symLinkDest      In case of symbolic link types, the symbolic link target.
-    ///  \param symLinkRealPath  In case of symbolic link types, the symbolic link target as real path.
+    /// @param node            The node add extended information to.
+    /// @param symLinkDest     In case of symbolic link types, the symbolic link target.
+    /// @param symLinkRealPath In case of symbolic link types, the symbolic link target as real
+    ///                        path.
     void           AllocateExtendedInfo( Cursor& node,
                                          const system::PathString& symLinkDest,
                                          const system::PathString& symLinkRealPath)
-    {
-        detail::FTreeNodeHandler::AllocateExtendedInfo( node, symLinkDest, symLinkRealPath);
-    }
+    { detail::FTreeNodeHandler::AllocateExtendedInfo( node, symLinkDest, symLinkRealPath); }
 
     /// Deletes all custom data objects attached to any \b File in this tree.<br>
     /// Note that this method is only applicable if all custom data objects set in any node
@@ -275,12 +273,9 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
     /// @see Method \alib{files;File::AttachCustomData}.
     /// @tparam TCustom The object type to optionally store in tree nodes.
     template<typename TCustom>
-    void DeleteAllCustomData()
-    {
-        for( auto& node : nodeTable )
-        {
-            if( node.data.custom )
-            {
+    void DeleteAllCustomData() {
+        for( auto& node : nodeTable ) {
+            if( node.data.custom ) {
                 ALIB_ASSERT_ERROR( &typeid(TCustom) == node.data.dbgCustomType, "FILES",
                   "CustomData to delete does not match attached type.\n"
                   "Deletion has to be performed individually by this software.\n"
@@ -293,9 +288,7 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
                 Pool.free( node.data.custom, sizeof(TCustom) );
                 node.data.custom= nullptr;
       ALIB_DBG( node.data.dbgCustomType= nullptr; )
-            }
-        }
-    }
+    }   }   }
 
     /// Recalculates the sums of the given node. This is \b not done recursively. The fix is needed
     /// when scanning an existent directory with potentially more greedy scan parameters.
@@ -306,13 +299,13 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
 
     /// Retrieves formatting flags which are used with method \alib{files;File::Format}.
     /// @return Number formatting information for \b File objects associated with this file tree.
-    NumberFormat&   GetNumberFormat()                              { return numberFormat; }
+    NumberFormat&   GetNumberFormat()                                       { return numberFormat; }
 
     /// Retrieves formatting flags which are used with method \alib{files;File::Format}.
     /// @return Number formatting information for \b File objects associated with this file tree.
-    OwnerAndGroupResolver&   GetOGResolver()                         { return ogResolver; }
+    OwnerAndGroupResolver&   GetOGResolver()                                  { return ogResolver; }
 
-    // ===============================   Listener Registration   ===================================
+  //===================================== Listener Registration ====================================
 
 
     #if DOXYGEN
@@ -333,11 +326,11 @@ class FTree : public StringTree<MonoAllocator, FInfo, detail::FTreeNodeHandler>
                  SharedLock*          lock ,
                  const String&        filePath= NULL_STRING  );
     #else
-      void Notify( FTreeListener::Event             event,
+    void Notify( FTreeListener::Event             event,
                    File&                            file
 IF_ALIB_THREADS( , SharedLock*                      lock) ,
                    const system::PathString&  filePath= system::NULL_PATH )
-      { if (HasListeners()) notifyListeners(event, file IF_ALIB_THREADS(,lock), filePath); }
+    { if (HasListeners()) notifyListeners(event, file IF_ALIB_THREADS(,lock), filePath); }
     #endif
     
     /// @return \c true if listeners are registered with this file tree, \c false otherwise
@@ -354,8 +347,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
     void MonitorDistinctFile( lang::ContainerOp       insertOrRemove,
                               FTreeListener*          listener,
                               FTreeListener::Event    event,
-                              const File&             file       )
-    {
+                              const File&             file       ) {
         ALIB_ASSERT_WARNING( event != FTreeListener::Event::CreateNode, "VARIABLES",
              "Event::Creation will never be invoked with this listener-registration-type." )
         registerListener( listener,
@@ -378,8 +370,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
     void MonitorFilesByName( lang::ContainerOp                  insertOrRemove,
                              FTreeListener*                     listener,
                              FTreeListener::Event               event,
-                             const system::PathString&    fileName )
-    {
+                             const system::PathString&    fileName ) {
         ALIB_ASSERT_ERROR( fileName.IsNotEmpty(), "VARIABLES", "Empty file name given." )
         registerListener( listener, insertOrRemove, event,
                           nullptr, nullptr, fileName,
@@ -399,8 +390,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
     void MonitorPath(  lang::ContainerOp       insertOrRemove,
                        FTreeListener*          listener,
                        FTreeListener::Event    event,
-                       const FTree::Cursor&    cursor            )
-    {
+                       const FTree::Cursor&    cursor            ) {
         registerListener( listener,
                           insertOrRemove,
                           event,
@@ -427,8 +417,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
     void MonitorPathPrefix( lang::ContainerOp                   insertOrRemove,
                             FTreeListener*                      listener,
                             FTreeListener::Event                event,
-                            const system::PathString&     pathPrefix      )
-    {
+                            const system::PathString&     pathPrefix      ) {
         ALIB_ASSERT_ERROR( pathPrefix.IsNotEmpty(), "VARIABLES", "Empty path prefix given." )
         registerListener( listener,
                           insertOrRemove,
@@ -452,8 +441,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
     void MonitorPathSubstring( lang::ContainerOp                insertOrRemove,
                                FTreeListener*                   listener,
                                FTreeListener::Event             event,
-                               const system::PathString&  pathSubstring  )
-    {
+                               const system::PathString&  pathSubstring  ) {
         ALIB_ASSERT_ERROR( pathSubstring.IsNotEmpty(), "VARIABLES", "Empty path substring given." )
         registerListener( listener,
                           insertOrRemove,
@@ -479,7 +467,7 @@ IF_ALIB_THREADS( , SharedLock*                      lock) ,
 /// goes out of scope.
 ///
 /// Along with the \b FTree, this shared object includes a \alib{threads;SharedLock}.
-/// See chapter \ref alib_contmono_smv_locking  of the Programmer's Manual of module \alib_monomem
+/// See chapter \ref alib_contmono_smv_locking of the Programmer's Manual of module \alib_monomem
 /// for further information on how to protect the contents of this type against
 /// thread-racing-conditions.
 ///
@@ -498,12 +486,12 @@ struct TSharedFTree : monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>
     using Base= monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>;
 
     /// Constructs an empty instance, hence a cleared automatic pointer.
-    TSharedFTree()  = default;
+    TSharedFTree()                                                                         =default;
 
     /// Constructs an empty instance from \c std::nullptr.
     /// This constructor is necessary to allow assignment of \c nullptr to values of this type,
     /// which clears the automatic pointer.
-    TSharedFTree(std::nullptr_t)                                                          noexcept {}
+    TSharedFTree(std::nullptr_t)                                                         noexcept {}
 
     /// Constructor.
     /// Calls the constructor of parent \b TSharedMonoVal and then invokes
@@ -520,10 +508,9 @@ struct TSharedFTree : monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>
     ///                              Should be set to \c 200, to double the size with each
     ///                              allocation.
     ///                              Defaults to \c 200.
-    TSharedFTree( size_t        initialBufferSizeInKB,
-                 unsigned int  bufferGrowthInPercent = 200  )
-    : Base(initialBufferSizeInKB, bufferGrowthInPercent)
-    {
+    TSharedFTree( size_t    initialBufferSizeInKB,
+                  unsigned  bufferGrowthInPercent = 200  )
+    : Base(initialBufferSizeInKB, bufferGrowthInPercent) {
         Base::ConstructT( Base::GetAllocator() );
         DbgCriticalSections(lang::Switch::On);
         ALIB_DBG(Base::GetAllocator().DbgName= "SharedFTree";)
@@ -531,7 +518,7 @@ struct TSharedFTree : monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>
 
     /// Defaulted copy-assignment operator.
     /// @return A reference to <c>this</c>.
-    TSharedFTree& operator=(const TSharedFTree&)                                          = default;
+    TSharedFTree& operator=(const TSharedFTree&)                                           =default;
 
     /// Destructor.
     /// Calls #DbgCriticalSections to stop checking the integrated \p{TLock}.
@@ -547,38 +534,34 @@ struct TSharedFTree : monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>
     #else
         template<typename TRequires= typename Base::LockType>
         requires( !std::same_as<TRequires, void> )
-        void DbgCriticalSections(lang::Switch onOff)
-        {
-            #if ALIB_DEBUG_CRITICAL_SECTIONS
-            if ( !Base::IsNulled() )
-            {
-                if( onOff == lang::Switch::On ) {
-                    Base::Self().NodeTable().dcs                     .DCSLock= &Base::GetLock();
-                    Base::GetAllocator().DbgCriticalSectionsPH.Get()->DCSLock= &Base::GetLock();
-                    Base::Self().Pool                                .DCSLock= &Base::GetLock();
-                }
-                else {
-                    Base::Self().NodeTable().dcs                     .DCSLock= nullptr;
-                    Base::GetAllocator().DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
-                    Base::Self().Pool                                .DCSLock= nullptr;
-                }
+    void DbgCriticalSections(lang::Switch onOff) {
+        #if ALIB_DEBUG_CRITICAL_SECTIONS
+        if ( !Base::IsNulled() ) {
+            if( onOff == lang::Switch::On ) {
+                Base::Self().NodeTable().dcs                     .DCSLock= &Base::GetLock();
+                Base::GetAllocator().DbgCriticalSectionsPH.Get()->DCSLock= &Base::GetLock();
+                Base::Self().Pool                                .DCSLock= &Base::GetLock();
             }
-            #else
-                (void) onOff;
-            #endif
-        }
+            else {
+                Base::Self().NodeTable().dcs                     .DCSLock= nullptr;
+                Base::GetAllocator().DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
+                Base::Self().Pool                                .DCSLock= nullptr;
+        }   }
+        #else
+            (void) onOff;
+        #endif
+    }
 
         template<typename TRequires= typename Base::LockType>
         requires std::same_as<TRequires, void>
-        void DbgCriticalSections(lang::Switch)                                                    {}
+    void DbgCriticalSections(lang::Switch)                                                        {}
     #endif
 
     /// Clears all scanned or otherwise inserted data and re-initializes this object to its
     /// constructor defaults and resets the \b MonoAllocator of the parent class.<br>
     ///
     /// All shared instances remain valid (while, of course, their content is likewise reset).
-    void    Reset()
-    {
+    void    Reset() {
         // just invoke parent's reset method passing the mono allocator to the constructor.
         DbgCriticalSections(lang::Switch::Off);
         Base::Reset(Base::GetAllocator());
@@ -587,19 +570,16 @@ struct TSharedFTree : monomem::TSharedMonoVal<FTree, HeapAllocator, TLock>
 
 }; // struct TSharedFTree
 
-// =================================================================================================
-// =====================          Implementation of the node mainer            =====================
-// =================================================================================================
+//==================================================================================================
+//================================ Implementation of the node mainer ===============================
+//==================================================================================================
 #if !DOXYGEN
 #include "ALib.Lang.CIFunctions.H"
 
-void detail::FTreeNodeHandler::InitializeNode( TTree& tree, TTree::Node&  node )
-{
-    node.name.storage.Allocate( static_cast<FTree&>(tree).Pool, node.name.key );
-}
+void detail::FTreeNodeHandler::InitializeNode( TTree::Node& node, TTree& tree )
+{ node.name.storage.Allocate( static_cast<FTree&>(tree).Pool, node.name.key ); }
 
-void detail::FTreeNodeHandler::FreeNode( TTree& tree, TTree::Node& node )
-{
+void detail::FTreeNodeHandler::FreeNode( TTree::Node& node, TTree& tree ) {
     // delete node name
     auto& pool= static_cast<FTree&>(tree).Pool;
 
@@ -613,8 +593,7 @@ void detail::FTreeNodeHandler::FreeNode( TTree& tree, TTree::Node& node )
     if( extendedInfo == nullptr )
         return;
 
-    if(  value.IsSymbolicLink() )
-    {
+    if(  value.IsSymbolicLink() ) {
         // delete old values
         FInfo::EISymLinkFile& ei= *static_cast<FInfo::EISymLinkFile*>(extendedInfo);
 
@@ -688,12 +667,11 @@ class File : protected FTree::Cursor
     using ConstCursor= FTree::ConstCursor;
 
 
-    /// Returns a \c  reference to the file tree that this file resides in.
+    /// Returns a \c reference to the file tree that this file resides in.
     /// @return The associated file tree instance.
-    FTree&      GetFTree()                                                            const
-    { return  static_cast<FTree&>(Tree()); }
+    FTree&      GetFTree()                            const { return  static_cast<FTree&>(Tree()); }
 
-    File() = default;
+    File()                                                                                 =default;
 
     /// Constructor taking a file tree. After construction, this file will point to the root
     /// node <c>"/"</c> of the tree.
@@ -712,16 +690,12 @@ class File : protected FTree::Cursor
     /// \p{other}.
     /// @param other  The node to let this file instance point to.
     /// @return A reference to \c this.
-    File& operator=( const Cursor& other )
-    {
-        Cursor::operator=( other );
-        return *this;
-    }
+    File& operator=( const Cursor& other )             { Cursor::operator=( other ); return *this; }
 
     /// Provides \c const access to members of contained \alib{files;FInfo} record. Note that
     /// access to a mutable version of the type is available with method #GetMutableFInfo.
     /// @return A non-writable pointer to the embedded \b FInfo data.
-    const FInfo*    operator->()                             const  { return Cursor::operator->(); }
+    const FInfo*    operator->()                              const { return Cursor::operator->(); }
 
     /// Provides \c access to members of contained \alib{files;FInfo} record. Note that
     /// \c const access is available with method #operator->.<br>
@@ -754,20 +728,18 @@ class File : protected FTree::Cursor
     /// - A filename like "filename.ext.txt" -> "filename.ext"
     /// - A filename like ".profile" results to identity ".profile".
     /// @return The filename excluding the #Extension.
-    system::PathString      Stem()                                                       const
-    {
+    system::PathString      Stem()                                                           const {
         system::PathString result= Name();
         auto dotPos= result.LastIndexOf('.');
         return  dotPos < 2 ? result
                            : result.Substring( 0, dotPos );
     }
 
-    /// Returns the file extension, which is the substring behind the last  period <c>'.'</c>
+    /// Returns the file extension, which is the substring behind the last period <c>'.'</c>
     /// character which is not located at the start of the name.
     /// (A filename like ".profile" is not treated to have an extension).
     /// @return The extension found in the filename. An empty string if none is found.
-    system::PathString      Extension()                                                  const
-    {
+    system::PathString      Extension()                                                      const {
         auto dotPos= Name().LastIndexOf('.');
         return  dotPos < 2 ? system::EMPTY_PATH
                            : Name().Substring( dotPos + 1 );
@@ -786,8 +758,7 @@ class File : protected FTree::Cursor
     ///                     appending the path. Defaults to \b CurrentData::Clear.
     /// @return The given \b AString to allow concatenated operations.
     Path&       AssemblePath( Path& target,
-                              lang::CurrentData targetData= lang::CurrentData::Clear)          const
-    {
+                              lang::CurrentData targetData= lang::CurrentData::Clear)        const {
         if( targetData == lang::CurrentData::Clear )
             target.Reset();
         if( !AsCursor().IsRoot() )
@@ -807,10 +778,7 @@ class File : protected FTree::Cursor
     /// @see Methods #AttachCustomData, #GetCustomData, #DeleteCustomData, and
     ///      \alib{files;FTree::DeleteAllCustomData}.
     /// @return <c>true</c> if custom data is attached to this file, <c>false</c> otherwise.
-    bool        HasCustomData() const
-    {
-        return Value().custom != nullptr;
-    }
+    bool        HasCustomData()                          const { return Value().custom != nullptr; }
 
     /// Retrieves a custom data object.
     /// With debug-compilations it is asserted that #HasCustomData() returns <c>true</c>
@@ -821,8 +789,7 @@ class File : protected FTree::Cursor
     ///      \alib{files;FTree::DeleteAllCustomData}.
     /// @return The custom data record.
     template<typename TCustom>
-    TCustom& GetCustomData()
-    {
+    TCustom& GetCustomData() {
         ALIB_ASSERT_ERROR( Value().custom != nullptr, "FILES", "No custom data set." )
         ALIB_ASSERT_ERROR( &typeid(TCustom) == Value().dbgCustomType, "FILES",
          "Requested custom object type mismatch.\n"
@@ -843,13 +810,12 @@ class File : protected FTree::Cursor
     /// @param  args    Variadic arguments forwarded to the constructor of \p{TCustom}.
     /// @return The custom data record.
     template<typename TCustom, typename... TArgs>
-    TCustom& AttachCustomData(TArgs&&... args)
-    {
+    TCustom& AttachCustomData(TArgs&&... args) {
         ALIB_ASSERT_ERROR( Value().custom == nullptr, "FILES", "Custom data already set." )
 
         auto* custom= GetFTree().Pool().template New<TCustom>( std::forward<TArgs>(args)... );
         Value().custom= custom;
-ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
+        ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
         return *custom;
     }
 
@@ -860,8 +826,7 @@ ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
     ///      \alib{files;FTree::DeleteAllCustomData}.
     /// @tparam TCustom The object type to optionally store in tree nodes.
     template<typename TCustom>
-    void DeleteCustomData()
-    {
+    void DeleteCustomData() {
         lang::Destruct(GetCustomData<TCustom>());
         GetFTree().Pool.free( Value().custom, sizeof(TCustom) );
         Value().custom= nullptr;
@@ -874,7 +839,6 @@ ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
     AString&     FormatAccessRights(AString& target)                                          const;
 
 
-    // =============================================================================================
     /// Writes formatted information on this file to given string buffer \p{target}.
     /// Within the pattern string \p{format}, different symbols are interpreted as tokens.
     /// Spaces between tokens are written as given.
@@ -955,7 +919,7 @@ ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
     ///   \alib{files;FTree::GetOGResolver} is used. The use of this instance has to be protected
     ///   against racing conditions in multithreaded applications. This means if two threads
     ///   invoke this method on \b %File object that belong to the same \b %FTree, a locking
-    ///   mechanism has to be used, to avoid undefined behavior. (For example by using class
+    ///   mechanism has to be used, to avoid undefined behavior. (For example, by using class
     ///   \alib{threads;Lock}.)
     ///
     /// \par Sample
@@ -982,7 +946,6 @@ ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
     /// @param numberFormat The number format specification to use. Defaults to \c nullptr which
     ///                     chooses \alib{format;NumberFormat::Computational}.
     /// @returns \p{target} (for convenience).
-    // =============================================================================================
     ALIB_DLL
     AString&    Format( Substring           format,
                         AString&            target,
@@ -991,14 +954,14 @@ ALIB_DBG(Value().dbgCustomType= &typeid(TCustom); )
 
 }; // class File
 
-// =================================================================================================
-// ==================         Implementation of inlines of class FTree         =====================
-// =================================================================================================
+//==================================================================================================
+//============================= Implementation of inlines of class FTree ===========================
+//==================================================================================================
 File    FTree::Root()                                               { return File( base::Root() ); }
 
-// =================================================================================================
-// =============================      Box-function FFormat_File        =============================
-// =================================================================================================
+//==================================================================================================
+//==================================== Box-function FFormat_File ===================================
+//==================================================================================================
 /// This implementation of boxing function \b FFormat for objects of type \b File, simply
 /// invokes the method \alib{files;File::Format} and thus, using the format specification is given
 /// with that method.
@@ -1038,9 +1001,9 @@ using     File       =   files::File;
 } // namespace [alib]
 
 
-// #################################################################################################
+//##################################################################################################
 // struct AppendableTraits<Cursor>
-// #################################################################################################
+//##################################################################################################
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -1079,7 +1042,7 @@ ALIB_BOXING_VTABLE_DECLARE(   alib::files::File     , vt_files_cursor      )
 
 
 
-//---------------------------------------   Debug Dump   ---------------------------------------
+//-------------------------------------------- Debug Dump ------------------------------------------
 #if ALIB_DEBUG
 ALIB_EXPORT namespace alib::files {
 
@@ -1088,22 +1051,22 @@ ALIB_EXPORT namespace alib::files {
     /// This global variable is only available with debug-compilations.
     extern String DBG_DUMP_FORMAT;
 
-    /// Dumps the given branch of this object's tree.<br>
-    /// This function is only available with debug-compilations.
-    /// @param target        The target string buffer.
-    /// @param tree          The tree to dump.
-    /// @param includedTypes Optional filter for types. Defaults to 'all'.
-    /// @param startNode     The start node. If this is not
-    ///                      \doxlinkproblem{classalib_1_1monomem_1_1StringTree_1_1TCursor.html;ac532c4b500b1a85ea22217f2c65a70ed;a valid node;alib::monomem::StringTree::TCursor::IsValid},
-    ///                      the root node is chosen. Defaults to an invalid cursor.
-    /// @param depth         The maximum depth of recursion. Defaults to unlimited depth.
-    /// @return The given \p{target} to allow concatenated operations.
-    ALIB_DLL
-    AString&     DbgDump( AString&                  target,
-                          FTree&                    tree  ,
-                          EnumBitSet<FInfo::Types>  includedTypes= EnumBitSet<FInfo::Types>(true),
-                          FTree::Cursor             startNode    = FTree::Cursor(),
-                          unsigned int              depth        = (std::numeric_limits<unsigned int>::max)()  );
+/// Dumps the given branch of this object's tree.<br>
+/// This function is only available with debug-compilations.
+/// @param target        The target string buffer.
+/// @param tree          The tree to dump.
+/// @param includedTypes Optional filter for types. Defaults to 'all'.
+/// @param startNode     The start node. If this is not
+///                      \doxlinkproblem{classalib_1_1monomem_1_1StringTree_1_1TCursor.html;ac532c4b500b1a85ea22217f2c65a70ed;a valid node;alib::monomem::StringTree::TCursor::IsValid},
+///                      the root node is chosen. Defaults to an invalid cursor.
+/// @param depth         The maximum depth of recursion. Defaults to unlimited depth.
+/// @return The given \p{target} to allow concatenated operations.
+ALIB_DLL
+AString&     DbgDump( AString&                  target,
+                      FTree&                    tree  ,
+                      EnumBitSet<FInfo::Types>  includedTypes= EnumBitSet<FInfo::Types>(true),
+                      FTree::Cursor             startNode    = FTree::Cursor(),
+                      unsigned                  depth        = (std::numeric_limits<unsigned int>::max)()  );
 
 
 

@@ -19,7 +19,7 @@ namespace detail { struct VirtualMachineBase; }
 /// destructor that ensures that the member object(s) get rightfully deleted.
 ///
 /// Instances of this type have to be created using the scope's allocator and are to be stored in
-/// in container
+/// container
 /// \doxlinkproblem{structalib_1_1expressions_1_1Scope.html;a45b12fe152f8e6a90341987ef35c958e;Scope::NamedResources}.
 //==================================================================================================
 struct ScopeResource
@@ -57,10 +57,10 @@ struct ScopeResource
 /// code unit anyhow and passed to method \alib{expressions;ExpressionVal::Evaluate}).
 ///
 /// \see
-///  - For details on the use of scopes see the manual chapter \ref alib_expressions_scopes.
-///  - This is an almost completely public struct.
-///    The design rationale behind this is explained in the manual chapter
-///    \ref alib_expressions_prereq_bauhaus
+///   - For details on the use of scopes see the manual chapter \ref alib_expressions_scopes.
+///   - This is an almost completely public struct.
+///     The design rationale behind this is explained in the manual chapter
+///     \ref alib_expressions_prereq_bauhaus
 //==================================================================================================
 struct Scope
 {
@@ -85,7 +85,7 @@ struct Scope
         Scope*                          CTScope;
 
         /// Stack of nested expressions called during evaluation. Used to detect cyclic expressions.
-        StdVectorMono<ExpressionVal*>   NestedExpressions;
+        StdVectorMA<ExpressionVal*>     NestedExpressions;
     };
 
     /// Evaluation-scope allocator. With compile-time scopes, this is allocator will not be
@@ -103,7 +103,7 @@ struct Scope
     /// This is the argument stack used by class \alib{expressions;detail::VirtualMachine} when
     /// evaluating expressions.<br>
     /// With compilation, it used to "simulate" evaluation calls at compile-time.
-    StdVectorMono<Box>*                 Stack;
+    StdVectorMA<Box>*                   Stack;
 
     /// Used to convert numbers to strings and vice versa. In addition, expression function
     /// \b %Format of built-in compiler plugin \alib{expressions::plugins;Strings} uses this object
@@ -129,13 +129,13 @@ struct Scope
     VMMembers*                          EvalScopeVMMembers;
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Debug-tool to detect usage of evaluation scope from within multiple threads
-        /// (which is not allowed). It is set by the virtual machine when running programs.
-        lang::DbgCriticalSections       DCS;
+    /// Debug-tool to detect usage of evaluation scope from within multiple threads
+    /// (which is not allowed). It is set by the virtual machine when running programs.
+    lang::DbgCriticalSections       DCS;
     #endif
 
     /// Constructor used with evaluation scopes. Creates a mono allocator.<br>
-    /// Usually, for parameter \p formatter field \alib{expressions;Compiler::CfgFormatter} should
+    /// Usually, for parameter \p{formatter} field \alib{expressions;Compiler::CfgFormatter} should
     /// be provided.
     ///
     /// @param formatter A reference to a \c std::shared_ptr holding a formatter.
@@ -144,7 +144,7 @@ struct Scope
 
     /// Constructor used with compile-time scopes. Receives the allocator from the expression
     /// instance.<br>
-    /// Usually, for parameter \p formatter field \alib{expressions;Compiler::CfgFormatter} should
+    /// Usually, for parameter \p{formatter} field \alib{expressions;Compiler::CfgFormatter} should
     /// be provided.
     ///
     /// @param allocator The allocator of the expression.
@@ -156,10 +156,10 @@ struct Scope
     ALIB_DLL virtual   ~Scope();
 
     /// Deleted copy constructor.
-    Scope(const Scope&)                                                                    = delete;
+    Scope(const Scope&)                                                                     =delete;
 
     /// Deleted copy assignment.
-    void operator=(const Scope&)                                                           = delete;
+    void operator=(const Scope&)                                                            =delete;
 
     /// Usually, this method is unnecessary to be checked.
     /// It is useful and provided to support more complicated management of resources, i.e.
@@ -192,4 +192,3 @@ struct Scope
 using     ExpressionScope=    expressions::Scope;
 
 } // namespace [alib]
-

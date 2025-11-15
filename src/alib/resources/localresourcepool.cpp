@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,19 +11,19 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/resources/resources.prepro.hpp"
 #include <cstdarg>
 #if ALIB_DEBUG_RESOURCES
 #   include <vector>
 #   include <algorithm>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Resources;
     import   ALib.Lang;
 #  if ALIB_STRINGS
-    import   ALib.Strings;
+        import   ALib.Strings;
 #  endif
 #if ALIB_DEBUG_RESOURCES
 #   include "ALib.Strings.StdIOStream.H"
@@ -36,7 +36,7 @@
 #endif
 #   include "ALib.Resources.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {
 
 /// This is the reference documentation module \alib_resources.<br>
@@ -50,15 +50,13 @@ std::ostream* LocalResourcePool::DbgResourceLoadObserver= nullptr;
 
 bool LocalResourcePool::BootstrapAddOrReplace( const NString& category,
                                                const NString& name,
-                                               const  String& resource        )
-{
+                                               const  String& resource        ) {
 
 #if !ALIB_DEBUG_RESOURCES
     auto it= data.InsertOrAssign( detail::Key {category, name},   resource      );
 #else
     auto it= data.InsertOrAssign( detail::Key {category, name}, { resource, 0 } );
-    if( DbgResourceLoadObserver )
-    {
+    if( DbgResourceLoadObserver ) {
         (*DbgResourceLoadObserver) << (it.second ? "Adding Resource: " : "Replacing Resource: " )
                                    << category
                                    << "/"              << name << "=" << resource << std::endl;
@@ -68,15 +66,13 @@ bool LocalResourcePool::BootstrapAddOrReplace( const NString& category,
     return !it.second;
 }
 
-void LocalResourcePool::BootstrapBulk( const nchar* category, ... )
-{
+void LocalResourcePool::BootstrapBulk( const nchar* category, ... ) {
     // find / create category
     detail::Key key {category, nullptr};
 
     va_list args;
     va_start(args, category);
-    for(;;)
-    {
+    for(;;) {
         key.Name= NString( va_arg( args, const nchar* ) );
         if( key.Name.IsNull() )
             break;
@@ -106,12 +102,11 @@ ALIB_ASSERT_WARNING( result.second, "RESOURCES",
     }
 
 
-const String& LocalResourcePool::Get( const NString& category, const NString& name   ALIB_DBG(, bool dbgAssert ) )
-{
+const String& LocalResourcePool::Get( const NString& category, const NString& name
+                                      ALIB_DBG(, bool dbgAssert ) ) {
     // search main map
     auto dataIt=  data.Find( detail::Key { category, name } );
-    if( dataIt != data.end() )
-    {
+    if( dataIt != data.end() ) {
 #if !ALIB_DEBUG_RESOURCES
         return dataIt.Mapped();
 #else
@@ -201,4 +196,3 @@ LocalResourcePool::DbgGetCategories()
 #endif // ALIB_DEBUG_RESOURCES
 
 }} // namespace [alib::resources]
-

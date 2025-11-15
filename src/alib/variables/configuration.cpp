@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,10 +11,10 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Variables;
     import   ALib.EnumRecords;
@@ -37,7 +37,7 @@
 #   include "ALib.Camp.Base.H"
 #   include "ALib.Variables.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
 ALIB_BOXING_VTABLE_DEFINE( alib::variables::Priority                  , vt_config_priorities)
 ALIB_BOXING_VTABLE_DEFINE( alib::variables::Variable                  , vt_config_variable    )
@@ -57,13 +57,12 @@ namespace alib {
 namespace variables {
 
 
-// =================================================================================================
+//==================================================================================================
 //  Implementation of class detail::NodeMaintainer
-// =================================================================================================
+//==================================================================================================
 namespace detail
 {
-void ConfigNodeHandler::FreeNode( TTree& tree, typename TTree::Node& node )
-{
+void ConfigNodeHandler::FreeNode( typename TTree::Node& node, TTree& tree ) {
     // delete node name
     auto& cfg= static_cast<Configuration&>(tree);
     cfg.Pool.free( const_cast<TTree::CharacterType*>(node.name.storage.Buffer()),
@@ -71,25 +70,22 @@ void ConfigNodeHandler::FreeNode( TTree& tree, typename TTree::Node& node )
 
     // delete vdata
     Entry& entry= node.data;
-    if( entry.data  )
-    {
+    if( entry.data  ) {
         entry.meta->destruct(entry.data, cfg.Pool);
         cfg.Pool().Free(entry.data, entry.meta->size() );
-    }
-}
+}   }
 } // namespace detail
 
-// =================================================================================================
+//==================================================================================================
 //  Implementation of class Configuration
-// =================================================================================================
+//==================================================================================================
 Configuration::Configuration( MonoAllocator& allocator, lang::CreateDefaults createDefaults )
 : StringTree             ( allocator, '/')
 , Pool                   ( allocator )
 , types                  ( allocator )
 , replacementDeclarations( allocator )
 , listeners              ( allocator )
-, BooleanTokens          ( allocator )
-{
+, BooleanTokens          ( allocator ) {
     DbgSetDCSName("Configuration");
 
     // Register built-in types
@@ -102,8 +98,7 @@ Configuration::Configuration( MonoAllocator& allocator, lang::CreateDefaults cre
     registerType<alib::variables::detail::VMeta_StringVectorSemicolon>();
 
     // read boolean false/true values from resources
-    if( createDefaults == lang::CreateDefaults::Yes)
-    {
+    if( createDefaults == lang::CreateDefaults::Yes) {
         std::array<Token, 10> tokenBuf;
         #if ALIB_CAMP
         strings::util::LoadResourcedTokens( BASECAMP, "CFGBTF", tokenBuf.data()  ALIB_DBG(, 10) );
@@ -121,11 +116,9 @@ Configuration::Configuration( MonoAllocator& allocator, lang::CreateDefaults cre
         auto& ma= GetAllocator();
         InsertPlugin( environmentPlugin= ma().New<EnvironmentVariablesPlugin>(ma) );
         InsertPlugin(         cliPlugin= ma().New<        CLIVariablesPlugin>(ma) );
-    }
-}
+}   }
 
-Configuration::~Configuration()
-{
+Configuration::~Configuration() {
     // we have to delete all nodes before the invocation of the base destructor, because
     // this would use our pool allocator on existing nodes (which is then destructed already).
     base::Clear();
@@ -141,8 +134,7 @@ void Configuration::registerListener( ConfigurationListener*         listener,
                                           const StringTree::Cursor*      subTree,
                                           const String&                  variableName,
                                           const String&                  pathPrefixGiven,
-                                          const String&                  pathSubstring  )
-{
+                                          const String&                  pathSubstring  ) {
     // checks
     ALIB_ASSERT_ERROR( variable==nullptr ||  variable->IsDeclared()              , "VARIABLES", "Given variable not declared.")
     ALIB_ASSERT_ERROR( variable==nullptr || &variable->AsCursor().Tree() == this , "VARIABLES", "Given variable does not belong to this configuration.")
@@ -154,9 +146,8 @@ void Configuration::registerListener( ConfigurationListener*         listener,
                              ? pathPrefixGiven.Substring(1)
                              : pathPrefixGiven;
 
-    // ---------------- registration ---------------------
-    if( insertOrRemove == lang::ContainerOp::Insert)
-    {
+  //------------------------------------------ registration ----------------------------------------
+    if( insertOrRemove == lang::ContainerOp::Insert) {
         listeners.emplace_back( ListenerRecord{ listener,
                                                event,
                                                variable ? variable->AsCursor().Export() : ConstCursorHandle(),
@@ -171,7 +162,7 @@ void Configuration::registerListener( ConfigurationListener*         listener,
         return;
     }
 
-    // ---------------- de-registration ---------------------
+  //----------------------------------------------- de ---------------------------------------------
     for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
         if(     it->listener == listener
             &&  it->event    == event
@@ -191,16 +182,14 @@ void Configuration::registerListener( ConfigurationListener*         listener,
 }  // Configuration::registerListener
 
 
-int Configuration::MonitorStop( ConfigurationListener*  listener )
-{
+int Configuration::MonitorStop( ConfigurationListener*  listener ) {
     // checks
     ALIB_ASSERT_ERROR( listener!=nullptr, "VARIABLES", "Given listener is nullptr.")
 
-    // ---------------- de-registration ---------------------
+  //----------------------------------------------- de ---------------------------------------------
     int cnt= 0;
     for (auto it= listeners.begin() ; it != listeners.end() ; )
-        if( it->listener == listener )
-        {
+        if( it->listener == listener ) {
             it= listeners.erase( it );
             ++cnt;
         }
@@ -213,13 +202,11 @@ int Configuration::MonitorStop( ConfigurationListener*  listener )
 void Configuration::notifyListeners(  int               event,
                                           const Variable&   variable,
                                           const String&     variablePathGiven,
-                                          Priority          previousPriority  )
-{
+                                          Priority          previousPriority  ) {
     String256       variablePathBuffer;
     const String*   variablePath= &variablePathGiven;
     for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
-        if( event == it->event )
-        {
+        if( event == it->event ) {
             // if needed generate variable path
             if(     variablePath->IsEmpty()
                 &&  (   it->variableName .IsNotEmpty()
@@ -240,20 +227,17 @@ void Configuration::notifyListeners(  int               event,
                 it->listener->Notify( variable,
                                       ConfigurationListener::Event(event),
                                       previousPriority                        );
-            }
-     }
+    }       }
 } // Configuration::notifyListeners
 
 
-void Configuration::presetImportString(const String& name, const String& value,
-                                                   const StringEscaper* escaper,   Priority priority)
-{
+void Configuration::presetImportString( const String&        name,     const String& value,
+                                        const StringEscaper* escaper,  Priority      priority ) {
     auto cursor= Root();
     cursor.GoToCreateChildIfNotExistent(A_CHAR("$PRESETS"));
 
     // nullptr given? Delete a preset.
-    if( value.IsNull() )
-    {
+    if( value.IsNull() ) {
         if( cursor.GoTo(name).IsNotEmpty() )
             return; // nothing was previously set
 
@@ -261,8 +245,7 @@ void Configuration::presetImportString(const String& name, const String& value,
         if( entry.priority > priority )
             return; // do not delete if lower priority!
 
-        if( entry.data )
-        {
+        if( entry.data ) {
             entry.meta->destruct( entry.data, Pool );
             Pool().Free( entry.data, entry.meta->size() );
             entry.meta= nullptr;
@@ -284,8 +267,7 @@ void Configuration::presetImportString(const String& name, const String& value,
     // create a fake variable. We do not do this using the variable class, because this would
     // raise assertions.
     auto& entry= *cursor;
-    if( entry.data == nullptr )
-    {
+    if( entry.data == nullptr ) {
         auto it= types.Find(A_CHAR("S"));
         ALIB_ASSERT_ERROR( it != types.end(), "VARIABLES",
                            "Variable type 'S' not registered. This usually cannot happen." )
@@ -297,60 +279,51 @@ void Configuration::presetImportString(const String& name, const String& value,
         entry.priority= priority;
     }
 
-    if( entry.priority <= priority )
-    {
+    if( entry.priority <= priority ) {
         entry.priority   = priority;
         entry.declaration= reinterpret_cast<const Declaration*>( escaper );
         (Variable(cursor))= value;
-    }
-}
+}   }
 
-// #############################################################################################
+//##################################################################################################
 // Declaration replacement allocation
-// #############################################################################################
-const Declaration* Configuration::StoreDeclaration( const Declaration* orig, const Box& replacements )
-{
-    //------------- prepare replacement -------------
+//##################################################################################################
+const Declaration* Configuration::StoreDeclaration( const Declaration* orig,
+                                                    const Box&         replacements ) {
+  //-------------------------------------- prepare replacement -------------------------------------
     String128 replace;
 
     const Box*  replacementPtr;
     integer     qtyReplacements;
-         if ( replacements.IsArrayOf<Box>() )
-    {
+         if ( replacements.IsArrayOf<Box>() ) {
         replacementPtr = replacements.UnboxArray<Box>();
         qtyReplacements= replacements.UnboxLength();
     }
-    else if ( replacements.IsType<BoxesHA*>() )
-    {
-        const auto* boxes= replacements.Unbox<BoxesHA*>();
+    else if ( replacements.IsType<Boxes*>() ) {
+        const auto* boxes= replacements.Unbox<Boxes*>();
         replacementPtr = boxes->data();
         qtyReplacements= boxes->Size();
     }
-    else if ( replacements.IsType<BoxesMA*>() )
-    {
+    else if ( replacements.IsType<BoxesMA*>() ) {
         const auto* boxes= replacements.Unbox<BoxesMA*>();
         replacementPtr = boxes->data();
         qtyReplacements= boxes->Size();
     }
-    else if ( replacements.IsType<BoxesPA*>() )
-    {
+    else if ( replacements.IsType<BoxesPA*>() ) {
         const auto* boxes= replacements.Unbox<BoxesPA*>();
         replacementPtr = boxes->data();
         qtyReplacements= boxes->Size();
-    }
-    else
-    {
+    } else {
         replacementPtr = &replacements;
         qtyReplacements= 1;
     }
 
-    //------------- replace name -------------
+  //------------------------------------------ replace name ----------------------------------------
     String256 bufName;              ALIB_DBG( bufName    .DbgDisableBufferReplacementWarning() );
     bufName         << orig->EnumElementName;
 
     for ( integer  replCnt= 0; replCnt< qtyReplacements ; ++replCnt )
-        if ( !replacementPtr->IsType<void>() )
-        {
+        if ( !replacementPtr->IsType<void>() ) {
             String64  search("%"); search._( replCnt + 1 );
             replace.Reset( *( replacementPtr + replCnt) );
             bufName    .SearchAndReplace( search, replace );
@@ -371,15 +344,14 @@ const Declaration* Configuration::StoreDeclaration( const Declaration* orig, con
         bufDefaultValue << orig->defaultValue;
 
     for ( integer  replCnt= 0; replCnt< qtyReplacements ; ++replCnt )
-        if ( !replacementPtr->IsType<void>() )
-        {
+        if ( !replacementPtr->IsType<void>() ) {
             String64  search("%"); search._( replCnt + 1 );
             replace.Reset( *( replacementPtr + replCnt) );
             bufComments    .SearchAndReplace( search, replace );
             bufDefaultValue.SearchAndReplace( search, replace );
         }
 
-    // --------------------- create copy ---------------------
+  //------------------------------------------ create copy -----------------------------------------
     Declaration* result    = GetAllocator()().New<Declaration>();
     result->EnumElementName.Allocate(GetAllocator(), bufName);
     result->typeName       = orig->typeName;
@@ -390,18 +362,16 @@ const Declaration* Configuration::StoreDeclaration( const Declaration* orig, con
     return result;
 }
 
-// #############################################################################################
+//##################################################################################################
 // Other tools
-// #############################################################################################
-std::pair<bool,int8_t> Configuration::ParseBooleanToken( const String& pValue )
-{
+//##################################################################################################
+std::pair<bool,int8_t> Configuration::ParseBooleanToken( const String& pValue ) {
     int8_t index= 0;
     Substring value(pValue);
     if( value.Trim().IsEmpty() )
         return {false, int8_t(-1)};
 
-    for ( auto& it : BooleanTokens )
-    {
+    for ( auto& it : BooleanTokens ) {
         if ( it.first .Match(value)  ) return {false, index};
         if ( it.second.Match(value)  ) return {true , index};
         ++index;
@@ -409,8 +379,7 @@ std::pair<bool,int8_t> Configuration::ParseBooleanToken( const String& pValue )
     return {false, int8_t(-1)};
 }
 
-AString& Configuration::WriteBooleanToken( bool value, int8_t idxRequested, AString& dest )
-{
+AString& Configuration::WriteBooleanToken( bool value, int8_t idxRequested, AString& dest ) {
     // find the right pair of tokens
     if(idxRequested < 0)
         idxRequested= 0;
@@ -427,8 +396,7 @@ AString& Configuration::WriteBooleanToken( bool value, int8_t idxRequested, AStr
     return dest;
 }
 
-bool Configuration::DeletePath( const String& path )
-{
+bool Configuration::DeletePath( const String& path ) {
 DOX_MARKER( [DOX_VARIABLES_DELETE_SAMPLE] )
 // get root node of the tree
 Cursor cs= Root();
@@ -445,9 +413,9 @@ return true;
 DOX_MARKER( [DOX_VARIABLES_DELETE_SAMPLE] )
 }
 
-// #################################################################################################
+//##################################################################################################
 // Implementation of parsing methods of built-in record types.
-// #################################################################################################
+//##################################################################################################
 void ERPriority::Parse()
 {
     enumrecords::bootstrap::EnumRecordParser::Get( ERSerializable::EnumElementName  );
@@ -457,15 +425,15 @@ void ERPriority::Parse()
 }} // namespace [alib::variables]
 
 
-// #################################################################################################
+//##################################################################################################
 // struct AppendableTraits<Variable>
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
 namespace alib::strings {
 
-void AppendableTraits<variables::Variable,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const variables::Variable& variable )
-{
+void AppendableTraits<variables::Variable,nchar, lang::HeapAllocator>::operator()(
+               TAString<nchar, lang::HeapAllocator>& target, const variables::Variable& variable ) {
 #if ALIB_CHARACTERS_WIDE
     String256 name;
     variable.Name(name);
@@ -476,8 +444,8 @@ void AppendableTraits<variables::Variable,nchar, lang::HeapAllocator>::operator(
 
 }
 
-void AppendableTraits<variables::Variable,wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>& target, const variables::Variable& variable )
-{
+void AppendableTraits<variables::Variable,wchar, lang::HeapAllocator>::operator()(
+               TAString<wchar, lang::HeapAllocator>& target, const variables::Variable& variable ) {
 #if ALIB_CHARACTERS_WIDE
     variable.Name(target);
 #else
@@ -490,5 +458,3 @@ void AppendableTraits<variables::Variable,wchar, lang::HeapAllocator>::operator(
 
 } // namespace [alib::strings]
 #endif // DOXYGEN
-
-

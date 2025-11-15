@@ -52,54 +52,50 @@ ALIB_EXPORT namespace alib { namespace expressions::util {
 //==================================================================================================
 class ExpressionFormatter
 {
-    protected:
-        /// The expression compiler (as given in the constructor).
-        Compiler*                   compiler;
+  protected:
+    /// The expression compiler (as given in the constructor).
+    Compiler*                   compiler;
 
-        /// The formatter to use (as given in the constructor).
-        SPFormatter                 stdFormatter;
+    /// The formatter to use (as given in the constructor).
+    SPFormatter                 stdFormatter;
 
-        /// The original format string. Used only for exception information.
-        const AString               originalFormatString;
+    /// The original format string. Used only for exception information.
+    const AString               originalFormatString;
 
-        /// The resulting format string passed to \alib formatters.
-        AString                     formatStringStripped;
+    /// The resulting format string passed to \alib formatters.
+    AString                     formatStringStripped;
 
-        /// The expressions functions to receive the format data.
-        std::vector<Expression>   expressions;
+    /// The expressions functions to receive the format data.
+    std::vector<Expression>   expressions;
 
-    public:
+  public:
 
-        //==========================================================================================
-        /// Constructor. Processes the given format string and compiles embedded expressions, which
-        /// are then used with invocations of method #Format.
-        ///
-        /// @param formatString        The format string as described in the class documentation.
-        /// @param compiler            The expression compiler.
-        /// @param formatter           The formatter to use. Defaults to \c nullptr which selects
-        ///                            \alib{format;Formatter::Default;default formatter}.
-        /// @param separatorChar       The character that is to be used to separate the expression
-        ///                            from the placeholder format information in
-        ///                            \p{customFormatString}.<br>
-        ///                            Defaults to <c>'@'</c>.
-        ///
-        /// @throws alib::format::FMTExceptions::UnknownPropertyInFormatString. \I{CLANGDUMMY}
-        //==========================================================================================
-        ALIB_DLL
-        ExpressionFormatter( const String   formatString,
-                             Compiler*      compiler,
-                             SPFormatter    formatter            = nullptr,
-                             character      separatorChar        = '@'          );
+    /// Constructor. Processes the given format string and compiles embedded expressions, which
+    /// are then used with invocations of method #Format.
+    ///
+    /// @param formatString        The format string as described in the class documentation.
+    /// @param compiler            The expression compiler.
+    /// @param formatter           The formatter to use. Defaults to \c nullptr which selects
+    ///                            \alib{format;Formatter::Default;default formatter}.
+    /// @param separatorChar       The character that is to be used to separate the expression
+    ///                            from the placeholder format information in
+    ///                            \p{customFormatString}.<br>
+    ///                            Defaults to <c>'@'</c>.
+    ///
+    /// @throws alib::format::FMTExceptions::UnknownPropertyInFormatString. \I{CLANGDUMMY}
+    ALIB_DLL
+    ExpressionFormatter( const String   formatString,
+                         Compiler*      compiler,
+                         SPFormatter    formatter            = nullptr,
+                         character      separatorChar        = '@'          );
 
-        //==========================================================================================
-        /// Writes the formatted output of the expressions in accordance to the given \p{scope}
-        /// object to given \p{target} string.
-        ///
-        /// @param target    The target string to write into.
-        /// @param scope     The scope used to evaluate the expressions found in the format string.
-        //==========================================================================================
-        ALIB_DLL
-        void    Format( AString& target, expressions::Scope&  scope );
+    /// Writes the formatted output of the expressions in accordance to the given \p{scope}
+    /// object to given \p{target} string.
+    ///
+    /// @param target    The target string to write into.
+    /// @param scope     The scope used to evaluate the expressions found in the format string.
+    ALIB_DLL
+    void    Format( AString& target, expressions::Scope&  scope );
 
 }; // class ExpressionFormatter
 
@@ -109,4 +105,3 @@ class ExpressionFormatter
 using ExpressionFormatter  =    expressions::util::ExpressionFormatter;
 
 } // namespace [alib]
-

@@ -46,10 +46,10 @@ namespace {
 
 using MyData= int;
 
-DOX_MARKER( [DOX_MONOMEM_SCAMONO_PLACEMENT_NEW] )
+DOX_MARKER( [DOX_MONOMEM_STDMA_PLACEMENT_NEW] )
 // field members  or global objects
 alib::MonoAllocator allocator( ALIB_DBG("MyAllocator",)  4);
-std::vector<MyData, SCAMono<MyData>> transactionObjects( allocator );
+std::vector<MyData, StdMA<MyData>> transactionObjects( allocator );
 
 // method using the allocator and the vector
 void processTransaction( /* transaction data */)
@@ -70,10 +70,10 @@ void processTransaction( /* transaction data */)
     allocator.Reset();
 
     // 3. Placement new on the vector object
-    new( &transactionObjects ) std::vector<MyData, SCAMono<MyData>>( allocator );
+    new( &transactionObjects ) std::vector<MyData, StdMA<MyData>>( allocator );
 }
 
-DOX_MARKER( [DOX_MONOMEM_SCAMONO_PLACEMENT_NEW] )
+DOX_MARKER( [DOX_MONOMEM_STDMA_PLACEMENT_NEW] )
 
 
 } //anonymous namespace
@@ -88,19 +88,19 @@ UT_METHOD(StdContainers)
 UT_INIT()
 
 // #################################################################################################
-// ### StdContainerAllocator
+// ### StdAllocator
 // #################################################################################################
 {
     MonoAllocator ma( ALIB_DBG("UTStdContainers",)  1 );
     {
         UT_PRINT(  "---- std::unordered_map, strict monotonic  ----")
-        SCAMono<std::pair<const AString,long double>> scaMono(ma);
+        StdMA<std::pair<const AString,long double>> stdMA(ma);
 
         std::unordered_map< AString, long double,
                             std::hash    <String>,
                             std::equal_to<String>,
-                            SCAMono<std::pair<const AString,long double>>>
-            umap( 5  , std::hash<String>(), std::equal_to<String>(), scaMono );
+                            StdMA<std::pair<const AString,long double>>>
+            umap( 5  , std::hash<String>(), std::equal_to<String>(), stdMA );
 
         for( int i= 0; i < 20 ; ++i)
             umap.insert( std::pair<AString,int>(String128() << "Key" << i, i * 10) );
@@ -111,7 +111,7 @@ UT_INIT()
         UT_PRINT("-------   std::map, strict monotonic -------")
         std::map          < AString, double,
                             std::less<String>,
-                            SCAMono<std::pair<const AString, double> >  >
+                            StdMA<std::pair<const AString, double> >  >
             omap( std::less<String>(), ma );
 
 
@@ -125,7 +125,7 @@ UT_INIT()
 
     {
         UT_PRINT("-------   std::list, strict monotonic   -------")
-        StdListMono<AString> list(ma);
+        StdListMA<AString> list(ma);
 
 
         for( int i= 0; i < 5 ; ++i)
@@ -138,32 +138,32 @@ UT_INIT()
 
     {
         UT_PRINT("-------  std::vector, strict monotonic  -------")
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DECL])
+DOX_MARKER([DOX_MONOMEM_STDMA_DECL])
 struct MyStruct
 {
-    std::vector<int, SCAMono<int>>  myField;
+    std::vector<int, StdMA<int>>  myField;
 };
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DECL])
+DOX_MARKER([DOX_MONOMEM_STDMA_DECL])
 
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF])
+DOX_MARKER([DOX_MONOMEM_STDMA_DEF])
 alib::MonoAllocator myAllocator(ALIB_DBG("MyAllocator",) 4);
-std::vector<int, SCAMono<int>>  myVector(myAllocator);
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF])
+std::vector<int, StdMA<int>>  myVector(myAllocator);
+DOX_MARKER([DOX_MONOMEM_STDMA_DEF])
 
         for( int i= 0; i < 20 ; ++i)
             myVector.push_back( i );
     }
 struct MyStructAlt
 {
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF_ALTERNATIVE])
-    StdVectorMono<int>  myField;
-DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF_ALTERNATIVE])
+DOX_MARKER([DOX_MONOMEM_STDMA_DEF_ALTERNATIVE])
+    StdVectorMA<int>  myField;
+DOX_MARKER([DOX_MONOMEM_STDMA_DEF_ALTERNATIVE])
 };
     
 }
 
 // #################################################################################################
-// ### StdContainerAllocatorRecycling
+// ### StdRecyclingAllocator
 // #################################################################################################
 {
     MonoAllocator ma(ALIB_DBG("UTCAR",)  1 );
@@ -171,14 +171,14 @@ DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF_ALTERNATIVE])
     lang::RTTRAllocator<MonoAllocator> recyclerMap( ma );
     lang::RTTRAllocator<MonoAllocator> recyclerVec( ma );
     lang::RTTRAllocator<MonoAllocator> recyclerList( ma );
-    lang::StdContainerAllocatorRecycling<std::pair<const AString,long double>,MonoAllocator> rum( recyclerUM );
+    lang::StdRecyclingAllocator<std::pair<const AString,long double>,MonoAllocator> rum( recyclerUM );
 
     {
         UT_PRINT(  "---- std::unordered_map, recycling  ----")
         std::unordered_map< AString, long double,
                             std::hash    <String>,
                             std::equal_to<String>,
-                            lang::StdContainerAllocatorRecycling<std::pair<const AString, long double>,MonoAllocator>> umap( 5, std::hash<String>(), std::equal_to<String>(), rum );
+                            lang::StdRecyclingAllocator<std::pair<const AString, long double>,MonoAllocator>> umap( 5, std::hash<String>(), std::equal_to<String>(), rum );
         for( int i= 0; i < 20 ; ++i)
             umap.insert( std::pair<AString,int>(String128() << "Key" << i, i * 10) );
     }
@@ -187,7 +187,7 @@ DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF_ALTERNATIVE])
         UT_PRINT("-------   std::map, recycling    -------")
         std::map          < AString, double,
                             std::less<String>,
-                            lang::StdContainerAllocatorRecycling<std::pair<const AString, double>,MonoAllocator>  > omap( std::less<String>(), (lang::StdContainerAllocatorRecycling<std::pair<const AString, double>,MonoAllocator>(recyclerUM)) );
+                            lang::StdRecyclingAllocator<std::pair<const AString, double>,MonoAllocator>  > omap( std::less<String>(), (lang::StdRecyclingAllocator<std::pair<const AString, double>,MonoAllocator>(recyclerUM)) );
 
 
         for( int i= 0; i < 10 ; ++i)
@@ -201,7 +201,7 @@ DOX_MARKER([DOX_MONOMEM_SCAMONO_DEF_ALTERNATIVE])
     {
         UT_PRINT("-------   std::list, recycling    -------")
         std::list         < AString,
-                            lang::StdContainerAllocatorRecycling<AString,MonoAllocator>  > list( (lang::StdContainerAllocatorRecycling<AString,MonoAllocator>(recyclerList)) );
+                            lang::StdRecyclingAllocator<AString,MonoAllocator>  > list( (lang::StdRecyclingAllocator<AString,MonoAllocator>(recyclerList)) );
 
 
         for( int i= 0; i < 5 ; ++i)

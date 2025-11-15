@@ -24,5 +24,3 @@ using    HuffmanEncoder =  bitbuffer::ac_v1::HuffmanEncoder;
 using    HuffmanDecoder =  bitbuffer::ac_v1::HuffmanDecoder;
 
 } // namespace [alib]
-
-

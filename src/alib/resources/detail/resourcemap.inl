@@ -21,8 +21,7 @@ struct Key
         /// Calculates a hash code.
         /// @param key The object to hash.
         /// @return The hash code.
-        std::size_t operator()(const Key& key)                                                 const
-        {
+        std::size_t operator()(const Key& key)                                               const {
             return   key.Name    .Hashcode()
                    ^ key.Category.Hashcode();
         }
@@ -35,8 +34,7 @@ struct Key
         /// @param lhs The left-hand side object.
         /// @param rhs The left-hand side object.
         /// @return The result of the comparison.
-        bool        operator()(const Key& lhs, const Key& rhs )                                const
-        {
+        bool        operator()(const Key& lhs, const Key& rhs )                              const {
             return     lhs.Name    .Equals<NC>( rhs.Name    )
                     && lhs.Category.Equals<NC>( rhs.Category);
         }

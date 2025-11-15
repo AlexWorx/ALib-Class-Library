@@ -21,7 +21,7 @@ class LogTools
     /// \ref alib::lox::Lox::SetDomain "SetDomain( domainPrefix, Scope::ThreadOuter )" and
     /// \ref alib::lox::Lox::SetPrefix "SetPrefix( logPrefix, Scope::ThreadOuter )".
     /// The reason for this approach is that it may occur that other prefixes or scope domains
-    /// are set set on source scope for the source files and methods found in the exception
+    /// are set on source scope for the source files and methods found in the exception
     /// entry's source code information. This is especially important to understand in respect
     /// to the log domain: With the default value of parameter \p{domainPrefix} being \e "/ERR",
     /// all source related domains will appear as a subdomain of \e "/ERR" when the exception
@@ -50,4 +50,3 @@ class LogTools
 using     LogTools=           lox::LogTools;
 
 }  // namespace [alib]
-

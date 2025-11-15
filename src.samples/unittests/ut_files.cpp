@@ -11,6 +11,7 @@
 #include "ALib.EnumOps.H"
 #include "ALib.Monomem.H"
 #include "ALib.Strings.Calendar.H"
+#include "ALib.Containers.StringTreeIterator.H"
 #include "ALib.Exceptions.H"
 #include "ALib.Format.H"
 #include "ALib.Files.H"
@@ -303,14 +304,14 @@ UT_METHOD(FileAndFTree)
     ftree->GetNumberFormat().Flags|= NumberFormatFlags::WriteGroupChars;
 
     auto cdc= lang::CurrentData::Clear;
-    file.Format(A_CHAR("'Size: 's"                             ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.252KiB"       ), fmt )
-    file.Format(A_CHAR("'Size: 's(KiB)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.252"          ), fmt )
-    file.Format(A_CHAR("'Size: 's(B)"                          ),fmt,cdc);   UT_EQ(A_CHAR("Size:   14,594"               ), fmt )
-    file.Format(A_CHAR("'Size: 's(B){15,c}"                    ),fmt,cdc);   UT_EQ(A_CHAR("Size:      14,594    "        ), fmt )
-    file.Format(A_CHAR("'Size: 's(iec)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.252KiB"       ), fmt)
-    file.Format(A_CHAR("'Size: 's(SI)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.594kB"        ), fmt)
-    file.Format(A_CHAR("'Size: 's(mb)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.015"          ), fmt)
-    file.Format(A_CHAR("'Size: 's(mib)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.014"          ), fmt)
+    file.Format(A_CHAR("'Size: 's"                             ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678KiB"       ), fmt )
+    file.Format(A_CHAR("'Size: 's(KiB)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678"          ), fmt )
+    file.Format(A_CHAR("'Size: 's(B)"                          ),fmt,cdc);   UT_EQ(A_CHAR("Size:   14,006"               ), fmt )
+    file.Format(A_CHAR("'Size: 's(B){15,c}"                    ),fmt,cdc);   UT_EQ(A_CHAR("Size:      14,006    "        ), fmt )
+    file.Format(A_CHAR("'Size: 's(iec)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678KiB"       ), fmt)
+    file.Format(A_CHAR("'Size: 's(SI)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.006kB"        ), fmt)
+    file.Format(A_CHAR("'Size: 's(mb)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.014"          ), fmt)
+    file.Format(A_CHAR("'Size: 's(mib)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.013"          ), fmt)
 
     file.Format(A_CHAR("'Stem: 'ns"                            ),fmt,cdc);   UT_EQ(A_CHAR("Stem: expression"             ), fmt )
     file.Format(A_CHAR("'Name: 'na"                            ),fmt,cdc);   UT_EQ(A_CHAR("Name: expression.inl"         ), fmt )
@@ -469,17 +470,17 @@ UT_METHOD(FileAndFTree)
             ftree->Root().AsCursor().DeleteChildren();
             testFScan(ut, nullptr , nullptr   , -1,-1 , false ); // false= no reset
 
-            FTree::RecursiveIterator rit;
-            rit.SetPathGeneration(lang::Switch::Off);
+            StringTreeIterator<FTree> stit;
+            stit.SetPathGeneration(lang::Switch::Off);
 
             // loop over all nodes and dump
             int cntFiles= 0;
-            rit.Initialize( ftree->Root().AsCursor() );
-            while( rit.IsValid())
+            stit.Initialize( ftree->Root().AsCursor(), lang::Inclusion::Exclude );
+            while( stit.IsValid())
             {
-                File f( rit.Node() );
+                File f( stit.Node() );
                 f.AttachCustomData<CustomDataTrivial>();
-                rit.Next();
+                stit.Next();
                 ++cntFiles;
             }
 

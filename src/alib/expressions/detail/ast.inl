@@ -29,8 +29,7 @@ struct ASTBase
     /// Constructor
     /// @param type      The node type.
     ASTBase( Types type )
-    : NodeType(type)
-    {}
+    : NodeType(type)                                                                              {}
 };
 
 }}} // namespace [alib::expressions::detail]

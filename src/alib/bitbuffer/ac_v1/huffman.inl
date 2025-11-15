@@ -21,7 +21,7 @@ ALIB_EXPORT namespace alib {  namespace bitbuffer { namespace ac_v1 {
 ///   \alib{bitbuffer::ac_v1::HuffmanEncoder;Write}.
 class HuffmanEncoder
 {
-    public:
+  public:
         static constexpr int   WORD_SIZE      = 32; ///< Codes are stored in two words of size 32
                                                     ///< (this constant)
         static constexpr int   MAX_WORDS      = 2;  ///< Codes are stored in two (this constant) words
@@ -34,47 +34,42 @@ class HuffmanEncoder
         /// for the next decades.
         static constexpr int   MAX_CODE_LENGTH   = 64;
 
-        /// Information about the encoding of symbols. The symbol's value (between \c 0  and \c 255)
-        /// is not included, but deduced from the objects' position in the symbol array found in
-        /// field \alib{bitbuffer::ac_v1::HuffmanEncoder;symbols}.
-        struct Symbol
-        {
-            std::size_t         frequency        =  0;     ///< The number of occurrences of the symbol.
-            alib::ShiftOpRHS   wordLength       =  0;     ///< 0: symbol not used, otherwise between 1 and 255.
-            uint32_t            words[MAX_WORDS] = {0,0};  ///< The bitcode of the symbol.
-        };
+    /// Information about the encoding of symbols. The symbol's value (between \c 0 and \c 255)
+    /// is not included, but deduced from the objects' position in the symbol array found in
+    /// field \alib{bitbuffer::ac_v1::HuffmanEncoder;symbols}.
+    struct Symbol
+    {
+        std::size_t         frequency        =  0;     ///< The number of occurrences of the symbol.
+        alib::ShiftOpRHS   wordLength       =  0;     ///< 0: symbol not used, otherwise between 1 and 255.
+        uint32_t            words[MAX_WORDS] = {0,0};  ///< The bitcode of the symbol.
+    };
 
-    protected:
+  protected:
 
     BitWriter&      bw;             ///< The bit writer to use for encoding the data.
     Symbol          symbols[256];   ///< The symbol table.
 
 ALIB_DBG( bool      dbgAllValuesAreSame;  )
 
-    public:
-        /// Constructor.
-        /// @param bitWriter  The bit writer to write the encoding information as well as the encoded
-        ///                   symbols to. (Stored in field #bw.)
-        HuffmanEncoder( BitWriter& bitWriter )
-        : bw(bitWriter)
-        { }
+  public:
+    /// Constructor.
+    /// @param bitWriter  The bit writer to write the encoding information as well as the encoded
+    ///                   symbols to. (Stored in field #bw.)
+    HuffmanEncoder( BitWriter& bitWriter )
+    : bw(bitWriter)                                                                               {}
 
-        /// Counts a symbol.
-        /// This method has to be invoked for each byte to compress later.
-        /// @param symbol  The symbol to count.
-        void CountSymbol(uint8_t symbol)
-        {
-            symbols[symbol].frequency++;
-        }
+    /// Counts a symbol.
+    /// This method has to be invoked for each byte to compress later.
+    /// @param symbol  The symbol to count.
+    void CountSymbol(uint8_t symbol)                                { symbols[symbol].frequency++; }
 
     /// Generates the huffman encoding table and writes this information to the bit writer.
     ALIB_DLL
     void Generate();
 
-    /// Writes the given \p symbol to the bit stream.
+    /// Writes the given \p{symbol} to the bit stream.
     /// @param symbol The symbol to write.
-    void Write(uint8_t symbol)
-    {
+    void Write(uint8_t symbol) {
         auto& rec     = symbols[symbol];
         int   bitsLeft= rec.wordLength;
         #if ALIB_STRINGS
@@ -87,8 +82,7 @@ ALIB_DBG( bool      dbgAllValuesAreSame;  )
 
 
         auto* word= rec.words;
-        if( bitsLeft > 32)
-        {
+        if( bitsLeft > 32) {
             bw.Write<32>( *word );
             word++;
             bitsLeft-= 32;
@@ -114,36 +108,34 @@ ALIB_DBG( bool      dbgAllValuesAreSame;  )
 /// known by the using software. This class is not responsible for storing this piece of information.
 class HuffmanDecoder
 {
-    protected:
-        /// Internal struct representing nodes of the huffman code tree.
-        struct Node
-        {
-            Node*    left;      ///< The left child node.
-            Node*    right;     ///< The right child node.
-            uint8_t  symbol;    ///< If this is a leaf node (neither #left nor #right are set, then
-                                ///< then this is the symbol found.
+  protected:
+    /// Internal struct representing nodes of the huffman code tree.
+    struct Node
+    {
+        Node*    left;      ///< The left child node.
+        Node*    right;     ///< The right child node.
+        uint8_t  symbol;    ///< If this is a leaf node (neither #left nor #right are set, then
+                            ///< then this is the symbol found.
 
-            /// Constructor.
-            Node()
-            : left      (nullptr)
-            , right     (nullptr)
-            {}
-        };
+        /// Constructor.
+        Node()
+        : left      (nullptr)
+        , right     (nullptr)                                                                     {}
+    };
 
         static constexpr int    MAX_NODES= 511;      ///< The maximum number of nodes in the tree.
 
-        BitReader&              br;                  ///< The bit reader given in the constructor.
-        Node                    tree;                ///< The root node of the symbol tree.
-        Node                    nodePool[MAX_NODES]; ///< Pre-allocated node objects.
-        int                     npNext= 0;           ///< The next node in #nodePool to use.
+    BitReader&              br;                  ///< The bit reader given in the constructor.
+    Node                    tree;                ///< The root node of the symbol tree.
+    Node                    nodePool[MAX_NODES]; ///< Pre-allocated node objects.
+    int                     npNext= 0;           ///< The next node in #nodePool to use.
 
-    public:
-        /// Constructor.
-        /// @param bitReader The bit reader to read the huffman encoding table and then the encoded
-        ///                  symbols from. (Stored in field #br.)
-        HuffmanDecoder( BitReader& bitReader )
-        :br(bitReader)
-        {}
+  public:
+    /// Constructor.
+    /// @param bitReader The bit reader to read the huffman encoding table and then the encoded
+    ///                  symbols from. (Stored in field #br.)
+    HuffmanDecoder( BitReader& bitReader )
+    :br(bitReader)                                                                                {}
 
     /// Reads the information to decode the data from the beginning of the bit stream.
     /// This method has to be invoked once before reading the symbols with method #Read.
@@ -154,21 +146,17 @@ class HuffmanDecoder
     /// This method has to be invoked for every symbol stored, after once reading the encoding
     /// information with method #ReadTree.
     /// @return The symbol read.
-    uint8_t  Read()
-    {
+    uint8_t  Read() {
         Node* node= &tree;
-        while(true)
-        {
+        while(true) {
             if( node->left == nullptr) // (could also test on right)
                 return node->symbol;
 
             auto v= br.Read<1>();
             node= v ? node->right
                     : node->left;
-        }
-    }
+    }   }
 
 }; // HuffmanDecoder
 
 }}} // namespace [alib::bitbuffer::ac_v1]
-

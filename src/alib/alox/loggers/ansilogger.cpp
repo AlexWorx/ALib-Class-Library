@@ -1,9 +1,9 @@
-// #################################################################################################
-//  alib::lox::loggers - ALox Logging Library
+//##################################################################################################
+//  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alox/alox.prepro.hpp"
 #include <ostream>
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.ALox.Impl;
     import   ALib.Lang;
@@ -30,13 +30,12 @@
 #   include "ALib.ALox.H"
 #   include "ALib.ALox.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib::lox::detail;
 
 namespace alib {  namespace lox { namespace loggers {
 
-void AnsiLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )
-{
+void AnsiLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op ) {
     TextLogger::AcknowledgeLox( lox, op );
     if( op != lang::ContainerOp::Insert )
         return;
@@ -56,43 +55,40 @@ void AnsiLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )
 
     // If the meta-information came from the defaults (resources) we parse different ones
     // dedicated to ANSI consoles.
-    if( varFormatMetaInfo.GetPriority() == Priority::DefaultValues )
-    {
+    if( varFormatMetaInfo.GetPriority() == Priority::DefaultValues ) {
         // This moves the verbosity information to the end to colorize the whole line
         auto ansiLoggerDefaultFormat= ALOX.GetResource("Var_D21A");
         varFormatMetaInfo.Import(ansiLoggerDefaultFormat, Priority::DefaultValues );
-    }
-}
+}   }
 
-AnsiLogger::~AnsiLogger()
-{
-}
-
-// #################################################################################################
+//##################################################################################################
 // logText
-// #################################################################################################
-
-
-void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
+//##################################################################################################
+void AnsiLogger::logText( detail::Domain&    ,
+                          Verbosity          ,
                           AString&        msg,
-                          ScopeInfo&         ,    int                )
-{
+                          ScopeInfo&         ,
+                          int                ,
+                          bool            isRecursion) {
+    // Acquire ostream (empty in single-threaded applications)
+    LocalAllocator4K tempAllocator;
+    OStreamWriter<nchar, MonoAllocator, true>      writer(os, tempAllocator);
+    if (isRecursion)
+        writer.DisableSync= true;
+
     // loop over message, print the parts between the escape sequences
     integer column= 0;
     Tokenizer msgParts( msg, '\x1B' );
     Substring& actual= msgParts.Actual;
     Substring& rest=   msgParts.Rest;
-    for(;;)
-    {
+    for(;;) {
         msgParts.Next( lang::Whitespaces::Keep );
 
         // check if end of actual msg part is an ANSI sequence. If yes, we extend the actual msg
-        if ( rest.CharAtStart() == '[' )
-        {
+        if ( rest.CharAtStart() == '[' ) {
             // read the 'm'
             integer idx= rest.IndexOf( 'm' );
-            if ( idx < 0 ) // unknown ANSI Code
-            {
+            if ( idx < 0 )  { // unknown ANSI Code
                 ALIB_WARNING( "ALOX", "Unknown ANSI ESC Code \"{}...\"", rest.Substring(0, 10 ) )
                 writer.Write( actual );
                 continue;
@@ -108,8 +104,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
             continue;
         }
 
-        if ( actual.IsNotEmpty() )
-        {
+        if ( actual.IsNotEmpty() ) {
             writer.Write( actual );
             column+= actual.WStringLength();
         }
@@ -122,8 +117,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
         character c= rest.ConsumeChar();
 
         // Colors
-        if( c == 'C' || c == 'c' )
-        {
+        if( c == 'C' || c == 'c' ) {
             bool isForeGround=  ( c== 'c' );
 
             c= rest.ConsumeChar();
@@ -139,8 +133,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
                 colNo+= 20;
 
             String ansiCol;
-            switch( colNo )
-            {
+            switch( colNo ) {
                 case  0: ansiCol= AnsiLogger::ANSI_RED              ; break;
                 case  1: ansiCol= AnsiLogger::ANSI_GREEN            ; break;
                 case  2: ansiCol= AnsiLogger::ANSI_YELLOW           ; break;
@@ -193,8 +186,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
         }
 
         // Styles
-        else if ( c == 's' )
-        {
+        else if ( c == 's' ) {
             c=  rest.ConsumeChar();
             writer.Write(const_cast<const character*>(   c== 'B' ? ANSI_BOLD
                                                        : c== 'I' ? ANSI_ITALICS
@@ -202,8 +194,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
         }
 
         // auto tab / end of meta
-        else if ( c == 't' || c == 'A' )
-        {
+        else if ( c == 't' || c == 'A' ) {
             c=  rest.ConsumeChar();
             int extraSpace=  c >= '0' && c <= '9' ? ( c - '0' )
                                                   : ( c - 'A' ) + 10;
@@ -212,7 +203,7 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
             integer tabStop= varFormatAutoSizes.Get<textlogger::FormatAutoSizes>().Main.Next(
                                                     AutoSizes::Types::Tabstop, column, extraSpace );
             integer qtySpaces= tabStop - column;
-            writer.WriteChars(' ', qtySpaces );
+            writer.Fill(' ', qtySpaces );
             column+= qtySpaces;
         }
 
@@ -224,29 +215,14 @@ void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
                                : static_cast<const String&>( ANSI_BLUE       ) )
                            :     static_cast<const String&>( ANSI_STD_COL    )   );
 
-        else
-        {
+        else {
             rest.ConsumeChar();
             ALIB_WARNING( "ALOX", "Unknown ESC code {!Q'}.", c )
         }
 
     } // write loop
 
-    *writer.GetStream() << std::endl;
-}
-
-
-// #################################################################################################
-// AnsiConsoleLogger
-// #################################################################################################
-AnsiConsoleLogger::AnsiConsoleLogger( const NString&  name )
-: AnsiLogger( name, "ANSI_CONSOLE" )
-{
-}
-
-AnsiConsoleLogger::~AnsiConsoleLogger()
-{
+    writer.GetStream() << std::endl;
 }
 
 }}} // namespace [alib::lox::loggers]
-

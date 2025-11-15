@@ -902,8 +902,35 @@ UT_METHOD(LocalAllocator)
         myLocalMono().Delete(myObject);
     }
     #endif //!defined(_WIN32)
-
 }
+
+//--------------------------------------------------------------------------------------------------
+//--- StdAllocator
+//--------------------------------------------------------------------------------------------------
+UT_METHOD(StdAllocator)
+{
+    UT_INIT()
+
+    UT_PRINT("") UT_PRINT( "### StdAllocator ###")
+
+    #if defined(__cpp_lib_allocate_at_least)
+        {
+            LocalAllocator1K la;
+            StdMA<char> stdMA(la);
+            auto result= stdMA.allocate_at_least(18);
+            UT_EQ(size_t(18), result.count)
+        }
+
+        {
+            LocalAllocator1K la;
+            PoolAllocator    pa(la);
+
+            StdPA<char> stdPA(pa);
+            auto result= stdPA.allocate_at_least(18);
+            UT_TRUE( size_t(18) < result.count )
+        }
+   #endif
+ }
 
 #include "aworx_unittests_end.hpp"
 

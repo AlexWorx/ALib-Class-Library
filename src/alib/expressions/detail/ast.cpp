@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
 #include "alib/expressions/expressions.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Expressions.Impl;
     import   ALib.Characters.Functions;
@@ -23,14 +23,14 @@
 #else
 #   include "ALib.Expressions.Impl.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace expressions { namespace detail {
 
 
 
-// #################################################################################################
+//##################################################################################################
 // Anonymous helpers
-// #################################################################################################
+//##################################################################################################
 //! @cond NO_DOX
 namespace {
 
@@ -41,40 +41,36 @@ const String normBracketClose[4] {A_CHAR(")"), A_CHAR(" )"), A_CHAR(") "), A_CHA
 #define      SPACE(flag)          ( HasBits(format, Normalization::flag ) ? normSpace : EMPTY_STRING )
 #define COND_SPACE(flag, force) if( HasBits(format, Normalization::flag ) || force ) normalized << ' '
 
-void checkForbiddenStrings( Compiler& compiler, AString& normalized, integer positionToCheck, integer spaceInsertionPos )
-{
+void checkForbiddenStrings( Compiler& compiler       , AString& normalized,
+                            integer   positionToCheck, integer  spaceInsertionPos ) {
     for( auto& it : compiler.CfgNormalizationDisallowed )
         if(     it.Length() > spaceInsertionPos
             &&  normalized.ContainsAt( it, positionToCheck ) )
         {
             normalized.InsertAt( A_CHAR(" "), positionToCheck + spaceInsertionPos );
             return;
-        }
-}
+}       }
 } // anonymous namespace
 //! @endcond
 
-// #################################################################################################
+//##################################################################################################
 // Optimize implementations
-// #################################################################################################
-AST* ASTLiteral   ::Optimize( Normalization               )   { return this; }
-AST* ASTIdentifier::Optimize( Normalization               )   { return this; }
-AST* ASTFunction  ::Optimize( Normalization normalization )
-{
+//##################################################################################################
+AST* ASTLiteral   ::Optimize( Normalization               )                         { return this; }
+AST* ASTIdentifier::Optimize( Normalization               )                         { return this; }
+AST* ASTFunction  ::Optimize( Normalization normalization ) {
     for( auto& arg : Arguments )
         arg= arg->Optimize( normalization );
     return this;
 }
 
-AST* ASTBinaryOp::Optimize( Normalization normalization )
-{
+AST* ASTBinaryOp::Optimize( Normalization normalization ) {
     Lhs= Lhs->Optimize( normalization );
     Rhs= Rhs->Optimize( normalization );
     return this;
 }
 
-AST* ASTConditional::Optimize( Normalization normalization )
-{
+AST* ASTConditional::Optimize( Normalization normalization ) {
     Q= Q->Optimize( normalization );
     T= T->Optimize( normalization );
     F= F->Optimize( normalization );
@@ -83,62 +79,51 @@ AST* ASTConditional::Optimize( Normalization normalization )
 
 
 
-AST* ASTUnaryOp::Optimize( Normalization normalization )
-{
+AST* ASTUnaryOp::Optimize( Normalization normalization ) {
     Argument= Argument->Optimize( normalization );
 
-    if( HasBits( normalization, Normalization::RemoveRedundantUnaryOpsOnNumberLiterals ) )
-    {
-        if( Argument->NodeType == Types::Literal && (Operator == A_CHAR("+") || Operator == A_CHAR("-")) )
-        {
+    if( HasBits( normalization, Normalization::RemoveRedundantUnaryOpsOnNumberLiterals ) ) {
+        if( Argument->NodeType == Types::Literal && (Operator == A_CHAR("+") || Operator == A_CHAR("-")) ) {
             ASTLiteral* astLiteral= dynamic_cast<ASTLiteral*>( Argument );
 
-            if( astLiteral->Value.IsType<integer>() )
-            {
+            if( astLiteral->Value.IsType<integer>() ) {
                 if( Operator.CharAtStart<NC>() == '-'  )
                     astLiteral->Value= - astLiteral->Value.Unbox<integer>();
                 Argument= nullptr;
                 return astLiteral;
             }
 
-            if( astLiteral->Value.IsType<double>() )
-            {
+            if( astLiteral->Value.IsType<double>() ) {
                 if( Operator.CharAtStart<NC>() == '-'  )
                     astLiteral->Value= - astLiteral->Value.Unbox<double>();
                 Argument= nullptr;
                 return astLiteral;
-            }
-        }
-    }
+    }   }   }
 
     return this;
 }
 
 
 
-// #################################################################################################
+//##################################################################################################
 // Assemble implementations
-// #################################################################################################
+//##################################################################################################
 
-void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalized )
-{
+void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalized ) {
     integer idxInNormalized= normalized.Length();
 
     auto* func= Value.GetFunction<FToLiteral>( lang::Reach::Local );
-    if( func )
-    {
+    if( func ) {
         Value.CallDirect <FToLiteral>( func, normalized );
     }
-    else if( Value.IsType<String>() )
-    {
+    else if( Value.IsType<String>() ) {
         normalized << '"';
         integer startExternalization= normalized.Length();
         normalized << Value;
         normalized << Escape( lang::Switch::On, startExternalization );
         normalized << '"';
     }
-    else if( Value.IsType<double>() )
-    {
+    else if( Value.IsType<double>() ) {
         NumberFormat* nf= &program.compiler.CfgFormatter->DefaultNumberFormat;
         auto oldFlags= nf->Flags;
         if(    Format == NFHint::Scientific
@@ -148,8 +133,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
         normalized <<   alib::Dec( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
         nf->Flags=     oldFlags;
     }
-    else if( Value.IsType<integer>() )
-    {
+    else if( Value.IsType<integer>() ) {
         NFHint format= Format;
              if( HasBits(program.compiler.CfgNormalization, Normalization::ForceHexadecimal ) )
             format= NFHint::Hexadecimal;
@@ -171,8 +155,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
     program.AssembleConstant( Value, Position, idxInNormalized );
 }
 
-void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString & normalized )
-{
+void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString & normalized ) {
     auto format= program.compiler.CfgNormalization;
 
     String64 identifier;
@@ -185,8 +168,7 @@ void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString & normal
 }
 
 
-void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString& normalized )
-{
+void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString& normalized ) {
     auto format= program.compiler.CfgNormalization;
     String64 functionName;
     functionName.DbgDisableBufferReplacementWarning();
@@ -204,10 +186,8 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
     // the function used for nested expressions?
     bool replacedNestedExpressionIdentifierByLiteral= false;
     bool thirdArgumentIsThrowIdentifier= false;
-    if( program.compiler.CfgNestedExpressionFunction.Match( Name ) )
-    {
-        if( qtyArgs < 1 ||  qtyArgs > 3 )
-        {
+    if( program.compiler.CfgNestedExpressionFunction.Match( Name ) ) {
+        if( qtyArgs < 1 ||  qtyArgs > 3 ) {
             throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
                              program.compiler.CfgNestedExpressionFunction );
         }
@@ -224,8 +204,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
         }
 
         // if third parameter given it must be an identifier and equal to "throw"
-        if( qtyArgs == 3 )
-        {
+        if( qtyArgs == 3 ) {
             auto argIt= Arguments.begin();
             ++argIt;
             ++argIt;
@@ -237,19 +216,15 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
                                  program.compiler.CfgNestedExpressionFunction );
             }
             thirdArgumentIsThrowIdentifier= true;
-        }
-    }
+    }   }
 
 
-    if( qtyArgs > 0 )
-    {
+    if( qtyArgs > 0 ) {
         normalized  << '(' << SPACE(FunctionInnerBracketSpace);
         int no= -1;
-        for( auto* argAst : Arguments )
-        {
+        for( auto* argAst : Arguments ) {
             ++no;
-            if( no==0 )
-            {
+            if( no==0 ) {
                 // optionally remove quotes if we previously converted an identifier to string-type
                 if(    replacedNestedExpressionIdentifierByLiteral
                     && !HasBits(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
@@ -260,8 +235,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
                     }
                     normalized << dynamic_cast<ASTLiteral*>(argAst)->Value.Unbox<String>();
                     continue;
-                }
-            }
+            }   }
             else
                 normalized << SPACE(FunctionSpaceBeforeComma) << ',' << SPACE(FunctionSpaceAfterComma);
 
@@ -283,8 +257,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
 }
 
 
-void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
-{
+void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
     auto format= program.compiler.CfgNormalization;
     String op= Operator;
 
@@ -295,13 +268,11 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
     // and b) an identifier terminal follows, we optionally convert the identifier to a string
     // value.
     bool replacedNestedExpressionIdentifierByLiteral= false;
-    if( HasBits( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions) )
-    {
+    if( HasBits( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions) ) {
         String nonVerbalOp;
         if( !isVerbalOp )
             nonVerbalOp= op;
-        else
-        {
+        else {
             auto it=   program.compiler.AlphabeticUnaryOperatorAliases.Find(op);
             if(  it != program.compiler.AlphabeticUnaryOperatorAliases.end() )
                 nonVerbalOp= it.Mapped();
@@ -316,10 +287,9 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
             ASTLiteral*    astLiteral   = allocator().New<ASTLiteral>(astIdentifier->Name, astIdentifier->Position );
             Argument= astLiteral;
             replacedNestedExpressionIdentifierByLiteral= true;
-        }
-    }
+    }   }
 
-    //--------- normal unary operators -------
+  //------------------------------------- normal unary operators -----------------------------------
     auto opIdx= normalized.Length();
     normalized << op;
     auto opLen= normalized.Length() - opIdx;
@@ -359,10 +329,8 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
     program.AssembleUnaryOp( op, Position, opIdx );
 
     // did the compiler plug-in replace the operator (was given an alias operator)?
-    if( op != Operator || isVerbalOp )
-    {
-        if( isVerbalOp )
-        {
+    if( op != Operator || isVerbalOp ) {
+        if( isVerbalOp ) {
             // replace in any case: class program would have changed the op only if the corresponding
             // flags had been set:
             normalized.ReplaceSubstring<NC>( op, opIdx, opLen );
@@ -383,12 +351,10 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
 
         }
 
-        else if( HasBits(format, Normalization::ReplaceAliasOperators ) )
-        {
+        else if( HasBits(format, Normalization::ReplaceAliasOperators ) ) {
             normalized.ReplaceSubstring<NC>( op, opIdx, opLen );
             opLen=  op.Length();
-        }
-    }
+    }   }
 
 
     // check if a forbidden string occurred due to writing operator with no spaces/brackets and
@@ -397,14 +363,12 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
 }
 
 
-void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
-{
+void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
     auto format= program.compiler.CfgNormalization;
     String op=    Operator;
 
-    //----------- Special treatment for subscript operator (needs different normalization) ---------
-    if( op == A_CHAR("[]") )
-    {
+  //------------ Special treatment for subscript operator (needs different normalization) ----------
+    if( op == A_CHAR("[]") ) {
         // LHS recursion
         Lhs->Assemble( program, allocator, normalized );
 
@@ -467,7 +431,7 @@ void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString 
     // Add brackets for RHS, if one of the two is true for it:
     // - it is a ternary op (always has lower precedence)
     // - it is a binary op with lower or equal precedence
-    // In fact, there are more situations where brackets can be removed, for example in:
+    // In fact, there are more situations where brackets can be removed, for example, in:
     //         1 + (2 + 3)
     // but this is kept. The reason, why we don't remove, if operators are equal is:
     //         1 - (2 - 3)
@@ -496,10 +460,8 @@ void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString 
     program.AssembleBinaryOp( op, Position, opIdx );
 
     // did the compiler plug-in replace the operator (was given an alias operator)?
-    if( op != Operator || isVerbalOp )
-    {
-        if( isVerbalOp )
-        {
+    if( op != Operator || isVerbalOp ) {
+        if( isVerbalOp ) {
             // replace in any case: class program would have changed the op only if the corresponding
             // flags had been set:
             normalized.ReplaceSubstring<NC>( op, opIdx, opLen );
@@ -515,20 +477,17 @@ void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString 
                                     : characters::ToUpper( normalized[i] );
 
             // remove operator spaces if they were inserted for non-verbal op, if op is now symbolic
-            if( !HasBits(format, Normalization::BinaryOpSpaces) && !isalpha(op.CharAtStart() ) )
-            {
+            if( !HasBits(format, Normalization::BinaryOpSpaces) && !isalpha(op.CharAtStart() ) ) {
                 normalized.Delete( opIdx + opLen, 1 );
                 normalized.Delete( opIdx - 1    , 1 );
             }
 
         }
 
-        else if( HasBits(format, Normalization::ReplaceAliasOperators ) )
-        {
+        else if( HasBits(format, Normalization::ReplaceAliasOperators ) ) {
             normalized.ReplaceSubstring<NC>( op, opIdx, opLen );
             opLen=  op.Length();
-        }
-    }
+    }   }
 
     // check if a forbidden string occurred due to writing operator with no spaces/brackets and
     // the subsequent writing of probably nested unary operators, negative literals, etc.
@@ -536,8 +495,7 @@ void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString 
 }
 
 
-void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
-{
+void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
     auto format= program.compiler.CfgNormalization;
 
     int bracketStringIdx=  (HasBits(format,  Normalization::InnerBracketSpace   ) +

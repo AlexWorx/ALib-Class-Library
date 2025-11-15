@@ -152,4 +152,3 @@ AString DbgDumpHashtable(const THashtable& hashtable )
 } // namespace [alib::containers]
 #include "ALib.Lang.CIMethods.H"
 #endif //ALIB_DEBUG_CONTAINERS
-

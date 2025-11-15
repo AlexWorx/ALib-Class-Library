@@ -24,11 +24,11 @@ ALIB_EXPORT namespace alib { namespace boxing {
 ///                    \alib{lang;Allocator}.
 //==================================================================================================
 template<typename TAllocator>
-class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllocator>>
+class TBoxes : public    std::vector<Box, lang::StdAllocator<Box, TAllocator>>
 {
   protected:
-    /// The allocator type that \p{TAllocator} specifies.
-    using vectorBase=   std::vector<Box, lang::StdContainerAllocator<Box, TAllocator>>;
+    /// The base type.
+    using vectorBase=   std::vector<Box, lang::StdAllocator<Box, TAllocator>>;
 
   public:
     /// The allocator type that \p{TAllocator} specifies.
@@ -43,76 +43,53 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     : vectorBase(pAllocator)                                                                      {}
 
 
-    //==============================================================================================
     /// Deleted copy constructor.
-    //==============================================================================================
-    TBoxes( TBoxes& ) = delete;
+    TBoxes( TBoxes& )                                                                       =delete;
 
-    //==============================================================================================
     /// Deleted copy assignment operator.
     /// @return Nothing (deleted).
-    //==============================================================================================
-    TBoxes& operator=( TBoxes& ) = delete;
+    TBoxes& operator=( TBoxes& )                                                            =delete;
 
-    //==============================================================================================
     /// Empty method. Needed to allow adding empty variadic template parameter packs.
     /// @return A reference to this object.
-    //==============================================================================================
-    TBoxes& Add()
-    {
-        return *this;
-    }
+    TBoxes& Add()                                                                  { return *this; }
 
-    //==============================================================================================
     /// Adds one box for each given variadic argument.
     ///
     /// @tparam TBoxables The types of the variadic arguments.
     /// @param  args      The variadic arguments. Each argument is converted into one box to be
     ///                   appended.
     /// @return A reference to this object.
-    //==============================================================================================
     template <typename... TBoxables>
-    TBoxes& Add( TBoxables&&... args )
-    {
+    TBoxes& Add( TBoxables&&... args ) {
         Box boxes[sizeof...(args)]= { std::forward<TBoxables>( args )... };
         AddArray( boxes, sizeof...(args) );
 
         return *this;
     }
 
-    //==============================================================================================
     /// Adds one boxt.
     ///
     /// @param  box The box to append.
     /// @return A reference to this object.
-    //==============================================================================================
-    TBoxes& Add(const Box& box )
-    {
+    TBoxes& Add(const Box& box ) {
         AddArray( &box, 1 );
 
         return *this;
     }
 
-    //==============================================================================================
     /// Adds an array of boxes.
     ///
     /// @tparam TExtend  The size of the given array of boxes.
     /// @param  boxArray The array of boxes.
     /// @return A reference to this object.
-    //==============================================================================================
     template<size_t TExtend>
-    TBoxes& Add( const Box(& boxArray)[TExtend] )
-    {
-        AddArray( boxArray, TExtend );
-        return *this;
-    }
+    TBoxes& Add( const Box(& boxArray)[TExtend] )   { AddArray( boxArray, TExtend ); return *this; }
 
-    //==============================================================================================
     /// Adds all elements of the given other \b %TBoxes object.
     ///
     /// @param  boxes Another container of boxes to add.
     /// @return A reference to this object.
-    //==============================================================================================
     template<typename TAllocatorArgs>
     TBoxes& Add( const TBoxes<TAllocatorArgs>& boxes )
     {
@@ -120,7 +97,6 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
         return *this;
     }
 
-    //==============================================================================================
     /// Adds an array of boxes. Array elements of types \b %TBoxes itself and boxed arrays of
     /// class \b %Box are recursively "flattened".
     ///
@@ -128,54 +104,32 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     ///
     /// @param boxArray Pointer to the start of the array of boxes.
     /// @param length   The number of boxes contained in \p{boxArray}.
-    //==============================================================================================
     void        AddArray( const Box* boxArray, integer length );
 
 
-    //==============================================================================================
     /// Inline operator that simply aliases method #Add.
     ///
     /// @param src The value to be boxed and added.
     /// @return Returns a mutable reference to \c this.
-    //==============================================================================================
     template <typename TBoxable>
-    TBoxes& operator+=( TBoxable&& src )
-    {
-        return Add( src );
-    }
+    TBoxes& operator+=( TBoxable&& src )                                      { return Add( src ); }
 
-    //==============================================================================================
     /// Inline operator that simply aliases method #Add.
     ///
     /// @param src The value to be boxed and added.
     /// @return Returns a mutable reference to \c this.
-    //==============================================================================================
     template <typename TBoxable>
-    TBoxes& operator<<( TBoxable&& src )
-    {
-        return Add( src );
-    }
+    TBoxes& operator<<( TBoxable&& src )                                      { return Add( src ); }
 
-    //==============================================================================================
     /// Returns the quantity of elements stored in ths container.
     /// @return The element count.
-    //==============================================================================================
-    integer Size()                                                                             const
-    {
-        return integer( vectorBase::size() );
-    }
+    integer Size()                                   const { return integer( vectorBase::size() ); }
 
-    //==============================================================================================
     /// Invokes the corresponding parent's method \c std::vector::reserve.
     ///
     /// @param newCapacity The new, higher capacity of the vector.
-    //==============================================================================================
-    void    Reserve(integer newCapacity)
-    {
-        vectorBase::reserve( size_t( newCapacity ) );
-    }
+    void    Reserve(integer newCapacity)           { vectorBase::reserve( size_t( newCapacity ) ); }
 
-    //==============================================================================================
     /// Invokes \alib{boxing;Box::Call} with each box in this list.
     /// The result of the invocations of the box-functions is ignored.
     ///
@@ -184,15 +138,12 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     /// @tparam TArgs   Types of the variadic arguments \p{args}.
     ///                 Do not need to be specified.
     /// @param  args    Variadic arguments forwarded to the functions.
-    //==============================================================================================
     template <typename TFDecl,  typename... TArgs>
-    void CallAll(TArgs&&... args)                                                              const
-    {
+    void CallAll(TArgs&&... args)                                                            const {
         for( auto& box : *this )
             box.template Call<TFDecl>( std::forward<TArgs>(args)... );
     }
 
-    //==============================================================================================
     /// Non-constant version of method #CallAll, which likewise chooses the non-constant version
     /// of \alib{boxing;Box::Call} and hence this method is usable with functions that only
     /// accept mutable (aka not constant) boxes.<br>
@@ -203,7 +154,6 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     ///                 Needs to be specified with invocations of this method.
     /// @tparam TArgs   Types of the variadic arguments \p{args} .
     /// @param  args    Variadic arguments forwarded to the functions.
-    //==============================================================================================
     template <typename TFDecl,  typename... TArgs>
     void CallAll(TArgs&&... args)
     {
@@ -211,7 +161,6 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
             box.template Call<TFDecl>( std::forward<TArgs>(args)... );
     }
 
-    //==============================================================================================
     /// Same as \ref CallAll "CallAll<FClone>", but uses method \alib{boxing;Box::Clone},
     /// which internally invokes \alib{boxing;FClone}.
     ///
@@ -220,7 +169,6 @@ class TBoxes : public    std::vector<Box, lang::StdContainerAllocator<Box, TAllo
     ///
     /// \par Availability
     ///   This method is available only if the module \alib_monomem is included in the \alibbuild.
-    //==============================================================================================
     void CloneAll()
     {
         for( auto& box : *this )
@@ -238,7 +186,7 @@ extern template ALIB_DLL  void TBoxes<MonoAllocator      >::AddArray( const Box*
 } // namespace alib[::boxing]
 
 /// Type alias in namespace \b alib.
-using     BoxesHA= boxing::TBoxes<lang::HeapAllocator>;
+using     Boxes= boxing::TBoxes<lang::HeapAllocator>;
 
 #if ALIB_MONOMEM
 /// Type alias in namespace \b alib.
@@ -250,5 +198,3 @@ using     BoxesPA= boxing::TBoxes<PoolAllocator>;
 
 
 } // namespace [alib]::boxing
-
-

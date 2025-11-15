@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings.Token;
     import   ALib.Characters.Functions;
@@ -31,7 +31,7 @@
 #   include "ALib.EnumRecords.H"
 #   include "ALib.Resources.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 // Windows.h might bring in max/min macros
 #if defined( max )
     #undef max
@@ -44,8 +44,7 @@ Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength, cons
 : definitionName (pName)
 , exportName     (pExportName)
 , format(Formats(   int8_t(Formats::Normal                                         )
-                  + int8_t(sensitivity == lang::Case::Sensitive ? Formats(0) : ignoreCase) )  )
-{
+                  + int8_t(sensitivity == lang::Case::Sensitive ? Formats(0) : ignoreCase) )  ) {
     minLengths[0]= minLength;
 #if ALIB_DEBUG
     if( minLength < 0 || minLength > definitionName.Length() )
@@ -58,21 +57,18 @@ Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength, cons
 }
 
 Token::Token( const String& definitionSrc, lang::Case sensitivity,
-              int8_t minLength1, int8_t minLength2, int8_t minLength3, int8_t minLength4, int8_t minLength5,
-              int8_t minLength6, int8_t minLength7                                                   )
+              int8_t minLength1, int8_t minLength2, int8_t minLength3, int8_t minLength4,
+              int8_t minLength5, int8_t minLength6, int8_t minLength7                       )
 : definitionName(definitionSrc)
-, minLengths { minLength1, minLength2, minLength3, minLength4, minLength5, minLength6, minLength7 }
-{
+, minLengths {minLength1, minLength2, minLength3, minLength4, minLength5, minLength6, minLength7} {
     detectFormat();
     if( int(format) >= 0  &&  sensitivity == lang::Case::Ignore )
     format= Formats( int8_t(format) | int8_t(ignoreCase) );
 }
 
 
-void   Token::GetExportName(AString& target)                                                   const
-{
-    if( exportName.IsNotEmpty() )
-    {
+void   Token::GetExportName(AString& target)                                                 const {
+    if( exportName.IsNotEmpty() ) {
         target << exportName;
         return;
     }
@@ -80,25 +76,19 @@ void   Token::GetExportName(AString& target)                                    
     target << GetDefinitionName();
 
     // low the last character in if CamelCase and the last min length equals 0.
-    if( GetFormat() == Token::Formats::CamelCase && Sensitivity() == lang::Case::Ignore )
-    {
-        for( int i= 0 ; i < 7 ; ++i )
-        {
+    if( GetFormat() == Token::Formats::CamelCase && Sensitivity() == lang::Case::Ignore ) {
+        for( int i= 0 ; i < 7 ; ++i ) {
             auto minLen= GetMinLength( i );
-            if( minLen == 0 )
-            {
+            if( minLen == 0 ) {
                 target[target.Length()-1]= characters::ToLower(target[target.Length()-1]);
                 break;
             }
             if( minLen == -1 )
                 break;
-        }
-    }
-}
+}   }   }
 
 #if ALIB_ENUMRECORDS
-void Token::Define( const String& definitionSrc, character separator )
-{
+void Token::Define( const String& definitionSrc, character separator ) {
     minLengths[0]=  0;
     minLengths[1]= -1;
     format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::EmptyName));
@@ -112,37 +102,30 @@ void Token::Define( const String& definitionSrc, character separator )
 
     lang::Case letterCase= lang::Case::Sensitive;
     size_t qtyMinLengths= 0;
-    if(parser.IsNotEmpty() )
-    {
+    if(parser.IsNotEmpty() ) {
         // letter case sensitivity
-        if( !enumrecords::Parse( parser, letterCase ) )
-        {
+        if( !enumrecords::Parse( parser, letterCase ) ) {
             format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingSensitivity) );
             return;
         }
 
         // list of minimum length values
-        while(parser.ConsumeChar( separator ) )
-        {
-            if( qtyMinLengths >= 7 )
-            {
+        while(parser.ConsumeChar( separator ) ) {
+            if( qtyMinLengths >= 7 ) {
                 format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::TooManyMinLengthsGiven) );
                 return;
             }
 
-            if( !isdigit(parser.CharAtStart()) )
-            {
+            if( !isdigit(parser.CharAtStart()) ) {
                 // optionally read export name once
-                if( exportName.IsNotNull() )
-                {
+                if( exportName.IsNotNull() ) {
                     format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingMinLengths) );
                     return;
                 }
 
                 exportName= parser.ConsumeToken( separator, lang::Inclusion::Exclude );
                 
-                if( exportName.IsEmpty() )
-                {
+                if( exportName.IsEmpty() ) {
                     format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingMinLengths) );
                     return;
                 }
@@ -151,8 +134,7 @@ void Token::Define( const String& definitionSrc, character separator )
             }
 
             parser.ConsumeDecDigits( minLengths[qtyMinLengths++] );
-        }
-    }
+    }   }
 
     if( qtyMinLengths == 0 )
         minLengths[0]= int8_t( definitionName.Length() );
@@ -161,8 +143,7 @@ void Token::Define( const String& definitionSrc, character separator )
         minLengths[qtyMinLengths]= -1;
 
     #if ALIB_DEBUG
-        if( parser.IsNotEmpty() )
-        {
+        if( parser.IsNotEmpty() ) {
             format= Formats(DbgDefinitionError::DefinitionStringNotConsumed);
             return;
         }
@@ -180,8 +161,7 @@ void Token::Define( const String& definitionSrc, character separator )
 }
 #endif //ALIB_ENUMRECORDS
 
-void    Token::detectFormat()
-{
+void    Token::detectFormat() {
     // detect number of min length values
     int qtyMinLength= 1;
     while( qtyMinLength < 7 && minLengths[qtyMinLength] >= 0 )
@@ -189,20 +169,17 @@ void    Token::detectFormat()
 
     // just one length given? Keep format "normal"
     format= Formats::Normal;
-    if( qtyMinLength > 1 )
-    {
+    if( qtyMinLength > 1 ) {
         // count hyphens, underscores, camel humps...
         bool hasLowerCases=  isalpha(definitionName[0]) && islower(definitionName[0]);
         int  qtyUpperCases=  0;
         int  qtyUnderscores= 0;
         int  qtyHyphens=     0;
-        for( integer idx=  1; idx < definitionName.Length() ; ++idx )
-        {
+        for( integer idx=  1; idx < definitionName.Length() ; ++idx ) {
             character c= definitionName[idx];
                  if( c == '_' )      ++qtyUnderscores;
             else if( c == '-' )      ++qtyHyphens;
-            else if( isalpha(c) )
-            {
+            else if( isalpha(c) ) {
                 if( islower(c) )
                     hasLowerCases= true;
                 else
@@ -213,8 +190,7 @@ void    Token::detectFormat()
         }
 
         // Snake_Case?
-        if( qtyUnderscores > 0 )
-        {
+        if( qtyUnderscores > 0 ) {
             format= Formats::SnakeCase;
             #if ALIB_DEBUG
                 if(    (qtyUnderscores >= 7  && qtyMinLength != 7 )
@@ -224,8 +200,7 @@ void    Token::detectFormat()
         }
 
         // Kebab-Case?
-        else if( qtyHyphens > 0 )
-        {
+        else if( qtyHyphens > 0 ) {
             format= Formats::KebabCase;
             #if ALIB_DEBUG
                 if(    (qtyHyphens >= 7  && qtyMinLength != 7 )
@@ -235,8 +210,7 @@ void    Token::detectFormat()
         }
 
         // CamelCase
-        else if( hasLowerCases && ( qtyUpperCases > 0 ) )
-        {
+        else if( hasLowerCases && ( qtyUpperCases > 0 ) ) {
             format= Formats::CamelCase;
             #if ALIB_DEBUG
                 if(    (qtyUpperCases >= 7  && qtyMinLength != 7 )
@@ -257,26 +231,20 @@ void    Token::detectFormat()
         if( int(format) < 0 )
             return;
 
-        if( GetFormat() == Formats::Normal )
-        {
-            if( minLengths[0] > definitionName.Length() )
-            {
+        if( GetFormat() == Formats::Normal ) {
+            if( minLengths[0] > definitionName.Length() ) {
                 format= Formats(DbgDefinitionError::MinLenExceedsSegmentLength);
                 return;
             }
-            if( minLengths[0] <= 0 )
-            {
+            if( minLengths[0] <= 0 ) {
                 format= Formats(DbgDefinitionError::ZeroMinLengthAndNotLastCamelHump);
                 return;
             }
-        }
-        else
-        {
+        } else {
             int     segmentNo    = 0;
             int     segmentLength= 0;
             integer charIdx      = 1;
-            while( charIdx < definitionName.Length() )
-            {
+            while( charIdx < definitionName.Length() ) {
                 ++segmentLength;
                 character c= definitionName.CharAt( charIdx++ );
                 bool segmentEnd=     c == '\0'
@@ -284,37 +252,30 @@ void    Token::detectFormat()
                                   || (format == Formats::KebabCase && c == '-' )
                                   || (format == Formats::CamelCase && isalpha(c) && isupper(c) );
 
-                if( segmentEnd )
-                {
-                    if( segmentNo < 7 && minLengths[segmentNo] > segmentLength )
-                    {
+                if( segmentEnd ) {
+                    if( segmentNo < 7 && minLengths[segmentNo] > segmentLength ) {
                         format= Formats(DbgDefinitionError::MinLenExceedsSegmentLength);
                         return;
                     }
 
                     segmentLength=  (format == Formats::CamelCase ? 1 : 0);
                     ++segmentNo;
-                }
-            }
+            }   }
 
-            for( int minLenIdx= 0 ; minLenIdx < 7 && minLengths[minLenIdx] >= 0 ; ++minLenIdx )
-            {
+            for( int minLenIdx= 0 ; minLenIdx < 7 && minLengths[minLenIdx] >= 0 ; ++minLenIdx ) {
                 if(     minLengths[minLenIdx] == 0
                     &&  (   GetFormat() != Formats::CamelCase
                          || !( minLenIdx == 6 || minLengths[minLenIdx + 1] == -1 ) ) )
                 {
                     format= Formats(DbgDefinitionError::ZeroMinLengthAndNotLastCamelHump);
                     return;
-                }
-            }
-        }
+        }   }   }
     #endif
 
 
 }
 
-bool    Token::Match( const String& needle )
-{
+bool    Token::Match( const String& needle ) {
     ALIB_ASSERT_ERROR( needle.Length() > 0, "STRINGS/TOK",
                        "Empty search string in when matching function name." )
     lang::Case sensitivity= Sensitivity();
@@ -333,8 +294,7 @@ bool    Token::Match( const String& needle )
     integer   rollbackLen       = 0;
     bool      isSegOK           = false;
     int       segMinLen         = minLengths[0];
-    while( hIdx < definitionName.Length() )
-    {
+    while( hIdx < definitionName.Length() ) {
         // read current haystack and needle
         ++segLen;
         character h= definitionName  .CharAt( hIdx++ );
@@ -347,17 +307,14 @@ bool    Token::Match( const String& needle )
                  ==                                           n;
 
         // special CamelCase treatment
-        if( isCamel )
-        {
+        if( isCamel ) {
             // end of needle and final, omitable segment?
             if( n == '\0' && segMinLen == 0)
                 return true;
 
             // rollback
-            if( !same )
-            {
-                if( segLen == 1 && rollbackLen > 0)
-                {
+            if( !same ) {
+                if( segLen == 1 && rollbackLen > 0) {
                     nIdx-= 2;
                     --rollbackLen;
                     --hIdx;
@@ -383,8 +340,7 @@ bool    Token::Match( const String& needle )
                                       && isupper(definitionName.CharAt( hIdx )) );
 
         // update segOK flag
-        if( same )
-        {
+        if( same ) {
             isSegOK= (    ( segMinLen >= 0 && segLen >= segMinLen )
                        || ( segMinLen <  0 && isSegEnd            )  );
         }
@@ -395,15 +351,13 @@ bool    Token::Match( const String& needle )
 
 
         // end of segment and needle not empty?
-        if( isSegEnd &&  n != '\0')
-        {
+        if( isSegEnd &&  n != '\0') {
             if( !isSegOK )
                 return false;
         }
 
         // not same and either not end of segment or empty needle
-        else if( !same )
-        {
+        else if( !same ) {
             if( !isSegOK )
                 return false;
 
@@ -419,8 +373,7 @@ bool    Token::Match( const String& needle )
         }
 
         // start new segment
-        if( !same || isSegEnd )
-        {
+        if( !same || isSegEnd ) {
             ++segNo;
             segLen= 0;
             segMinLen    = segNo < 7 ? minLengths[segNo] : -2;
@@ -428,11 +381,9 @@ bool    Token::Match( const String& needle )
             // oh,oh!
             if( n == '\0' && (!isCamel || h == '\0' || rollbackLen == 0) )
                 return h == '\0' || isNormal || segMinLen == 0;
-        }
-    }
+    }   }
 
     return same && isSegOK && (nIdx == needle.Length());
 }
 
 } // namespace [alib::strings::util]
-

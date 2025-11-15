@@ -280,7 +280,7 @@ UT_METHOD(BitBuffer)
             {
                 val=  int8_t(1 << bits) ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
-                val=-val                ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
+                val= int8_t(-val)       ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int8_t>())
 
@@ -306,7 +306,7 @@ UT_METHOD(BitBuffer)
             {
                 val= int16_t(1 << bits) ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
-                val=-val                ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
+                val= int16_t(-val)      ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
                 val++                   ; bw.Write(val); bw.Flush(); UT_EQ(val, br.Sync().Read<int16_t>())
 

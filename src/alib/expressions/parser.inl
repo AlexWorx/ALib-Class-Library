@@ -23,9 +23,9 @@ struct Parser
     ///
     /// @param expressionString The string to parse.
     /// @param numberFormat     Used to parse literal numbers.
-    /// @return  The abstract syntax tree representing the expression.
+    /// @return The abstract syntax tree representing the expression.
     virtual detail::ASTBase* Parse( const String&            expressionString,
-                                    NumberFormat*            numberFormat                )          = 0;
+                                    NumberFormat*            numberFormat                )       =0;
 
 
     /// Static method to create a parser object.
@@ -37,4 +37,3 @@ struct Parser
 };
 
 }} // namespace [alib::expressions::detail]
-

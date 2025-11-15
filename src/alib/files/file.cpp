@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/files/files.prepro.hpp"
 #if !defined ( _WIN32 )
 #   include <pwd.h>
@@ -19,7 +19,7 @@
 #endif
 #include "ALib.Compatibility.StdStrings.H"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Files;
     import   ALib.Lang;
@@ -43,12 +43,11 @@
 #   endif
 #   include "ALib.Files.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 using namespace alib::system;
 namespace alib::files {
 
-AString&  File::FormatAccessRights(AString& target)                                            const
-{
+AString&  File::FormatAccessRights(AString& target)                                          const {
     int perms= int(Value().Perms());
     // This is a "hard-coded" optimized approach. It only works unless the values of enum
     // Permissions are as they have been since decades...
@@ -68,8 +67,7 @@ AString&  File::FormatAccessRights(AString& target)                             
     std::array<char, 3> chars = {'r', 'w', 'x'};
     int bit          = 0400;
     size_t charIdx   = 0;
-    while( bit )
-    {
+    while( bit ) {
         result[charIdx]= perms & bit ? chars[charIdx % 3] : '-';
         charIdx++;
         bit >>= 1;
@@ -90,8 +88,7 @@ AString&  File::FormatAccessRights(AString& target)                             
     return target;
 }
 
-AString& File::Format( Substring format, AString& target, lang::CurrentData targetData, NumberFormat* nf ) const
-{
+AString& File::Format( Substring format, AString& target, lang::CurrentData targetData, NumberFormat* nf ) const {
     if(nf == nullptr )
         nf= &NumberFormat::Computational;
 
@@ -101,8 +98,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
     // this ensures that target is not nulled, as all other appends are NC-versions
     target._("");
 
-    while ( format.IsNotEmpty() )
-    {
+    while ( format.IsNotEmpty() ) {
         Box                toBeAdded;     // A box that most probably is set during the switch below. It will
                                           // be added potentially embedded in a TField.
         bool               isUpper=false; // if set during run, the result string will be converted to upper case
@@ -115,30 +111,26 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
         while ( format.ConsumeChar(c) )
             ++n;
 
-        if( isupper(c) )
-        {
+        if( isupper(c) ) {
             c= character( tolower(c) );
             isUpper= true;
         }
         integer previousLength= target.Length();
 
         auto& value= Value();
-        switch (c)
-        {
+        switch (c) {
             // path, name, stem, extension
             case 'n':
             {
                 // read next character
                 c= character(tolower(format.ConsumeChar()));
-                switch(c)
-                {
+                switch(c) {
                     case 'a' :  toBeAdded= Name();                                 break;
                     case 's' :  toBeAdded= Stem();                                 break;
                     case 'e' :  toBeAdded= Extension();                            break;
                     case 'p' :
                     case 'f' :  AssemblePath( pathBuffer, lang::CurrentData::Keep );
-                                if( c == 'f' )
-                                {
+                                if( c == 'f' ) {
                                     if( pathBuffer.CharAtEnd() != DIRECTORY_SEPARATOR )
                                         pathBuffer << DIRECTORY_SEPARATOR;
                                     pathBuffer << Name();
@@ -153,9 +145,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                         target << "Format Error: Token 'n' followed by unknown specifier '" << c
                                << "' in File::Format.";
                         return target;
-                    }
-                }
-            }
+            }   }   }
             break;
 
 
@@ -188,8 +178,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
             }
 
             case 'f': // IsCrossingFS() / IsArtificialFS()
-                switch(c= character(tolower(format.ConsumeChar())))
-                {
+                switch(c= character(tolower(format.ConsumeChar()))) {
                     case 'x' : toBeAdded= (value.IsCrossingFS()   ? 'm' : '-') ; break;
                     case 'a' : toBeAdded= (value.IsArtificialFS() ? 'm' : '-') ; break;
                     default:
@@ -199,8 +188,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                         target << "Format Error: Unknown character '" << c
                                << "' after token 'f' in File::Format.";
                         return target;
-                    }
-                }
+                }   }
                 break;
 
             case 'h': // Quantity of hard links
@@ -215,8 +203,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
             case 'd': // date
             {
                 CalendarDateTime date;
-                switch(c= character(tolower(format.ConsumeChar())))
-                {
+                switch(c= character(tolower(format.ConsumeChar()))) {
                     case 'm' : date= value.MDate(); break;
                     case 'b' : date= value.BDate(); break;
                     case 'c' : date= value.CDate(); break;
@@ -229,8 +216,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                         target << "Format Error: Unknown character '" << c
                                << "' after token 'd' in File::Format.";
                         return target;
-                    }
-                }
+                }   }
 
                 String dateFormat= format.ConsumeField('{', '}' );
                 if( dateFormat.IsEmpty() )
@@ -246,36 +232,28 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 auto unit           = ByteSizeUnits::IEC;
 
                 // entity specified in braces?
-                if( format.CharAtStart() == '(' )
-                {
+                if( format.CharAtStart() == '(' ) {
                     format.ConsumeChar();
-                    if( format.StartsWith<CHK,lang::Case::Ignore>(A_CHAR("SI")))
-                    {
+                    if( format.StartsWith<CHK,lang::Case::Ignore>(A_CHAR("SI"))) {
                         unit= ByteSizeUnits::SI;
                         format.ConsumeChars(2);
                     }
-                    else if( format.StartsWith<CHK,lang::Case::Ignore>(A_CHAR("IEC")))
-                    {
+                    else if( format.StartsWith<CHK,lang::Case::Ignore>(A_CHAR("IEC"))) {
                         format.ConsumeChars(3);
-                    }
-                    else
-                    {
+                    } else {
                         enumrecords::Parse( format, unit );
                         automaticMode= false;
                     }
 
-                    if( format.ConsumeChar() != ')' )
-                    {
+                    if( format.ConsumeChar() != ')' ) {
                         ALIB_WARNING( "ALIB",
                                   "Format Error: Expected closing brace ')' after unit specification with token 's'." )
                         target << "Format Error: Expected closing brace ')' after unit specification with token 's'.";
                         return target;
-                    }
-                }
+                }   }
 
                 auto* ftreeNF= &GetFTree().GetNumberFormat();
-                if( !automaticMode )
-                {
+                if( !automaticMode ) {
                     // convert to given unit and output either a double or an integral.
                     ByteSizeIEC bs( value.Size() );
                     auto dval= bs.ConvertTo(unit);
@@ -283,9 +261,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                         strBuffer << alib::Dec( uinteger(dval), 0, ftreeNF);
                     else
                         strBuffer << alib::Dec(          dval , 0, ftreeNF);
-                }
-                else
-                {
+                } else {
                     // automatic output (automatically determine magnitude)
                     format::FormatByteSize( strBuffer, value.Size(), 900, 0, unit, *ftreeNF );
                 }
@@ -299,8 +275,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 bool isOwner= c== 'o';
                 c= format.ConsumeChar();
 
-                if( c != 'i' && c != 'n' )
-                {
+                if( c != 'i' && c != 'n' ) {
                     ALIB_WARNING( "ALIB",
                               "Format Error: Expected 'i' or 'n' specifier after token 'o' and 'g'."
                               " Given: '{}'", n )
@@ -310,14 +285,11 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 }
                 bool isName= (c == 'n');
 
-                if( isName )
-                {
+                if( isName ) {
                     auto& resolver= GetFTree().GetOGResolver();
                     toBeAdded=  isOwner ? resolver.GetOwnerName(value)
                                         : resolver.GetGroupName(value);
-                }
-                else
-                {
+                } else {
                     strBuffer << (isOwner ? value.Owner() : value.Group());
                     toBeAdded= strBuffer;
                 }
@@ -337,8 +309,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                 }
 
                 FInfo::DirectorySums& dirInfo= value.Sums();
-                switch(c)
-                {
+                switch(c) {
                     case 'd' :  toBeAdded= dirInfo.CountDirectories();       break;
                     case 'f' :  toBeAdded= dirInfo.CountNonDirectories();    break;
                     case 'e' :  toBeAdded= dirInfo.QtyErrsAccess;            break;
@@ -351,30 +322,25 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
                         target << "Format Error: Token 'r' followed by unknown specifier '" << c
                                << "'in File::Format";
                         return target;
-                    }
-                }
-            }
+            }   }   }
             break;
 
 
-            //------------  single quotes and other characters ------------
+          //--------------------------- single quotes and other characters -------------------------
             case '\'':
             {
                 // one or more pairs of single quotes?
-                if ( n > 1 )
-                {
+                if ( n > 1 ) {
                     int pairs= n / 2;
                     target.InsertChars<NC>( '\'', pairs );
                     n-= (pairs * 2);
                 }
 
                 // one single quote?
-                if ( n == 1 )
-                {
+                if ( n == 1 ) {
                     // search end
                     integer end= format.IndexOf( '\'' );
-                    if ( end < 1 )
-                    {
+                    if ( end < 1 ) {
                         ALIB_WARNING( "ALIB", "Format Error: Missing single Quote" )
                         target <<     "Format Error: Missing closing single quote character <'>" ;
                         return target;
@@ -382,8 +348,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
 
                     target._<NC>( format, 0, end );
                     format.ConsumeChars<NC>( end + 1 );
-                }
-            }
+            }   }
             break;
 
 
@@ -395,14 +360,12 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
         // field width, alignment specified in braces?
         int             width= -1;
         lang::Alignment alignment= lang::Alignment::Right;
-        if( format.CharAtStart() == '{' )
-        {
+        if( format.CharAtStart() == '{' ) {
             format.ConsumeChar();
             format.ConsumeInt( width, &GetFTree().GetNumberFormat() );
             format.ConsumeChar(',');
             enumrecords::Parse( format, alignment );
-            if( format.ConsumeChar() != '}' )
-            {
+            if( format.ConsumeChar() != '}' ) {
                 ALIB_WARNING( "ALIB",
                           "Format Error: Expected closing brace '}' with field specifier {width/alignment}." )
                 target << "Format Error: Expected closing brace '}' with field specifier {width/alignment}.";
@@ -421,8 +384,7 @@ AString& File::Format( Substring format, AString& target, lang::CurrentData targ
     return target;
 } // File::Format
 
-void FFormat_File( const alib::Box& box, const alib::String& formatSpec, alib::NumberFormat& nf, alib::AString& target )
-{
+void FFormat_File( const Box& box, const String& formatSpec, NumberFormat& nf, AString& target ) {
     box.Unbox<File>().Format( formatSpec.IsNotEmpty() ? formatSpec
                                                       : FILES.GetResource("FFMT"),
                               target,
@@ -439,15 +401,16 @@ void FFormat_File( const alib::Box& box, const alib::String& formatSpec, alib::N
 
 namespace alib::strings {
 
-void AppendableTraits<files::File,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const files::File& file )
-{
+void AppendableTraits<files::File,nchar, lang::HeapAllocator>::operator()( NAString& target,
+                                                                  const files::File& file    ) {
     Path path;
     file.AssemblePath( path );
     target << path << file.GetFTree().Separator() << file.Name();
 }
 
-void AppendableTraits<files::File,wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>& target, const files::File& file )
-{
+void AppendableTraits<files::File,wchar, lang::HeapAllocator>::operator()(
+                                                    TAString<wchar, lang::HeapAllocator>& target,
+                                                    const files::File&                    file   ) {
     Path path;
     file.AssemblePath( path );
     target << path << file.GetFTree().Separator() << file.Name();

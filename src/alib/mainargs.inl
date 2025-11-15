@@ -26,9 +26,3 @@ ALIB_EXPORT namespace alib {
     ALIB_DLL extern const wchar_t**     ARG_VW;
 
 } // namespace [alib]
-
-
-
-
-
-

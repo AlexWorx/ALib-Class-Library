@@ -10,14 +10,14 @@ This means you only get what you choose from the menu.
                                         
 
 ## New In this Version ##
-Support of language version C++17 was dropped. With that:
-- All **std::enable_if** constructs (and similar) have been replaced it by **C++20 Concepts**.  
-- Support for **C++20 Modules** was added. (This is in alpha state and works only on newest Clang compilers).
+This time, we release rather a maintenance version with just a few updates and fixes.
+We had to pause our efforts to provide optional C++20 Module compilation, as the approach
+(which we just had published with the last release) fails on the newest Clang compiler version.
 
-The latter was a little bit of a journey, and we have created a 
-[blog-page](https://alib.dev/alib_c20module_shift.html) describing our experiences. 
-                                                                         
-For more news, consult the [Changelog](https://alib.dev/alib_changelog.html). 
+Besides smaller changes, with this release the module 
+[ALib ThreadModel](https://alib.dev/alib_mod_threadmodel.html) is marked stable for the first time.
+                                                                        
+All details of changes are provided in the [Changelog](https://alib.dev/alib_changelog.html). 
 
 ## ALib Homepage ##
 Please find all about the **ALib For C++**, including
@@ -99,15 +99,15 @@ Summary: **ALib** comes with a **complete book of documentation**, which has mor
 
 ## IDE / Build System Setup ##
 The current Version got tested on the following platform combinations:
-- GNU/Linux Arch 6.16.8, Clang++ 20.1.8, C++20/23, 32-Bit / 64-Bit, optional **C++20 Module Support**<br>
+- GNU/Linux Arch 6.16.8, Clang++ 21.1.5, C++20/23, 32-Bit / 64-Bit<br>
   (This is the main development platform.)
 - GNU/Linux Arch 6.16.8, GNU C++ 15.2.1, C++20/23, 32-Bit / 64-Bit
 - WindowsOS 11, MSC 19.44 (Visual Studio 2026 Insiders, Platform v145), C++20, 32-Bit/64-Bit
 - WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
 - macOS Tahoe 26.0, Apple M2 / ARM64, Apple Clang Version 17.0.0, C++20/23, 64-Bit
-- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23   
-- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23   
-- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23 
+- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23
+- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23
+- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23
 
 The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
 C++ environment.

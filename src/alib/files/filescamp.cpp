@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,12 +11,12 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/camp/camp.prepro.hpp"
 #include "alib/files/files.prepro.hpp"
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Files;
     import   ALib.Lang;
@@ -38,7 +38,7 @@
 #   include "ALib.Camp.H"
 #   include "ALib.Files.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::files::File               , vt_files_cursor    )
 
 
@@ -49,8 +49,7 @@ files::FilesCamp FILES;
 namespace files {
 
 FilesCamp::FilesCamp()
-: Camp( "FILES" )
-{
+: Camp( "FILES" ) {
     #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
       ALIB_ASSERT_ERROR( this == &FILES, "FILES",
           "Instances of class FILES must not be created. Use singleton alib::FILES" )
@@ -58,10 +57,8 @@ FilesCamp::FilesCamp()
 }
 
 
-void FilesCamp::Bootstrap()
-{
-    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
-    {
+void FilesCamp::Bootstrap() {
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources ) {
         #define EOS ,
 #if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,

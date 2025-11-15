@@ -51,22 +51,16 @@ class TSubstring : public TString<TChar>
 
     /// Default constructor creating a \ref alib_strings_details_nulled \e "nulled" substring.
     TSubstring()
-    : base()
-    {}
+    : base()                                                                                      {}
 
     /// Constructor using a string reference.
     /// @param src   The source string.
     TSubstring( const TString<TChar>& src )
-    : base(src)
-    {}
+    : base(src)                                                                                   {}
 
     /// Sets this object to zero length.
     /// @return \c *this to allow concatenated calls.
-    TSubstring&  Clear()
-    {
-        base::length=  0;
-        return *this;
-    }
+    TSubstring&  Clear()                                          { base::length= 0; return *this; }
 
     /// Moves the start to the first character not found in given character set \p{whiteSpaces}.
     ///
@@ -74,10 +68,8 @@ class TSubstring : public TString<TChar>
     ///                     Defaults to  \ref alib::DEFAULT_WHITESPACES
     /// @return \c *this to allow concatenated calls.
     TSubstring&  TrimStart( const TCString<TChar>& whiteSpaces
-                                                = CStringConstantsTraits<TChar>::DefaultWhitespaces() )
-    {
-        if ( base::length > 0 )
-        {
+                                           = CStringConstantsTraits<TChar>::DefaultWhitespaces() ) {
+        if ( base::length > 0 ) {
             integer idx= characters::IndexOfAnyExcluded( base::buffer  ,
                                                                            base::length,
                                                                            whiteSpaces.Buffer(),
@@ -96,14 +88,12 @@ class TSubstring : public TString<TChar>
     ///                     Defaults to  \ref alib::DEFAULT_WHITESPACES
     /// @return \c *this to allow concatenated calls.
     TSubstring&  TrimEnd( const TCString<TChar>& whiteSpaces
-                                                = CStringConstantsTraits<TChar>::DefaultWhitespaces() )
-    {
-        if ( base::length > 0 )
-        {
+                                           = CStringConstantsTraits<TChar>::DefaultWhitespaces() ) {
+        if ( base::length > 0 ) {
             base::length= characters::LastIndexOfAnyExclude( base::buffer,
-                                                                               base::length - 1,
-                                                                               whiteSpaces.Buffer(),
-                                                                               whiteSpaces.Length() ) + 1;
+                                                             base::length - 1,
+                                                             whiteSpaces.Buffer(),
+                                                             whiteSpaces.Length()   ) + 1;
         }
         return *this;
     }
@@ -114,8 +104,7 @@ class TSubstring : public TString<TChar>
     ///                     Defaults to  \ref alib::DEFAULT_WHITESPACES
     /// @return \c *this to allow concatenated calls.
     TSubstring&  Trim( const TCString<TChar>& whiteSpaces
-                                                = CStringConstantsTraits<TChar>::DefaultWhitespaces() )
-    {
+                                           = CStringConstantsTraits<TChar>::DefaultWhitespaces() ) {
         return   TrimEnd  ( whiteSpaces )
                 .TrimStart( whiteSpaces );
     }
@@ -132,17 +121,13 @@ class TSubstring : public TString<TChar>
     ///         If this \b %Substring is empty or \e nulled, '\0' is returned.
     template < typename          TCheck            = CHK,
                lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep  >
-    TChar       ConsumeChar()
-    {
-        if constexpr ( TCheck::value )
-        {
+    TChar       ConsumeChar() {
+        if constexpr ( TCheck::value ) {
             if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
             if( base::IsEmpty() )
                 return '\0';
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR(!base::IsEmpty(),"STRINGS","Non checking but called on empty string" )
             if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
@@ -164,9 +149,7 @@ class TSubstring : public TString<TChar>
     ///         string was cut by one, \c false otherwise.
     template< lang::Case        TSensitivity=       lang::Case::Sensitive,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
-    bool        ConsumeChar( TChar   consumable )
-
-    {
+    bool        ConsumeChar( TChar   consumable ) {
         if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimStart();
 
@@ -192,8 +175,7 @@ class TSubstring : public TString<TChar>
     ///         string was cut by one.
     template< lang::Case        TSensitivity=       lang::Case::Sensitive,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
-    bool        ConsumeCharFromEnd( TChar  consumable )
-    {
+    bool        ConsumeCharFromEnd( TChar  consumable ) {
         if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimEnd();
 
@@ -217,18 +199,14 @@ class TSubstring : public TString<TChar>
     ///         If this \b %Substring is empty or \e nulled, '\0' is returned.
     template <typename TCheck= CHK,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
-    TChar     ConsumeCharFromEnd()
-    {
+    TChar     ConsumeCharFromEnd() {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimEnd();
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if( base::IsEmpty() )
                 return '\0';
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR(!base::IsEmpty(),"STRINGS","Non checking but called on empty string" )
         }
         return *(base::buffer + --base::length );
@@ -251,21 +229,16 @@ class TSubstring : public TString<TChar>
     ///
     /// @return The new length of the substring.
     template <typename TCheck= CHK>
-    integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr )
-    {
-        if constexpr ( TCheck::value )
-        {
-            if ( regionLength < 0 )
-            {
+    integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr ) {
+        if constexpr ( TCheck::value ) {
+            if ( regionLength < 0 ) {
                 if ( target != nullptr )
                     target->Clear();
                 return  base::length;
             }
             if ( regionLength > base::length )
                 regionLength= base::length;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= base::length,
                  "Non checking and index out of range: 0 <= {} <= {}.", regionLength, base::length )
 
@@ -295,21 +268,16 @@ class TSubstring : public TString<TChar>
     ///
     /// @return The new length of the substring.
     template <typename TCheck= CHK>
-    integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr )
-    {
-        if constexpr ( TCheck::value )
-        {
-            if ( regionLength < 0 )
-            {
+    integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr ) {
+        if constexpr ( TCheck::value ) {
+            if ( regionLength < 0 ) {
                 if ( target != nullptr )
                     target->Clear();
                 return  base::length;
             }
             if ( regionLength > base::length )
                 regionLength= base::length;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= base::length,
                  "Non checking and index out of range: 0 <= {} <= {}.", regionLength, base::length )
         }
@@ -327,7 +295,7 @@ class TSubstring : public TString<TChar>
     /// is cut and \p{target} is set empty, respectively left untouched depending on
     /// \p{TTargetData}.
     ///
-    /// If \p{regionLength} is greater than this  object's length, all contents is 'moved'
+    /// If \p{regionLength} is greater than this object's length, all contents is 'moved'
     /// to \p{target}.
     ///
     /// @tparam TCheck        Defaults to \alib{CHK}, which is the normal invocation mode.
@@ -350,29 +318,24 @@ class TSubstring : public TString<TChar>
               typename           TAllocator                                       >
     integer ConsumeChars( integer                      regionLength,
                           TAString<TChar, TAllocator>& target,
-                          integer                      separatorWidth   =0         )
-    {
+                          integer                      separatorWidth   =0         ) {
         if constexpr ( TTargetData == lang::CurrentData::Clear  )
             target.Reset();
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( separatorWidth < 0 )
                 separatorWidth= 0;
 
             if ( regionLength   < 0 )
                 return  base::length;
 
-            if ( regionLength   > base::length - separatorWidth )
-            {
+            if ( regionLength   > base::length - separatorWidth ) {
                 regionLength= base::length - separatorWidth;
                 if ( regionLength   < 0 )
                     return  base::length;
             }
 
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( separatorWidth  >= 0, "STRINGS",
                                "Non checking but separator width negative: ", separatorWidth )
             ALIB_ASSERT_ERROR(    regionLength >= 0
@@ -395,7 +358,7 @@ class TSubstring : public TString<TChar>
     /// is cut and \p{target} is set empty, respectively left untouched depending on
     /// \p{TTargetData}.
     ///
-    /// If \p{regionLength} is greater than this  object's length, all contents is 'moved'
+    /// If \p{regionLength} is greater than this object's length, all contents is 'moved'
     /// to \p{target}.
     ///
     /// @tparam TCheck  Defaults to \alib{CHK}, which is the normal invocation mode.
@@ -413,25 +376,20 @@ class TSubstring : public TString<TChar>
     template <typename TCheck = CHK>
     integer ConsumeChars( integer          regionLength,
                           TString<TChar>&  target,
-                          integer          separatorWidth   =0         )
-    {
-        if constexpr ( TCheck::value )
-        {
+                          integer          separatorWidth   =0         ) {
+        if constexpr ( TCheck::value ) {
             if ( separatorWidth < 0 )
                 separatorWidth= 0;
 
             if ( regionLength   < 0 )
                 return  base::length;
 
-            if ( regionLength   > base::length - separatorWidth )
-            {
+            if ( regionLength   > base::length - separatorWidth ) {
                 regionLength= base::length - separatorWidth;
                 if ( regionLength   < 0 )
                     return  base::length;
             }
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( separatorWidth  >= 0,
                                "STRINGS", "Non checking but separator width negative"  )
             ALIB_ASSERT_ERROR(    regionLength >= 0
@@ -476,20 +434,16 @@ class TSubstring : public TString<TChar>
               typename           TAllocator >
     integer ConsumeCharsFromEnd( integer                        regionLength,
                                  TAString<TChar,TAllocator>&    target,
-                                 integer                        separatorWidth   =0      )
-    {
+                                 integer                        separatorWidth   =0      ) {
         if constexpr ( TTargetData == lang::CurrentData::Clear  )
             target.Reset();
 
-        if constexpr ( TCheck::value )
-        {
+        if constexpr ( TCheck::value ) {
             if ( separatorWidth < 0 )                              separatorWidth= 0;
             if ( regionLength   < 0 )                              return  base::length;
             if ( regionLength   > base::length - separatorWidth )  regionLength= base::length - separatorWidth;
             if ( regionLength   < 0 )                              return  base::length;
-        }
-        else
-        {
+        } else {
             ALIB_ASSERT_ERROR( separatorWidth >=0 ,
                                "STRINGS", "Non checking but separator width negative"  )
             ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= base::length,
@@ -514,8 +468,7 @@ class TSubstring : public TString<TChar>
     ///
     /// @return The token consumed.
     TString<TChar>  ConsumeToken( TChar separator= ',',
-                                  lang::Inclusion includeSeparator = lang::Inclusion::Include  )
-    {
+                                  lang::Inclusion includeSeparator = lang::Inclusion::Include  ) {
         ALIB_ASSERT_ERROR( base::IsNotNull() , "STRINGS", "ConsumeToken on nulled Substring" )
 
         integer        separatorPos= base::IndexOfOrLength( separator );
@@ -544,8 +497,7 @@ class TSubstring : public TString<TChar>
     ///         string was cut.
     template< lang::Case        TSensitivity=       lang::Case::Sensitive,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
-    bool        ConsumeString( const TString<TChar>&     consumable  )
-    {
+    bool        ConsumeString( const TString<TChar>&     consumable  ) {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimStart();
 
@@ -569,8 +521,7 @@ class TSubstring : public TString<TChar>
     ///         string was cut.
     template< lang::Case        TSensitivity=       lang::Case::Sensitive,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
-    bool        ConsumeStringFromEnd( const TString<TChar>&  consumable )
-    {
+    bool        ConsumeStringFromEnd( const TString<TChar>&  consumable ) {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimEnd();
 
@@ -585,7 +536,7 @@ class TSubstring : public TString<TChar>
     /// the method consumes as much as possible.<br>
     ///
     /// This method is useful read "tokens" from a string that may be abbreviated.
-    /// Within \alib this method is for example used with
+    /// Within \alib this method is, for example, used with
     /// \ref alib_enums_records_details_serialization "deserialization of enumeration elements".
     ///
     /// @tparam TSensitivity       The sensitivity of the comparison.
@@ -601,8 +552,7 @@ class TSubstring : public TString<TChar>
     template< lang::Case        TSensitivity=       lang::Case::Ignore,
               lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
     integer    ConsumePartOf(  const TString<TChar>&     consumable,
-                               int                       minChars           = 1 )
-    {
+                               int                       minChars           = 1 ) {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimStart();
         if ( minChars <= 0 )
@@ -619,7 +569,7 @@ class TSubstring : public TString<TChar>
     }
 
     /// Consumes a field from the beginning of this substring, which is surrounded by
-    /// given start end end character identifiers. If both are the same, e.g., \c '"', then
+    /// given \p{startChar} and \p{endChar} identifiers. If both are the same, e.g., \c '"', then
     /// the first occurrence of the end character is used. If they are not the same, e.g.
     /// \c '<' and \c '>', then repeated start characters are counted and consumption only ends
     /// when a corresponding amount of end characters has been found.
@@ -630,8 +580,7 @@ class TSubstring : public TString<TChar>
     /// @param  endChar    The end character of the field to consume.
     /// @return The string consumed. \b NULL_STRING on error (start/end character not found)
     template< lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
-    TString<TChar>  ConsumeField( TChar startChar, TChar endChar  )
-    {
+    TString<TChar>  ConsumeField( TChar startChar, TChar endChar  ) {
         if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             TrimStart();
 
@@ -655,9 +604,8 @@ class TSubstring : public TString<TChar>
     /// @param [out] result    A reference to a variable of an integral type which receives the
     ///                        result value.
     ///
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    inline bool   ConsumeDecDigits( std::integral auto& result )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    inline bool   ConsumeDecDigits( std::integral auto& result ) {
         uint64_t resultImpl;
         bool    returnValue= consumeDecDigitsImpl( resultImpl );
         result= static_cast<std::remove_reference_t<decltype(result)>>(resultImpl);
@@ -678,16 +626,15 @@ class TSubstring : public TString<TChar>
     /// @param [out] result    A reference to a variable of an integral type which receives the
     ///                        result value.
     /// @param  numberFormat   The number format to use. Defaults to \c nullptr.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    bool ConsumeInt( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    bool ConsumeInt( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr ) {
         int64_t resultImpl;
         bool    returnValue= consumeIntImpl( resultImpl, numberFormat );
         result= static_cast<std::remove_reference_t<decltype(result)>>( resultImpl );
         return  returnValue;
     }
 
-    /// Consumes an unsigned integer in standard decimal format from the start of this %AString.
+    /// Consumes an unsigned integer in standard decimal format from the start of this %SubString.
     ///
     /// Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
     /// \alib{strings;TNumberFormat::Computational;NumberFormat::Computational}
@@ -703,9 +650,8 @@ class TSubstring : public TString<TChar>
     /// @param [out] result    A reference to a variable of an integral type which receives the
     ///                        result value.
     /// @param numberFormat    The number format to use. Defaults to \c nullptr.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    bool   ConsumeDec( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    bool   ConsumeDec( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr ) {
         uint64_t resultImpl;
         bool     returnValue= consumeDecImpl( resultImpl, numberFormat );
         result=  static_cast<std::remove_reference_t<decltype(result)>>( resultImpl );
@@ -723,9 +669,8 @@ class TSubstring : public TString<TChar>
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use. Defaults to \c nullptr.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    bool   ConsumeBin( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    bool   ConsumeBin( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr ) {
         uint64_t resultImpl;
         bool     returnValue= consumeBinImpl( resultImpl, numberFormat );
         result=  static_cast<std::remove_reference_t<decltype(result)>>( resultImpl );
@@ -745,9 +690,8 @@ class TSubstring : public TString<TChar>
     ///                        result value.
     /// @param numberFormat    The number format to use. Defaults to \c nullptr.
     ///
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    bool   ConsumeHex( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    bool   ConsumeHex( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr ) {
         uint64_t resultImpl;
         bool     returnValue= consumeHexImpl( resultImpl, numberFormat );
         result=  static_cast<std::remove_reference_t<decltype(result)>>( resultImpl );
@@ -767,9 +711,8 @@ class TSubstring : public TString<TChar>
     ///                        result value.
     /// @param numberFormat    The number format to use. Defaults to \c nullptr.
     ///
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
-    bool   ConsumeOct( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr )
-    {
+    /// @return \c true if a number was found and consumed, \c false otherwise.
+    bool   ConsumeOct( std::integral auto& result, TNumberFormat<TChar>* numberFormat= nullptr ) {
         uint64_t resultImpl;
         bool     returnValue= consumeOctImpl( resultImpl, numberFormat );
         result=  static_cast<std::remove_reference_t<decltype(result)>>( resultImpl );
@@ -791,7 +734,7 @@ class TSubstring : public TString<TChar>
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use. Defaults to \c nullptr.
     ///
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL
     bool  ConsumeFloat( double&                 result,
                         TNumberFormat<TChar>*   numberFormat     =nullptr   );
@@ -816,13 +759,10 @@ class TSubstring : public TString<TChar>
     /// @return \c *this to allow concatenated calls.
     template <typename TCheck= CHK>
     TSubstring& Split( integer position, TSubstring& target, integer separatorWidth =0,
-                       bool trim= false )
-
-    {
+                       bool trim= false ) {
         if constexpr ( TCheck::value )
             base::AdjustRegion( position, separatorWidth );
-        else
-        {
+        else {
             ALIB_ASSERT_ERROR( position >=0 && position <= base::length, "STRINGS",
                   "Non checking but position out of bounds: 0 <= {} < {}.", position, base::length )
             ALIB_ASSERT_ERROR( position + separatorWidth <= base::length, "STRINGS",
@@ -833,8 +773,7 @@ class TSubstring : public TString<TChar>
         target= this->base::template Substring<NC>( position + separatorWidth,
                                                        base::length - position - separatorWidth );
         base::length= position;
-        if( trim )
-        {
+        if( trim ) {
             target.Trim();
             this ->Trim();
         }
@@ -848,48 +787,48 @@ class TSubstring : public TString<TChar>
     /// Implementation of #ConsumeDecDigits (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeDecDigitsImpl( uint64_t& result );
 
     /// Implementation of #ConsumeInt (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeIntImpl( int64_t& result, TNumberFormat<TChar>* numberFormat );
 
     /// Implementation of #ConsumeDec (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeDecImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
     /// Implementation of #ConsumeBin (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeBinImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
     /// Implementation of #ConsumeHex (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeHexImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
     /// Implementation of #ConsumeOct (the non-inline part).
     ///
     /// @param [out] result    A reference to the result value.
     /// @param numberFormat    The number format to use.
-    /// @return  \c true if a number was found and consumed, \c false otherwise.
+    /// @return \c true if a number was found and consumed, \c false otherwise.
     ALIB_DLL  bool   consumeOctImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 }; // class TSubstring
 
-// #################################################################################################
+//##################################################################################################
 // TSubstring type aliases
-// #################################################################################################
+//##################################################################################################
 }
 /// Type alias in namespace \b alib.
 using  Substring        =     strings::TSubstring <character>;
@@ -909,9 +848,9 @@ using  WSubstring       =     strings::TSubstring <wchar>;
 /// Type alias in namespace \b alib.
 using  XSubstring       =     strings::TSubstring <xchar>;
 
-// #################################################################################################
+//##################################################################################################
 // Specializations of ArrayTraits for this class Substring
-// #################################################################################################
+//##################################################################################################
 namespace characters {
 #if !DOXYGEN
 template<typename TChar>    struct  ArrayTraits<strings::TSubstring<TChar>, TChar>
@@ -919,9 +858,9 @@ template<typename TChar>    struct  ArrayTraits<strings::TSubstring<TChar>, TCha
     using T= strings::TSubstring<TChar>;
     static constexpr Policy       Access                               = Policy::Implicit;
     static constexpr Policy       Construction                         = Policy::Implicit;
-    static constexpr const TChar* Buffer   (const T& src)              { return src.Buffer(); }
-    static constexpr integer      Length   (const T& src)              { return src.Length(); }
-    static constexpr T            Construct(const TChar* b, integer l) { return T(b, l); }
+    static constexpr const TChar* Buffer   (const T& src)                   { return src.Buffer(); }
+    static constexpr integer      Length   (const T& src)                   { return src.Length(); }
+    static constexpr T            Construct(const TChar* b, integer l)           { return T(b, l); }
 };
 #endif // !DOXYGEN
 

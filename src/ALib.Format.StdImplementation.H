@@ -22,4 +22,3 @@
 #endif
 
 #endif // H_ALIB_FORMAT_STDIMPLEMENTATION
-

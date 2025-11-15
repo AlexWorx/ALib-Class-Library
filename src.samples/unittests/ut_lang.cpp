@@ -401,7 +401,6 @@ UT_METHOD(LangMacros)
     }
     assert::GetHaltFlagAndCounters().HaltOnErrors=true;
     #endif // ALIB_DEBUG_CRITICAL_SECTIONS
-
 }
 
 //--------------------------------------------------------------------------------------------------

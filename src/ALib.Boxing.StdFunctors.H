@@ -17,7 +17,7 @@
 #if DOXYGEN
     namespace alib::boxing::compatibility::std {
 #else
-    namespace std {
+namespace std {
 #endif
 
 //==================================================================================================
@@ -33,10 +33,7 @@ template<> struct hash<alib::boxing::Box>
     /// Invokes and returns the result of box-function \alib{boxing;FHashcode}.
     /// @param src The box object to hash.
     /// @return The hash code.
-    size_t operator()(const alib::boxing::Box& src) const
-    {
-        return src.Hashcode();
-    }
+    size_t operator()(const alib::boxing::Box& src)                 const { return src.Hashcode(); }
 };
 
 //==================================================================================================
@@ -54,10 +51,7 @@ template<> struct equal_to<alib::boxing::Box>
     /// @param rhs The right-hand side box.
     /// @return The result of the comparison.
     bool operator()(const alib::boxing::Box& lhs,
-                    const alib::boxing::Box& rhs  ) const
-    {
-        return  lhs.operator==( rhs );
-    }
+                    const alib::boxing::Box& rhs  )         const { return  lhs.operator==( rhs ); }
 
 };
 
@@ -79,10 +73,7 @@ template<> struct less<alib::boxing::Box>
     /// @param rhs The right-hand side box.
     /// @return The result of the comparison.
     bool operator()(const alib::boxing::Box& lhs,
-                    const alib::boxing::Box& rhs) const
-    {
-        return  lhs.operator<( rhs );
-    }
+                    const alib::boxing::Box& rhs)            const { return  lhs.operator<( rhs ); }
 
 };
 
@@ -99,10 +90,7 @@ template<> struct hash<alib::boxing::Enum>
     /// Calculates the hash code for class \b Enum.
     /// @param src The \b %Enum object to hash.
     /// @return The hash code.
-    size_t operator()(const alib::boxing::Enum& src) const
-    {
-        return src.Hashcode();
-    }
+    size_t operator()(const alib::boxing::Enum& src)                const { return src.Hashcode(); }
 };
 
 //==================================================================================================
@@ -120,10 +108,7 @@ template<> struct equal_to<alib::boxing::Enum>
     /// @param rhs The right-hand side \b %Enum.
     /// @return The result of the comparison.
     bool operator()(const alib::boxing::Enum lhs,
-                    const alib::boxing::Enum rhs) const
-    {
-        return lhs == rhs;
-    }
+                    const alib::boxing::Enum rhs)                       const { return lhs == rhs; }
 };
 
 //==================================================================================================
@@ -141,15 +126,10 @@ template<> struct less<alib::boxing::Enum>
     /// @param rhs The right-hand side \b Enum.
     /// @return The result of the comparison.
     bool operator()(const alib::boxing::Enum& lhs,
-                    const alib::boxing::Enum& rhs) const
-    {
-        return  lhs < rhs;
-    }
+                    const alib::boxing::Enum& rhs)                      const { return  lhs < rhs; }
 
 };
 
 
 } // namespace [std]
 #endif // H_ALIB_BOXING_STDFUNCTORS
-
-

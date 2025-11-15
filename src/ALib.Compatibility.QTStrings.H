@@ -31,9 +31,9 @@ namespace alib::strings {
 namespace APPENDABLES {
 #endif
 
-// #############################################################################################
+//##################################################################################################
 // AppendableTraits
-// #############################################################################################
+//##################################################################################################
 
 /// Specialization of the type trait \alib{strings;AppendableTraits} for type \c QChar.
 template<typename TChar, typename TAllocator> struct AppendableTraits<QChar, TChar, TAllocator>
@@ -59,4 +59,3 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<QChar, TCh
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
 #endif // HPP_ALIB_COMPATIBILITY_QT_STRINGS
-

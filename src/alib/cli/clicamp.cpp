@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,11 +11,11 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/resources/resources.prepro.hpp"
 #include "alib/camp/camp.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.CLI;
 #  if ALIB_STRINGS
@@ -34,7 +34,7 @@
 #   include "ALib.CLI.H"
 #endif
 #   include "ALib.Characters.Functions.H"
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::cli::Exceptions, vt_cli_exceptions )
 
 namespace alib {
@@ -51,8 +51,7 @@ cli::CliCamp CLI;
 namespace cli {
 
 CliCamp::CliCamp()
-: Camp( "CLI" )
-{
+: Camp( "CLI" ) {
     #if ALIB_DEBUG && !ALIB_DEBUG_ASSERTION_PRINTABLES
       ALIB_ASSERT_ERROR( this == &CLI, "CLI",
           "Instances of class Cli must not be created. Use singleton alib::CLI" )
@@ -60,15 +59,13 @@ CliCamp::CliCamp()
 }
 
 #define EOS ,
-void CliCamp::Bootstrap()
-{
-    if( GetBootstrapState() == BootstrapPhases::PrepareResources )
-    {
+void CliCamp::Bootstrap() {
+    if( GetBootstrapState() == BootstrapPhases::PrepareResources ) {
 
 #if !ALIB_CAMP_OMIT_DEFAULT_RESOURCES
         resourcePool->BootstrapBulk( ResourceCategory,
 
-            //--------- Exceptions ------
+          //--------------------------------------- Exceptions -------------------------------------
             "E<" ,   A_CHAR( "cli::" ),
 
             // general exceptions
@@ -105,7 +102,7 @@ void CliCamp::Bootstrap()
                              "Quantity expected {}, quantity given {}."                                     ) EOS
 
 
-            //--------- DryRunModes ------
+          //-------------------------------------- DryRunModes -------------------------------------
             "DRM<",  A_CHAR( "DryRunModes::"                       ),
 DOX_MARKER([DOX_CLI_DRYRUN_RESOURCES])
 "DRM" ,  A_CHAR( "0"  ","   "Off"              ","      "1"  ","
@@ -131,4 +128,3 @@ DOX_MARKER([DOX_CLI_DRYRUN_RESOURCES])
 
 
 }} // namespace alib::cli
-

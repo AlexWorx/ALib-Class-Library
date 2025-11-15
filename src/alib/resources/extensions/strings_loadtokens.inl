@@ -73,6 +73,3 @@ void LoadResourcedTokens( resources::ResourcePool&  resourcePool,
 
 
 } // namespace [alib::strings::util]
-
-
-

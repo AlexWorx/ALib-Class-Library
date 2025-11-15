@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,7 +11,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include <cmath>
 #include <functional>
 #include <cstring>
@@ -52,58 +52,52 @@ namespace alib::boxing::debug {
     // and long double values.
     // It was put here to prevent the compiler to optimize and remove the code.
     extern  long double LONGDOUBLE_WRITE_TEST_MEM[2];
-    extern  void LongDoubleTrueLengthSet();
-    extern  bool LongDoubleTrueLengthTest();
+extern  void LongDoubleTrueLengthSet();
+extern  bool LongDoubleTrueLengthTest();
 }
 #endif
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Boxing;
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 
-// #################################################################################################
+//##################################################################################################
 // Anonymous methods needed for Bootstrap()
-// #################################################################################################
+//##################################################################################################
 #if !DOXYGEN
 
 namespace alib::boxing {
 namespace {
 
-bool FIsNotNull_Default( const Box& box )
-{
+bool FIsNotNull_Default( const Box& box ) {
     return !(    (box.IsArray()    && box.UnboxLength() == 0               )
               || (box.IsPointer()  && box.Data().PointerPair.P1 == nullptr )
             );
 }
 
-std::size_t FHashcode_Default( const Box& self )
-{
-    if( self.IsPointer() )
-    {
+std::size_t FHashcode_Default( const Box& self ) {
+    if( self.IsPointer() ) {
         return   size_t(0xa814e72cUL)
                + size_t( self.TypeID().hash_code() )
                + self.Data().Integrals.UArray[0] * 89047023;
     }
 
-    if( self.IsEnum() )
-    {
+    if( self.IsEnum() ) {
         return   size_t(0x49a024efUL)
                + size_t( self.TypeID().hash_code() )
                + self.Data().Integrals.UArray[0] * 79204799;
     }
 
-    if( self.IsArray() )
-    {
+    if( self.IsArray() ) {
         std::size_t result=    0xa925eb91L
                              + std::size_t( self.ElementTypeID().hash_code() );
 
         // do different loops depending on array element size
         auto size  = self.ArrayElementSize();
         auto length= self.UnboxLength();
-        if( size == 2 || size == 6 )
-        {
+        if( size == 2 || size == 6 ) {
             if (size == 6)
                 length*= 3;
 
@@ -114,8 +108,7 @@ std::size_t FHashcode_Default( const Box& self )
             return size_t( result );
         }
 
-        if( size == 4 )
-        {
+        if( size == 4 ) {
             std::span<uint32_t> array= {self.Data().GetPointer<uint32_t>(), size_t(length) };
             for( uint32_t v : array )
                 result = 67*result + v;
@@ -123,8 +116,7 @@ std::size_t FHashcode_Default( const Box& self )
             return size_t( result );
         }
 
-        if( size == 8 )
-        {
+        if( size == 8 ) {
             std::span<uint64_t> array= {self.Data().GetPointer<uint64_t>(), size_t(length) };
             for( uint64_t v : array )
                 result = std::size_t( 67 * result + v );
@@ -140,14 +132,13 @@ std::size_t FHashcode_Default( const Box& self )
                 result = 67 * result + v;
 
             return size_t( result );
-        }
-    }
+    }   }
 
     //--- default (value types) ---
     size_t result=  size_t(0xcf670957UL)
         + size_t( self.TypeID().hash_code() );
 
-    unsigned int usedLen= self.GetPlaceholderUsageLength();
+    unsigned usedLen= self.GetPlaceholderUsageLength();
 
     constexpr uinteger Bit1= 1;
 
@@ -164,8 +155,7 @@ std::size_t FHashcode_Default( const Box& self )
         return result;
 
     // tests if smaller than second "word"
-    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) )
-    {
+    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) ) {
         return size_t( (   self.Data().Integrals.UArray[1]
                                       & ((Bit1 << ((usedLen - sizeof(uinteger)) * 8) )- 1)   )   * 321947 )
                   + result;
@@ -176,14 +166,12 @@ std::size_t FHashcode_Default( const Box& self )
 
 }
 
-bool FEquals_Default( const Box& self, const Box& rhs )
-{
+bool FEquals_Default( const Box& self, const Box& rhs ) {
     if( !self.IsSameType( rhs ) )
         return false;
 
     // array types?
-    if( self.IsArray() )
-    {
+    if( self.IsArray() ) {
         // different in type, length or nulled?
         if(    self.UnboxLength() != rhs.UnboxLength()
             || (    ( self.Data().GetPointer<char>() == nullptr)
@@ -200,12 +188,11 @@ bool FEquals_Default( const Box& self, const Box& rhs )
     }
 
     // non-array types
-    unsigned int usedLen= self.GetPlaceholderUsageLength();
+    unsigned usedLen= self.GetPlaceholderUsageLength();
 
     constexpr uinteger Bit1= uinteger( 1 );
     // tests if smaller than first "word"
-    if( usedLen < sizeof( uinteger ) )
-    {
+    if( usedLen < sizeof( uinteger ) ) {
         uinteger mask=  (Bit1 << (usedLen * 8) )- 1;
         return      ( self.Data().Integrals.UArray[0] & mask )
                 ==  ( rhs .Data().Integrals.UArray[0] & mask );
@@ -219,8 +206,7 @@ bool FEquals_Default( const Box& self, const Box& rhs )
         return true;
 
     // tests if smaller than second "word"
-    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) )
-    {
+    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) ) {
         uinteger mask=  (Bit1 << (usedLen - sizeof(uinteger)) * 8 )- 1;
         return      ( self.Data().Integrals.UArray[1] & mask )
                 ==  ( rhs .Data().Integrals.UArray[1] & mask );
@@ -230,8 +216,7 @@ bool FEquals_Default( const Box& self, const Box& rhs )
 }
 
 
-bool FEquals_double( const Box& self, const Box& rhsBox )
-{
+bool FEquals_double( const Box& self, const Box& rhsBox ) {
     double lhs= self.UnboxFloatingPoint();
     double rhs;
          if( rhsBox.IsFloatingPoint   () )  rhs=         rhsBox.UnboxFloatingPoint   ()  ;
@@ -255,8 +240,7 @@ bool FEquals_double( const Box& self, const Box& rhsBox )
     #endif
 }
 
-bool FEquals_integer( const Box& self, const Box& rhsBox )
-{
+bool FEquals_integer( const Box& self, const Box& rhsBox ) {
     if( rhsBox.IsFloatingPoint() )
         return  FEquals_double( rhsBox, self );
 
@@ -268,8 +252,7 @@ bool FEquals_integer( const Box& self, const Box& rhsBox )
     return self.UnboxSignedIntegral() == rhs;
 }
 
-bool FEquals_uinteger( const Box& self, const Box& rhsBox )
-{
+bool FEquals_uinteger( const Box& self, const Box& rhsBox ) {
     if( rhsBox.IsFloatingPoint() )
         return  FEquals_double( rhsBox, self );
 
@@ -281,8 +264,7 @@ bool FEquals_uinteger( const Box& self, const Box& rhsBox )
     return self.UnboxUnsignedIntegral() == rhs;
 }
 
-bool FEquals_char( const Box& self, const Box& rhs )
-{
+bool FEquals_char( const Box& self, const Box& rhs ) {
     if( !rhs.IsCharacter() )
         return false;
     return  self.UnboxCharacter()  ==  rhs.UnboxCharacter();
@@ -290,8 +272,7 @@ bool FEquals_char( const Box& self, const Box& rhs )
 
 
 template<typename TChar>
-bool FEquals_TChar_Arr( const Box& lhs, const Box& rhs )
-{
+bool FEquals_TChar_Arr( const Box& lhs, const Box& rhs ) {
     if ( !rhs.IsArrayOf<TChar>() )
         return false;
 
@@ -308,8 +289,7 @@ bool FEquals_TChar_Arr( const Box& lhs, const Box& rhs )
     return  0 == characters::Compare <TChar>( boxBuf, compBuf, boxLen );
 }
 
-bool FIsLess_Default( const Box& box, const Box& comp )
-{
+bool FIsLess_Default( const Box& box, const Box& comp ) {
     return           std::type_index( box.TypeID() ) < std::type_index(comp.TypeID() )
             ||  (    box.TypeID() == comp.TypeID()
                    &&box.Data().Integrals.UArray[0]   <  comp.Data().Integrals.UArray[0]                    );
@@ -317,8 +297,7 @@ bool FIsLess_Default( const Box& box, const Box& comp )
 }
 
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
-bool FIsLess_integer( const Box& self, const Box& rhs )
-{
+bool FIsLess_integer( const Box& self, const Box& rhs ) {
     auto lhs= self.Data().Integrals.Array[0];
     if( rhs.IsSameType( self ) )    return         lhs   <          rhs.Unbox<integer >   ();
     if( rhs.IsType<uinteger>() )    return         lhs   <  integer(rhs.Unbox<uinteger>   ());
@@ -327,8 +306,7 @@ bool FIsLess_integer( const Box& self, const Box& rhs )
     return std::type_index( self.TypeID() ) < std::type_index( rhs.TypeID() );
 }
 
-bool FIsLess_uinteger( const Box& self, const Box& rhs )
-{
+bool FIsLess_uinteger( const Box& self, const Box& rhs ) {
     auto lhs= self.Data().Integrals.UArray[0];
     if( rhs.IsSameType( self ) )    return          lhs   <  rhs.Data().Integrals.UArray[0]  ;
     if( rhs.IsType<integer> () )    return integer( lhs ) <  rhs.Unbox<integer>();
@@ -373,8 +351,7 @@ bool FIsLess_uintGap_t( const Box& self, const Box& rhs )  { return helperBiject
 
 #endif
 
-bool FIsLess_char( const Box& self, const Box& rhs )
-{
+bool FIsLess_char( const Box& self, const Box& rhs ) {
     if( rhs.IsCharacter   () )
         return  self.UnboxCharacter()  <  rhs.UnboxCharacter   ()  ;
 
@@ -383,8 +360,7 @@ bool FIsLess_char( const Box& self, const Box& rhs )
 
 
 
-bool FIsLess_double( const Box& self, const Box& rhs )
-{
+bool FIsLess_double( const Box& self, const Box& rhs ) {
     double lhs= self.Unbox<double>();
     if( rhs.IsFloatingPoint   () )    return    lhs  <         rhs.UnboxFloatingPoint   ()  ;
     if( rhs.IsSignedIntegral  () )    return    lhs  < double( rhs.UnboxSignedIntegral  () );
@@ -410,8 +386,7 @@ bool FIsLess_double( const Box& self, const Box& rhs )
 
 #if ALIB_MONOMEM
 
-void FClone_Default( Box& self, MonoAllocator& memory)
-{
+void FClone_Default( Box& self, MonoAllocator& memory) {
     if ( !self.IsArray() || self.UnboxLength() == 0)
         return;
 
@@ -431,14 +406,13 @@ void FClone_Default( Box& self, MonoAllocator& memory)
 }
 #endif
 
-// #################################################################################################
-bool FIsTrue_Default( const Box& self )
-{
+//##################################################################################################
+bool FIsTrue_Default( const Box& self ) {
     if( self.IsArray() )
         return  self.UnboxLength() != 0;
 
     // non-array types
-    unsigned int usedLen= self.GetPlaceholderUsageLength();
+    unsigned usedLen= self.GetPlaceholderUsageLength();
 
     constexpr uinteger Bit1= uinteger( 1 );
     // tests if smaller than first "word"
@@ -454,8 +428,7 @@ bool FIsTrue_Default( const Box& self )
         return false;
 
     // tests if smaller than second "word"
-    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) )
-    {
+    if( usedLen - sizeof( uinteger ) < sizeof( uinteger ) ) {
         return      (   self.Data().Integrals.UArray[1]
                       & ((Bit1 << (usedLen - sizeof(uinteger)) * 8 )- 1) ) != 0;
     }
@@ -466,8 +439,7 @@ bool FIsTrue_Default( const Box& self )
 
 #if ALIB_STRINGS
 template<typename TChar>
-bool FIsLess_TChar_arr( const Box& lhs, const Box& rhs )
-{
+bool FIsLess_TChar_arr( const Box& lhs, const Box& rhs ) {
     if( rhs.IsArrayOf<TChar>() )
         return lhs.Unbox<strings::TString<TChar>>() < rhs.Unbox<strings::TString<TChar>>();
 
@@ -476,10 +448,8 @@ bool FIsLess_TChar_arr( const Box& lhs, const Box& rhs )
 
 
 template<typename TChar, typename TAllocator>
-void FAppend_Default( const Box& self, strings::TAString<TChar,TAllocator>& target)
-{
-    if( self.IsPointer() )
-    {
+void FAppend_Default( const Box& self, strings::TAString<TChar,TAllocator>& target) {
+    if( self.IsPointer() ) {
         target << ALIB_REL_DBG(  "PointerType", self.TypeID() )
                << '(' << strings::TNumberFormat<TChar>::Computational.HexLiteralPrefix
                <<  strings::THex<TChar>( self.Data().Integrals.UArray[0] )
@@ -487,14 +457,12 @@ void FAppend_Default( const Box& self, strings::TAString<TChar,TAllocator>& targ
         return;
     }
 
-    if( self.IsEnum() )
-    {
+    if( self.IsEnum() ) {
         target << ALIB_REL_DBG(  "EnumType", self.TypeID() )   <<  '(' << self.Data().Integrals.Array[0] <<  ')';
         return;
     }
 
-    if( self.IsArray() )
-    {
+    if( self.IsArray() ) {
         target << ALIB_REL_DBG(  "ArrayType", self.ElementTypeID() )   <<  '[' << self.UnboxLength() <<  ']';
         return;
     }
@@ -506,9 +474,7 @@ void FAppend_Default( const Box& self, strings::TAString<TChar,TAllocator>& targ
 
 template<typename TCharSrc, typename TChar, typename TAllocator>
 void FAppend_TcharArr( const Box& box, strings::TAString<TChar,TAllocator>& target )
-{
-    target.template Append<NC>( box.UnboxArray<TCharSrc>(), box.UnboxLength() );
-}
+{ target.template Append<NC>( box.UnboxArray<TCharSrc>(), box.UnboxLength() ); }
 
 #endif
 
@@ -516,14 +482,14 @@ void FAppend_TcharArr( const Box& box, strings::TAString<TChar,TAllocator>& targ
 } // namespace [alib::boxing]
 #endif //!DOXYGEN
 
-// #################################################################################################
+//##################################################################################################
 // Bootstrap()
-// #################################################################################################
+//##################################################################################################
 #   include "ALib.Lang.CIFunctions.H"
 
 namespace alib::boxing{
 #if ALIB_DEBUG && !DOXYGEN
-namespace{ unsigned int initFlag= 0; }
+namespace{ unsigned initFlag= 0; }
 #endif // !DOXYGEN
 
 void shutdown() {
@@ -533,12 +499,11 @@ void shutdown() {
     detail::FunctionTable::Shutdown();
 }
 
-void bootstrap()
-{
+void bootstrap() {
     ALIB_ASSERT_ERROR( initFlag == 0, "BOXING", "This method must not be invoked twice." )
     ALIB_DBG(initFlag= 0x92A3EF61);
 
-    //############### Debug-compilation checks ################
+  //#################################### Debug-compilation checks ##################################
     #if ALIB_DEBUG
         // check size of long double
         {
@@ -549,7 +514,7 @@ void bootstrap()
         }
     #endif
 
-    //#############################     BootstrapRegister Static VTables    #################################
+  //################################ BootstrapRegister Static VTables ##############################
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_voidP    )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxes    )
 #if ALIB_MONOMEM
@@ -622,6 +587,7 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_CurrentData       )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Inclusion         )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Initialization    )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_LineFeeds         )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Phase             )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Propagation       )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Reach             )
@@ -699,7 +665,7 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_qual3  )
     #endif
 
-    //########################       Register default implementations        #######################
+  //################################ Register default implementations ##############################
     BootstrapRegisterDefault<FIsTrue    >( FIsTrue_Default    );
     BootstrapRegisterDefault<FIsNotNull >( FIsNotNull_Default );
     BootstrapRegisterDefault<FIsLess    >( FIsLess_Default    );
@@ -708,7 +674,7 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
 IF_ALIB_MONOMEM(
     BootstrapRegisterDefault<FClone     >( FClone_Default     ); )
 
-    // ################################      IsNotNull    ##########################################
+  //########################################### IsNotNull ##########################################
     BootstrapRegister<FIsNotNull, bool      >( FIsNotNull::ConstantTrue  );
     #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     BootstrapRegister<FIsNotNull,  integer  >( FIsNotNull::ConstantTrue  );
@@ -742,7 +708,7 @@ IF_ALIB_MONOMEM(
     #endif
     BootstrapRegister<FIsNotNull, double    >( FIsNotNull::ConstantTrue   );
 
-    // ################################      Hashcode     ##########################################
+  //############################################ Hashcode ##########################################
     BootstrapRegister<FHashcode, bool       >( FHashcode::UsePlaceholderBytes<sizeof(bool     )>  );
     #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     BootstrapRegister<FHashcode,  integer   >( FHashcode::UsePlaceholderBytes<sizeof( integer )>  );
@@ -778,7 +744,7 @@ IF_ALIB_MONOMEM(
     BootstrapRegister<FHashcode, long double>( FHashcode::UsePlaceholderBytes<SizeTraits<long double>>  );
 
 
-    // ################################      Equals      ###########################################
+  //############################################# Equals ###########################################
     BootstrapRegister<FEquals  , bool       >( FEquals::ComparableTypes<bool> );
 
     #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
@@ -818,7 +784,7 @@ IF_ALIB_MONOMEM(
     BootstrapRegister<FEquals  , wchar,true >( FEquals_TChar_Arr<wchar>);
     BootstrapRegister<FEquals  , xchar,true >( FEquals_TChar_Arr<xchar>);
 
-    // ################################       IsLess     ###########################################
+  //############################################# IsLess ###########################################
     #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     BootstrapRegister<FIsLess  ,  integer   >( FIsLess_integer );
     BootstrapRegister<FIsLess  , uinteger   >( FIsLess_uinteger);
@@ -852,9 +818,9 @@ IF_ALIB_MONOMEM(
     #endif
 
 
-    // #############################################################################################
-    // ##########################       Strings And Boxing       ###################################
-    // #############################################################################################
+  //################################################################################################
+  //####################################### Strings And Boxing #####################################
+  //################################################################################################
 #if ALIB_STRINGS
     // register functions interface implementations
     BootstrapRegister<FIsLess, nchar,true >( FIsLess_TChar_arr<nchar> );
@@ -915,8 +881,7 @@ IF_ALIB_MONOMEM(
     BootstrapRegister<FAppend<nchar, lang::HeapAllocator>, float >(FAppend<nchar, lang::HeapAllocator>::Appendable<float >);
     BootstrapRegister<FAppend<wchar, lang::HeapAllocator>, float >(FAppend<wchar, lang::HeapAllocator>::Appendable<float >);
     #endif
-    if constexpr (sizeof(long double) <= sizeof(Placeholder) )
-    {
+    if constexpr (sizeof(long double) <= sizeof(Placeholder) ) {
         BootstrapRegister<FAppend<nchar, lang::HeapAllocator>, long double>(FAppend<nchar, lang::HeapAllocator>::Appendable<long double>);
         BootstrapRegister<FAppend<wchar, lang::HeapAllocator>, long double>(FAppend<wchar, lang::HeapAllocator>::Appendable<long double>);
     }
@@ -959,6 +924,7 @@ IF_ALIB_MONOMEM(
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::CurrentData      )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::Inclusion        )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::Initialization   )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::LineFeeds        )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::Phase            )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::Propagation      )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::Reach            )
@@ -1088,4 +1054,3 @@ void debug::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCoun
 
 
 } // namespace [alib::boxing]
-

@@ -197,9 +197,9 @@ AString  TypeInfo( const String& headline = A_CHAR( "Boxing Information For Boxa
 { return TypeInfo<TBoxable>( TBoxable(), headline, indent ); }
 
 
-// #############################################################################################
+//##################################################################################################
 // Dump
-// #############################################################################################
+//##################################################################################################
 /// Takes a vector of pairs of \c std::type_info pointers and a usage counter and returns an
 /// \b AString with a sorted list of type names, including their counter information.
 ///
@@ -303,4 +303,3 @@ AString         DumpAll   ();
 
 #include "ALib.Lang.CIMethods.H"
 #endif // ALIB_DEBUG_BOXING
-

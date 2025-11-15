@@ -281,9 +281,6 @@ void AWorxUnitTesting::writeResultFile(const NString& name, alib::AString& outpu
     {
         // prevent cutting off filenames
         //GetFormatMetaInfo().Format.SearchAndReplace( A_CHAR("%Sp"), A_CHAR("%SP") );
-
-        // we set this, to make the unit-tests compatible in respect to locking SmartLock::StdOutputStreams
-        usesStdStreams= true;
     }
 
     UTVStudioLogger::~UTVStudioLogger()

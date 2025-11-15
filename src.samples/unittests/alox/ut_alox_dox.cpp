@@ -170,7 +170,7 @@ Log_Info( "With prefix, now also in magenta" )
 DOX_MARKER([Man_PREFIXLOGABLES_1])
 
 DOX_MARKER([Man_PREFIXLOGABLES_2])
-Log_Prune(  BoxesHA myPrefixes;
+Log_Prune(  Boxes myPrefixes;
             myPrefixes.Add( "Never forget: 6 * 7 = " );
             myPrefixes.Add( 6 * 7 );
             myPrefixes.Add( ": "  );                       )

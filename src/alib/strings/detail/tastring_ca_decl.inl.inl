@@ -10,8 +10,8 @@
 #endif
 
 
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 // This inlined header unit is to be included by compilation that specialize template
 // type "strings::TAString" in respect to its two template parameters TChar and TAllocator.
 // For this, before inclusion two preprocessor symbols have to be specified:
@@ -21,8 +21,8 @@
 // with new symbols (and to enforce the right usage).
 //
 // With "tastring_ca_impl.inl", the corresponding implementations are to be made.
-// #################################################################################################
-// #################################################################################################
+//##################################################################################################
+//##################################################################################################
 
 #if !defined(ASTR_TCHAR_SPEC)
 #  error "Preprocessor symbol ASTR_TCHAR_SPEC has to be given as ALIB_CHAR_TYPE_ID_XYZ before invoking this .INL"
@@ -56,9 +56,9 @@ ALIB_EXPORT namespace alib {  namespace strings {
 
 //! @cond NO_DOX
 
-// #################################################################################################
+//##################################################################################################
 // member implementations
-// #################################################################################################
+//##################################################################################################
 
 // instantiations
 extern template       ALIB_DLL void                                   TAString<TCHARNAME, ASTR_TALLOC_SPEC>::GrowBufferAtLeastBy( integer minimumGrowth );
@@ -72,9 +72,9 @@ extern template       ALIB_DLL integer                                TAString<T
 extern template       ALIB_DLL void                                   TAString<TCHARNAME,ASTR_TALLOC_SPEC>::dbgCheck            () const;
 #endif
 
-// #################################################################################################
+//##################################################################################################
 // AppendableTraits implementations
-// #################################################################################################
+//##################################################################################################
 extern template ALIB_DLL void AppendableTraits<  int64_t         , TCHARNAME, ASTR_TALLOC_SPEC>::operator()( TAString<TCHARNAME, ASTR_TALLOC_SPEC>&,  int64_t );
 extern template ALIB_DLL void AppendableTraits< uint64_t         , TCHARNAME, ASTR_TALLOC_SPEC>::operator()( TAString<TCHARNAME, ASTR_TALLOC_SPEC>&, uint64_t );
 extern template ALIB_DLL void AppendableTraits<double            , TCHARNAME, ASTR_TALLOC_SPEC>::operator()( TAString<TCHARNAME, ASTR_TALLOC_SPEC>&, double   );
@@ -110,8 +110,3 @@ extern template ALIB_DLL void AppendableTraits<TField <TCHARNAME>, TCHARNAME, AS
 #undef  ASTR_TCHAR_SPEC
 #undef  TCHAR2
 #undef  TCHAR3
-
-
-
-
-

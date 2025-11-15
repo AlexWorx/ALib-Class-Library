@@ -13,9 +13,9 @@ ALIB_EXPORT namespace alib{ namespace files {
 /// Unless multithreaded compilation of expressions is planned, an application should create one
 /// singleton of this class.
 ///
-/// Method #CreateFilter creates an object of inner type  \alib{files;FileExpressions::Filter}, which
-/// implements the \b FFilter interface  used with scan parameters of function
-/// \alib{files;ScanFiles}. This allows run-time evaluation of filter rules, for example rules
+/// Method #CreateFilter creates an object of inner type \alib{files;FileExpressions::Filter}, which
+/// implements the \b FFilter interface used with scan parameters of function
+/// \alib{files;ScanFiles}. This allows run-time evaluation of filter rules, for example, rules
 /// coming from the command line, from configuration files or from interactive end-user input
 /// (hence from an UX/UI).
 ///
@@ -34,7 +34,7 @@ ALIB_EXPORT namespace alib{ namespace files {
 /// Furthermore, the matchable tokens are not hard-coded but resourced with \alibcamp singleton
 /// \ref alib::FILES. With that, for example, language translations might be performed.
 ///
-/// ## Types:  ##
+/// ## Types: ##
 /// <br>
 /// This plug-in introduces the following types to the expression compiler:
 /// - \alib{files;FInfo::Types}
@@ -44,7 +44,7 @@ ALIB_EXPORT namespace alib{ namespace files {
 /// Each type is auto-cast to built-in expression type \b Integer to allow all common operators,
 /// especially bitwise boolean operators.
 ///
-/// ## Constants:  ##
+/// ## Constants: ##
 /// <br>
 /// Type                            | Name             |Min. Abbreviation| Description
 /// --------------------------------|------------------|-----------------|-------------
@@ -68,7 +68,7 @@ ALIB_EXPORT namespace alib{ namespace files {
 ///
 ///
 /// <br>
-/// ## Constant Constructor Functions:  ##
+/// ## Constant Constructor Functions: ##
 /// <br>
 /// Return Type| Name        |Min. Abbreviation| Signature | Description |
 /// -----------|-------------|-----------------|-----------|-------------|
@@ -80,7 +80,7 @@ ALIB_EXPORT namespace alib{ namespace files {
 /// Integer    |\b ExaBytes  | EB              | int       | Returns the given number multiplied with 2^60.
 ///
 /// <br>
-/// ## Functions:  ##
+/// ## Functions: ##
 /// <br>
 ///
 /// Return Type                        | Name             | Min. Abbreviation | Signature  | Description                                                                                                                           |
@@ -169,8 +169,7 @@ class FileExpressions
         /// @return The result determines, whether the given file or directory has passed the filter
         ///        or not. Consequently, \c true means "passed" and \c false means
         ///        "filtered out".
-        virtual bool Includes( const File& node, const system::PathString& parentPath) override
-        {
+        virtual bool Includes( const File& node, const system::PathString& parentPath)    override {
             scope.Node       = node;
             scope.ParentPath = parentPath;
             return expression->Evaluate( scope ).Unbox<bool>();

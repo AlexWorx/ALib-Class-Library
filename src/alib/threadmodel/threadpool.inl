@@ -14,14 +14,52 @@ ALIB_EXPORT namespace alib {
 ///            Instead, it is considered experimental.
 namespace threadmodel {
 
-//#if !DOXYGEN
-struct PWorker; 
-//#endif
-    
 //==================================================================================================
 /// \attention This class belongs to module \alib_threadmodel, which is not in a stable and
 ///            consistent state, yet.
-///            Also this type is considered experimental.
+///            Also, this type is considered experimental.
+///
+/// Instances of this thread-class are created by \alib{threadmodel;ThreadPool}s.
+/// Applications may extend this class and override method #PrepareJob.
+//==================================================================================================
+struct PoolWorker : protected Thread {
+    friend class ThreadPool;
+    ThreadPool&     threadPool;  ///< The pool that this instance belongs to.
+
+#if ALIB_STRINGS
+    String16        nameBuffer;  ///< Buffer to store the thread name given with construction.
+
+    /// Constructor.
+    /// @param pThreadPool   The pool that constructed us.
+    /// @param threadName    The name of this thread (for logging and diagnosis)
+    PoolWorker(ThreadPool& pThreadPool, const character* threadName )
+    : Thread(threadName)
+    , threadPool(pThreadPool)
+    , nameBuffer(threadName)
+    { SetName(nameBuffer); } // fix the name to local pointer
+#else
+    PoolWorker(ThreadPool& ptp )
+    : Thread("Poolworker")
+    , threadPool(ptp)
+    {}
+#endif
+
+    /// This default implementation does nothing. Derived types may dynamically cast the
+    /// parameter \p{job} to a known custom type and, for example, attach custom data found in
+    /// a derived version of this class.
+    ///@param job The job to prepare.
+    virtual void PrepareJob(Job* job)                                                { (void) job; }
+
+    /// Implementation of \alib{threads;Thread::Run}. Retrieves jobs from the pool, invokes
+    /// #PrepareJob, and then calls \alib{threadmodel;Job::Do}.
+    void         Run()                                                                     override;
+
+}; // class PoolWorker
+
+//==================================================================================================
+/// \attention This class belongs to module \alib_threadmodel, which is not in a stable and
+///            consistent state, yet.
+///            Also, this type is considered experimental.
 ///
 /// This class provides a configurable and scalable thread pooling mechanism for managing
 /// concurrent job execution.
@@ -29,7 +67,7 @@ struct PWorker;
 /// resource usage, along with several key methods to schedule, manage, and monitor job execution.
 ///
 /// ### Key Features
-/// 1. <b>Thread Pool Management</b>:<br>
+/// 1. <b>%Thread Pool Management</b>:<br>
 ///    - Supports fixed-size and dynamically resizable thread pools.
 ///    - Dynamic resizing is handled through customizable parameters found in the struct
 ///      \alib{threadmodel::ThreadPool;ResizeStrategy}.
@@ -63,7 +101,7 @@ class ThreadPool : protected TCondition<ThreadPool>
 #endif
 
 {
-    friend struct PWorker;
+    friend struct PoolWorker;
     friend struct threads::TCondition<ThreadPool>;
 
   public:
@@ -87,19 +125,16 @@ class ThreadPool : protected TCondition<ThreadPool>
         /// The mode of operation.
         Modes           Mode                                                           =Modes::Auto;
 
-        /// The number of threads to create (or decrease to).
         /// If #Mode equals \b Fixed, this is used and all other parameters are ignored.
-        /// If #Mode equals \b Auto, this field is ignored and the other parameters are used.
-        int             FixedSize                               = ThreadPool::HardwareConcurrency();
-
-        /// The maximum number of threads to create.
-        int             WorkersMax                              = ThreadPool::HardwareConcurrency();
+        /// If #Mode equals \b Auto, this field gives the maximum number of workers that are
+        /// run in parallel.
+        int             WorkersMax                                          = HardwareConcurrency();
 
         /// The minimum number of threads to keep alive.
         int             WorkersMin                                                              = 0;
 
         /// A threshold in percent that determines at which overload factor the number of threads
-        /// are increased.
+        /// is increased.
         /// Defaults to \c 300%. For example, this means if the pool currently holds 10 threads,
         /// then new threads are created when the load increases to \c 30 unprocess jobs.
         int             IncreaseThreshold                                                     = 300;
@@ -120,7 +155,7 @@ class ThreadPool : protected TCondition<ThreadPool>
         /// Defaults to 500ms.
         Ticks::Duration DecreaseSchedule           = Ticks::Duration::FromAbsoluteMilliseconds(500);
 
-    protected:
+      protected:
 
         /// Calculates the target size, depending on the parameters set in this struct and
         /// the actual values passed.
@@ -131,12 +166,12 @@ class ThreadPool : protected TCondition<ThreadPool>
         /// @return The new target size.
         inline
         int GetSize( int currentWorkers , int    idleWorkers, int load,
-                     Ticks& lastChangeTime )
-        {
+                     Ticks& lastChangeTime ) {
             int target= currentWorkers;
 
             // fixed mode? -> nothing to do
-                if (Mode == Modes::Fixed)  { target= FixedSize; }
+            if (Mode == Modes::Fixed)
+                { target= WorkersMax; }
 
             // check bounds
             else if( target < WorkersMin ) { target= WorkersMin; }
@@ -144,13 +179,16 @@ class ThreadPool : protected TCondition<ThreadPool>
 
             // increase?
             else if(     lastChangeTime.Age() >= IncreaseSchedule
-                && (load >= (currentWorkers * IncreaseThreshold / 100) )   )
+                     && (load >= (currentWorkers * IncreaseThreshold / 100) )   )
             { target = (std::min)(WorkersMax, currentWorkers + 1); }
 
             // decrease?
             else if(     lastChangeTime.Age() >= DecreaseSchedule
-                &&  (currentWorkers - idleWorkers) <= (currentWorkers * DecreaseThreshold / 100) )
-            { target = (std::max)(WorkersMin, currentWorkers - 1); }
+                     &&  (currentWorkers - idleWorkers) <= (currentWorkers * DecreaseThreshold / 100) ) {
+                target = (std::max)(WorkersMin, currentWorkers - 1);
+                if ( target == 0 && load > 0)
+                    target= 1;
+            }
 
             // that's it
             if (target != currentWorkers)
@@ -161,14 +199,14 @@ class ThreadPool : protected TCondition<ThreadPool>
 
 
   protected:
-    /// Mono allocator. Used for jobs and by PWorkers.
+    /// Mono allocator. Used for jobs and by PoolWorkers.
     MonoAllocator                           ma;
 
     /// Pool allocator. Used for job objects.
     PoolAllocator                           pool;
 
     /// The list of worker threads.
-    HashSet<MonoAllocator, PWorker*>        workers;
+    HashSet<MonoAllocator, PoolWorker*>     workers;
 
     /// The counted number of currently of workers.
     int                                     ctdWorkers                                           =0;
@@ -184,27 +222,27 @@ class ThreadPool : protected TCondition<ThreadPool>
     int                                     nextWorkerID                                         =0;
 
     #if ALIB_DEBUG
-        /// Entry in the field #DbgKnownJobs.
-        struct DbgKnownJobsEntry
-        {
-            const std::type_info*   TID;     ///< The job type.
-            size_t                  JobSize; ///< The size of the job object.
-            size_t                  Usage;   ///< Counter of scheduled jobs of this type.
-        };
+    /// Entry in the field #DbgKnownJobs.
+    struct DbgKnownJobsEntry
+    {
+        const std::type_info*   TID;     ///< The job type.
+        size_t                  JobSize; ///< The size of the job object.
+        size_t                  Usage;   ///< Counter of scheduled jobs of this type.
+    };
 
-        /// Serves as template parameter \p{TValueDescriptor} of field #DbgKnownJobs.
-        struct DbgKnownJobsVD : containers::TSubsetKeyDescriptor< DbgKnownJobsEntry,
-                                                                  const std::type_info* >
-        {
-            /// Mandatory function to implement.
-            /// @param entry The table entry to extract the key from.
-            /// @return The key portion of the given \p{entry}.
-            const std::type_info*   Key(DbgKnownJobsEntry& entry)        const { return entry.TID; }
-        };
+    /// Serves as template parameter \p{TValueDescriptor} of field #DbgKnownJobs.
+    struct DbgKnownJobsVD : containers::TSubsetKeyDescriptor< DbgKnownJobsEntry,
+                                                              const std::type_info* >
+    {
+        /// Mandatory function to implement.
+        /// @param entry The table entry to extract the key from.
+        /// @return The key portion of the given \p{entry}.
+        const std::type_info*   Key(DbgKnownJobsEntry& entry)            const { return entry.TID; }
+    };
 
-        /// Table of known job types and their sizes.
-        HashTable<MonoAllocator,
-                  DbgKnownJobsVD  >        DbgKnownJobs;
+    /// Table of known job types and their sizes.
+    HashTable<MonoAllocator,
+              DbgKnownJobsVD  >        DbgKnownJobs;
     #endif
 
     /// Special synchronization job. Pushed with #Sync and #DeleteJobDeferred.
@@ -222,12 +260,12 @@ class ThreadPool : protected TCondition<ThreadPool>
 
         /// Overrides the parent function as necessary.
         /// @return The sizeof this derived type.
-        virtual size_t  SizeOf()                             override  { return sizeof(JobSyncer); }
+        virtual size_t  SizeOf()                              override { return sizeof(JobSyncer); }
     };
 
-    //==============================================================================================
-    // The queue
-    //==============================================================================================
+  //================================================================================================
+  // The queue
+  //================================================================================================
     /// Container element of the queue.
     struct QueueEntry
     {
@@ -237,48 +275,47 @@ class ThreadPool : protected TCondition<ThreadPool>
     };
 
     /// The queue of jobs.
-    List<PoolAllocator,
-         QueueEntry,
-         Recycling::None>           queue;
+    ListPA<QueueEntry, Recycling::None> queue;
 
 
-    /// The number of jobs in the queue.
+    /// The number of Jobs that have been scheduled during the lifetime of this instance.
     uinteger                        ctdStatJobsScheduled                                        {0};
 
-    /// The number of jobs in the queue.
-    int                             ctdOpenJobs                                                 {0};
+    /// The number of jobs currently in the queue.
+    int                                 ctdOpenJobs                                                 {0};
 
     /// Mandatory method needed and invoked by templated base type \alib{threads;TCondition}.
-    /// @return \c true if field #queue is not empty and either no sync-job is next or
+    /// @return \c true if the field #queue is not empty and either no sync-job is next or
     ///            all are idle.
-    bool        isConditionMet()  { return       queue.IsNotEmpty()
-                                             &&  (    queue.back().job->ID != typeid(JobSyncer)
-                                                   || ctdIdle == ctdWorkers               ); }
+    bool        isConditionMet()  {
+        return     queue.IsNotEmpty()
+               &&  (    queue.back().job->ID != typeid(JobSyncer)
+                     || ctdIdle == ctdWorkers               );
+    }
 
     /// Pushes the given \p{cmd} into the priority queue that this class implements.
     /// @param entry The Job and the deletion flag.
-    void        pushAndRelease(QueueEntry&& entry)
-    {
+    void        pushAndRelease(QueueEntry&& entry) {
         // insert before found
         queue.emplace_front( entry );
         ++ctdOpenJobs;
         ++ctdStatJobsScheduled;
 
-        ALIB_MESSAGE( "MGTHR/QUEUE", "Pool({}}/{} -> {}/) Job({}) pushed",
-            ctdOpenJobs, ctdStatJobsScheduled, ctdIdle, ctdWorkers, &entry.job->ID )
+        ALIB_MESSAGE( "TMOD/QUEUE", "{} Job({}) pushed",
+            this, &entry.job->ID )
 
         ReleaseAndNotify(ALIB_CALLER_PRUNED);
     }
 
     /// Set if the last thread is terminated and #ctdWorkers goes to \c 0.
     /// This thread is joined by #Shutdown or when a new thread is added.
-    PWorker*                lastThreadToJoin                                              = nullptr;
+    PoolWorker*             lastThreadToJoin                                              = nullptr;
 
     /// Moves the job of highest priority out of the queue.
     /// Blocks the thread until a job is available.
     /// @param worker The instance that called this method.
     /// @return The job with the highest priority.
-    QueueEntry              pop(PWorker* worker);
+    QueueEntry              pop(PoolWorker* worker);
 
     /// Internal method that adds a thread. Must only be called when acquired.
     ALIB_DLL
@@ -292,33 +329,30 @@ class ThreadPool : protected TCondition<ThreadPool>
     /// @return The scheduled job.
     template<typename TJob, typename... TArgs>
     [[nodiscard]]
-    TJob*           schedule( bool keepJob, TArgs&&... args  )
-    {
+    TJob*           schedule( bool keepJob, TArgs&&... args  ) {
         Acquire(ALIB_CALLER_PRUNED);
         // first check if this pool is active (has threads)
-        if (ctdWorkers == 0)
-        {
+        if (ctdWorkers == 0) {
             ALIB_ASSERT_ERROR(       Strategy.WorkersMax > 0
                                 && ( Strategy.Mode != ResizeStrategy::Modes::Fixed
-                                     || Strategy.FixedSize > 0   ), "MGTHR/STRGY",
+                                     || Strategy.WorkersMax > 0   ), "TMOD/STRGY",
                 "No threads to schedule job. Strategy values:\n"
-                "       WorkersMax:    {}\n"
-                "       Strategy.Mode: {}\n"
-                "  Strategy.FixedSize: ",
+                "       WorkersMax:     {}\n"
+                "       Strategy.Mode:  ",
                     Strategy.WorkersMax ,
-                    Strategy.Mode == ResizeStrategy::Modes::Auto ? "Auto" : "Fixed",
-                    Strategy.FixedSize )
+                    Strategy.Mode == ResizeStrategy::Modes::Auto ? "Auto" : "Fixed" )
 
                 addThread();
         }
         TJob* job= pool().New<TJob>( std::forward<TArgs>(args)... );
-        ALIB_ASSERT_ERROR( job->SizeOf()==sizeof(TJob), "MGTHR",
-            "Error in ThreadPool::schedule: Job size mismatch. Expected {} "
+        ALIB_ASSERT_ERROR( job->SizeOf()==sizeof(TJob), "TMOD",
+            "{} error in schedule: Job size mismatch. Expected {} "
             "while virtual method SizeOf returns {}.\n"
-            "Override this method for job-type <{}>", sizeof(TJob), job->SizeOf(), &typeid(*job) )
+            "Override this method for job-type <{}>", this, sizeof(TJob), job->SizeOf(), &typeid(*job) )
 
-        ALIB_ASSERT_ERROR(  Strategy.WorkersMax > 0, "MGTHR",
-            "Error: Job pushed while this pool is shut down already. (Strategy.WorkersMax == 0) " )
+        ALIB_ASSERT_ERROR(  Strategy.WorkersMax > 0, "TMOD",
+            "{} error: Job pushed while this pool is shut down already. "
+            "(Strategy.WorkersMax == 0) ", this )
 
         #if ALIB_DEBUG
             auto pair= DbgKnownJobs.EmplaceIfNotExistent( DbgKnownJobsEntry{ &typeid(TJob),
@@ -335,22 +369,26 @@ class ThreadPool : protected TCondition<ThreadPool>
     /// The values herein can be changed from outside with direct access.
     ResizeStrategy          Strategy;
 
+    /// The wait-time slice used by method #WaitForAllIdle.
+    Ticks::Duration         IdleWaitTime            = Ticks::Duration::FromAbsoluteMicroseconds(50);
+    
     /// Constructor.
     /// Initializes the thread pool with default settings for field #Strategy.
     ALIB_DLL                ThreadPool();
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
-        /// Destructor. Cleans up and shuts down the thread pool.
-        ALIB_DLL           ~ThreadPool() override;
+    /// Destructor. Cleans up and shuts down the thread pool.
+    ALIB_DLL       ~ThreadPool()                                                           override;
 
-        /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
-        ALIB_DLL virtual bool DCSIsAcquired()                                        const override;
+    /// @return \c true if the lock is acquired (in non-shared mode), \c false otherwise.
+    ALIB_DLL bool   DCSIsAcquired()                                                  const override;
 
-        /// @return \c true if the lock is shared-acquired (by at least any thread).
-        ///            Otherwise, returns \c false.
-        ALIB_DLL virtual bool DCSIsSharedAcquired()                                  const override;
+    /// @return \c true if the lock is shared-acquired (by at least any thread).
+    ///            Otherwise, returns \c false.
+    ALIB_DLL bool   DCSIsSharedAcquired()                                            const override;
     #else
-        ALIB_DLL           ~ThreadPool();
+        virtual
+        ALIB_DLL       ~ThreadPool();
     #endif
 
     using TCondition::Acquire;
@@ -359,12 +397,22 @@ class ThreadPool : protected TCondition<ThreadPool>
     /// Returns the mono allocator used by the thread pool.
     /// The pool has to be acquired before using it.
     /// @return The mono allocator.
-    MonoAllocator&  GetAllocator()                                            { return ma; }
+    MonoAllocator&      GetAllocator()                                                { return ma; }
 
     /// Returns the pool allocator used by the thread pool.
     /// The pool has to be acquired before using it.
     /// @return The pool allocator.
-    PoolAllocator&  GetPoolAllocator()                                      { return pool; }
+    PoolAllocator&      GetPoolAllocator()                                          { return pool; }
+
+    /// Creates a worker using the #pool allocator. Derived types may override this method
+    /// and create a derived \alib{threadmodel;PoolWorker}-type.
+    /// @return A pool worker.
+    virtual PoolWorker* CreateWorker();
+
+    /// Destructs the given pool worker.
+    /// Derived types may add further logic here.
+    /// @param poolWorker The pool worker to destruct and delete.
+    virtual void        DisposeWorker( PoolWorker* poolWorker );
 
     /// Just an alias to
     /// \https{Empty Base Optimization,en.cppreference.com/w/cpp/thread/thread/hardware_concurrency}.
@@ -380,16 +428,16 @@ class ThreadPool : protected TCondition<ThreadPool>
 
     /// Returns the current number of worker threads.
     /// @return The number of jobs to process, including any currently processed one.
-    int             CountedWorkers()                                          { return ctdWorkers; }
+    int             CountedWorkers()                                    const { return ctdWorkers; }
 
     /// Returns the current number of idle workers.
     /// @return The number of workers waiting on jobs to process.
-    int             CountedIdleWorkers()                                         { return ctdIdle; }
+    int             CountedIdleWorkers()                                   const { return ctdIdle; }
 
     /// Checks if all workers are idle.
     /// @return \c true if the number of idle workers equals the number of workers,
     ///            \c false otherwise.
-    bool            IsIdle()                                       { return ctdIdle == ctdWorkers; }
+    bool            IsIdle()                                 const { return ctdIdle == ctdWorkers; }
 
     /// Pushes a job of the custom type \p{TJob} into the priority queue.<br>
     /// The job is returned to the caller to be able to await results.
@@ -429,8 +477,7 @@ class ThreadPool : protected TCondition<ThreadPool>
     ///   with job-deletion.
     ///
     /// @param  job  The job returned from method #Schedule.
-    void        DeleteJob(Job& job)
-    {
+    void        DeleteJob(Job& job) {
         ALIB_LOCK
             auto size= job.SizeOf();
             job.~Job();
@@ -438,7 +485,7 @@ class ThreadPool : protected TCondition<ThreadPool>
     }
 
     /// Same as #DeleteJob but schedules the deletion to be performed.
-    /// This method is useful when a job instance was received with method #Schedule, but the
+    /// This method is useful when a job instance was received with the method #Schedule, but the
     /// caller does not want to continue waiting for the execution of the job.<br>
     /// If jobs indicate that they have been processed, then the method #DeleteJob is to be used.
     ///
@@ -447,7 +494,7 @@ class ThreadPool : protected TCondition<ThreadPool>
     ///
     /// @see Methods #ScheduleVoid, #DeleteJob and #Sync.
     /// @param job    The job object to delete.
-    void        DeleteJobDeferred(Job& job)            {  (void) schedule<JobSyncer>(false, &job); }
+    void        DeleteJobDeferred(Job& job)             { (void) schedule<JobSyncer>(false, &job); }
 
     /// This method ensures all worker threads in the thread pool complete their currently running
     /// jobs and also process all jobs that have been scheduled before a call to this method.
@@ -492,7 +539,7 @@ class ThreadPool : protected TCondition<ThreadPool>
     ///   when tasks are interdependent.
     ///
     /// @see Method #DeleteJobDeferred, which likewise causes a synchronization.
-    void        Sync()                             {  (void) schedule<JobSyncer>(false, nullptr); }
+    void        Sync()                               { (void) schedule<JobSyncer>(false, nullptr); }
 
     #if DOXYGEN
     /// Waits until all threads are idle.
@@ -506,11 +553,11 @@ class ThreadPool : protected TCondition<ThreadPool>
     bool        WaitForAllIdle( Ticks::Duration timeout,
                                 Ticks::Duration dbgWarnAfter );
     #else
-      ALIB_DLL bool WaitForAllIdle( Ticks::Duration timeout
-                         ALIB_DBG(, Ticks::Duration dbgWarnAfter) );
-      bool WaitForAllIdle( Ticks::Duration::TDuration timeout
-                ALIB_DBG(, Ticks::Duration::TDuration dbgWarnAfter)  )
-                { return WaitForAllIdle( Ticks::Duration(timeout) ALIB_DBG(, Ticks::Duration(dbgWarnAfter) ) ); }
+    ALIB_DLL bool WaitForAllIdle( Ticks::Duration timeout
+                       ALIB_DBG(, Ticks::Duration dbgWarnAfter) );
+    bool WaitForAllIdle( Ticks::Duration::TDuration timeout
+              ALIB_DBG(, Ticks::Duration::TDuration dbgWarnAfter)  )
+    { return WaitForAllIdle( Ticks::Duration(timeout) ALIB_DBG(,Ticks::Duration(dbgWarnAfter))); }
           
     #endif
 
@@ -530,25 +577,25 @@ class ThreadPool : protected TCondition<ThreadPool>
     ///       However, under racing conditions, this difference might evaluated wrongly.
     ///       Therefore, if crucial, this pool has to be acquired before determining this.
     /// @return The number of jobs to process, not including any currently processed one.
-    int                     CountedOpenJobs()                                { return ctdOpenJobs; }
+    int                     CountedOpenJobs()                          const { return ctdOpenJobs; }
 
     /// Returns the number of Jobs that have been scheduled during the lifetime of this instance.
     /// This is a statistics method.
     /// @return The number of jobs to process, including any currently processed one.
-    uinteger                StatsCountedScheduledJobs()             { return ctdStatJobsScheduled; }
+    uinteger                StatsCountedScheduledJobs()       const { return ctdStatJobsScheduled; }
 
     #if ALIB_DEBUG && ALIB_STRINGS
-        /// Writes the list of known jobs and their object sizes to the given target.
-        /// \par Availability
-        ///   This function is available only with debug-compilations and if the module
-        ///   \alib_strings is included in the\alibbuild.
-        /// @see Field DbgDumpKnownJobs.
-        ///
-        /// @param target     The string to write to.
-        /// @param linePrefix A prefix string to each line. Defaults to two spaces.
-        /// @return The number of known jobs.
-        ALIB_DLL
-        int DbgDumpKnownJobs(NAString& target, const NString& linePrefix= "  " );
+    /// Writes the list of known jobs and their object sizes to the given target.
+    /// \par Availability
+    ///   This function is available only with debug-compilations and if the module
+    ///   \alib_strings is included in the\alibbuild.
+    /// @see Field DbgDumpKnownJobs.
+    ///
+    /// @param target     The string to write to.
+    /// @param linePrefix A prefix string to each line. Defaults to two spaces.
+    /// @return The number of known jobs.
+    ALIB_DLL
+    int DbgDumpKnownJobs(NAString& target, const NString& linePrefix= "  " );
     #endif
 
 };  // class ThreadPool
@@ -558,6 +605,34 @@ class ThreadPool : protected TCondition<ThreadPool>
 /// Type alias in namespace \b alib.
 using      ThreadPool    = threadmodel::ThreadPool;
 
+/// Type alias in namespace \b alib.
+using      PoolWorker    = threadmodel::PoolWorker;
 
 }  // namespace [alib]
 
+//##################################################################################################
+// struct AppendableTraits<ThreadPool>
+//##################################################################################################
+
+#if ALIB_STRINGS
+// Faking all template specializations of namespace strings for doxygen into namespace
+// strings::APPENDABLES to keep the documentation of namespace string clean!
+namespace alib::strings {
+#if DOXYGEN
+namespace APPENDABLES {
+#endif
+
+/// Specialization of functor \alib{strings;AppendableTraits} for type \alib{files;File}.
+template<> struct AppendableTraits<alib::threadmodel::ThreadPool, character, lang::HeapAllocator>
+{
+    /// Writes some information about the given \b ThreadPool.
+    /// @param target  The \b NAString that \b Append was invoked on.
+    /// @param tpool   The thread pool instance.
+    void operator()( AString& target, const alib::threadmodel::ThreadPool& tpool );
+};
+
+#if DOXYGEN
+} // namespace alib::strings[APPENDABLES]
+#endif
+} // namespace [alib::strings]
+#endif

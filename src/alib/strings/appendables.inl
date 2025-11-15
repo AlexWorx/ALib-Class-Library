@@ -8,9 +8,9 @@
 //==================================================================================================
 ALIB_EXPORT namespace alib {  namespace strings {
 
-// #################################################################################################
+//##################################################################################################
 // struct AppendableTraits: fundamental types
-// #################################################################################################
+//##################################################################################################
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -21,15 +21,11 @@ namespace APPENDABLES {
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c bool.
 template<typename TChar, typename TAllocator> struct       AppendableTraits<bool ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// Writes the words "true" or "false" to the given AString.
     /// @param target The \b AString that \b Append was invoked on.
     /// @param b      The boolean to write to \p{target}.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target, bool b )
-    {
-        target.template _<NC>( b ? "true" : "false" );
-    }
+    { target.template _<NC>( b ? "true" : "false" ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c int8_t.
@@ -40,9 +36,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<int8_t ,TC
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  int8_t value )
-    {
-        AppendableTraits<int64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<int64_t, TChar,TAllocator>()( target, value ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c uint8_t.
@@ -53,9 +47,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<uint8_t ,T
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  uint8_t value )
-    {
-        AppendableTraits<uint64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<uint64_t, TChar,TAllocator>()( target, value ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c int16_t.
@@ -66,9 +58,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<int16_t ,T
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  int16_t value )
-    {
-        AppendableTraits<int64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<int64_t, TChar,TAllocator>()( target, value ); }
 
 };
 
@@ -80,9 +70,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<uint16_t ,
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  uint16_t value )
-    {
-        AppendableTraits<uint64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<uint64_t, TChar,TAllocator>()( target, value ); }
 
 };
 
@@ -94,9 +82,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<int32_t ,T
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  int32_t value )
-    {
-        AppendableTraits<int64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<int64_t, TChar,TAllocator>()( target, value ); }
 
 };
 
@@ -108,9 +94,7 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<uint32_t ,
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  uint32_t value )
-    {
-        AppendableTraits<uint64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<uint64_t, TChar,TAllocator>()( target, value ); }
 
 };
 
@@ -143,9 +127,7 @@ template<typename TChar,  typename TAllocator> struct AppendableTraits<intGap_t 
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  intGap_t value )
-    {
-        AppendableTraits<int64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<int64_t, TChar,TAllocator>()( target, value ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c uintGap_t.
@@ -156,9 +138,7 @@ template<typename TChar,  typename TAllocator> struct AppendableTraits<uintGap_t
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  uintGap_t value )
-    {
-        AppendableTraits<uint64_t, TChar,TAllocator>()( target, value );
-    }
+    { AppendableTraits<uint64_t, TChar,TAllocator>()( target, value ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c float.
@@ -169,9 +149,7 @@ template<typename TChar,  typename TAllocator> struct AppendableTraits<float ,TC
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  float value)
-    {
-        AppendableTraits<double, TChar,TAllocator>()( target, double(value) );
-    }
+    { AppendableTraits<double, TChar,TAllocator>()( target, double(value) ); }
 };
 
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c double.
@@ -188,14 +166,12 @@ template<typename TChar,  typename TAllocator> struct AppendableTraits<double ,T
 template<typename TChar,  typename TAllocator> struct AppendableTraits<long double ,TChar,TAllocator>
 {
     /// Casts the value "down" to just \c double and uses function \alib{strings;detail::WriteFloat}
-    ///  with \alib{strings;TNumberFormat<TChar>::Computational} to write the number.
+    /// with \alib{strings;TNumberFormat<TChar>::Computational} to write the number.
     ///
     /// @param target The \b AString that \b Append was invoked on.
     /// @param value  The value to write.
     void operator()( TAString<TChar,TAllocator>& target,  long double value)
-    {
-        AppendableTraits<double, TChar,TAllocator>()( target, double(value) );
-    }
+    { AppendableTraits<double, TChar,TAllocator>()( target, double(value) ); }
 };
 
 
@@ -204,11 +180,9 @@ template<typename TChar,  typename TAllocator> struct AppendableTraits<long doub
 /// Available only in debug-compilations.
 template<typename TChar,  typename TAllocator> struct     AppendableTraits<std::type_info ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// Writes the demangled type name.
     /// @param target The \b AString that \b Append was invoked on.
     /// @param type   The type to write to \p{target}.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target, const std::type_info& type );
 };
 #endif
@@ -217,11 +191,9 @@ template<typename TChar,  typename TAllocator> struct     AppendableTraits<std::
 /// Specialization of functor \alib{strings;AppendableTraits} for type \c std::thread::id.<br>
 template<typename TChar,  typename TAllocator> struct    AppendableTraits<std::thread::id ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// Writes the thread information.
     /// @param target The \b AString that \b Append was invoked on.
     /// @param type   The thread ID to write to \p{target}.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target, const std::thread::id& type );
 };
 #endif
@@ -234,11 +206,9 @@ template<typename TChar,  typename TAllocator> struct    AppendableTraits<std::t
 /// \alib{format;FormatterPythonStyle}.
 template<typename TChar,  typename TAllocator> struct   AppendableTraits<lang::CallerInfo ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// Writes thread and source location.
     /// @param target The \b AString that \b Append was invoked on.
     /// @param ci     The caller information to write to \p{target}.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target, const lang::CallerInfo& ci );
 };
 
@@ -279,7 +249,6 @@ extern String DT_UNITS[size_t(DayTimeUnits::SIZE_OF_UNITS)];
 /// \alib{time;TimePointBase::Duration;DateTime::Duration}.
 template<typename TChar,  typename TAllocator> struct   AppendableTraits<time::DateTime::Duration ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// Appends a human-readable string representation of objects of templated inner type
     /// \alib{time;TimePointBase::Duration} of type \alib{time;DateTime}.
     ///
@@ -290,7 +259,6 @@ template<typename TChar,  typename TAllocator> struct   AppendableTraits<time::D
     ///
     /// @param target    The \b AString that \b Append was invoked on.
     /// @param duration  The duration to append.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target, const time::DateTime::Duration duration );
 };
 
@@ -298,7 +266,6 @@ template<typename TChar,  typename TAllocator> struct   AppendableTraits<time::D
 /// \alib{time;TimePointBase::Duration;Ticks::Duration}.
 template<typename TChar, typename TAllocator> struct AppendableTraits<time::Ticks::Duration ,TChar,TAllocator>
 {
-    //==============================================================================================
     /// \anchor anchor_T_Append_TimePointBase_Duration
     /// Appends a human-readable string representation of objects of templated inner type
     /// \alib{time;TimePointBase::Duration} of type \alib{time;Ticks}.
@@ -323,7 +290,6 @@ template<typename TChar, typename TAllocator> struct AppendableTraits<time::Tick
     ///
     /// @param target    The \b AString that \b Append was invoked on.
     /// @param duration  The duration to append.
-    //==============================================================================================
     void operator()( TAString<TChar,TAllocator>& target,  const time::Ticks::Duration duration );
 };
 
@@ -354,5 +320,3 @@ template<> struct AppendableTraits<threads::Thread, wchar, lang::HeapAllocator> 
 #endif
 
 }} // namespace [alib::strings]
-
-

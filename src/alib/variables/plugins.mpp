@@ -14,7 +14,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/boxing/boxing.prepro.hpp"
 #include "alib/variables/variables.prepro.hpp"
 
@@ -22,14 +22,16 @@
 #if ALIB_DEBUG_BOXING
 #    include <vector>
 #endif
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_variables.
     export module ALib.Variables.Plugins;
     import        ALib.Variables;
     import        ALib.Monomem;
@@ -40,7 +42,7 @@
 #include "ALib.Strings.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 ALIB_EXPORT namespace alib::variables {
 
 //==================================================================================================
@@ -80,7 +82,7 @@ class CLIVariablesPlugin : public ConfigurationPlugin
     /// An application can specify one or more "default categories" by adding a prefix of the
     /// variable path here. Variables of these "categories" are recognized by the plug-in also
     /// when given without this prefix.<br>
-    /// Please note, that if \alib and \alox variables should be abbreviatable, for example that
+    /// Please note, that if \alib and \alox variables should be abbreviatable, for example, that
     /// the locale can be given with
     ///             --locale=de_DE.UTF-8
     /// instead of
@@ -113,7 +115,7 @@ class CLIVariablesPlugin : public ConfigurationPlugin
     CLIVariablesPlugin( MonoAllocator& ma, Priority pPriority= Priority::CLI );
 
     /// Virtual Destructor.
-    virtual ~CLIVariablesPlugin()                                                       override  {}
+    virtual ~CLIVariablesPlugin()                                                        override {}
 
     /// @return The plug-in name, in this case, we read resource variable "CFGPlgCLI".
     ALIB_DLL virtual String      Name()                                              const override;
@@ -146,7 +148,7 @@ class EnvironmentVariablesPlugin : public ConfigurationPlugin
     /// An application can specify one or more "default categories" by adding a prefix of the
     /// variable path here. Variables of these "categories" are recognized by the plug-in also
     /// when given without this prefix.<br>
-    /// Please note, that if \alib and \alox variables should be abbreviatable, for example that
+    /// Please note, that if \alib and \alox variables should be abbreviatable, for example, that
     /// the locale can be given with
     ///             --locale=de_DE.UTF-8
     /// instead of
@@ -178,7 +180,3 @@ class EnvironmentVariablesPlugin : public ConfigurationPlugin
 };
 
 } // namespace [alib::variables]
-
-
-
-

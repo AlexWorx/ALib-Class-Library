@@ -14,7 +14,7 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/singletons/singletons.prepro.hpp"
 #include "alib/monomem/monomem.prepro.hpp"
 #include "alib/strings/strings.prepro.hpp"
@@ -26,14 +26,16 @@
 #include "alib/bootstrap/bootstrap.prepro.hpp"
 
 
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
-    /// This is a C++ Module of the \aliblong. Due to the dual-compile option - as either
-    /// C++20 Modules or legacy C++ inclusion, the C++20 Module names are not of further interest
-    /// or use.<br>
+    /// This is a <em><b>C++ Module</b></em> of the \aliblong.
+    /// Due to the dual-compile option (either as C++20 Modules or using legacy C++ inclusion),
+    /// the C++20 Module names are not of further interest or use.<br>
     /// In general, the names equal the names of the header files listed in the chapter
     /// \ref alib_manual_modules_impludes of the \alib User Manual.
-    /// This chapter, among others, provides further explanations.
+    ///
+    /// @see The documentation of the <em><b>"ALib Module"</b></em> given with the corresponding
+    ///      Programmer's Manual \alib_bootstrap.
     export module ALib.Bootstrap;
     import        ALib.Lang;
 #   if ALIB_CONTAINERS
@@ -51,18 +53,18 @@
     #include "ALib.Camp.H"
 #endif
 
-// ==========================================   Exports   ==========================================
+//============================================= Exports ============================================
 ALIB_EXPORT namespace alib {
 
 /// State of initialization of the \alibmods that do not dispose over a \alib{camp::Camp}
 /// instance.
 extern bool     NonCampModulesInitialized;
 
-// #################################################################################################
+//##################################################################################################
 // Compilation flags
 // Create a bitset from the ALib compilation features.
 // For this, we ensure that the individual headers tested are included
-// #################################################################################################
+//##################################################################################################
 
 /// This is a struct composing an entry in #COMPILATION_FLAG_MEANINGS.
 struct CompilationFlagMeaningsEntry
@@ -128,7 +130,7 @@ void            AssertALibVersionAndFlags( int               alibVersion     = A
                                            TCompilationFlags compilationFlags= TCompilationFlags{ALIB_COMPILATION_FLAGS} );
 
 //==================================================================================================
-//================================     Non-Camp Version      =======================================
+//========================================= Non-Camp Version =======================================
 //==================================================================================================
 #if !ALIB_CAMP || DOXYGEN
 /// Performs standard bootstrapping of \alib. All details are explained
@@ -165,7 +167,7 @@ ALIB_DLL    void    Shutdown();
 #endif
 
 //==================================================================================================
-//==================================     Camp Version      =========================================
+//=========================================== Camp Version =========================================
 //==================================================================================================
 #if ALIB_CAMP || DOXYGEN
 /// Lists all \alibcamps in the order of bootstrapping. Shutdown is performed in reverse order.
@@ -183,14 +185,14 @@ ALIB_DLL    void    Shutdown();
 ///
 ///              CAMPS.GetAllocator()=  monomem::GLOBAL_ALLOCATOR;
 ALIB_DLL
-extern List<MonoAllocator, camp::Camp*>  CAMPS;
+extern ListMA<camp::Camp*>  CAMPS;
 
-///  Fills list \ref alib::CAMPS, taking the permutation of modules contained in the \alibbuild into
-///  account.<br>
-///  This function is usually invoked automatically.
+/// Fills list \ref alib::CAMPS, taking the permutation of modules contained in the \alibbuild into
+/// account.<br>
+/// This function is usually invoked automatically.
 ///
-///  For details on when and how to explicitly invoke this function, see the detailed explanations
-///  in the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
+/// For details on when and how to explicitly invoke this function, see the detailed explanations
+/// in the \ref alib_mod_bs "Programmer's Manual" of module \alib_bootstrap_nl.
 ALIB_DLL
 void            BootstrapAddDefaultCamps();
 
@@ -248,6 +250,3 @@ void     Shutdown( ShutdownPhases     targetPhase= ShutdownPhases::Destruct,
 #endif
 
 } // namespace [alib]
-
-
-

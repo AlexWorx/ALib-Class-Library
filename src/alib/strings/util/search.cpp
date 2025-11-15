@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/strings/strings.prepro.hpp"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.Strings.Search;
     import   ALib.Characters.Functions;
@@ -21,17 +21,15 @@
 #   include "ALib.Characters.Functions.H"
 #   include "ALib.Strings.Search.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib {  namespace strings { namespace util  {
 
 template<typename TChar, lang::Case TSensitivity>
-TStringSearch<TChar,TSensitivity>::~TStringSearch()      { if( kmpTable ) delete[] kmpTable; }
+TStringSearch<TChar,TSensitivity>::~TStringSearch()            { if( kmpTable ) delete[] kmpTable; }
 
 template<typename TChar, lang::Case TSensitivity>
-void TStringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle )
-{
-    if (pNeedle.IsNull() )
-    {
+void TStringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle ) {
+    if (pNeedle.IsNull() ) {
         needle.SetNull();
         return;
     }
@@ -39,8 +37,7 @@ void TStringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle )
     if( needle.Length() == 0 )
         return;
 
-    if( kmpTableLength < needle.Length() )
-    {
+    if( kmpTableLength < needle.Length() ) {
         if( kmpTable )
             delete[] kmpTable;
 
@@ -49,8 +46,7 @@ void TStringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle )
     }
     integer needleIdx= 0;
     integer pfxLen= kmpTable[0]= -1;
-    for (;;)
-    {
+    for (;;) {
         while ((pfxLen != -1) && !characters::Equal<TChar,TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
             pfxLen= kmpTable[pfxLen];
         ++needleIdx;
@@ -64,8 +60,8 @@ void TStringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle )
 }
 
 template<typename TChar, lang::Case TSensitivity>
-integer TStringSearch<TChar,TSensitivity>::Search( const TString<TChar>& haystack, integer haystackIdx )
-{
+integer TStringSearch<TChar,TSensitivity>::Search( const TString<TChar>&  haystack,
+                                                   integer                haystackIdx ) {
     if ( needle.IsNull()  )
         return  -1;
     if ( haystackIdx < 0                                   )    haystackIdx= 0;
@@ -75,8 +71,7 @@ integer TStringSearch<TChar,TSensitivity>::Search( const TString<TChar>& haystac
         return haystackIdx;
 
     integer needleIdx     = 0;
-    while (haystackIdx != haystack.Length())
-    {
+    while (haystackIdx != haystack.Length()) {
         while ((needleIdx != -1) && !characters::Equal<TChar,TSensitivity>( haystack.Buffer()[haystackIdx],
                                                                             needle  .Buffer()[needleIdx] ) )
             needleIdx= kmpTable[needleIdx];
@@ -110,4 +105,3 @@ template integer TStringSearch<wchar, lang::Case::Ignore   >::Search           (
 
 
 }}} // namespace [alib::strings::util]
-

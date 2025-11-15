@@ -20,7 +20,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// The memory needed for all entries (and the array of pointers to the start of the list)
 /// is allocated once, when the capacity is set. Generic allocation options (heap-, monotonic-
 /// and pool allocation) are given with template parameter \p{TAllocator}.<br>
-/// Together with the custom data, the hashcode of the key of the data is stored with each element.
+/// Together with the custom data, the data's key's hashcode is stored with each element.
 /// This can reduce search time dramatically in some cases, because the equal functor is invoked
 /// only if two objects have the same hashcode.
 ///
@@ -40,7 +40,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// 1. Class \alib{files;OwnerAndGroupResolver} of camp \alib_files:
 ///    - The type translates owner and group IDs of files to corresponding owner and group names.
 ///    - For this, the OS has to be called.
-///    - If for example a directory listing similar to bash command <c>ls -la</c> is to be printed,
+///    - If, for example, a directory listing similar to bash command <c>ls -la</c> is to be printed,
 ///      the entries in a directory usually share the same owner with very few exceptions.
 ///      This is true for home directories inside <c>/home</c> as well as for system directories
 ///      like <c>/usr/bin</c>.
@@ -62,7 +62,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 ///    - For this, the source file name given by the C++ preprocessor, is to be parsed.
 ///    - \alox uses an \b %LRUCacheTable to avoid parsing repetitive scopes.
 ///    - It is very much depending on the use case of logging, how often repetitive scopes occur.
-///      For example if verbose logging is active, series of log statements comming from the same
+///      For example, if verbose logging is active, series of log statements comming from the same
 ///      code entity should be expected. If logging is limited and furthermore logging is made
 ///      in parallel by multiple threads, then the scopes should be rather mixed, but still
 ///      resulting from a limited number of files during a certain period of execution time.
@@ -75,7 +75,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// all situations. Among the things to consider are:
 /// - The costs of creating a new object.
 /// - The cost of comparing two keys.
-/// - The statistical distribution of requests on (subsequent) objects. In cases of even
+/// - The statistical distribution of requests on (later) objects. In cases of even
 ///   distribution, the use of this type can become counter-productive!
 /// - Potential memory constraints of the target platform, which may limit the capacity to set.
 ///
@@ -87,7 +87,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 /// This class provides a forward-iterator type that fetches all currently cached elements.
 /// While this in most cases is not needed, the central interface method #Try also returns an
 /// iterator. While this iterator is always valid, a second returned value indicates whether also
-/// the element the iterator points to is valid. This distinction is necessary, because this
+/// the element the iterator points to is valid. This distinction is necessary because this
 /// container only reserves memory for the cached element, but it does not construct one.
 /// To support elegant construction of elements, the iterator class provides method
 /// \alib{containers::LRUCacheTable::TForwardIterator;Construct}.
@@ -105,7 +105,7 @@ ALIB_EXPORT namespace alib { namespace containers {
 ///   \b %HashSet and \b %HashMap, is very helpful to understanding the concept of this type.
 ///
 ///
-/// @tparam TAllocator       The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator       The \alib{lang;Allocator;allocator type} to use.
 /// @tparam TValueDescriptor Defines the #StoredType, #KeyType, and #MappedType. Furthermore has to
 ///                          provide methods that extract the key and the mapped value from the
 ///                          stored type.<br>
@@ -132,7 +132,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
 #endif
 {
   protected:
-    /// The allocator type that \p{TAllocator} specifies.
+    /// The type of the base class that stores the allocator.
     using allocBase    =   lang::AllocatorMember<TAllocator>;
 
   public:
@@ -190,7 +190,6 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
   //=== Iterator implementation
   //================================================================================================
 
-    //==============================================================================================
     /// Templated implementation of \c std::iterator_traits.
     /// Will be exposed by outer class's definitions
     /// \alib{containers::LRUCacheTable;Iterator} and
@@ -200,7 +199,6 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
     /// \https{ForwardIterator,en.cppreference.com/w/cpp/named_req/ForwardIterator}.
     ///
     /// @tparam TConstOrMutable A constant or mutable version of #StoredType.
-    //==============================================================================================
     template<typename TConstOrMutable>
     class TForwardIterator
     {
@@ -214,166 +212,148 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
         using pointer           = TConstOrMutable*         ;  ///< Implementation of <c>std::iterator_traits</c>.
         using reference         = TConstOrMutable&         ;  ///< Implementation of <c>std::iterator_traits</c>.
 
-        protected:
-            /// The pointer to the actual cache entry.
-            Entry*            entry;
+      protected:
+        /// The pointer to the actual cache entry.
+        Entry*            entry;
 
-            /// The pointer to the actual cache entry.
-            LRUCacheTable*    table;
+        /// The pointer to the actual cache entry.
+        LRUCacheTable*    table;
 
-            /// The actual list.
-            integer           listIdx;
+        /// The actual list.
+        integer           listIdx;
 
-        public:
-            /// Default constructor.
-            TForwardIterator()
-            {}
+      public:
+        /// Default constructor.
+        TForwardIterator()                                                                        {}
 
-            /// Copy constructor (default).
-            /// @param other The iterator to assign from.
-            TForwardIterator( const TForwardIterator& other )                             = default;
+        /// Copy constructor (default).
+        /// @param other The iterator to assign from.
+        TForwardIterator( const TForwardIterator& other )                                  =default;
 
-            /// Copy constructor accepting a mutable iterator.
-            /// Available only for the constant version of this iterator.
-            /// @tparam TMutable The type of this constructor's argument.
-            /// @param mutableIt Mutable iterator to copy from.
-            template<typename TMutable>
-            requires std::same_as<TMutable, TForwardIterator<StoredType>>
-            TForwardIterator( const TMutable& mutableIt )
-            : entry  ( mutableIt.entry   )                                                    {}
+        /// Copy constructor accepting a mutable iterator.
+        /// Available only for the constant version of this iterator.
+        /// @tparam TMutable The type of this constructor's argument.
+        /// @param mutableIt Mutable iterator to copy from.
+        template<typename TMutable>
+        requires std::same_as<TMutable, TForwardIterator<StoredType>>
+        TForwardIterator( const TMutable& mutableIt )
+        : entry  ( mutableIt.entry   )                                                            {}
 
-            /// Constructor that explicitly sets a valid iterator.
-            /// @param pEntry    Pointer to a valid element.
-            /// @param pTable    The cache table we belong to.
-            /// @param pListIdx  The index of the list that \p{pEntry} belongs to.
-            explicit
-            TForwardIterator( Entry* pEntry, LRUCacheTable* pTable, integer pListIdx )
-            : entry  (pEntry)
-            , table  (pTable)
-            , listIdx(pListIdx)                                                                   {}
+        /// Constructor that explicitly sets a valid iterator.
+        /// @param pEntry    Pointer to a valid element.
+        /// @param pTable    The cache table we belong to.
+        /// @param pListIdx  The index of the list that \p{pEntry} belongs to.
+        explicit
+        TForwardIterator( Entry* pEntry, LRUCacheTable* pTable, integer pListIdx )
+        : entry  (pEntry)
+        , table  (pTable)
+        , listIdx(pListIdx)                                                                       {}
 
 
-            /// Constructor.
-            /// @param pTable     The cache table we belong to.
-            /// @param pListIdx   The index of the list to start with.
-            explicit
-            TForwardIterator( LRUCacheTable* pTable, integer pListIdx )
-            : table  (pTable)
-            {
-                while( pListIdx < pTable->capacityLists )
-                {
-                    if( !pTable->lists[pListIdx].isEmpty() )
-                    {
-                        listIdx= pListIdx;
-                        entry  = pTable->lists[pListIdx].first();
-                        return;
-                    }
-                    ++pListIdx;
+        /// Constructor.
+        /// @param pTable     The cache table we belong to.
+        /// @param pListIdx   The index of the list to start with.
+        explicit
+        TForwardIterator( LRUCacheTable* pTable, integer pListIdx )
+        : table  (pTable) {
+            while( pListIdx < pTable->capacityLists ) {
+                if( !pTable->lists[pListIdx].isEmpty() ) {
+                    listIdx= pListIdx;
+                    entry  = pTable->lists[pListIdx].first();
+                    return;
                 }
-                listIdx= pListIdx;
-                entry  = nullptr;
+                ++pListIdx;
             }
+            listIdx= pListIdx;
+            entry  = nullptr;
+        }
 
-            /// Copy assignment (default).
-            /// @param other The iterator to assign from.
-            /// @return A reference to this object.
-            TForwardIterator& operator=( const TForwardIterator& other)                   = default;
+        /// Copy assignment (default).
+        /// @param other The iterator to assign from.
+        /// @return A reference to this object.
+        TForwardIterator& operator=( const TForwardIterator& other)                        =default;
 
-            // ###################   To satisfy concept of  InputIterator   ####################
+          //########################## To satisfy concept of  InputIterator ########################
 
-            /// Prefix increment operator.
-            /// @return A reference to this object.
-            TForwardIterator& operator++()
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                entry= entry->next();
-                while( entry == nullptr && ++listIdx < table->capacityLists )
-                    entry= table->lists[listIdx].first();
+        /// Prefix increment operator.
+        /// @return A reference to this object.
+        TForwardIterator& operator++() {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            entry= entry->next();
+            while( entry == nullptr && ++listIdx < table->capacityLists )
+                entry= table->lists[listIdx].first();
 
-                return *this;
-            }
+            return *this;
+        }
 
-            /// Postfix increment operator.
-           /// @return An iterator value that is not increased, yet.
-            TForwardIterator operator++( int)
-            {
-                auto result= TForwardIterator( *this);
-                ++(*this);
-                return result;
-            }
+        /// Postfix increment operator.
+        /// @return An iterator value that is not increased, yet.
+        TForwardIterator operator++( int) {
+            auto result= TForwardIterator( *this);
+            ++(*this);
+            return result;
+        }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and the given iterator are pointing to the same entry,
-            ///         \c false otherwise.
-            bool operator==( TForwardIterator other)                                           const
-            {
-                return entry == other.entry;
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and the given iterator are pointing to the same entry,
+        ///         \c false otherwise.
+        bool operator==( TForwardIterator other)              const { return entry == other.entry; }
 
-            /// Comparison operator.
-            /// @param other  The iterator to compare ourselves to.
-            /// @return \c true if this and given iterator are not equal, \c false otherwise.
-            bool operator!=( TForwardIterator other)                                           const
-            {
-                return !(*this == other);
-            }
+        /// Comparison operator.
+        /// @param other  The iterator to compare ourselves to.
+        /// @return \c true if this and given iterator are not equal, \c false otherwise.
+        bool operator!=( TForwardIterator other)                 const { return !(*this == other); }
 
-            // ############   access to templated members   ############
+          //############################## access to templated members #############################
 
-            /// Retrieves the stored object that this iterator references.
-            /// @return A reference to the stored object.
-            TConstOrMutable&    operator*()                                                    const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return entry->data;
-            }
+        /// Retrieves the stored object that this iterator references.
+        /// @return A reference to the stored object.
+        TConstOrMutable&    operator*()                                                      const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return entry->data;
+        }
 
-            /// Retrieves a pointer to the stored object that this iterator references.
-            /// @return A pointer to the stored object.
-            TConstOrMutable*    operator->()                                                   const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return &entry->data;
-            }
+        /// Retrieves a pointer to the stored object that this iterator references.
+        /// @return A pointer to the stored object.
+        TConstOrMutable*    operator->()                                                     const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return &entry->data;
+        }
 
-            /// Helper method that performs a placement-new on the data this iterator refers to.
-            /// This method can be used if method #Try indicates a cache miss.
-            ///@tparam TArgs  Types of variadic parameters given with parameter \p{args}.
-            ///@param  args   Variadic parameters to be forwarded to the constructor of the inserted
-            ///               instance of type #StoredType.
-            ///@return A reference to the just constructed object.
-            template<typename... TArgs>
-            TConstOrMutable&        Construct( TArgs&&... args )                               const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return *new( &entry->data ) TConstOrMutable(std::forward<TArgs>(args)...);
-            }
+        /// Helper method that performs a placement-new on the data this iterator refers to.
+        /// This method can be used if method #Try indicates a cache miss.
+        ///@tparam TArgs  Types of variadic parameters given with parameter \p{args}.
+        ///@param  args   Variadic parameters to be forwarded to the constructor of the inserted
+        ///               instance of type #StoredType.
+        ///@return A reference to the just constructed object.
+        template<typename... TArgs>
+        TConstOrMutable&        Construct( TArgs&&... args )                                 const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return *new( &entry->data ) TConstOrMutable(std::forward<TArgs>(args)...);
+        }
 
-            /// Retrieves the stored object that this iterator references.
-            /// @return A reference to the stored object.
-            TConstOrMutable&    Value()                                                        const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return entry->data;
-            }
+        /// Retrieves the stored object that this iterator references.
+        /// @return A reference to the stored object.
+        TConstOrMutable&    Value()                                                          const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return entry->data;
+        }
 
-            /// Retrieves the key-portion of the stored object that this iterator references.
-            /// @return A reference to the key-portion of the stored object.
-            const KeyType&      Key()                                                          const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return TValueDescriptor().Key(entry->data);
-            }
+        /// Retrieves the key-portion of the stored object that this iterator references.
+        /// @return A reference to the key-portion of the stored object.
+        const KeyType&      Key()                                                            const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return TValueDescriptor().Key(entry->data);
+        }
 
-            /// Retrieves the stored object that this iterator references.<br>
-            /// This method is an alias to <c>operator*</c>
-            /// @return A reference to the mapped-portion of the stored object.
-            MappedType&         Mapped()                                                       const
-            {
-                ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
-                return TValueDescriptor().Mapped(entry->data);
-            }
+        /// Retrieves the stored object that this iterator references.<br>
+        /// This method is an alias to <c>operator*</c>
+        /// @return A reference to the mapped-portion of the stored object.
+        MappedType&         Mapped()                                                         const {
+            ALIB_ASSERT_ERROR( entry != nullptr, "MONOMEM/LRUCACHE", "Illegal iterator." )
+            return TValueDescriptor().Mapped(entry->data);
+        }
     }; // class TForwardIterator
 
   public:
@@ -385,27 +365,27 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
 
     /// Returns an iterator referring to a mutable entry at the start of this cache.
     /// @return The first of entry in this container.
-    Iterator            begin()         { return Iterator     ( this, 0 );     }
+    Iterator      begin()                                       { return Iterator     ( this, 0 ); }
 
     /// Returns an iterator referring to a mutable, non-existing entry.
     /// @return The end of the list of entries in this container.
-    Iterator            end()           { return Iterator     ( this, (std::numeric_limits<integer>::max)() ); }
+    Iterator      end()     { return Iterator     ( this, (std::numeric_limits<integer>::max)() ); }
 
     /// Returns an iterator referring to a constant entry at the start of this container.
     /// @return The first of entry in this container.
-    ConstIterator       begin()   const { return ConstIterator( this, 0 ); }
+    ConstIterator begin()                                 const { return ConstIterator( this, 0 ); }
 
     /// Returns an iterator referring to a constant, non-existing entry.
     /// @return The end of the list of entries in this container.
-    ConstIterator       end()     const { return ConstIterator( this, (std::numeric_limits<integer>::max)() ); }
+    ConstIterator end() const { return ConstIterator(this, (std::numeric_limits<integer>::max)()); }
 
     /// Returns an iterator referring to a constant entry at the start of this container.
     /// @return The first of entry in this container.
-    ConstIterator       cbegin()  const { return ConstIterator( this, 0 ); }
+    ConstIterator cbegin()                                const { return ConstIterator( this, 0 ); }
 
     /// Returns an iterator referring to a constant, non-existing entry.
     /// @return The end of the list of entries in this container.
-    ConstIterator       cend()    const { return ConstIterator( this, (std::numeric_limits<integer>::max)() ); }
+    ConstIterator cend() const { return ConstIterator(this,(std::numeric_limits<integer>::max)()); }
 
 
     /// Constructor taking an allocator as well as the sizes forming the capacity of the cache.
@@ -440,8 +420,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
      , capacityEntries (0)                                       { Reserve( tableSize, listSize ); }
 
     /// Destructor. Calls the destructor of each cached value.
-    ~LRUCacheTable()
-    {
+    ~LRUCacheTable() {
         if( Capacity() == 0 )
             return;
         Clear();
@@ -466,8 +445,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
 
     /// Counts the number of stored elements (operates in O(N)).
     /// @return The number of elements stored in the cache.
-    integer  Size()                                                                   const noexcept
-    {ALIB_DCS_SHARED
+    integer  Size()                                                  const noexcept {ALIB_DCS_SHARED
         integer result= 0;
         for (int i = 0; i < capacityLists; ++i)
             result+= lists[i].count();
@@ -477,8 +455,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
     /// Changes the size of this cache.
     /// @param newQtyLists          The number of LRU-lists to use.
     /// @param newQtyEntriesPerList The maximum length of each LRU-list list.
-    void        Reserve( integer newQtyLists, integer newQtyEntriesPerList )
-    {
+    void        Reserve( integer newQtyLists, integer newQtyEntriesPerList ) {
         if(    CapacityLists()   == newQtyLists
             && CapacityEntries() == newQtyEntriesPerList )
             return;
@@ -486,8 +463,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
         Clear();
         ALIB_DCS
         auto newCapacity= newQtyLists * newQtyEntriesPerList;
-        if( Capacity() != newCapacity)
-        {
+        if( Capacity() != newCapacity) {
             if( Capacity() != 0 )
                 allocBase::AI(). template FreeArray<Entry>(elementPool, Capacity());
 
@@ -495,8 +471,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
                                       : nullptr;
         }
 
-        if( capacityLists != newQtyLists)
-        {
+        if( capacityLists != newQtyLists) {
             if( capacityLists )
                 allocBase::AI(). template FreeArray<ForwardList>(lists, capacityLists );
             lists= newQtyLists ? allocBase::AI(). template AllocArray<ForwardList>(newQtyLists)
@@ -512,13 +487,10 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
     }
 
     /// Clears this cache.
-    void        Clear()
-    {ALIB_DCS
-        for (integer i = 0; i < capacityLists; ++i)
-        {
+    void        Clear()                                                                    {ALIB_DCS
+        for (integer i = 0; i < capacityLists; ++i) {
             auto* elem= lists[i].first();
-            while(elem)
-            {
+            while(elem) {
                 lang::Destruct(elem->data);
                 elem= elem->next();
             }
@@ -555,8 +527,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
     ///         address of the data receivable with the iterator. This might best be done by
     ///         calling \ref Iterator::Construct.
     [[nodiscard]]
-    std::pair<bool, Iterator>  Try(const KeyType& key)
-    {ALIB_DCS
+    std::pair<bool, Iterator>  Try(const KeyType& key)                                     {ALIB_DCS
         ALIB_ASSERT_ERROR(Capacity() > 0, "MONOMEM","Capacity of LRUCacheTable equals 0 (not set).")
 
         // start the search below with the first element
@@ -569,14 +540,12 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
         integer       cnt     = 0;
 
         
-        while( actual != nullptr )
-        {
+        while( actual != nullptr ) {
             if (    actual->hashCode == keyHash
                  && TEqual{}(TValueDescriptor().Key(actual->data), key)  )
             {
                 // Move the accessed item to the front
-                if (prev1 != nullptr)
-                {
+                if (prev1 != nullptr) {
                     prev1->next( actual->next() );
                     actual->next( list.next() );
                     list.next( actual );
@@ -592,8 +561,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
         // Value not found
 
         // cache is full? -> take the last entry, change it and push it to the front.
-        if( cnt == capacityEntries )
-        {
+        if( cnt == capacityEntries ) {
             prev2->next( nullptr );
             prev1->data.~StoredType();
             prev1->hashCode= keyHash;
@@ -626,7 +594,7 @@ class LRUCacheTable  : public lang::AllocatorMember<TAllocator>
 ///   \alib{containers;LRUCacheTable}, as well as alternative type definition
 ///   \alib{containers;LRUCacheSet}.
 ///
-/// @tparam TAllocator      The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator      The \alib{lang;Allocator;allocator type} to use.
 /// @tparam TKey            The type of the <em>key-portion</em> of the inserted data.<br>
 ///                         This type is published as \alib{containers;LRUCacheTable::KeyType}.
 /// @tparam TMapped         The type of the <em>mapped-portion</em> of the inserted data.<br>
@@ -662,7 +630,7 @@ using LRUCacheMap    = LRUCacheTable< TAllocator,
 ///   \alib{containers;LRUCacheTable}, as well as alternative type definition
 ///   \alib{containers;LRUCacheMap}.
 ///
-/// @tparam TAllocator      The allocator type to use, as prototyped with \alib{lang;Allocator}.
+/// @tparam TAllocator      The \alib{lang;Allocator;allocator type} to use.
 /// @tparam T               The element type stored with this container.
 ///                         This type is published as
 ///                         \alib{containers;LRUCacheTable::StoredType} and type definition
@@ -709,4 +677,3 @@ using LRUCacheSet    = containers::LRUCacheTable< TAllocator,
                                                            containers::TIdentDescriptor<T>,
                                                            THash, TEqual >;
 } // namespace [alib]
-

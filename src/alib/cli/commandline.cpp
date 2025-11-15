@@ -1,9 +1,9 @@
-// #################################################################################################
+//##################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2025 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+//##################################################################################################
 #include "alib_precompile.hpp"
 #if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
 #   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
@@ -11,9 +11,9 @@
 #if ALIB_C20_MODULES
     module;
 #endif
-// ======================================   Global Fragment   ======================================
+//========================================= Global Fragment ========================================
 #include "alib/alib.inl"
-// ===========================================   Module   ==========================================
+//============================================== Module ============================================
 #if ALIB_C20_MODULES
     module ALib.CLI;
     import   ALib.Characters.Functions;
@@ -25,15 +25,14 @@
 #   include "ALib.Strings.H"
 #   include "ALib.CLI.H"
 #endif
-// ======================================   Implementation   =======================================
+//========================================== Implementation ========================================
 namespace alib::cli {
 
-// #################################################################################################
+//##################################################################################################
 // CommandLine Constructor
-// #################################################################################################
+//##################################################################################################
 
-void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCategory )
-{
+void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCategory ) {
     Resources       =  resourcePool;
     ResourceCategory=  resCategory;
 
@@ -41,37 +40,28 @@ void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCat
     ArgsLeft  .reserve( size_t(ARG_C) );
 
     #if !ALIB_CHARACTERS_WIDE
-        if( ARG_VN )
-        {
-            for ( int i= 1; i < ARG_C ; ++i )
-            {
+        if( ARG_VN ) {
+            for ( int i= 1; i < ARG_C ; ++i ) {
                 ArgStrings.emplace_back( ARG_VN[i] );
                 ArgsLeft  .emplace_back( i -1      );
             }
-        }
-        else
-        {
+        } else {
             // convert wide to narrow strings
             NString1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ARG_C ; ++i )
-            {
+            for ( int i= 1; i < ARG_C ; ++i ) {
                 converter.Reset() << ARG_VW[i];
                 ArgStrings.emplace_back( String( allocator, converter) );
                 ArgsLeft  .emplace_back( i - 1 );
-            }
-        }
+        }   }
     #else
         #if ALIB_CHARACTERS_NATIVE_WCHAR // use original strings only if alib::wchar == wchar_t
-        if( ARG_VW )
-        {
-            for ( int i= 1; i < ARG_C ; ++i )
-            {
+        if( ARG_VW ) {
+            for ( int i= 1; i < ARG_C ; ++i ) {
                 ArgStrings.emplace_back( ARG_VW[i] );
                 ArgsLeft  .emplace_back( i - 1           );
-            }
-        }
+        }   }
         else
         #endif
         {
@@ -79,26 +69,22 @@ void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCat
             String1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ARG_C ; ++i )
-            {
+            for ( int i= 1; i < ARG_C ; ++i ) {
                 converter.Reset() << ARG_VN[i];
                 ArgStrings.emplace_back( String(allocator, converter) );
                 ArgsLeft  .emplace_back( i -1                      );
-            }
-        }
+        }   }
     #endif
 }
 
-// #################################################################################################
+//##################################################################################################
 // Interface
-// #################################################################################################
+//##################################################################################################
 
-void CommandLine::ReadOptions()
-{
+void CommandLine::ReadOptions() {
     // loop over all arg indices in ArgsLeft
     integer argIdx= 0;
-    while( argIdx < integer(ArgsLeft.size()) )
-    {
+    while( argIdx < integer(ArgsLeft.size()) ) {
         // get arg number and string once
         auto   argNo=  ArgsLeft[size_t(argIdx)];
         String arg  =  GetArg(argNo);
@@ -106,8 +92,7 @@ void CommandLine::ReadOptions()
         SHORTCUT_JUMP:
 
         // ignore non-option args
-        if( arg.CharAtStart() != '-' )
-        {
+        if( arg.CharAtStart() != '-' ) {
             ++argIdx;
             continue;
         }
@@ -119,13 +104,11 @@ void CommandLine::ReadOptions()
             auto optionDeclIt= OptionDecls.begin();
             try
             {
-                while( optionDeclIt != OptionDecls.end() )
-                {
+                while( optionDeclIt != OptionDecls.end() ) {
                     if( option->Read( **optionDeclIt, arg, argNo ) )
                         break;
                     ++optionDeclIt;
-                }
-            }
+            }   }
             catch ( Exception& e )
             {
                 e.Add( ALIB_CALLER_NULLED, cli::Exceptions::ParsingOptions,
@@ -134,12 +117,10 @@ void CommandLine::ReadOptions()
             }
 
             // found a declaration?
-            if( option->ConsumedArguments > 0 )
-            {
+            if( option->ConsumedArguments > 0 ) {
                 // shortcut to another option?
                 OptionDecl& decl= *option->Declaration;
-                if( decl.ShortcutReplacementString().IsNotEmpty() )
-                {
+                if( decl.ShortcutReplacementString().IsNotEmpty() ) {
                     arg= decl.ShortcutReplacementString();
                     goto SHORTCUT_JUMP;
                 }
@@ -155,17 +136,12 @@ void CommandLine::ReadOptions()
 
 
             // erase args that start with '-' and put them into field OptionsIgnored.
-            if( ArgsLeft.size() > 0 )
-            {
+            if( ArgsLeft.size() > 0 ) {
                 OptionArgsIgnored.push_back( GetArg(argNo) );
                 ArgsLeft.erase( ArgsLeft.begin() + argIdx );
-            }
-        }
-    }
-}
+}   }   }   }
 
-Option*  CommandLine::GetOption( Enum element )
-{
+Option*  CommandLine::GetOption( Enum element ) {
     for( auto optionIt= Options.rbegin() ; optionIt != Options.rend() ; optionIt ++ )
         if( (*optionIt)->Declaration->Element() == element )
             return *optionIt;
@@ -173,17 +149,14 @@ Option*  CommandLine::GetOption( Enum element )
 }
 
 
-void CommandLine::ReadNextCommands()
-{
+void CommandLine::ReadNextCommands() {
     // loop over all arg indices in ArgsLeft
     bool   lastCommandFullyParsed= true;
-    while( lastCommandFullyParsed &&  ArgsLeft.size() > 0 )
-    {
+    while( lastCommandFullyParsed &&  ArgsLeft.size() > 0 ) {
         // create a command object and search decl with actual argument
         Command* command= allocator().New<Command>(this);
         ALIB_ASSERT_ERROR( CommandDecls.size() > 0,  "CLI", "No commands declared." )
-        for( auto* commandDecl : CommandDecls )
-        {
+        for( auto* commandDecl : CommandDecls ) {
             try
             {
                 lastCommandFullyParsed= command->Read( *commandDecl );
@@ -196,23 +169,17 @@ void CommandLine::ReadNextCommands()
                 throw;
             }
 
-            if( command->ConsumedArguments > 0 )
-            {
+            if( command->ConsumedArguments > 0 ) {
                 CommandsParsed.push_back( command );
                 if( NextCommandIt == CommandsParsed.end() )
                     --NextCommandIt;
                 break;
-            }
-        }
-    }
-}
+}   }   }   }
 
-Command* CommandLine::NextCommand()
-{
+Command* CommandLine::NextCommand() {
     if( NextCommandIt == CommandsParsed.end() )
         ReadNextCommands();
-    if( NextCommandIt == CommandsParsed.end() )
-    {
+    if( NextCommandIt == CommandsParsed.end() ) {
         // check for arguments left which got not recognized
         if( ArgsLeft.size() > 0 )
             throw Exception( ALIB_CALLER_NULLED, cli::Exceptions::UnknownCommand,
@@ -231,8 +198,7 @@ Command* CommandLine::NextCommand()
 }
 
 
-String  CommandLine::PopArg()
-{
+String  CommandLine::PopArg() {
     if( ArgsLeft.size() == 0)
         return NULL_STRING;
 
@@ -241,11 +207,9 @@ String  CommandLine::PopArg()
     return result;
 }
 
-void  CommandLine::RemoveArg( integer argNo )
-{
+void  CommandLine::RemoveArg( integer argNo ) {
     for( auto it= ArgsLeft.begin() ; it != ArgsLeft.end() ; ++it )
-        if( *it == argNo )
-        {
+        if( *it == argNo ) {
             ArgsLeft.erase( it );
             return;
         }
