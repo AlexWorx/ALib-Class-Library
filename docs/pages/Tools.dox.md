@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -15,12 +15,24 @@
 
 
 \I{################################################################################################}
-# 1. Pretty Printers for GNU Debugger (gdb) ## {#alibtools_debug_helpers_gdb}
+# 1\. ALib Resource Compiler # {#alibtools_rc}
+\alib provides a resource compiler that can be used to compile resource files to C++
+bulk-loaded string data. All information of its use is described in the chapter #"alib_camp_rc"
+of the Programmer's Manual of the module \alib_camp.
+
+The tool is a single executable and is preferably build with CMake and is located in the ALox 
+source folder under:
+
+        tools/ResourceCompiler
+        
+
+\I{################################################################################################}
+# 2\. Pretty Printers for GNU Debugger (gdb) ## {#alibtools_debug_helpers_gdb}
 
 GNU debugger supports python scripts that allow the display of complex data types with so-called
 \https{pretty printers,sourceware.org/gdb/onlinedocs/gdb/Pretty-Printing-API.html#Pretty-Printing-API}.
 \alib provides such script for some of its most important classes, for example, all string types,
-class \alib{files;File}, class \alib{variables;Variable} and several more.
+class #"filetree::FTFile", class #"Variable" and several more.
 
 The script is found in the ALox source folder under
 
@@ -38,14 +50,14 @@ To activate the script, under GNU/Linux you need to add the following lines to y
 
     # ALox pretty printers
     python print( ".gdbinit: Inserting ALib/ALox Pretty Printers" )
-    python sys.path.insert(0, "/home/dev/A-Worx/ALib/tools/ideplugins/gdb" )
+    python sys.path.insert(0, "/hub/projects/ALib/tools/ideplugins/gdb" )
     python import alibpp
 
 Be sure to adopt the path to the location of your project directory.
 
 
 \I{################################################################################################}
-# 2. Doxygen Dot-File Fixer # {#alibtools_DoxygenGraphTemplateInstanceRemover}
+# 3\. Doxygen Dot-File Fixer # {#alibtools_DoxygenGraphTemplateInstanceRemover}
 A small tool for patching the diagrams of the \https{Doxygen,https://www.doxygen.nl}
 documentation of \alib.
 The cmake project is found in the ALox source folder under:

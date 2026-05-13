@@ -1,37 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <cmath>
-#include "alib/alib.inl"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format.StdImplementation;
-    import   ALib.Lang;
-    import   ALib.EnumOps;
-    import   ALib.Strings;
-    import   ALib.Exceptions;
-#   if ALIB_CAMP
-      import ALib.Camp.Base;
-#   endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.Format.StdImplementation.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 // For code compatibility with ALox Java/C++
 // We have to use underscore as the start of the name and for this have to disable a compiler
 // warning. But this is a local code (cpp file) anyhow.
@@ -196,11 +162,18 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument() {
         if(  placeholder.Type == PHTypes::Float )
             return true;
 
-        throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
-                         placeholder.ArgIdx + argumentCountStartsWith1,
-                         placeholder.TypeCode, placeholder.Type,
-                         "floating point",  placeholder.Arg->TypeID(),
-                         formatString,      placeholder.TypeCodePosition                           );
+            throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
+                             placeholder.ArgIdx + argumentCountStartsWith1,
+                             placeholder.TypeCode,
+                             placeholder.Type,
+                             "floating point",
+                             formatString,
+                             placeholder.TypeCodePosition
+            #if ALIB_DEBUG
+                , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                ,         placeholder.Arg->TypeID()
+            #endif
+                             );
     }
 
     if(    placeholder.Arg->IsSignedIntegral()
@@ -229,8 +202,13 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument() {
         throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
                          placeholder.ArgIdx + argumentCountStartsWith1,
                          placeholder.TypeCode, placeholder.Type,
-                         "integer",     placeholder.Arg->TypeID(),
-                         formatString,  placeholder.TypeCodePosition               );
+                         "integer",
+                         formatString,  placeholder.TypeCodePosition
+            #if ALIB_DEBUG
+                , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                ,        placeholder.Arg->TypeID()
+            #endif
+                         );
     }
 
     if(   placeholder.Arg->IsCharacter() ) {
@@ -242,8 +220,13 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument() {
         throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
                          placeholder.ArgIdx + argumentCountStartsWith1,
                          placeholder.TypeCode, placeholder.Type,
-                         "character",   placeholder.Arg->TypeID(),
-                         formatString,  placeholder.TypeCodePosition                           );
+                         "character",
+                         formatString,  placeholder.TypeCodePosition
+                #if ALIB_DEBUG
+                    , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                    ,        placeholder.Arg->TypeID()
+                #endif
+                         );
     }
 
     if( placeholder.Type == PHTypes::NotGiven )
@@ -312,8 +295,13 @@ void    FormatterStdImpl::writeStdArgument() {
             else throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
                                  placeholder.ArgIdx + argumentCountStartsWith1,
                                  placeholder.TypeCode, placeholder.Type,
-                                 "Fill",  placeholder.Arg->TypeID(),
-                                 formatString,      placeholder.TypeCodePosition                           );
+                                 "Fill",
+                                 formatString,      placeholder.TypeCodePosition
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
+                                 );
             target->InsertChars( placeholder.FillChar, qty );
         }
         break;
@@ -486,7 +474,9 @@ void    FormatterStdImpl::writeStdArgument() {
 
     // if field mode, we have to append the field buffer as a field to the real target now
     if( target ==  &fieldBuffer )
-        targetString->_<NC>( strings::TField<character>( fieldBuffer, placeholder.Width, placeholder.ValueAlignment, placeholder.FillChar ) );
+        targetString->_<NC>( strings::TField<character>( fieldBuffer, placeholder.Width,
+                                                         placeholder.ValueAlignment,
+                                                         placeholder.FillChar            ) );
 
 }
 

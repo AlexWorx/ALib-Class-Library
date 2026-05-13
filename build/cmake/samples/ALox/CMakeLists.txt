@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Samples
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -20,7 +20,7 @@
 # -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_1]
-    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
+    cmake_minimum_required(VERSION 3.20)
     project("ALox.Samples")
 #! [DOXYGEN_CMAKE_INCLUDE_1]
 
@@ -32,14 +32,14 @@
 #! [DOXYGEN_CMAKE_INCLUDE_2]
     list( APPEND  ALIB_BUILD        "ALOX"       )
 #! [DOXYGEN_CMAKE_INCLUDE_2]
-    #! [DOXYGEN_CMAKE_INCLUDE_3]
+#! [DOXYGEN_CMAKE_INCLUDE_3]
     list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
 #! [DOXYGEN_CMAKE_INCLUDE_3]
 #! [DOXYGEN_CMAKE_INCLUDE_4]
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )
 #! [DOXYGEN_CMAKE_INCLUDE_4]
 #! [DOXYGEN_CMAKE_INCLUDE_5]
-    ALibAddSharedLibrary()
+    ALibAddStaticLibrary()
 #! [DOXYGEN_CMAKE_INCLUDE_5]
 
 # -------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@
 #! [DOXYGEN_CMAKE_INCLUDE_7]
     target_compile_definitions(ALoxSamples PRIVATE ALIB_BASE_DIR="${ALIB_BASE_DIR}")
 #! [DOXYGEN_CMAKE_INCLUDE_8]
-    target_link_libraries     ( ALoxSamples   PRIVATE ALib_SharedLib  )
+    target_link_libraries     ( ALoxSamples   PRIVATE ALib_StaticLib  )
 #! [DOXYGEN_CMAKE_INCLUDE_8]
 
 # -------------------------------------------------------------------------------------------------

@@ -2,25 +2,37 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_EXPRESSIONS_IMPL
 #define H_ALIB_EXPRESSIONS_IMPL
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/expressions/expressions.prepro.hpp"
 
 #if ALIB_EXPRESSIONS
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Expressions.Impl;
-#   elif !defined(ALIB_INC_EXPRESSIONS_IMPL_MPP)
-#       define ALIB_INC_EXPRESSIONS_IMPL_MPP
-#       include "alib/expressions/expressions_impl.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Expressions.H"
 
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Expressions.Impl;
+#else
+#include "alib/expressions/plugins/calculus.hpp"
+#include "alib/expressions/plugins/arithmetics.hpp"
+#include "alib/expressions/plugins/autocast.hpp"
+#include "alib/expressions/plugins/dateandtime.hpp"
+#include "alib/expressions/plugins/elvisoperator.hpp"
+#include "alib/expressions/plugins/math.hpp"
+#include "alib/expressions/plugins/strings.hpp"
+
+#include "alib/expressions/detail/ast_impl.hpp"
+#include "alib/expressions/detail/virtualmachine.hpp"
+#include "alib/expressions/detail/parser_impl.hpp"
+#include "alib/expressions/detail/program.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_EXPRESSIONS
 #endif // H_ALIB_EXPRESSIONS_IMPL

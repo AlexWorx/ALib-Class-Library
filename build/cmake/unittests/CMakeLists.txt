@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -14,7 +14,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
+    cmake_minimum_required(VERSION 3.20)
 
 # -------------------------------------------------------------------------------------------------
 # General
@@ -60,12 +60,13 @@
 ## -------------------------------------------------------------------------------------------------
 
     if ( ${ALIB_GTEST} )
+        set(INSTALL_GTEST  OFF )
         # Fetch GoogleTest
         include(FetchContent)
         #cmake_policy( SET CMP0135 NEW )
         FetchContent_Declare( googletest
                               GIT_REPOSITORY https://github.com/google/googletest.git GIT_TAG  main
-                              URL            "file://${ALIB_BASE_DIR}/tools/googletest-1.15.2.tar.gz"
+                              #URL            "file://${ALIB_BASE_DIR}/tools/googletest-1.15.2.tar.gz"
                               URL_HASH SHA256=7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
                               DOWNLOAD_EXTRACT_TIMESTAMP true
                                                     )
@@ -90,8 +91,6 @@
             target_compile_options ( gtest    PRIVATE -stdlib=libc++)
             target_link_libraries(   gtest    PRIVATE c++)
         endif()
-
-
 
     endif()
 
@@ -145,7 +144,7 @@
 
 
 
-    add_executable             ( ALib_UT    ${ALIB_HPP}
+    add_executable             ( ALib_UT    ${ALIB_MACROS}
                                             ${ALIB_UTESTS_INCS}
                                             ${ALIB_UTESTS_SRCS}  )
 
@@ -157,20 +156,6 @@
     if( ${ALIB_UT_REDUCED_COMPILE_TIME} )
         target_compile_definitions(ALib_UT PRIVATE ALIB_UT_REDUCED_COMPILE_TIME)
     endif()
-
-    if( ${ALIB_UT_MEASURE_COMPILE_TIME} )
-        if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"     )
-            target_compile_options( ALib_UT PRIVATE   "-ftime-trace"    )
-
-            add_custom_command( TARGET ALib_UT  POST_BUILD
-                                COMMAND "/home/dev/tools/ClangBuildAnalyzer-1.5.0/build/ClangBuildAnalyzer"
-                                ARGS --all ${CMAKE_BINARY_DIR} builttime.json )
-            add_custom_command( TARGET ALib_UT  POST_BUILD
-                                COMMAND "/home/dev/tools/ClangBuildAnalyzer-1.5.0/build/ClangBuildAnalyzer"
-                                ARGS --analyze ${CMAKE_BINARY_DIR}/builttime.json )
-        endif()
-    endif()
-
 
     if( NOT APPLE )
         target_link_libraries      ( ALib_UT   PRIVATE ${ALIB_EXTERNAL_LIBS}                    )
@@ -187,12 +172,24 @@
 
     if ( ${ALIB_GTEST} )
         target_compile_definitions( ALib_UT PRIVATE  "ALIB_GTEST"                       )
-#        target_include_directories( ALib_UT PRIVATE   ${gtest_source_dir}/include       )
         target_link_libraries     ( ALib_UT PRIVATE  gtest                              )
     endif()
 
     if (NOT HAVE_STD_FORMAT)
       target_link_libraries(        ALib_UT PRIVATE fmt::fmt)
+    endif()
+
+    if(CMAKE_CROSSCOMPILING AND MINGW)
+        # set a flag (used to skip a few unit-tests)
+        target_compile_definitions(ALib_UT PRIVATE ALIB_MINGW_CROSSCOMPILING=1)
+
+        # disable resource compilation
+        target_compile_definitions(ALib_UT PRIVATE ALIB_CAMP_RESOURCE_COMPILATION=0)
+        if( ${ALIB_UT_USE_STATIC_LIB} )
+            target_compile_definitions(ALib_StaticLib PRIVATE ALIB_CAMP_RESOURCE_COMPILATION=0)
+        else()
+            target_compile_definitions(ALib_SharedLib PRIVATE ALIB_CAMP_RESOURCE_COMPILATION=0)
+        endif()
     endif()
 
     if ( Qt5Core_FOUND )

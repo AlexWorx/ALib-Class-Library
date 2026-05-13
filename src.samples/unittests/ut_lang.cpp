@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -10,9 +10,7 @@
 
 #include "ALib.Lang.H"
 #include "ALib.ALox.H"
-#if !ALIB_SINGLE_THREADED
-#   include   "ALib.Threads.H"
-#endif
+#include "ALib.Threads.H"
 #include <bitset>
 #include <random>
 
@@ -24,9 +22,9 @@ using namespace alib::lang;
 //--------------------------------------------------------------------------------------------------
 //--- Owner Dox Sample
 //--------------------------------------------------------------------------------------------------
-ALIB_WARNINGS_IGNORE_UNUSED_PARAMETER
-ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE
-ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION
+ALIB_ALLOW_UNUSED_PARAMETER
+ALIB_ALLOW_UNUSED_VARIABLE
+ALIB_ALLOW_UNUSED_FUNCTION
 namespace {
 DOX_MARKER([DOX_LANG_OWNER1])
 struct MyAcquirable
@@ -135,9 +133,9 @@ DOX_MARKER([DOX_LANG_CALLER])
 
 
 } // anonymous namespace
-ALIB_WARNINGS_RESTORE
-ALIB_WARNINGS_RESTORE
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
+ALIB_POP_ALLOWANCE
+ALIB_POP_ALLOWANCE
 
 //--------------------------------------------------------------------------------------------------
 //--- CriticalSection tests
@@ -315,29 +313,25 @@ void testBitSetIteration(AWorxUnitTesting& ut,  int const (&bits) [TCapacity])
         bitSet.Set( bits[i] );
 
     size_t idx= 0;
-    for( auto it : bitSet )
-    {
+    for( auto it : bitSet ) {
         UT_EQ( bits[idx++], it.Bit() )
     }
     UT_EQ( idx, TCapacity )
 
     idx= TCapacity;
-    for( auto rit= bitSet.rbegin() ; rit!= bitSet.rend() ; ++rit )
-    {
+    for( auto rit= bitSet.rbegin() ; rit!= bitSet.rend() ; ++rit ) {
         UT_EQ( bits[--idx], (*rit).Bit() )
     }
     UT_EQ( idx, size_t(0) )
 
     idx= 0;
-    for( const auto& it : bitSet )
-    {
+    for( const auto& it : bitSet ) {
         UT_EQ( bits[idx++], it.Bit() )
     }
     UT_EQ( idx, TCapacity )
 
     idx= TCapacity;
-    for( auto rit= bitSet.crbegin() ; rit!= bitSet.crend() ; ++rit )
-    {
+    for( auto rit= bitSet.crbegin() ; rit!= bitSet.crend() ; ++rit ) {
         UT_EQ( bits[--idx], (*rit).Bit() )
     }
     UT_EQ( idx, size_t(0) )
@@ -356,14 +350,14 @@ UT_METHOD(LangMacros)
     UT_INIT()
 
     // test identifier macro. This tests concat macro to be able to expand macros.
-    ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE
+    ALIB_ALLOW_UNUSED_VARIABLE
     int ALIB_IDENTIFIER( intVar );
     int ALIB_IDENTIFIER( intVar );
-    (void) intVar360;
-    (void) intVar361;
+    (void) intVar354;
+    (void) intVar355;
 
     MyAcquirableSampleUse();
-    ALIB_WARNINGS_RESTORE
+    ALIB_POP_ALLOWANCE
 
     #if ALIB_DEBUG_CRITICAL_SECTIONS
     MyCriticalType mct;
@@ -1092,6 +1086,48 @@ UT_METHOD(DbgTypeDemangler)
 }
 
 #endif // ALIB_DEBUG
+
+//--------------------------------------------------------------------------------------------------
+//--- Exceptions
+//--------------------------------------------------------------------------------------------------
+UT_METHOD(Exceptions) {
+
+    UT_INIT()
+    Log_Prune( alib::MemoryLogger memLog; )
+    Log_SetVerbosity(&memLog, Verbosity::Verbose)
+
+try{
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM])
+std::error_code errorCode;
+auto writeTime= std::filesystem::last_write_time( "NonExistingImage.jpg", errorCode );
+if ( errorCode.value() != 0 )
+    throw alib::exceptions::CreateExceptionFromSystemError(ALIB_CALLER_NULLED, errorCode);
+//...
+//...
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM])
+(void) writeTime;
+}
+
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM_CATCH])
+catch (alib::exceptions::Exception& e) {
+    ALIB_LOCK_RECURSIVE_WITH(alib::format::Formatter::DEFAULT_LOCK)
+    Log_Error( "/ERR", "Caught alib::exception: " )
+    Log_Exception( e, Verbosity::Error )
+    //...
+    //...
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM_CATCH])
+    Log_Prune( ut.WriteResultFile( "Exceptions_ExceptionFromSystemError.txt", memLog.MemoryLog, EMPTY_NSTRING ); )
+    Log_Prune(memLog.MemoryLog.Reset());
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM_CATCH2])
+    std::error_code origSystemError= e.begin()->at(3).Unbox<std::error_code>();
+    Log_Error( "/ERR", "{} : {!Q}", origSystemError.value(), origSystemError.message() )
+DOX_MARKER([DOX_EXCEPTION_FROMSYSTEM_CATCH2])
+    Log_Prune( ut.WriteResultFile( "Exceptions_ExceptionFromSystemError2.txt", memLog.MemoryLog, EMPTY_NSTRING ); )
+    (void) origSystemError;
+}
+    Log_RemoveLogger(&memLog)
+
+}
 
 #include "aworx_unittests_end.hpp"
 

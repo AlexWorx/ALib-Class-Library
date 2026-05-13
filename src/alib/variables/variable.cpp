@@ -1,26 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/variables/variables.prepro.hpp"
-#include "ALib.Strings.StdFunctors.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables;
-#else
-#   include "ALib.Variables.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib::variables {
 
 const String&    Variable::substitute( const String&  orig,
@@ -112,12 +89,12 @@ void           Variable::create( const String& typeName, const String& defaultVa
     ALIB_ASSERT_ERROR( it != Tree<Configuration>().types.end(), "VARIABLES",
           "No Meta-Handler found for given variable type \"{}\".\n"
           "Probably the type was not registered during bootstrap.\n"
-          "Use macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
-                    "'PrepareConfig' to register your custom types.", typeName)
+          "Use the macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
+          "'PrepareConfig' to register your custom types.", typeName)
     auto*  meta= Cursor::Value().meta= *it;
 
   //-------------------------------------------- declare -------------------------------------------
-    Cursor::Value().data    =  reinterpret_cast<detail::VDATA*>(Tree<Configuration>().Pool().Alloc( meta->size(), alignof(detail::VDATA)));
+    Cursor::Value().data    =  static_cast<detail::VDATA*>(Tree<Configuration>().Pool().Alloc( meta->size(), alignof(detail::VDATA)));
     meta->construct(Cursor::Value().data, Tree<Configuration>().Pool );
     Cursor::Value().priority= Priority::NONE;
 
@@ -148,15 +125,14 @@ void           Variable::create( const String& typeName, const String& defaultVa
     auto cursor= Tree<Configuration>().Root();
     if(     cursor.GoToChild(A_CHAR("$PRESETS"))
         &&  cursor.GoTo(varName).IsEmpty()
-        &&  cursor->meta != nullptr              )
+        &&  cursor->meta != nullptr
+        &&  cursor->priority > Value().priority    )
     {
         ALIB_ASSERT_ERROR( Variable(cursor).GetString().IsNotNull(), "VARIABLES",
-                   "Internal error. This must never happen. ")
-        ALIB_ASSERT_ERROR( Cursor::Value().priority == Priority::NONE, "VARIABLES",
-                   "Internal error. This must never happen. ")
+                                                        "Internal error. This must never happen. ")
         StringEscaper voidEscaper;
         auto* escaper= cursor->declaration ? reinterpret_cast<const StringEscaper*>( cursor->declaration )
-                                                  : &voidEscaper;
+                                           : &voidEscaper;
         Cursor::Value().priority= cursor->priority;
         String512 substBuf;
         Cursor::Value().meta->imPort( Cursor::Value().data,
@@ -204,7 +180,7 @@ Variable&      Variable::Declare( const String& name        , const String& type
               ALIB_ERROR( "VARIABLES",
                 "No Meta-Handler found for given variable type \"{}\".\n"
                 "Probably the type was not registered during bootstrap.\n"
-                "Use macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
+                "Use the macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
                 "'PrepareConfig' to register your custom types.", typeName )
             }
             if( *it != Cursor::Value().meta ) {
@@ -245,8 +221,8 @@ Variable&      Variable::Declare( const Declaration* decl ) {
               ALIB_ERROR( "VARIABLES",
               "No Meta-Handler found for given variable type \"{}\".\n"
               "Probably the type was not registered during bootstrap.\n"
-              "Use macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
-                    "'PrepareConfig' to register your custom types.",  GetDeclaration()->typeName)
+              "Use the macro ALIB_VARIABLES_REGISTER_TYPE in bootstrap phase "
+              "'PrepareConfig' to register your custom types.",  GetDeclaration()->typeName)
             }
         #endif
         return *this;

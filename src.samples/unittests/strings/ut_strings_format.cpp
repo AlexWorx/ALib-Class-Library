@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -1033,7 +1033,7 @@ UT_METHOD( TestFormatterJavaStyle )
     nfBackup.Set( &formatterJS.DefaultNumberFormat );
 
     //===== Simple initial tests =========
-    checkError (ut, FMTExceptions::IncompatibleTypeCode     , "FLoat as int: %d", 3.1    );
+    checkError (ut, FMTExceptions::IncompatibleTypeCode     , "Float as int: %d", 3.1    );
 
     checkFormat(ut,   "No JSF"                              , ""               , "No JSF"        );
     checkFormat(ut, "%%No JSF"                              , "%%"             , "No JSF"        );
@@ -1695,9 +1695,9 @@ UT_METHOD( TestFormatterPythonStyle )
     //===== h/H Hash Code (extension to Python format spec) =========
     // Not testable since built-in box-function FHashcode was introduced.
     // checkFormat(ut,    "ff"            , "{:h}"                    , 255);
-    // checkFormat(ut,  "0xff"            , "{:#h}"                   , 255);
+    // checkFormat(ut,  "0xff"            , "{:#"h"}"                 , 255);
     // checkFormat(ut,    "FF"            , "{:H}"                    , 255);
-    // checkFormat(ut,  "0xFF"            , "{:#H}"                   , 255);
+    // checkFormat(ut,  "0xFF"            , "{:#"H"}"                 , 255);
 
     //===== DateTime/calendar =========
 #if ALIB_CAMP
@@ -1843,10 +1843,10 @@ UT_METHOD( TestFormatterPythonStyle )
 
 
     // alignment
-    checkFormat(ut,  "#x  #"                , "#{:<3}#"         , L"x"    );
-    checkFormat(ut,  "# x #"                , "#{:^3}#"         , L"x"    );
-    checkFormat(ut,  "#  x#"                , "#{:>3}#"         , L"x"    );
-    checkFormat(ut,  "#1234#"               , "#{:^3}#"         , L"1234" );
+    checkFormat(ut,  "#x  #"               , "#{:<3}#"      , L"x"    );
+    checkFormat(ut,  "# x #"               , "#{:^3}#"      , L"x"    );
+    checkFormat(ut,  "#  x#"               , "#{:>3}#"      , L"x"    );
+    checkFormat(ut,  "#1234#"              , "#{:^3}#"      , L"1234" );
 
 
 

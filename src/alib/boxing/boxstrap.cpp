@@ -1,67 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <cmath>
-#include <functional>
-#include <cstring>
-#include <typeindex>
-#include <span>
-
-#   include "ALib.Lang.H"
-#   include "ALib.Characters.Functions.H"
-#   include "ALib.Time.H"
-#   include "ALib.Threads.H"
-#   include "ALib.Monomem.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Token.H"
-#   include "ALib.Singletons.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.ThreadModel.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.System.H"
-#   include "ALib.Format.H"
-#   include "ALib.Format.StdImplementation.H"
-#   include "ALib.Format.FormatterPythonStyle.H"
-#   include "ALib.Format.FormatterJavaStyle.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Variables.IniFile.H"
-#   include "ALib.BitBuffer.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Bootstrap.H"
-#   include "ALib.CLI.H"
-#   include "ALib.Expressions.H"
-#   include "ALib.ALox.Impl.H"
-#   include "ALib.Files.H"
-
-#if ALIB_DEBUG && !DOXYGEN
-namespace alib::boxing::debug {
-    // This is used by boxing::Bootstrap to do a runtime-check for compatibility of boxing
-    // and long double values.
-    // It was put here to prevent the compiler to optimize and remove the code.
-    extern  long double LONGDOUBLE_WRITE_TEST_MEM[2];
-extern  void LongDoubleTrueLengthSet();
-extern  bool LongDoubleTrueLengthTest();
-}
-#endif
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Boxing;
-#endif
-//========================================== Implementation ========================================
 
 //##################################################################################################
 // Anonymous methods needed for Bootstrap()
@@ -574,6 +510,7 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
 
     // Static VTables for standard types
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_std_type_info )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_std_errc      )
 
     // CodeMarker_CommonEnums
     // Static VTables for low-level ALib types
@@ -619,8 +556,12 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_strings_token )
     #endif
 
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER  ( vt_boxing_tboxes )
+
+    #if ALIB_BITBUFFER
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_bitb_algo           )
+    #endif
     #if ALIB_SYSTEM
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_systemerrors )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_path         )
     #endif
     #if ALIB_EXCEPTIONS
@@ -629,17 +570,17 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
     #if ALIB_VARIABLES
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_priorities   )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_exceptions   )
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_variable       )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_variable     )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_constcursor  )
     #endif
     #if ALIB_FORMAT
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_fmtexceptions)
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_iec )
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_si  )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_fmtexceptions       )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_iec   )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_si    )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_units )
     #endif
 
-    #if ALIB_CLI
+    #if ALIB_APP
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_cli_exceptions )
     #endif
 
@@ -654,7 +595,7 @@ DOX_MARKER([DOX_BOXING_OPTIMIZE_REGISTER_2])
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_exceptions )
     #endif
 
-    #if ALIB_FILES
+    #if ALIB_FILETREE
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_cursor       )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_perms  )
       ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_files_type   )
@@ -958,6 +899,8 @@ IF_ALIB_MONOMEM(
       #endif
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lang::CallerInfo* )
     #endif
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( std::errc )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( std::error_code)
 
     #if ALIB_FORMAT
     boxing::BootstrapRegister< format::FFormat, time::DateTime   >(format::FFormat_DateTime);
@@ -972,7 +915,6 @@ IF_ALIB_MONOMEM(
     #endif
 
     #if ALIB_SYSTEM && ALIB_EXCEPTIONS
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(  system::SystemErrors    )
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(  system::Path*           )
     #endif
 
@@ -983,22 +925,22 @@ IF_ALIB_MONOMEM(
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::Pair<Verbosity ALIB_COMMA Priority>)
     #endif
 
-    #if ALIB_CLI
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( cli::Exceptions )
+    #if ALIB_APP
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( app::CLIExceptions )
     #endif
     #if ALIB_EXPRESSIONS
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::Exceptions )
     #endif
 
-    #if ALIB_FILES
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::files::File )
-    alib::boxing::BootstrapRegister<alib::format::FFormat, files::File >( files::FFormat_File );
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Types             )
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames1Letter  )
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames2Letters )
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::TypeNames3Letters )
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Qualities )
-    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FInfo::Qualities3Letters )
+    #if ALIB_FILETREE
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::filetree::FTFile )
+    alib::boxing::BootstrapRegister<alib::format::FFormat, filetree::FTFile >( filetree::FFormat_File );
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FileStatus::Types             )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FTValue::TypeNames1Letter  )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FTValue::TypeNames2Letters )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FTValue::TypeNames3Letters )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FTValue::ScanStates )
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( FTValue::ScanStates3Letters )
     #endif
 
 
@@ -1021,8 +963,7 @@ IF_ALIB_MONOMEM(
 //       If not, no check is performed.
 #if ALIB_DEBUG_BOXING
 
-void debug::DbgCheckIsInitialized()
-{
+void debug::DbgCheckIsInitialized() {
     // ERROR: A global or static instance of class Box is created and initialized to a
     //        mapped type that uses a dynamic vtable. This is forbidden.
     //        See chapter "12.4 Global And Static Box Instances" of the Programmer's Manual
@@ -1030,8 +971,7 @@ void debug::DbgCheckIsInitialized()
     assert( initFlag == 0x92A3EF61 ); // magic number
 }
 
-void debug::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCounter )
-{
+void debug::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCounter ) {
     if( vtable==nullptr)
         return;
 
@@ -1043,11 +983,11 @@ void debug::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCoun
 
     if( !vtable->IsArray() )
         ALIB_ERROR( "BOXING", "Static VTable of mapped type <{}> not registered.\n"
-            "Use Macro ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER with bootstrapping.",
+            "Use the macro ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER with bootstrapping.",
             &vtable->Type )
     else
         ALIB_ERROR( "BOXING", "Static VTable of mapped type <{}[]> not registered.\n"
-            "Use Macro ALIB_BOXING_REGISTER_MAPPED_ARRAY_TYPE with bootstrapping.",
+            "Use the macro ALIB_BOXING_REGISTER_MAPPED_ARRAY_TYPE with bootstrapping.",
             &vtable->ElementType)
 }
 #endif

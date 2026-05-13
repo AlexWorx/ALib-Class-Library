@@ -1,6 +1,6 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -12,7 +12,6 @@
 #include <vector>
 #include "ALib.Monomem.H"
 #include "ALib.Strings.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Compatibility.StdBoxtraits.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.Boxing.H"
@@ -249,7 +248,7 @@ bool ProcessBox( const Box& box )
     // Unknown type
     cout << "Warning: unknown type given!"  << endl;
 
-    // With the compiler-symbol ALIB_DEBUG_BOXING set, we can use a helper-class to display the
+    // With the configuration macro ALIB_DEBUG_BOXING set, we can use a helper-class to display the
     // given type name in the warning.
     #if ALIB_DEBUG_BOXING
         cout << "  Type given: " << boxing::debug::TypeName( box.DbgGetVTable() ) << endl;

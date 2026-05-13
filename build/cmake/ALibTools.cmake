@@ -1,7 +1,7 @@
 # #################################################################################################
 #  ALibTools.cmake - CMake Tools for projects using ALib
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
@@ -16,12 +16,12 @@
 # This methods may be used when resource files like texts, json data or images have to be copied
 # to the target build directory. The use is simple and done as follows:
 #
-# 1. Create a LIST variable that holds one or more directory names with file wildcards, used for
+# 1\. Create a LIST variable that holds one or more directory names with file wildcards, used for
 #    "globbing" the resource files, for example:
 #
 #       list( append MY_PROJECT_RESOURCE_FILES     ../../resources/res_*.img    )
 #
-# 2. After the executable (or library) is defined with cmake (add_executable or add_library),
+# 2\. After the executable (or library) is defined with cmake (add_executable or add_library),
 #    insert the following invocation of this method:
 #
 #       AddResourceTarget( my_resources_target   my_target   ${MY_PROJECT_RESOURCE_FILES})
@@ -32,7 +32,7 @@
 # -------------------------------------------------------------------------------------------------
 FUNCTION( AddResourceTarget  resourceProjectName  targetName resourceFileFilters)
 
-    #message(STATUS "### AddResourceTarget() ###")
+    #message(STATUS "====== AddResourceTarget() ======")
     #message(STATUS "resourceProjectName   : ${resourceProjectName}")
     #message(STATUS "targetName            : ${targetName}")
     #message(STATUS "resourceFilter        : ${resourceFilter}")
@@ -81,7 +81,7 @@ ENDFUNCTION(AddResourceTarget)
 # CMake is not easy to understand for humans. Therefore, two recepies should be given here, as
 # it took us a while to understand that (or rather: to make it work).
 #
-# 1. How to create a variable in the parent scope:
+# 1\. How to create a variable in the parent scope:
 #    - Have a function parameter that specifies the name (!) of the variable.
 #    - Use an own local variable to create the result value.
 #    - At the end, before the function returns, assign the local variable into the global
@@ -94,7 +94,7 @@ ENDFUNCTION(AddResourceTarget)
 #                   SET( ${resultVarName}  ${resultVar}   PARENT_SCOPE)
 #             ENDFUNCTION( SetHello )
 #
-# 2. How to modify an existing variable from the parent scope:
+# 2\. How to modify an existing variable from the parent scope:
 #    - Have a function parameter that specifies the name (!) of the existing variable.
 #    - Copy the contents of the existing variable into a local one. This has to be done with
 #      a nested ${} operator! (Yes, when you think about it...)

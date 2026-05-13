@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -10,7 +10,7 @@
 
 \tableofcontents
 
-# 1. Introduction # {#alib_format_intro}
+# 1\. Introduction # {#alib_format_intro}
 This \alibmod provides string formatting facilities by implementing an approach that is common
 to many programming languages and libraries. This approach offers an interface that includes the
 use of a <em>"format string"</em> containing placeholders. Besides this format string, a list of
@@ -27,12 +27,12 @@ custom formatting syntax for placeholders of a custom argument type.
 
 While it is possible to implement a formatter providing a custom placeholder syntax, two very
 prominent ones are built-in with formatters:
-- \alib{format;FormatterJavaStyle;FormatterJavaStyle}<br>
+- #"format::FormatterJavaStyle"<br>
   Implements the syntax provided with the formatter included with the core class libraries of the
-  JAVA programming language. This syntax is an extension of the good old \c printf format string
+  Java programming language. This syntax is an extension of the good old \c printf format string
   style.
 
-- \alib{format;FormatterPythonStyle;FormatterPythonStyle}<br>
+- #"format::FormatterPythonStyle"<br>
   Implements the syntax provided with the formatter included with the core class libraries of the
   Python programming language. This syntax is very powerful and flexible in respect to the provision
   of syntax extensions for custom types.<br>
@@ -49,7 +49,7 @@ one of these styles!<br>
   have been introduced.
   Class \b AString of the underlying module \alib_strings supports the direct use of such
   formatters to write into its buffer.
-  This mechanism is explained in the chapter \ref alib_strings_stdformat of the Programmer's
+  This mechanism is explained in the chapter #"alib_strings_stdformat" of the Programmer's
   Manual of that module.
   
 \note
@@ -66,7 +66,7 @@ one of these styles!<br>
   that both have their good reason for existence.
 
 \I{################################################################################################}
-# 2. Using The Formatters # {#alib_format_using}
+# 2\. Using The Formatters # {#alib_format_using}
 
 By leveraging module \alib_boxing, which implies the use of variadic template arguments,
 the invocation of the final format method is as simple as it is possible. The following
@@ -79,7 +79,7 @@ This produces the following result:
 \snippet "DOX_SF_USING_1.txt"     OUTPUT
 
 Values of or pointers to any type that is "boxable" may be passed as an argument to method
-\alib{format;Formatter::Format}. The specific implementation of the formatter will
+#"Formatter::Format;*". The specific implementation of the formatter will
 match the "placeholder type" with the given argument type and format the argument according to
 the placeholder attributes.
 
@@ -98,8 +98,8 @@ With that information, the following code can be written:
 
 \note
   While the first formatter is a simple local object (stack allocated), the second formatter is
-  created on the heap (keyword \c new) then stored in field \alib{format::Formatter;Next}
-  of the first formatter. This field is of type \alib{SPFormatter}, which is an alias for
+  created on the heap (keyword \c new) then stored in field #"Formatter::Next"
+  of the first formatter. This field is of type #"SPFormatter", which is an alias for
   <c>std::shared_ptr<Formatter></c>, hence a C++ standard "smart pointer" that deletes it's
   contained object automatically with the deletion of the last referrer.
   Only in later chapters it will be explained why it is the preferred method to manage \alib formatter
@@ -122,7 +122,7 @@ This is obviously not what we wanted, but then it also did not produce an except
 included the second argument, <b>"Python"</b> in the output. While exceptions are discussed in a
 later chapter only, the reason that no exception is thrown here is simply explained: The first
 formatter in the chain, which we defined as type
-\alib{format;FormatterJavaStyle;FormatterJavaStyle}, identified the format string by
+#"format::FormatterJavaStyle", identified the format string by
 reading <b>"%s"</b>. It then "consumes" this string along with as many subsequent arguments as
 placeholders are found in the format string. This number is just one, as the placeholder <b>"{}"</b> is
 not recognized by this formatter.
@@ -144,16 +144,16 @@ just appended to the target string "as is".
 \note
   For users who are familiar with modules \alib_boxing and \alib_strings: The words
   "appending as is", here means, that the remaining argument is appended to the target string in a
-  \ref alib_strings_assembly_ttostring "type-specific way".
-  Because all arguments are of the same type, namely \alib{boxing;Box}, this in turn means that
-  box-function \alib{boxing;FAppend} is invoked on the box, which just performs
-  the \ref alib_strings_assembly_ttostring "type-dependent string conversion".
+  #"alib_strings_assembly_ttostring;type-specific way".
+  Because all arguments are of the same type, namely #"Box", this in turn means that
+  box-function #"FAppend" is invoked on the box, which just performs
+  the #"alib_strings_assembly_ttostring;type-dependent string conversion".
 
 In fact, for this last operation, none of the two formatters became active.
-The trick here is that the abstract base class, \alib{format;Formatter} already implements
+The trick here is that the abstract base class, #"format::Formatter" already implements
 method \b Format. This implementation loops over all arguments. It checks if the current first
 argument is a string recognized as a format string by any of the chained formatters. If it is not,
-this argument is just \ref alib_strings_assembly_ttostring "appended" to the target string and the
+this argument is just #"alib_strings_assembly_ttostring;appended" to the target string and the
 loop continues with the next argument in the list.<br>
 If a format string is identified, control is passed to the corresponding formatter that consumes as
 many further arguments as placeholders are found in that format string, and then passes control back
@@ -187,18 +187,18 @@ format string? Some sound rationale for the loop is given in the next section.
 ## 2.3 Decoupled Format Argument Collection ## {#alib_format_using_argcoll}
 
 Method \b %Format collects the variadic template arguments to an internally allocated container
-of type \alib{boxing;TBoxes}. This container is then passed to the internal format loop.
+of type #"TBoxes". This container is then passed to the internal format loop.
 
 Alternatively, user code may perform the collection of format arguments in a container object
 "manually". In this case, the formatter is invoked with one of the two overloaded methods
-\alib{format;Formatter::FormatArgs}.
+#"Formatter::FormatArgs(AString&)".
 For this, either an external container can be used, or the internal container may be received with
-the method \alib{format;Formatter::GetArgContainer}. The latter case saves allocation effort
+the method #"Formatter::GetArgContainer;*". The latter case saves allocation effort
 as the returned vector is never freed but reused instead. However, a user must be aware of
 racing conditions in multithreaded software, especially when working with the global instance
-\alib{format;Formatter::Default}.<br>
-External containers might of course also be of derived type, for example, type
-\alib{exceptions;Message} may be passed.
+#"Formatter::DEFAULT;*".<br>
+External containers might, of course, also be of derived type — for example, type
+#"Message" may be passed.
 
 With this knowledge it becomes obvious that the collection of formatting arguments can be
 "decoupled" from the invocation of the formatter. Note that the argument list may include zero,
@@ -221,13 +221,13 @@ conditions.
 
 In the previous samples, a local instance of a formatter (or two) has been created.
 For general purpose use, this module provides a global pair of (concatenated) formatters
-which are accessible static member \alib{format;Formatter::Default}.
+which are accessible static member #"Formatter::DEFAULT;*".
 
-The formatter is embedded in "automatic pointer type" \alib{SPFormatter}, which builds on
-\alib{containers;SharedPtr}.
-During \ref alib_mod_bs "bootstrapping" of the library, a formatter of type
-\alib{format;FormatterPythonStyle;FormatterPythonStyle} is created with a concatenated
-object of \alib{format;FormatterJavaStyle;FormatterJavaStyle}.
+The formatter is embedded in "automatic pointer type" #"SPFormatter", which builds on
+#"SharedPtr".
+During #"alib_mod_bs;bootstrapping" of the library, a formatter of type
+#"format::FormatterPythonStyle" is created with a concatenated
+object of #"format::FormatterJavaStyle".
 
 One obvious rationale for the provision of these default formatters is to save resources by
 reusing the formatter instances in different parts of an application.
@@ -238,9 +238,9 @@ such a setting could be performed with the bootstrap of the library once and for
 a process.
 
 With multithreaded software, the default-formatter is to be locked using mutex
-\alib{format;Formatter::DefaultLock}.
+#"Formatter::DEFAULT_LOCK;*".
 This is asserted in debug-compilations, as described in detail in chapter
-\ref alib_threads_intro_assert_locks of the Programmer's Manual of module \alib_threads.
+#"alib_threads_intro_assert_locks" of the Programmer's Manual of module \alib_threads.
 
 \I{################################################################################################}
 ## 2.5 Cloning Formatters ## {#alib_format_using_clone}
@@ -250,7 +250,7 @@ The built-in formatters do have such default settings.
 
 If software unit wishes to change some settings, the advised approach is as follows:
 - Retrieve the default formatter(s)
-- Create a clone of the default formatter(s) by invoking \alib{format;Formatter::Clone}.
+- Create a clone of the default formatter(s) by invoking #"Formatter::Clone;*".
 - Change the default settings of the cloned formatter.
 - Use the cloned formatter.
 
@@ -258,10 +258,9 @@ With this procedure, any changes that an application applied to the default form
 bootstrap) will remain valid in the cloned formatters in addition to the "local" changes, while the
 default formatters remain untouched.
 
-For example, built-in formatters provide in fields
-\alib{format::FormatterStdImpl;DefaultNumberFormat} and
-\alib{format::FormatterStdImpl;AlternativeNumberFormat} to reflect some default behavior of
-their formatting syntax.<br>
+For example, built-in formatters provide the fields #"Formatter::DefaultNumberFormat" and
+#"Formatter::AlternativeNumberFormat" to reflect some default behavior of their formatting 
+syntax.<br>
 The attributes of these members might be modified to change those defaults.
 While this leads to a deviation of the formatting standard, it may be used instead of providing
 corresponding syntactic information within the placeholder field of every format string.
@@ -269,14 +268,14 @@ Some modifications may not even be possible with the given format specification 
 
 \I{################################################################################################}
 ## 2.6 Exceptions ## {#alib_format_using_exceptions}
-The simple samples shown so far used correct format strings. In case of errorneous format strings,
-the built-in formatters will throw an \alib \alib{exceptions;Exception} defined with enumeration
-\ref alib::format::FMTExceptions.
+The simple samples shown so far used correct format strings. In case of erroneous format strings,
+the built-in formatters will throw an \alib #"exc Exception" defined with enumeration
+#"alib::format::FMTExceptions".
 
 While in the case of "hard-coded" format strings, such exceptions are not needed to be caught,
 their evaluation (with debug-builds) might be very helpful for identifying what is wrong.
 Of course, when format strings are not hard-coded but instead can be provided by the users
-of software (for example, in configuration files or command line parameters), a <c>try/catch</c>
+of software (for example, in configuration files or command-line parameters), a <c>try/catch</c>
 block around formatting invocations is a mandatory thing, also in release compilations.
 
 The following sample shows how an exception can be caught and its description may be written
@@ -295,24 +294,24 @@ exception's description.
 \I{################################################################################################}
 ## 2.7 Escape Sequences In Format Strings ## {#alib_format_using_escapes}
 
-Escape characters, like, for example, <c>"\t"</c>, <c>"\n"</c> or <c>\"\\\\\"</c> might be given with
-either one or two backslashes.
+Escape characters, like, for example, <c>"\t"</c>, <c>"\n"</c> or <c>\"\\\\\"</c> might be given 
+with either one or two backslashes.
 The formatters will convert them to the corresponding ASCII code, if the backslash itself is escaped.
 
-Class \alib{format;FormatterPythonStyle;FormatterPythonStyle} recognizes
+Class #"format::FormatterPythonStyle" recognizes
 double curly braces <c>"{{"</c> and <c>"}}"</c> and converts them to a single brace.
-Similar to this, class \alib{format;FormatterJavaStyle;FormatterJavaStyle} recognizes
+Similar to this, class #"format::FormatterJavaStyle" recognizes
 <c>"%%"</c> and converts it to a single percentage symbol.
 
 \I{################################################################################################}
-# 3. Formatting Custom Types # {#alib_format_custom_types}
+# 3\. Formatting Custom Types # {#alib_format_custom_types}
 
 As we have seen, the use of module \alib_boxing allows the formatters of this module to accept
 any third-party data type as formatting arguments. The formatters of course are enabled to "convert"
 all C++ fundamental types to strings. But how about custom types?
 
 The solution for custom conversion is given with the support of
-\ref alib_boxing_functions "\"box-functions\"", which implement a sort of "virtual function call"
+#"alib_boxing_functions;\"box-functions\"", which implement a sort of "virtual function call"
 on boxed types.<br>
 There are two box-functions that the built-in formatters are using.
 
@@ -320,12 +319,12 @@ There are two box-functions that the built-in formatters are using.
 ## 3.1 Box-Function FAppend ## {#alib_format_custom_types_iappend}
 
 By default, the very simple box-function that is used by the built-in formatters for converting
-arbitrary types to string values, is \alib{boxing;FAppend}.
+arbitrary types to string values, is #"FAppend".
 This function is one of the built-in functions of module \alib_boxing and this way is not
 specific to this module \alib_format_nl.
 
 Usually this function's implementation just unboxes the corresponding type and
-\alib{strings;AppendableTraits;appends} the object to the target string.<br>
+#"strings::AppendableTraits;appends" the object to the target string.<br>
 Let as look at an example. The following struct stores a temperature in Kelvin:
 
 \snippet "DOX_FORMAT.cpp"     DOX_SF_CUSTOM_APPEND_0
@@ -333,7 +332,7 @@ Let as look at an example. The following struct stores a temperature in Kelvin:
 If an object of this class is used with a formatter without any further preparation, the
 default implementation of function \b %FAppend is invoked, which writes the memory address of the
 given object. In debug-compilations, this implementation in addition writes the boxed type's name
-(platform-dependent and implemented with class \alib{lang;DbgTypeDemangler}). This is shown in the
+(platform-dependent and implemented with class #"DbgTypeDemangler"). This is shown in the
 following code and output snippet:
 
 \snippet "DOX_FORMAT.cpp"     DOX_SF_CUSTOM_APPEND_1
@@ -341,7 +340,7 @@ following code and output snippet:
 \verbinclude "DOX_SF_CUSTOM_APPEND_1.txt"
 
 The first step to implement function \b %FAppend for sample type \b %Kelvin is to specialize
-functor \alib{strings;AppendableTraits} for the type:
+functor #"AppendableTraits" for the type:
 
 \snippet "DOX_FORMAT.cpp"     DOX_SF_CUSTOM_APPEND_2
 
@@ -353,7 +352,7 @@ With that in place, it is possible to apply an object of this type to an AString
 
 Now, we can easily implement box-function \b %FAppend, because for types that are "appendable" already,
 this is done with just a simple macro that has to be placed in the
-\ref alib_mod_bs "bootstrap section" of software:
+#"alib_mod_bs;bootstrap section" of software:
 
 \snippet "DOX_FORMAT.cpp"     DOX_SF_CUSTOM_APPEND_4
 
@@ -372,11 +371,11 @@ class can now already be used with formatters:
 
 To summarize this section, some bullet points should be given:
 - Independent of this module \alib_format_nl and the formatters defined here,
-  class \alib{strings;TAString;AString} provides a concept based on template
-  \ref alib_manual_appendix_tca "type traits" allowing to
-  \ref alib_strings_assembly_ttostring "append objects of arbitrary type" to strings.
+  class #"^AString" provides a concept based on template
+  #"alib_manual_appendix_tca;type traits" allowing to
+  #"alib_strings_assembly_ttostring;append objects of arbitrary type" to strings.
 - With the availability of module \alib_boxing, a box-function named \b FAppend is established
-  that is invoked at the moment an instance of class \alib{boxing;Box} is <em>appended</em>
+  that is invoked at the moment an instance of class #"Box" is <em>appended</em>
   to an \b %AString.
 - By defining a specialized version of this function for a custom type, boxed values of the
   custom type can be appended to an \b %AString.
@@ -395,7 +394,7 @@ The given approach using box-function \b %FAppend is quite limited in that respe
 format string no attributes might be given that determine how to format a custom type.
 With the sampled temperature type \b "Kelvin", the output format was in celsius with one decimal
 digits. If we wanted to allow Fahrenheit as an alternative output, we need to implement boxing
-function \alib{format;FFormat}, which was specifically created for this purpose and
+function #"FFormat", which was specifically created for this purpose and
 consequently is defined in this module.
 
 \note
@@ -435,11 +434,11 @@ The following output is produced.
 
 
 As a second sample, we want to look at the internal implementation of formatting date and time values.
-\alib class \alib{strings::util;CalendarDateTime} provides (native) method
-\alib{strings::util::CalendarDateTime;Format} to write time and date values in a human-readable and customizable
+\alib class #"util::CalendarDateTime" provides (native) method
+#"CalendarDateTime;Format" to write time and date values in a human-readable and customizable
 way. This method also requires a format specification.
 Now, this helper-class is used to implement \b %FFormat for boxed arguments of type
-\alib{time;DateTime}, which is given with class \alib{format;FFormat_DateTime}.
+#"time::DateTime", which is given with class #"FFormat_DateTime".
 Due to the existence of the helper-class, the implementation of the function is therefore rather
 simple:
 
@@ -447,7 +446,7 @@ simple:
 
 
 \I{################################################################################################}
-# 4. Custom Formatters # {#alib_format_custom_formatters}
+# 4\. Custom Formatters # {#alib_format_custom_formatters}
 
 To implement a custom formatter that uses a custom format string syntax, no detailed
 manual or step-by-step sample is given here. Instead, just some hints as bullet points should
@@ -456,29 +455,29 @@ be enough:
 - The typical use-case for implementing a custom format string is to mimic an existing formatter
   of a different programing language or different C++ library, to be able to reuse the formatting
   strings, which might be resourced and shared between different implementations of software.
-- The built-in formatters both use "intermediate" class \alib{format;FormatterStdImpl}
+- The built-in formatters both use "intermediate" class #"FormatterStdImpl"
   as a base class. This class might be used for custom formatters as well, as it already implements
   a skeleton that has to be completed by implementing a set of specific abstract methods.
 - It is recommended to review (and copy) the sources of one of the given formatter implementations.
-  While \alib{format;FormatterPythonStyle;FormatterPythonStyle} is by far the more
-  powerful implementation, class \alib{format;FormatterJavaStyle;FormatterJavaStyle}
+  While #"format::FormatterPythonStyle" is by far the more
+  powerful implementation, class #"format::FormatterJavaStyle"
   might be less complicated to start with.
 - A thorough understanding of modules \alib_boxing and \alib_strings is a precondition
   for the implementation of a custom formatter.
 
 
 \I{################################################################################################}
-# 5. Further Types Provided By This Module # {#alib_format_othertypes}
+# 5\. Further Types Provided By This Module # {#alib_format_othertypes}
 
 Besides the formatter classes that have been discussed in this Programmer's Manual, module
 \alib_format_nl provides a few other types, which make use of the formatters.
 
 As of today, these types are
-- \alib{format;ByteSizeSI},
-- \alib{format;ByteSizeIEC},
-- \alib{format;Paragraphs},
-- \alib{format;PropertyFormatter} and
-- \alib{format;PropertyFormatters}.
+- #"ByteSizeSI",
+- #"ByteSizeIEC",
+- #"Paragraphs",
+- #"PropertyFormatter" and
+- #"PropertyFormatters".
 
 Please consult the class's extensive reference documentation for more information about the
 features and use of these types.

@@ -1,0 +1,10 @@
+# ##################################################################################################
+#  DoxygenXLinks Exclamation file for ALib
+#
+#  Copyright 2025-2026 A-Worx GmbH, Germany
+#  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+#
+#  Note: This file is read by the DoxygenXLinks tool to define exclamation marks for XLinks.
+# ##################################################################################################
+
+# No exclamation needed for this project

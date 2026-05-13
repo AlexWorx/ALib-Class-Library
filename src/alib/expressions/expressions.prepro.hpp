@@ -2,19 +2,19 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_EXPRESSIONS_PP
 #define HPP_ALIB_EXPRESSIONS_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 #if ALIB_EXPRESSIONS
 
 //##################################################################################################
-// Symbols introduced by module ALib.Expressions
+// Macro  introduced by module ALib.Expressions
 //##################################################################################################
 #if ALIB_DEBUG
     #define CALCULUS_CALLBACK(func)     func, ALIB_NSTRINGIFY(func)

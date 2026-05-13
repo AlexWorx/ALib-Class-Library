@@ -9,7 +9,6 @@
 #include "ALib.ALox.Impl.H"
 #include "ALib.Camp.Base.H"
 #include "ALib.Variables.IniFile.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Bootstrap.H"
 
 #include <iostream>
@@ -106,11 +105,11 @@ void PerformanceTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
-                                    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priority::Protected   )
-    Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priority::Protected   ) )
-                                    Log_SetVerbosity( &ml,              Verbosity::Verbose, "/MEM", Priority::Protected   )
+                                    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Off    , "/MEM", Priority::Protected   )
+    Log_Prune( if (Log::IDE_LOGGER) Log_SetVerbosity( Log::IDE_LOGGER  , Verbosity::Off    , "/MEM", Priority::Protected   ) )
+                                    Log_SetVerbosity( &ml,               Verbosity::Verbose, "/MEM", Priority::Protected   )
 
     Log_Info( "Logging simple info lines" )
 
@@ -254,7 +253,7 @@ void LogColors()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     cout << "cout: Colorful logging:" <<  endl;
 
@@ -317,7 +316,7 @@ void WCharTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_SetDomain( "WCHAR", Scope::Method )
 
@@ -345,7 +344,7 @@ void textFileLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Creating a text file logger with file 'Test.log.txt'" )
 
@@ -370,7 +369,7 @@ void SampleALibAssertion()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Sample: ALib Assert Plug-in\n"
               "Method \"Log::AddDebugLogger()\" by default sets the plugin alib::assert::PLUGIN.\n"
@@ -386,7 +385,7 @@ void SampleALibAssertion()
     assert::GetHaltFlagAndCounters().HaltOnErrors=true;
     #endif
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, alib::lox::ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, alib::lox::ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX )
     ALIB_MESSAGE( "SAMPLE",
       "This is an ALib Message. Types other than 'message', 'warning' and 'error' are user-defined.\n"
       "Verbosity of the domain given with alib::lox::ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX has to be increased\n"
@@ -397,9 +396,9 @@ void SampleALibAssertion()
 void ALoxSampleReset()
 {
     #if ALOX_DBG_LOG
-        if ( Log::DebugLogger != nullptr )
+        if ( Log::DEBUG_LOGGER != nullptr )
         {
-            Log::DebugLogger->GetAutoSizes().Main.Export( autoSizes.Reset() );
+            Log::DEBUG_LOGGER->GetAutoSizes().Main.Export( autoSizes.Reset() );
             Log_RemoveDebugLogger()
         }
     #endif
@@ -467,8 +466,8 @@ alib::Shutdown( alib::ShutdownPhases::Announce );
     cntChanges+= iniFileFeeder.ExportSubTree(A_CHAR("/"));
 
     // add section comments (if not existing)
-    cntChanges+= iniFileFeeder.AddResourcedSectionComments(*BASECAMP.GetResourcePool(), BASECAMP.ResourceCategory, "INI_CMT_" );
-    cntChanges+= iniFileFeeder.AddResourcedSectionComments(*ALOX    .GetResourcePool(), ALOX    .ResourceCategory, "INI_CMT_" );
+    cntChanges+= iniFileFeeder.AddResourcedSectionComments(BASECAMP.GetResourcePool(), BASECAMP.ResourceCategory, "CFG_SECT_CMT_" );
+    cntChanges+= iniFileFeeder.AddResourcedSectionComments(ALOX    .GetResourcePool(), ALOX    .ResourceCategory, "CFG_SECT_CMT_" );
 
     // add file comments
     auto& iniFile= iniFileFeeder.GetIniFile();
@@ -476,12 +475,12 @@ alib::Shutdown( alib::ShutdownPhases::Announce );
     {
         iniFileFeeder.GetIniFile().FileComments.Allocate( iniFileFeeder.GetIniFile().Allocator,
         A_CHAR(
-        "######################################################################################\n"
+        "#####################################################################################\n"
         "# ALox Samples INI-file (created when running ALox Samples)\n"
-        "#\n"
-        "# Copyright 2013-2025 A-Worx GmbH, Germany\n"
+        "\n"
+        "# Copyright 2013-2026 A-Worx GmbH, Germany\n"
         "# Published under \"Boost Software License\" (a free software license, see LICENSE.txt)\n"
-        "######################################################################################\n"
+        "#####################################################################################\n"
          ) );
 
         cntChanges++;

@@ -5,9 +5,8 @@ build/cmake/moduletests/compilation_output.txt
 docs/pages/generated/
 docs/doxygen/dot
 docs/doxygenDotFixer.cfg
-tools/SourceCleaner
-.scignore
 
+.ai
 .private
 *.zip
 *.userprefs

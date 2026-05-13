@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,11 +11,9 @@
 \tableofcontents
 
 This \alibmod provides types that interface into the operating system of the host computer.
-Only a few types are found and - apart from class \alib{system;Path} - not meant as being anything
-of huge value for third party applications.
-Rather, the types have been implemented when other parts of \alib needed corresponding
-functionality.
+The few types found here are self-explanatory and straightforward to use. 
 
-That being said, we refer the reader to the \ref alib::system "reference documentation"
-of the provided types.
+Instead of providing a comprehensive documentation of the types, we refer the reader to the 
+#"alib::system;reference documentation of the namespace alib::system", which in turn leads to the  
+reference documentation of the individual types.
 */

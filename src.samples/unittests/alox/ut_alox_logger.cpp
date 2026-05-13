@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -44,7 +44,8 @@ namespace ut_reclog
 
 namespace alib {  namespace strings {
 
-    template<typename TAllocator> struct AppendableTraits<ut_reclog::AppendLog,character,TAllocator>
+    template<typename TAllocator>
+    struct AppendableTraits<ut_reclog::AppendLog,character,TAllocator>
     {
         void operator()( AString& target, const ut_reclog::AppendLog& src )
         {
@@ -63,7 +64,8 @@ namespace alib {  namespace strings {
         }
     };
 
-    template<typename TAllocator> struct AppendableTraits<ut_reclog::AppendLog*,character, TAllocator>
+    template<typename TAllocator>
+    struct AppendableTraits<ut_reclog::AppendLog*,character, TAllocator>
     {
         void operator()( AString& target, const ut_reclog::AppendLog* src )
         {
@@ -135,51 +137,51 @@ UT_METHOD(Log_Multiline)
     Log_AddDebugLogger()
 
     Log_SetDomain( "/MLINE", Scope::Method )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose )
 
-//        Log::DebugLogger->MetaInfo->MsgPrefixInfo=   "$$$";
-//        Log::DebugLogger->MetaInfo->MsgPrefixInfo=   ESC::MAGENTA;
-//        Log::DebugLogger->MetaInfo->MsgSuffix=       "###";
-//        Log::DebugLogger->MetaInfo->MsgSuffix=       ESC::FG_RESET;
-//    Log::DebugLogger->FmtMultiLineSuffix=            "<<";
+//        Log::DEBUG_LOGGER->MetaInfo->MsgPrefixInfo=   "$$$";
+//        Log::DEBUG_LOGGER->MetaInfo->MsgPrefixInfo=   ESC::MAGENTA;
+//        Log::DEBUG_LOGGER->MetaInfo->MsgSuffix=       #"##";
+//        Log::DEBUG_LOGGER->MetaInfo->MsgSuffix=       ESC::FG_RESET;
+//    Log::DEBUG_LOGGER->FmtMultiLineSuffix=            "<<";
 
 
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 0;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 0;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 0 (single line) --------" )
 
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 0;
-    Log::DebugLogger->GetFormatMultiLine().DelimiterReplacement.Reset("~|~");
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 0;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().DelimiterReplacement.Reset("~|~");
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 0 (single line) with delimiter replacement set to ~|~ --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 0;
-    Log::DebugLogger->GetFormatMultiLine().Delimiter.Reset();
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 0;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Delimiter.Reset();
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 0 (single line) with delimiter set to \"\" (stops multi-line processing) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
-    Log::DebugLogger->GetFormatMultiLine().Delimiter.SetNull();
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Delimiter.SetNull();
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 1;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 1;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 1 (multi-line, all meta info per line) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 2;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 2;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 2 (multi-line, meta info blanked) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 3;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 3;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 3 (multi-line, print headline with info, text starts at pos 0) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
 
-    Log::DebugLogger->GetFormatMultiLine().Mode= 4;
+    Log::DEBUG_LOGGER->GetFormatMultiLine().Mode= 4;
     Log_Info( "" )
     Log_Info( "-------- ML Mode = 4 (pure multi-line, no meta info, no headline, starts at pos 0)) --------" )
     Log_LogState( "MLINE", Verbosity::Info, A_CHAR("Our Log configuration is:") )
@@ -214,7 +216,7 @@ UT_METHOD(Log_ColorsAndStyles)
     mlPos+= 8;
 
 
-    Log::DebugLogger->GetFormatMetaInfo().Format.Reset( A_CHAR("") );
+    Log::DEBUG_LOGGER->GetFormatMetaInfo().Format.Reset( A_CHAR("") );
     Log_Info(    String256("FG Colors:  ")
                                 << ">>>" << ESC::RED     << "RED"        << ESC::FG_RESET << "<<<"
                                 << ">>>" << ESC::GREEN   << "GREEN"      << ESC::FG_RESET << "<<<"

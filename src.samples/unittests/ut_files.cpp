@@ -1,21 +1,21 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
 #include "alib_test_selection.hpp"
 
-#if ALIB_UT_FILES
+#if ALIB_UT_FILETREE
 #include "ALib.EnumOps.H"
 #include "ALib.Monomem.H"
 #include "ALib.Strings.Calendar.H"
 #include "ALib.Containers.StringTreeIterator.H"
 #include "ALib.Exceptions.H"
 #include "ALib.Format.H"
-#include "ALib.Files.H"
-#include "ALib.Files.Expressions.H"
+#include "ALib.FileTree.H"
+#include "ALib.FileTree.Expressions.H"
 #include "ALib.ALox.H"
 
 
@@ -35,19 +35,19 @@ Path scanPath;
 ScanParameters sp(A_PATH(""), ScanParameters::SymbolicLinks::RESOLVE_BUT_DONT_FOLLOW );
 
 SharedFTree ftree(10);
-std::vector<ResultsPaths> resultPaths;
+CanonicalPathList resultPaths;
 AString dumpBuf;
 bool tstDoDump = false;
 FileExpressions* fex= nullptr;
 bool usePostRecursionDirFilter= false;
 
-struct UTFTreeListener : files::FTreeListener {
+struct UTFTreeListener : filetree::FTreeListener {
     int cntDirs = 0;
     int cntFiles= 0;
 
     virtual void    Reset() { cntDirs= 0; cntFiles= 0; }
-    virtual void    Notify( File& file, Event event ) override {
-        if ( file->Quality() == FInfo::Qualities::MAX_DEPTH_REACHED )
+    virtual void    Notify( FTFile& file, Event event ) override {
+        if ( file->ScanState() == FTValue::ScanStates::MAX_DEPTH_REACHED )
             return;
         int addend=  event == Event::CreateNode
                      ? 1 : -1;
@@ -56,13 +56,13 @@ struct UTFTreeListener : files::FTreeListener {
     }
 };
 
-struct UTFTreeListener2 : files::FTreeListener {
+struct UTFTreeListener2 : filetree::FTreeListener {
     int cntDirs = 0;
     int cntFiles= 0;
 
     virtual void    Reset() { cntDirs= 0; cntFiles= 0; }
-    virtual void    Notify( File& file, Event event ) override {
-        if ( file->Quality() == FInfo::Qualities::MAX_DEPTH_REACHED )
+    virtual void    Notify( FTFile& file, Event event ) override {
+        if ( file->ScanState() == FTValue::ScanStates::MAX_DEPTH_REACHED )
             return;
         int addend=  event == Event::CreateNode
                      ? 1 : -1;
@@ -70,6 +70,7 @@ struct UTFTreeListener2 : files::FTreeListener {
         else                     cntFiles+= addend;
     }
 };
+
 UTFTreeListener firstListener;
 UTFTreeListener2 secondListener;
 
@@ -89,11 +90,11 @@ void testFScanListener( AWorxUnitTesting& ut,
 
     { ALIB_LOCK_WITH(ftree)
         ftree->MonitorPathPrefix(lang::ContainerOp::Insert, &firstListener,
-                                 files::FTreeListener::Event::CreateNode, rootPath);  }
+                                 filetree::FTreeListener::Event::CreateNode, rootPath);  }
 
 
     ftree.DbgCriticalSections(lang::Switch::Off);
-    files::ScanFiles( ftree, sp, resultPaths);
+    filetree::ScanFiles( *ftree, sp, &resultPaths);
 
 
     // dump (before ut checking)
@@ -103,10 +104,12 @@ void testFScanListener( AWorxUnitTesting& ut,
         int cnt= 0;
         for (auto& r : resultPaths)
         {
-            UT_PRINT("Result {}/{}: {!Q} Q={}", ++cnt, resultPaths.size(), r.RealPath, r.Node->Quality() )
+            Path p;
+            r.AsCursor().AssemblePath(p);
+            UT_PRINT("Result {}/{}: {!Q} Q={}", ++cnt, resultPaths.size(), p, r->ScanState() )
         }
 
-        EnumBitSet<FInfo::Types> included;
+        EnumBitSet<FileStatus::Types> included;
         included.Set();
         dumpBuf.Reset();
         DbgDump(dumpBuf, *ftree, included );
@@ -162,7 +165,7 @@ void testFScan( AWorxUnitTesting& ut,
             else                     sp.DirectoryFilterPreRecursion= fex->CreateFilter(dirFilter);
         }
 
-         files::ScanFiles( ftree, sp, resultPaths);
+         filetree::ScanFiles( *ftree, sp, &resultPaths);
     }
     catch(Exception& e)
     {
@@ -180,10 +183,12 @@ void testFScan( AWorxUnitTesting& ut,
         int cnt= 0;
         for (auto& r : resultPaths)
         {
-            UT_PRINT("Result {}/{}: {!Q} Q={}", ++cnt, resultPaths.size(), r.RealPath, r.Node->Quality() )
+            Path p;
+            r.AsCursor().AssemblePath(p);
+            UT_PRINT("Result {}/{}: {!Q} Q={}", ++cnt, resultPaths.size(), p, r->ScanState() )
         }
 
-        EnumBitSet<FInfo::Types> included;
+        EnumBitSet<FileStatus::Types> included;
         included.Set();
         dumpBuf.Reset();
         DbgDump(dumpBuf, *ftree, included );
@@ -197,8 +202,8 @@ void testFScan( AWorxUnitTesting& ut,
     // ut checks
     if( resultPaths.size())
     {
-        FInfo&                v   = *resultPaths.front().Node;
-        FInfo::DirectorySums& sums= v.Sums();
+        FTFile&                 v   = resultPaths.front();
+        FTValue::DirectorySums& sums= v->Sums();
         if( expDirs  >= 0 )  UT_EQ( uint32_t(expDirs ), sums.CountDirectories()   )
         if( expFiles >= 0 )  UT_EQ( uint32_t(expFiles), sums.CountNonDirectories())
     }
@@ -252,7 +257,7 @@ UT_METHOD(FileAndFTree)
 		                              << DIRECTORY_SEPARATOR << "alib"
 									  << DIRECTORY_SEPARATOR << "expressions";
 
-    testFScan(ut, nullptr                 , nullptr                             , 3 , 40 );
+    testFScan(ut, nullptr                 , nullptr           , 3 , 61 );
 
     UT_EQ(1u, resultPaths.size())
 
@@ -260,8 +265,8 @@ UT_METHOD(FileAndFTree)
     String256 exp;
 
     // directory "expressions":
-    File file= File(resultPaths.begin()->Node);
-    UT_EQ( FInfo::Types::DIRECTORY, file->Type() )  UT_TRUE( file->IsDirectory() )
+    FTFile file= FTFile(*resultPaths.begin());
+    UT_EQ( FileStatus::Types::DIRECTORY, file->Type() )  UT_TRUE( file->IsDirectory() )
     UT_EQ( A_PATH("expressions")  , file.Name() )
     UT_EQ( A_PATH("expressions")  , file.Stem() )
     UT_EQ( A_PATH(""           )  , file.Extension() )
@@ -270,13 +275,13 @@ UT_METHOD(FileAndFTree)
 
 
     // file "expression.hpp":
-    UT_TRUE( file.AsCursor().GoToChild(A_PATH("expression.inl")) )
-    UT_EQ( FInfo::Types::REGULAR, file->Type() )  UT_TRUE( !file->IsDirectory() )
-    UT_EQ( A_PATH("expression.inl") , file.Name() )
+    UT_TRUE( file.AsCursor().GoToChild(A_PATH("expression.hpp")) )
+    UT_EQ( FileStatus::Types::REGULAR, file->Type() )  UT_TRUE( !file->IsDirectory() )
+    UT_EQ( A_PATH("expression.hpp") , file.Name() )
     UT_EQ( A_PATH("expression"    ) , file.Stem() )
-    UT_EQ( A_PATH("inl"           ) , file.Extension() )
+    UT_EQ( A_PATH("hpp"           ) , file.Extension() )
     file.Format( A_CHAR("na ns ne NA NS NE"), fmt, lang::CurrentData::Clear );
-    UT_EQ( A_CHAR("expression.inl expression inl EXPRESSION.INL EXPRESSION INL"), fmt)
+    UT_EQ( A_CHAR("expression.hpp expression hpp EXPRESSION.HPP EXPRESSION HPP"), fmt)
 
     file.Format( A_CHAR( "a"), fmt, lang::CurrentData::Clear );   
     #if !defined(_WIN32)
@@ -288,12 +293,12 @@ UT_METHOD(FileAndFTree)
     #endif
 
     // use default formatter
-    {ALIB_LOCK_RECURSIVE_WITH(format::Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(format::Formatter::DEFAULT_LOCK)
         String256 target;
-        format::Formatter::Default->Format(target, "{:ta h on gn s dm nal}", file);
-        UT_TRUE(target.EndsWith(A_CHAR("expression.inl")))
+        format::Formatter::DEFAULT->Format(target, "{:ta h on gn s dm nal}", file);
+        UT_TRUE(target.EndsWith(A_CHAR("expression.hpp")))
         String256 target2;
-        format::Formatter::Default->Format(target2, "{}", file);
+        format::Formatter::DEFAULT->Format(target2, "{}", file);
         UT_EQ(target, target2)
     }
 
@@ -304,22 +309,28 @@ UT_METHOD(FileAndFTree)
     ftree->GetNumberFormat().Flags|= NumberFormatFlags::WriteGroupChars;
 
     auto cdc= lang::CurrentData::Clear;
-    file.Format(A_CHAR("'Size: 's"                             ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678KiB"       ), fmt )
-    file.Format(A_CHAR("'Size: 's(KiB)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678"          ), fmt )
-    file.Format(A_CHAR("'Size: 's(B)"                          ),fmt,cdc);   UT_EQ(A_CHAR("Size:   14,006"               ), fmt )
-    file.Format(A_CHAR("'Size: 's(B){15,c}"                    ),fmt,cdc);   UT_EQ(A_CHAR("Size:      14,006    "        ), fmt )
-    file.Format(A_CHAR("'Size: 's(iec)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        13.678KiB"       ), fmt)
-    file.Format(A_CHAR("'Size: 's(SI)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.006kB"        ), fmt)
-    file.Format(A_CHAR("'Size: 's(mb)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.014"          ), fmt)
-    file.Format(A_CHAR("'Size: 's(mib)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.013"          ), fmt)
+    file.Format(A_CHAR("'Size: 's"                             ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.080KiB"       ), fmt )
+    file.Format(A_CHAR("'Size: 's(KiB)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.080"          ), fmt )
+    file.Format(A_CHAR("'Size: 's(B)"                          ),fmt,cdc);   UT_EQ(A_CHAR("Size:   14,418"               ), fmt )
+    file.Format(A_CHAR("'Size: 's(B){15,c}"                    ),fmt,cdc);   UT_EQ(A_CHAR("Size:      14,418    "        ), fmt )
+    file.Format(A_CHAR("'Size: 's(iec)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.080KiB"       ), fmt )
+    file.Format(A_CHAR("'Size: 's(SI)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:        14.418kB"        ), fmt )
+    file.Format(A_CHAR("'Size: 's(mb)"                         ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.014"          ), fmt )
+    file.Format(A_CHAR("'Size: 's(mib)"                        ),fmt,cdc);   UT_EQ(A_CHAR("Size:         0.014"          ), fmt )
 
     file.Format(A_CHAR("'Stem: 'ns"                            ),fmt,cdc);   UT_EQ(A_CHAR("Stem: expression"             ), fmt )
-    file.Format(A_CHAR("'Name: 'na"                            ),fmt,cdc);   UT_EQ(A_CHAR("Name: expression.inl"         ), fmt )
-    file.Format(A_CHAR("'Ext:  'ne"                            ),fmt,cdc);   UT_EQ(A_CHAR("Ext:  inl"                    ), fmt )
+    file.Format(A_CHAR("'Name: 'na"                            ),fmt,cdc);   UT_EQ(A_CHAR("Name: expression.hpp"         ), fmt )
+    file.Format(A_CHAR("'Ext:  'ne"                            ),fmt,cdc);   UT_EQ(A_CHAR("Ext:  hpp"                    ), fmt )
     #if !defined(_WIN32)
         file.Format(A_CHAR("'Path: 'np"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src/alib/expressions")))
+        file.Format(A_CHAR("'Path: 'nf"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src/alib/expressions/expression.hpp")))
+        file.Format(A_CHAR("'Path: 'nr"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src/alib/expressions")))
+        file.Format(A_CHAR("'Path: 'nx"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src/alib/expressions/expression.hpp")))
     #else
         file.Format(A_CHAR("'Path: 'np"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src\\alib\\expressions")))
+        file.Format(A_CHAR("'Path: 'nf"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src\\alib\\expressions\\expression.hpp")))
+        file.Format(A_CHAR("'Path: 'nr"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src\\alib\\expressions")))
+        file.Format(A_CHAR("'Path: 'nx"                        ),fmt,cdc);   UT_TRUE(fmt.EndsWith(A_CHAR("src\\alib\\expressions\\expression.hpp")))
     #endif
     
     file.Format(A_CHAR("'Path: 'np"                            ),fmt,cdc);
@@ -373,9 +384,9 @@ UT_METHOD(FileAndFTree)
     file.Format(A_CHAR("'Group: '>gi{15,c}<"                   ),fmt,cdc);   UT_PRINT( fmt )
     file.Format(A_CHAR("'Group: '>gi{15,l}<"                   ),fmt,cdc);   UT_PRINT( fmt )
     file.Format(A_CHAR("'#hard links: 'l"                      ),fmt,cdc);   UT_PRINT( fmt )
-    file.Format(A_CHAR("'Quality: 'q"                          ),fmt,cdc);   UT_EQ(A_CHAR("Quality: STATS"),fmt )
-    file.Format(A_CHAR("'Quality: 'qqq"                        ),fmt,cdc);   UT_EQ(A_CHAR("Quality: STA"  ),fmt )
-    file.Format(A_CHAR("'ls -l format: 'ta h on gn s dm nal"  ),fmt,cdc);   UT_PRINT( fmt )
+    file.Format(A_CHAR("'ScanState: 'q"                        ),fmt,cdc);   UT_EQ(A_CHAR("ScanState: STATS"),fmt )
+    file.Format(A_CHAR("'ScanState: 'qqq"                      ),fmt,cdc);   UT_EQ(A_CHAR("ScanState: STA"  ),fmt )
+    file.Format(A_CHAR("'ls -l format: 'ta h on gn s dm nal"   ),fmt,cdc);   UT_PRINT( fmt )
 
     // Create some special file entries in the tree (not existing on disk) to test basic functions.
     auto file2= file;
@@ -421,18 +432,18 @@ UT_METHOD(FileAndFTree)
     // ------------------- Custom data -------------------
     UT_TRUE(file .AttachCustomData<CustomDataTrivial>().cnt==1)
     UT_TRUE(file2.AttachCustomData<CustomDataTrivial>().cnt==2)
-    // file.CustomData<String>();                       // -> run-time error
+    // file.CustomData<String>();                       // -> runtime error
 
-    //ftree.SetCustomDataType<CustomDataDynamic>();     // -> run-time error
-    //ftree.DeleteAllCustomData<CustomDataDynamic>();   // -> run-time error wrong type
+    //ftree.SetCustomDataType<CustomDataDynamic>();     // -> runtime error
+    //ftree.DeleteAllCustomData<CustomDataDynamic>();   // -> runtime error wrong type
     ftree->DeleteAllCustomData<CustomDataTrivial>();
 
-    //UT_TRUE(file .CustomData<CustomDataTrivial>().cnt==1) // -> run-time error wrong type
+    //UT_TRUE(file .CustomData<CustomDataTrivial>().cnt==1) // -> runtime error wrong type
     auto& custom1= file.AttachCustomData<CustomDataDynamic>(10);
     UT_TRUE( custom1.cnt   == 1  )
     UT_TRUE(*custom1.value == 10 )
 
-    //UT_TRUE(file2.CustomData<CustomDataTrivial>().cnt==2) // -> run-time error wrong type
+    //UT_TRUE(file2.CustomData<CustomDataTrivial>().cnt==2) // -> runtime error wrong type
     auto& custom2= file2.AttachCustomData<CustomDataDynamic>(11);
     UT_TRUE( custom2.cnt   == 2  )
     UT_TRUE(*custom2.value == 11 )
@@ -478,7 +489,7 @@ UT_METHOD(FileAndFTree)
             stit.Initialize( ftree->Root().AsCursor(), lang::Inclusion::Exclude );
             while( stit.IsValid())
             {
-                File f( stit.Node() );
+                FTFile f( stit.Node() );
                 f.AttachCustomData<CustomDataTrivial>();
                 stit.Next();
                 ++cntFiles;
@@ -517,12 +528,15 @@ UT_METHOD(FileAndFTree)
     }
 
     // test owner name and artificial fs
-    #if ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
+    #if ALIB_SYSTEM_FILE_STATUS_IMPL == ALIB_SYSTEM_FILE_POSIX_STATUS
     {
         sp.StartPath.Reset() << A_PATH("/proc");
         resultPaths.clear();
-        files::ScanFiles( ftree, sp, resultPaths);
-        if (resultPaths.size() > 0 && resultPaths.front().RealPath.Equals(A_PATH("/proc"))) {
+        filetree::ScanFiles( *ftree, sp, &resultPaths);
+        Path p;
+        resultPaths.front().AsCursor().AssemblePath(p);
+
+        if (resultPaths.size() > 0 && p.Equals(A_PATH("/proc"))) {
             UT_EQ(A_PATH(""), file.AsCursor().GoTo(A_PATH("/proc")) )
             UT_TRUE( file->IsArtificialFS() )
             UT_EQ( "root", file.GetOwnerName() )
@@ -545,40 +559,41 @@ UT_METHOD(Scanning)
     sp.StartPath.Reset(ALIB_BASE_DIR) << DIRECTORY_SEPARATOR << "src"
 		                              << DIRECTORY_SEPARATOR << "alib"
 									  << DIRECTORY_SEPARATOR << "expressions";
+    sp.StartPath.MakeCanonical();
+
 
    //==================================== Listener tests ===============================
 //tstDoDump= true;
-// we can not rely on the path prefix in WinOS, due to drive names, etc.
+// we cannot rely on the path prefix in WinOS, due to drive names, etc.
 // This test would fail on many setups
 #if !defined(_WIN32)
    Path baseDir; baseDir << ALIB_BASE_DIR;
-   baseDir.MakeReal();
+   baseDir.MakeCanonical();
 
-   
+
    { ALIB_LOCK_WITH(ftree) ftree.Reset(); ftree->MonitorFilesByName( lang::ContainerOp::Insert,
-       &secondListener, files::FTreeListener::Event::CreateNode, A_PATH("expression.inl")); }
-   testFScanListener(ut, 3, 40, 0, 1 );
+       &secondListener, filetree::FTreeListener::Event::CreateNode, A_PATH("expression.hpp")); }
+   testFScanListener(ut, 3, 61, 0, 1 );
 
    { ALIB_LOCK_WITH(ftree) ftree.Reset(); ftree->MonitorPathPrefix( lang::ContainerOp::Insert,
-       &secondListener, files::FTreeListener::Event::CreateNode, baseDir ) ; }
-   testFScanListener(ut, 3, 40, 4, 40 );
+       &secondListener, filetree::FTreeListener::Event::CreateNode, baseDir ) ; }
+   testFScanListener(ut, 3, 61, 4, 61 );
 
    { ALIB_LOCK_WITH(ftree) ftree.Reset(); ftree->MonitorPathSubstring( lang::ContainerOp::Insert,
-       &secondListener, files::FTreeListener::Event::CreateNode, A_PATH("xpressio")); }
-   testFScanListener(ut, 3, 40, 3, 40 );
+       &secondListener, filetree::FTreeListener::Event::CreateNode, A_PATH("xpressio")); }
+   testFScanListener(ut, 3, 61, 4, 61 );
 
    { ALIB_LOCK_WITH(ftree) ftree.Reset(); ftree->MonitorPathSubstring( lang::ContainerOp::Insert,
-       &secondListener, files::FTreeListener::Event::CreateNode, A_PATH("detail")); }
-   testFScanListener(ut, 3, 40, 0, 9 );
+       &secondListener, filetree::FTreeListener::Event::CreateNode, A_PATH("detail")); }
+   testFScanListener(ut, 3, 61, 1, 14 );
 #endif
 
    //==================================== filter tests ===============================
-//tstDoDump= true;
-   testFScan(ut, nullptr                 , nullptr                             , 3 , 40 );
+   testFScan(ut, nullptr                 , nullptr                             , 3 , 61 );
    testFScan(ut, nullptr                 , A_CHAR("IsDirectory")               , 3 ,  0 );
-   testFScan(ut, nullptr                 , A_CHAR("name = \"expression.inl\"") , 3 ,  1 );
-   testFScan(ut, nullptr                 , A_CHAR("name * \"*.inl\"")          , 3 , 20 );
-   testFScan(ut, nullptr                 , A_CHAR("name * \"e*.inl\"")         , 3 ,  4 );
+   testFScan(ut, nullptr                 , A_CHAR("name = \"expression.hpp\"") , 3 ,  1 );
+   testFScan(ut, nullptr                 , A_CHAR("name * \"*.hpp\"")          , 3 , 21 );
+   testFScan(ut, nullptr                 , A_CHAR("name * \"e*.hpp\"")         , 3 ,  5 );
    testFScan(ut, nullptr                 , A_CHAR("name == \"notexisting\"")   , 3 ,  0 );
 
    sp.RemoveEmptyDirectories= true;
@@ -589,29 +604,30 @@ UT_METHOD(Scanning)
    sp.RemoveEmptyDirectories= false;
 
 
-   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 3 , 15 );
-//   ftree.Reset(); { ALIB_LOCK_WITH(ftree) ftree->MonitorPathSubstring(lang::ContainerOp::Insert, &secondListener, files::FTreeListener::Event::CreateNode, "detail"); }
-   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 3 , 12 );//, false, 0,5);
-   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.inl\"")          , 3 ,  7 );
+   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 3 , 16 );
+//   ftree.Reset(); { ALIB_LOCK_WITH(ftree) ftree->MonitorPathSubstring(lang::ContainerOp::Insert, &secondListener, filetree::FTreeListener::Event::CreateNode, "detail"); }
+   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 3 , 13 );//, false, 0,5);
+   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.hpp\"")          , 3 ,  8 );
    testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name == \"notexisting\"")   , 3 ,  0 );
    sp.RemoveEmptyDirectories= true;
-   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 2 , 15 );
-   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 1 , 12 );
-   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.inl\"")          , 0 ,  7 );
+   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 2 , 16 );
+   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 1 , 13 );
+   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.hpp\"")          , 0 ,  8 );
    testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name == \"notexisting\"")   , 0 ,  0 );
    testFScan(ut, nullptr                         , A_CHAR("name == \"notexisting\"")   , 0 ,  0 );
 
    // use post recursion dir filter
    usePostRecursionDirFilter= true;
    sp.RemoveEmptyDirectories= false;
-   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 3 , 15 );
-   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 3 , 12 );
-   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.inl\"")          , 3 ,  7 );
+//tstDoDump= true;
+   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 3 , 16 );
+   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 3 , 13 );
+   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.hpp\"")          , 3 ,  8 );
    testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name == \"notexisting\"")   , 3 ,  0 );
    sp.RemoveEmptyDirectories= true;
-   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 2 , 15 );
-   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.inl\"")          , 1 , 12 );
-   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.inl\"")          , 0 ,  7 );
+   testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 2 , 16 );
+   testFScan(ut, A_CHAR("name==\"detail\"")      , A_CHAR("name * \"*.hpp\"")          , 1 , 13 );
+   testFScan(ut, A_CHAR("name==\"notexisting\"") , A_CHAR("name * \"*.hpp\"")          , 0 ,  8 );
    testFScan(ut, A_CHAR("name!=\"detail\"")      , A_CHAR("name == \"notexisting\"")   , 0 ,  0 );
    testFScan(ut, nullptr                         , A_CHAR("name == \"notexisting\"")   , 0 ,  0 );
 
@@ -619,34 +635,34 @@ UT_METHOD(Scanning)
    usePostRecursionDirFilter= false;
    sp.RemoveEmptyDirectories= true;
    testFScan(ut, nullptr, A_CHAR("size > 40 * 1024")                             , 2,   3 );
-   testFScan(ut, nullptr, A_CHAR("date > DateTime(2020 , 1, 1) &&  date < today + days(1)"), 3,  40 );
+   testFScan(ut, nullptr, A_CHAR("date > DateTime(2020 , 1, 1) &&  date < today + days(1)"), 3,  61 );
    testFScan(ut, nullptr, A_CHAR("date > today + days(1)")                                 , 0,   0 );
-   testFScan(ut, nullptr, A_CHAR("mdate > DateTime(2020, 1, 1) && mdate < today+ days(1)") , 3,  40 );
+   testFScan(ut, nullptr, A_CHAR("mdate > DateTime(2020, 1, 1) && mdate < today+ days(1)") , 3,  61 );
    testFScan(ut, nullptr, A_CHAR("mdate > today + days(1)")                                , 0,   0 );
    testFScan(ut, nullptr, A_CHAR("md    > today + days(1)")                                , 0,   0 );
-   testFScan(ut, nullptr, A_CHAR("mdate > DateTime(2020, 1, 1) && mdate < today+ days(1)") , 3,  40 );
+   testFScan(ut, nullptr, A_CHAR("mdate > DateTime(2020, 1, 1) && mdate < today+ days(1)") , 3,  61 );
    testFScan(ut, nullptr, A_CHAR("mdate > today + days(1)")                                , 0,   0 );
    testFScan(ut, nullptr, A_CHAR("md    > today + days(1)")                                , 0,   0 );
  //tstDoDump= true;
-   testFScan(ut, nullptr, A_CHAR("adate > DateTime(2020, 1, 1) && adate < today+ days(1)") , 3,  40 );
+   testFScan(ut, nullptr, A_CHAR("adate > DateTime(2020, 1, 1) && adate < today+ days(1)") , 3,  61 );
    testFScan(ut, nullptr, A_CHAR("adate > today + days(1)")                                , 0,   0 );
    testFScan(ut, nullptr, A_CHAR("ad    > today + days(1)")                                , 0,   0 );
    testFScan(ut, nullptr, A_CHAR("type == Directory")                                      , 0,   0 );
-   testFScan(ut, A_CHAR("type == Directory")                                      ,nullptr , 3,  40 );
-   testFScan(ut, A_CHAR("type != Directory")                                      ,nullptr , 0,  15 );
-   testFScan(ut, nullptr, A_CHAR("type == Regular")                                        , 3,  40 );
+   testFScan(ut, A_CHAR("type == Directory")                                      ,nullptr , 3,  61 );
+   testFScan(ut, A_CHAR("type != Directory")                                      ,nullptr , 0,  22 );
+   testFScan(ut, nullptr, A_CHAR("type == Regular")                                        , 3,  61 );
    testFScan(ut, nullptr, A_CHAR("type == Socket")                                         , 0,   0 );
-   testFScan(ut, A_CHAR("type != Directory"), A_CHAR("type == Regular")                    , 0,  15 );
-   testFScan(ut, A_CHAR("type == Directory"), A_CHAR("type == Regular")                    , 3,  40 );
+   testFScan(ut, A_CHAR("type != Directory"), A_CHAR("type == Regular")                    , 0,  22 );
+   testFScan(ut, A_CHAR("type == Directory"), A_CHAR("type == Regular")                    , 3,  61 );
 
-   #if ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
-     testFScan(ut, nullptr, A_CHAR("owner == userID ")                                     , 3,  40 );
+   #if ALIB_SYSTEM_FILE_STATUS_IMPL == ALIB_SYSTEM_FILE_POSIX_STATUS
+     testFScan(ut, nullptr, A_CHAR("owner == userID ")                                     , 3,  61 );
      testFScan(ut, nullptr, A_CHAR("owner != userID ")                                     , 0,   0 );
-     testFScan(ut, nullptr, A_CHAR("group == groupID")                                     , 3,  40 );
+     testFScan(ut, nullptr, A_CHAR("group == groupID")                                     , 3,  61 );
      testFScan(ut, nullptr, A_CHAR("group != groupID")                                     , 0,   0 );
    #endif
 
-    testFScan(ut, nullptr, A_CHAR("EndsWith(Path, \"detail\")") , 1,  9 );
+    testFScan(ut, nullptr, A_CHAR("EndsWith(Path, \"detail\")") , 1,  14 );
 
     //------------- end of FileExpression unit tests ----------------
     delete fex;

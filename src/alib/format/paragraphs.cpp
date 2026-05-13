@@ -1,35 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "ALib.Monomem.StdContainers.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format.Paragraphs;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Exceptions;
-#   if ALIB_CAMP
-      import ALib.Camp.Base;
-#   endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.Format.Paragraphs.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 using namespace alib::strings;
 namespace alib::format {
 
@@ -40,7 +8,7 @@ namespace alib::format {
 Paragraphs::Paragraphs()
 : allocator             (ALIB_DBG("Paragraphs",) 16)
 , Buffer                (text)
-, Formatter             ( Formatter::Default  )
+, Formatter             ( Formatter::DEFAULT  )
 , MarkerBullets         (allocator)
 , IndentFirstLine       (allocator)
 , IndentOtherLines      (allocator)
@@ -55,9 +23,9 @@ Paragraphs::Paragraphs()
 
 Paragraphs::Paragraphs(AString& externalBuffer)
 : allocator(ALIB_DBG("Paragraphs",) 16)
-, Buffer(externalBuffer)
-, Formatter( Formatter::Default  )
-, MarkerBullets (allocator)
+, Buffer                (externalBuffer)
+, Formatter             ( Formatter::DEFAULT  )
+, MarkerBullets         (allocator)
 , IndentFirstLine       (allocator)
 , IndentOtherLines      (allocator)
 , IndentSizesFirstLine  (StdDequeMA<integer>(allocator))
@@ -124,6 +92,12 @@ Paragraphs&     Paragraphs::Clear() {
 template<>
 void   Paragraphs::Add( boxing::TBoxes<MonoAllocator>&  args ) {
     integer startIdx= Buffer.Length();
+    #if !ALIB_SINGLE_THREADED
+      lang::OwnerRecursive<RecursiveLock, true> lock(
+                          Formatter == format::Formatter::DEFAULT ? &format::Formatter::DEFAULT_LOCK
+                                                                  : nullptr
+                          ALIB_COMMA_CALLER_PRUNED );
+    #endif
     Formatter->FormatArgs( Buffer, args ); // may throw!
 
     integer maxLineWidth;
@@ -140,7 +114,7 @@ void   Paragraphs::Add( boxing::TBoxes<MonoAllocator>&  args ) {
 
 #   include "ALib.Lang.CIFunctions.H"
 namespace {
-    [[ noreturn ]]
+[[ noreturn ]]
 void throwMarkerException( FMTExceptions eType, String& markedBuffer, integer errPos ) {
     String64 actText;
     integer exceptPos= 25;
@@ -173,6 +147,12 @@ template<> void   Paragraphs::AddMarked( boxing::TBoxes<MonoAllocator>&  args ) 
               searchCharBuf[1]= '\n';
     String searchChars(searchCharBuf, 2);
 
+    #if !ALIB_SINGLE_THREADED
+      lang::OwnerRecursive<RecursiveLock, true> lock(
+                          Formatter == format::Formatter::DEFAULT ? &format::Formatter::DEFAULT_LOCK
+                                                                  : nullptr
+                          ALIB_COMMA_CALLER_PRUNED );
+    #endif
     Formatter->FormatArgs( markedBuffer.Reset(), args ); // may throw
 
     Substring parser       =  markedBuffer;
@@ -190,7 +170,7 @@ template<> void   Paragraphs::AddMarked( boxing::TBoxes<MonoAllocator>&  args ) 
         // new line
         if( parser.CharAt( pos ) == '\n' ) {
             parser.template ConsumeChars<NC, lang::CurrentData::Keep>( pos, Buffer, 1 );
-            if (Buffer.CharAtEnd<NC>() == '\r')
+            if (Buffer.CharAtEnd() == '\r')
                 Buffer.DeleteEnd<NC>(1);
             Buffer.NewLine();
             integer maxLineWidth;

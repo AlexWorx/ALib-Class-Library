@@ -2,18 +2,18 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_RESOURCES_PP
 #define HPP_ALIB_RESOURCES_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 //##################################################################################################
-// Symbols introduced by module ALib.Resources
+// Macro  introduced by module ALib.Resources
 //##################################################################################################
 #if !ALIB_RESOURCES
 #   define   ALIB_DEBUG_RESOURCES           0

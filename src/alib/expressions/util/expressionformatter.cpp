@@ -1,37 +1,7 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/expressions/expressions.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions;
-    import   ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-#   if ALIB_CAMP
-      import ALib.Camp.Base;
-#   endif
-#else
-#   include "ALib.Expressions.Impl.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 /// Utility types of camp \alib_expressions.
 namespace alib::expressions::util {
 
-ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
+ExpressionFormatter::ExpressionFormatter( const String&  pFormatString,
                                           Compiler*      pCompiler,
                                           SPFormatter    formatter,
                                           character      separatorChar    )
@@ -40,68 +10,82 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
 , originalFormatString( pFormatString ) {
     // use ALib standard formatter, if no dedicated instance was given.
     if(!formatter.Get())
-        stdFormatter= Formatter::Default;
+        stdFormatter= Formatter::DEFAULT;
+
+    String256 escapedFS; escapedFS.DbgDisableBufferReplacementWarning();
+    StringEscaperStandard().Escape(pFormatString, escapedFS, EMPTY_STRING);
 
     // parse format string
     integer nonExprPortionStart= 0;
     integer parsePos           = 0;
-    while(parsePos < originalFormatString.Length() ) {
-        // has next parse position?
+    while(parsePos < escapedFS.Length() ) {
+        // has a next parse position?
         // Note: if bracket is found at the end of string, we just ignore this here. An according
         // exception is thrown in formatter later.
-        if(    ( parsePos= originalFormatString.IndexOf( A_CHAR('{'), parsePos ) ) < 0
-            ||   parsePos == originalFormatString.Length() - 1 )
+        if(    ( parsePos= escapedFS.IndexOf( A_CHAR('{'), parsePos ) ) < 0
+            ||   parsePos == escapedFS.Length() - 1 )
         {
-            formatStringStripped << originalFormatString.Substring( nonExprPortionStart );
+            formatStringStripped << escapedFS.Substring( nonExprPortionStart );
             break;
         }
 
         // double Escape character? -> ignore
         ++parsePos;
-        if( originalFormatString[parsePos] == A_CHAR('{') ) {
+        if( escapedFS[parsePos] == A_CHAR('{') ) {
             ++parsePos;
             continue;
         }
 
-        // add current portion to format string
-        formatStringStripped << originalFormatString.Substring( nonExprPortionStart, parsePos - nonExprPortionStart );
-
+        // add the current portion to format string
+        formatStringStripped << escapedFS.Substring( nonExprPortionStart, parsePos - nonExprPortionStart );
+        formatSubstrings.push_back(formatStringStripped.Length() -1);
+        
         // Either find separator character or closing bracket of placeholder
         integer endPos= parsePos;
-        while(      endPos < originalFormatString.Length() -1
-               &&   originalFormatString[endPos] != separatorChar
-               &&   originalFormatString[endPos] != A_CHAR('}')     )
+        while(      endPos < escapedFS.Length() -1
+               &&   escapedFS[endPos] != separatorChar
+               &&   escapedFS[endPos] != A_CHAR('}')     )
             ++endPos;
 
         // extract expression string and set start of non-expression portion
-        String expressionString= originalFormatString.Substring( parsePos, endPos - parsePos );
+        String expressionString= escapedFS.Substring( parsePos, endPos - parsePos );
         nonExprPortionStart= endPos;
-        if( originalFormatString[endPos] == separatorChar )
+        if( escapedFS[endPos] == separatorChar )
             ++nonExprPortionStart;
 
         // add expression
-        try
-        {
-            expressions.emplace_back( compiler->Compile( expressionString ) );
-        }
-        catch( Exception& e)
-        {
+        try { expressions.emplace_back( compiler->Compile( expressionString ) ); }
+        catch( Exception& e) {
              e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
-                    expressions.size() + 1, originalFormatString );
+                    expressions.size() + 1, escapedFS );
              throw;
-}   }   }
+    }   }
+    formatSubstrings.push_back(formatStringStripped.Length());
+}
 
 
 void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope ) {
     // evaluate expressions and collect boxes
-    auto& results= stdFormatter->GetArgContainer();
-    results.Add( formatStringStripped );
+    try {
+        // the first string is the start-substring.
+        // Attn: must be done with formatter to unescape the string.
+        stdFormatter->Format( target, formatStringStripped.Substring(0, formatSubstrings[0]));
+        size_t idx= 1;
 
-    try
-    {
-        for( size_t expressionNo= 0; expressionNo < expressions.size() ; ++expressionNo )
-            results.Add( expressions[expressionNo]->Evaluate( scope ) );
-    }
+        for( size_t expressionNo= 0; expressionNo < expressions.size() ; ++expressionNo ) {
+            Box exprResult=  expressions[expressionNo]->Evaluate( scope );
+
+            try {
+                String formatString= formatStringStripped.Substring( formatSubstrings[idx-1],
+                                       formatSubstrings[idx] - formatSubstrings[idx-1] );
+                stdFormatter->Format( target, formatString, exprResult );
+                ++idx;
+            }
+            catch(Exception& e) {
+                e.Add( ALIB_CALLER_NULLED,  format::FMTExceptions::ErrorInResultingFormatString,
+                       originalFormatString );
+                throw;
+    }   }   }
     catch( Exception& e)
     {
         e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
@@ -109,15 +93,6 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
         throw;
     }
 
-    try
-    {
-        stdFormatter->FormatArgs( target );
-    }
-    catch(Exception& e)
-    {
-        e.Add( ALIB_CALLER_NULLED,  format::FMTExceptions::ErrorInResultingFormatString,
-               originalFormatString );
-        throw;
-}   }
+}
 
 } // namespace [alib::expressions::util]

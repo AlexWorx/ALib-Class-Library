@@ -409,6 +409,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src.samples\CLI\sample.cpp" />
+    <ClCompile Include="..\..\..\src.samples\CLI\samplecamp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src.samples\CLI\samplecamp.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

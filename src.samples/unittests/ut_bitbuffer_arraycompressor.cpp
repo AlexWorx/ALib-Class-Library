@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -406,7 +406,7 @@ uint16_t DATA[7][50][96] = {
 
 
 
-ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+ALIB_ALLOW_FUNCTION_TEMPLATE
 // actually used for debugging if some test fails
 template< typename TValue >
 std::pair<size_t, ArrayCompressor::Algorithm>
@@ -417,7 +417,7 @@ TestAlgo( BitBuffer& bb, TValue* data, size_t length, ArrayCompressor::Algorithm
     auto result= ArrayCompressor::Compress( bw, array, algo );
     return result;
 }
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 
 } // anonymous namespace

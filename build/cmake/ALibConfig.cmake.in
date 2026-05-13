@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+
+# Expose useful variables
+set(ALIB_VERSION "@ALIB_VERSION@")
+# Compose a version tag from baked-in ALib version variables
+set(ALIB_VERSION_NO "@ALIB_VERSION_NO@")
+set(ALIB_VERSION_REV "@ALIB_VERSION_REV@")
+set(ALIB_VERSION_TAG "V@ALIB_VERSION_NO@R@ALIB_VERSION_REV@")
+set(ALIB_VARIANT_KEY "@ALIB_VARIANT_KEY@")
+set(ALIB_PUBLIC_COMPILE_DEFINITIONS "@ALIB_PUBLIC_COMPILE_DEFINITIONS@")
+
+# Load targets
+include("${CMAKE_CURRENT_LIST_DIR}/ALibTargets.cmake")
+
+# Targets already carry include directories, compile features and definitions.

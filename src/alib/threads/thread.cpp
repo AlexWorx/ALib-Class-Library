@@ -1,64 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#if !ALIB_SINGLE_THREADED
-#   include <condition_variable>
-#   include <atomic>
-#endif // !ALIB_SINGLE_THREADED
-
-#include <unordered_map>
-#include <future>
-#if ALIB_DEBUG
-#   include <vector>
-#   include <any>
-#endif
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module   ALib.Threads;
-    import   ALib.Lang;
-#if ALIB_CONTAINERS
-    import   ALib.Containers.HashTable;
-#endif
-#  if ALIB_BOXING
-    import   ALib.Boxing;
-#  endif
-#  if ALIB_STRINGS
-    import   ALib.Strings;
-#  endif
-#  if ALIB_MONOMEM
-    import   ALib.Monomem;
-#  endif
-#  if ALIB_ENUMRECORDS
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-#  endif
-#  if ALIB_RESOURCES
-    import   ALib.Resources;
-#  endif
-#else
-#   include "ALib.Threads.H"
-#   include "ALib.Lang.H"
-#   include "ALib.Containers.HashTable.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Monomem.H"
-#   include "ALib.EnumRecords.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Resources.H"
-#endif
-//========================================== Implementation ========================================
 #if !ALIB_SINGLE_THREADED
 namespace alib {
 
@@ -67,15 +6,15 @@ namespace alib {
 /// holds types of library module \alib_threads.
 ///
 /// \attention
-///   At the moment the compiler-symbol \ref ALIB_SINGLE_THREADED is set with an \alibbuild,
+///   At the moment the configuration macro #"ALIB_SINGLE_THREADED" is set with an \alibbuild,
 ///   this module will remain in the build, but only as skeletons. Also, the corresponding
-///   preprocessor macros, like \ref ALIB_LOCK, are emptied.<br>
+///   preprocessor macros, like #"ALIB_LOCK", are emptied.<br>
 ///   This allows writing dual-use code which compiles in either mode, without checking
 ///   symbol \b ALIB_SINGLE_THREADED in the using code too often.
 ///
 /// Further documentation is provided with
-/// - \ref alib_mod_threads "ALib Module Threads - Programmer's Manual".
-/// - Details of CMake variable \ref ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH.
+/// - #"alib_mod_threads;ALib Module Threads - Programmer's Manual".
+/// - Details of CMake variable #"ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH;1".
 //==================================================================================================
 namespace threads {
 
@@ -104,7 +43,7 @@ namespace {
 //##################################################################################################
 // Details
 //##################################################################################################
-/// Details of namespace #alib::threads.
+/// Details of namespace #"alib::threads;2".
 namespace detail {
 
 void threadStart( Thread* thread ) {

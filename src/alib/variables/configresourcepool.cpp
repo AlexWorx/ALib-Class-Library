@@ -1,40 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/variables/variables.prepro.hpp"
-#include <cstdarg>
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables.ResourcePool;
-    import   ALib.Strings.StdIOStream;
-    import   ALib.EnumRecords;
-#  if ALIB_EXCEPTIONS
-    import   ALib.Exceptions;
-#  endif
-    import   ALib.System;
-#  if ALIB_VARIABLES
-    import   ALib.Variables;
-#  endif
-#else
-#   include "ALib.Strings.StdIOStream.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.System.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Variables.ResourcePool.H"
-#endif
-//========================================== Implementation ========================================
 #if ALIB_RESOURCES
 
 namespace alib::variables {
@@ -56,9 +19,9 @@ void ConfigResourcePool::BootstrapBulk( const nchar* category, ... ) {
     auto cursor= Self().Root();
 #if ALIB_CHARACTERS_WIDE
     String256 wCategory(category);
-    ALIB_ASSERT_RESULT_EQUALS(cursor.GoToCreateChildIfNotExistent( wCategory ), true)
+    cursor.GoToCreateChildIfNotExistent( wCategory );
 #else
-    ALIB_ASSERT_RESULT_EQUALS(cursor.GoToCreateChildIfNotExistent( category  ), true)
+    cursor.GoToCreateChildIfNotExistent( category  );
 #endif
     for(;;) {
         NString name=  va_arg( args, const nchar* );
@@ -99,7 +62,7 @@ const String& ConfigResourcePool::Get( const NString& category,
         return var.GetString();
 
     ALIB_ASSERT_ERROR( !dbgAssert, "RESOURCES",
-                                   "Unknown resource! Category: {}, Name: ", category, name )
+               "Missing resource \"{}\" in category: \"{}\"", name, category )
     return NULL_STRING;
 }
 

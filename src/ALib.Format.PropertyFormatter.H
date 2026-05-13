@@ -2,23 +2,31 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_FORMAT_PROPERTYFORMATTER
 #define H_ALIB_FORMAT_PROPERTYFORMATTER
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 #if ALIB_FORMAT
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Format.PropertyFormatter;
-#   elif !defined(ALIB_INC_FORMAT_PROPERTYFORMATTER_MPP)
-#       define ALIB_INC_FORMAT_PROPERTYFORMATTER_MPP
-#       include "alib/format/propertyformatter.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include <vector>
+#include "ALib.Characters.Functions.H"
+#include "ALib.Boxing.H"
+#include "ALib.Strings.H"
+#include "ALib.Format.H"
 
+
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Format.PropertyFormatter;
+#else
+#include "alib/format/propertyformatter.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_FORMAT
 #endif // H_ALIB_FORMAT_PROPERTYFORMATTER

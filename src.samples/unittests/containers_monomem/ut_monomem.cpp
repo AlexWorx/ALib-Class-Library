@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -14,8 +14,6 @@
 #include "ALib.Monomem.H"
 
 #if ALIB_UT_MONOMEM
-
-#include "ALib.Strings.Monomem.H"
 #include "ALib.Monomem.H"
 
 #define TESTCLASSNAME       UT_ContMono
@@ -317,7 +315,7 @@ DOX_MARKER( [DOX_MONOMEM_ALLOCATOR_INTERFACE] )
 }
 
 {
-#if !defined(_WIN32)
+#if !defined(_WIN32)  && !ALIB_C20_MODULES
 DOX_MARKER( [ALIB_MANUAL_T_HPP_FILE_USAGE_USAGE] )
 // Create a pool allocator that uses heap allocation
 PoolAllocatorHA myPool;
@@ -337,7 +335,7 @@ PoolAllocatorHA myPool;
     myMono().Delete(myObject);
 }// destruction of the mono allocator, which passes the memory buffer back to the pool
 DOX_MARKER( [ALIB_MANUAL_T_HPP_FILE_USAGE_USAGE] )
-#endif // !defined(_WIN32)
+#endif // !defined(_WIN32) && !ALIB_C20_MODULES
 }
 }
 
@@ -889,7 +887,7 @@ UT_METHOD(LocalAllocator)
 
     // we cannot do the following within the unit tests project, which imports the ALIB_DLL.
     // It has to be done in an external lib.
-    #if !defined(_WIN32)
+    #if !defined(_WIN32)  && !ALIB_C20_MODULES
     // Use local allocator with underlying pool
     {
         // this is more or less a compilation test.
@@ -901,7 +899,7 @@ UT_METHOD(LocalAllocator)
         MyType* myObject= myLocalMono().New<MyType>(A_CHAR("Hello"));
         myLocalMono().Delete(myObject);
     }
-    #endif //!defined(_WIN32)
+    #endif //!defined(_WIN32) && !ALIB_C20_MODULES
 }
 
 //--------------------------------------------------------------------------------------------------

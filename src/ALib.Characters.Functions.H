@@ -2,21 +2,24 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_CHARACTERS_FUNCTIONS
 #define H_ALIB_CHARACTERS_FUNCTIONS
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
-#if ALIB_C20_MODULES && !DOXYGEN
-    import ALib.Characters.Functions;
-#elif !defined(ALIB_INC_CHARACTERS_FUNCTIONS_MPP)
-#   define ALIB_INC_CHARACTERS_FUNCTIONS_MPP
-#   include "alib/characters/functions.mpp"
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Lang.H"
+#include <cstring>
 
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Characters.Functions;
+#else
+#include "alib/characters/functions.hpp"
+#endif // ALIB_C20_MODULES
 #endif // H_ALIB_CHARACTERS_FUNCTIONS

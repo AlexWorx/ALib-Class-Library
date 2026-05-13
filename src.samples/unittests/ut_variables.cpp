@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -328,17 +328,17 @@ UT_METHOD(ConfigIniFilePlain)
     // --------- basics on first test ini-file --------------
     {
       NString contents=
-         "/// --------------------------------------------------------------------------" LF
-         "/// ALib Unit Tests Data" LF
-         "/// (c) 2025 AWorx GmbH. Published under MIT License (Open Source)." LF
-         "/// --------------------------------------------------------------------------" LF
-         "/// Last file comment" LF
+         "# --------------------------------------------------------------------------" LF
+         "# ALib Unit Tests Data" LF
+         "# (c) 2025 AWorx GmbH. Published under MIT License (Open Source)." LF
+         "# --------------------------------------------------------------------------" LF
+         "# Last file comment" LF
          "" LF
-         "/// S0V11C1" LF
+         "# S0V11C1" LF
          "V1= ValueS0V1" LF
          "" LF
          "" LF
-         "/// Section1 Comment1" LF
+         "# Section1 Comment1" LF
          "# Section1 Comment2" LF
          "[Section1]" LF
          "" LF
@@ -352,7 +352,7 @@ UT_METHOD(ConfigIniFilePlain)
          "V3= ValueS1V3" LF
          "" LF
          "" LF
-         "/// Section2 Comment1" LF
+         "# Section2 Comment1" LF
          "[Section2]" LF
          "" LF
          "V1= ValueS2V1" LF
@@ -372,9 +372,9 @@ UT_METHOD(ConfigIniFilePlain)
         outputFile.close();
 
       contents=
-         "/// SampleFile2" LF
+         "# SampleFile2" LF
          "" LF
-         "/// SectionFile2 Comment1" LF
+         "# SectionFile2 Comment1" LF
          "[SectionFile2]" LF
          "V1= ValueS2F2V1" LF
          "" LF                ;
@@ -393,7 +393,7 @@ UT_METHOD(ConfigIniFilePlain)
     auto* section= inif.SearchSection(A_CHAR(""));       UT_TRUE( section != nullptr)
                                                          UT_TRUE( section == &inif.Sections.front() )
     auto* var = &section->Entries.front();               UT_TRUE( var != nullptr)
-                                                         UT_TRUE( var == inif.SearchEntry(section->Name, A_CHAR("V1")).second )
+                                                         UT_TRUE( var == inif.SearchEntry(section->Name, A_CHAR("V1")).EntryPointer )
                                                          UT_EQ  ( A_CHAR("= ValueS0V1"), var->RawValue)
                                                          UT_EQ  ( A_CHAR("ValueS0V1"  ), var->Value)
     section   = inif.SearchSection(A_CHAR("Section1"));  UT_TRUE( section != nullptr)
@@ -425,8 +425,8 @@ UT_METHOD(ConfigIniFilePlain)
     UT_EQ(  8, inif.Count() )
 
     // search new section
-    auto* section2= inif.SearchSection(A_CHAR("Programmed"));                      UT_TRUE( section == section2)
-    auto* var2    = inif.SearchEntry  (A_CHAR("Programmed"), A_CHAR("V1")).second; UT_TRUE( var     == var2    )
+    auto* section2= inif.SearchSection(A_CHAR("Programmed"));                            UT_TRUE( section == section2)
+    auto* var2    = inif.SearchEntry  (A_CHAR("Programmed"), A_CHAR("V1")).EntryPointer; UT_TRUE( var     == var2    )
 
     // write and make a diff (but its output is not programmatically tested)
     writePath.Change(alib::system::SystemFolders::Temp, A_PATH("test1.added.ini"));
@@ -435,9 +435,9 @@ UT_METHOD(ConfigIniFilePlain)
     UT_PRINT( "DIFF: ", sysCallBuf )
 
     // --------- Delete an entry --------------
-    var = inif.SearchEntry(A_CHAR("Section1"), A_CHAR("V2")).second;     UT_EQ( A_CHAR("V2"), var->Name)
-    var2= inif.DeleteEntry(A_CHAR("Section1"), A_CHAR("V2"));            UT_EQ( var , var2)       UT_EQ(  7, inif.Count() )
-    var = inif.SearchEntry(A_CHAR("Section1"), A_CHAR("V2")).second;     UT_EQ( nullptr, var )
+    var = inif.SearchEntry(A_CHAR("Section1"), A_CHAR("V2")).EntryPointer;  UT_EQ( A_CHAR("V2"), var->Name)
+    var2= inif.DeleteEntry(A_CHAR("Section1"), A_CHAR("V2"));               UT_EQ( var , var2)       UT_EQ(  7, inif.Count() )
+    var = inif.SearchEntry(A_CHAR("Section1"), A_CHAR("V2")).EntryPointer;  UT_EQ( nullptr, var )
 
     // --------- Reset --------------
     inif.Reset();     UT_EQ(  0, inif.Count() )
@@ -449,7 +449,7 @@ UT_METHOD(ConfigIniFilePlain)
     // read a second INI-file
     inif.Read(sampleIniPath2);  UT_EQ(  9, inif.Count() )
                                 UT_EQ(  5, inif.Sections.size() )
-    UT_EQ(String128("/// SampleFile2") << LF, inif.FileComments)
+    UT_EQ(String128("# SampleFile2") << LF, inif.FileComments)
     writePath.Change(alib::system::SystemFolders::Temp, A_PATH("test1.merged.ini"));
     inif.Write(writePath);
 
@@ -610,14 +610,15 @@ UT_METHOD(ConfigIniFiles)
             vc= String(A_CHAR("this is c-line 1\nand this line 2") );
     }
     // write the file
-    Path sampleIniPathWriteback (alib::SystemFolders::Temp, A_PATH("unittest_testiniFile.writeback.ini") );
-    iniFile.ExportStart(sampleIniPathWriteback);
+    Path sampleIniPathWriteBack (alib::SystemFolders::Temp, A_PATH("unittest_testiniFile.writeback.ini") );
+    iniFile.ExportStart(sampleIniPathWriteBack);
+
     iniFile.ExportSubTree(A_CHAR("/"));
-    iniFile.ExportEnd(sampleIniPathWriteback);
+    iniFile.ExportEnd(sampleIniPathWriteBack);
 
     // Reset config and load the written file into another config
     cfg.Reset();
-    iniFile.ImportStart(sampleIniPathWriteback);
+    iniFile.ImportStart(sampleIniPathWriteBack);
     iniFile.ImportAll();
     iniFile.ImportEnd();
 
@@ -678,7 +679,7 @@ UT_METHOD(ConfigDefaultAndProtected)
     Configuration cfg(ma);
     Variable var(cfg);
 
-    // command line
+    // command-line
     var.Declare( A_CHAR("TEST_VARIABLE"), A_CHAR("S") );
     UT_EQ( Priority::CLI,  var.GetPriority() )   UT_EQ( A_CHAR("fromCommandLine")    ,var.GetString() )
 
@@ -690,7 +691,7 @@ UT_METHOD(ConfigDefaultAndProtected)
     if(var.Define() ) var= String(A_CHAR("not overwriting"));
     UT_EQ( Priority::CLI,  var.GetPriority() )   UT_EQ( A_CHAR("fromCommandLine")    ,var.GetString() )
 
-    // set protected, overwrites command line
+    // set protected, overwrites command-line
     if(var.Define(alib::variables::Priority::Protected) ) var= String(A_CHAR("does overwrite"));
     UT_EQ( Priority::Protected,  var.GetPriority() )   UT_EQ( A_CHAR("does overwrite")    ,var.GetString() )
 
@@ -727,7 +728,7 @@ UT_METHOD(ConfigSubstitution)
     Configuration cfg(ma);
     Variable var(cfg);
 
-    // replacements from command line plugin
+    // replacements from command-line plugin
     var.Declare(A_CHAR("TEST_1"), A_CHAR("S"),  A_CHAR("no replacment")                   ); UT_EQ( A_CHAR("no replacment")                   ,var.GetString() )
     var.Declare(A_CHAR("TEST_2"), A_CHAR("S"),  A_CHAR("${UKN}")                          ); UT_EQ( A_CHAR("")                                ,var.GetString() )
     var.Declare(A_CHAR("TEST_3"), A_CHAR("S"),  A_CHAR("-${UKN} * ${UKN2}-")              ); UT_EQ( A_CHAR("- * -")                           ,var.GetString() )

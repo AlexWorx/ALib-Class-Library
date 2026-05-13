@@ -1,0 +1,137 @@
+/// \file
+// #################################################################################################
+//  ALib C++ Framework
+//  Resources of ALib Camp FileTree
+//
+//  Copyright 2025 A-Worx GmbH, Germany
+//  Published under Boost Software License (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+FT ~|
+    0,Directory          ,1,
+    1,SymbolicLinkToDir  ,15,
+    3,SymbolicLinkToFile ,15,
+    2,Regular            ,1,
+    4,Block              ,1,
+    5,Character          ,1,
+    6,Fifo               ,1,
+    7,Socket             ,2,
+    8,UNKNOWN_OR_ERROR   ,1   
+
+FT1 ~|
+    0,d                  ,1,
+    1,L                  ,1,
+    2,-                  ,1,
+    3,l                  ,1,
+    4,b                  ,1,
+    5,c                  ,1,
+    6,p                  ,1,
+    7,s                  ,1  
+
+FT2 ~|
+    0,dr                 ,1,
+    1,ld                 ,3,
+    2,rf                 ,1,
+    3,lf                 ,3,
+    4,bl                 ,1,
+    5,ch                 ,1,
+    6,ff                 ,1,
+    7,so                 ,2
+
+FT3 ~|
+    0,dir                 ,1,
+    1,sld                 ,3,
+    2,reg                 ,1,
+    3,slf                 ,3,
+    4,blk                 ,1,
+    5,chr                 ,1,
+    6,ffo                 ,1,
+    7,sck                 ,2
+
+
+FQ ~|
+     0,NONE                ,3,
+     1,STATS               ,1,
+     2,RESOLVED            ,3,
+     3,MAX_DEPTH_REACHED   ,1,
+    15,NOT_EXISTENT        ,5,
+     4,NOT_FOLLOWED        ,5,
+     5,NOT_CROSSING_FS     ,5,
+     6,NO_AFS              ,5,
+    10,NO_ACCESS_SL_TARGET ,13,
+     9,NO_ACCESS_SL        ,11,
+    11,NO_ACCESS_DIR       ,11,
+     8,NO_ACCESS           ,5,
+     7,RECURSIVE           ,1,
+    12,BROKEN_LINK         ,1,
+    13,CIRCULAR_LINK       ,1,
+    14,DUPLICATE           ,1,
+    16,UNKNOWN_ERROR       ,5
+
+FQ3 ~|
+     0,NON                 ,3,
+     1,STA                 ,3,
+     2,RES                 ,3,
+     3,MDR                 ,3,
+     4,NFO                 ,3,
+     5,NCF                 ,3,
+     6,NAF                 ,3,
+     7,REC                 ,3,
+     8,NAC                 ,3,
+     9,NSL                 ,3,
+    10,NAT                 ,3,
+    11,NAD                 ,3,
+    12,BRL                 ,3,
+    13,CIL                 ,3,
+    14,DUP                 ,3,
+    15,NEX                 ,3,
+    16,UKE                 ,3
+
+// default format for method FTFile::Format when used with Formatter and no placeholder
+// string was given.
+FFMT  ta h on gn s dm nal
+TFP   File Permission
+TID   File Usr/Grp ID
+TTY   File Type
+
+// Identifier/Function names (File Expressions)
+CPF0  ~  OwnerRead          " I 1 2"
+CPF1  ~  OwnerWrite         " I 1 1"
+CPF2  ~  OwnerExecute       " I 1 1"
+CPF3  ~  GroupRead          " I 1 1"
+CPF4  ~  GroupWrite         " I 1 1"
+CPF5  ~  GroupExecute       " I 1 1"
+CPF6  ~  OthersRead         " I 2 1"
+CPF7  ~  OthersWrite        " I 2 1"
+CPF8  ~  OthersExecute      " I 2 1"
+CPF9  ~  Directory          " I 3"
+CPF10 ~  SymbolicLinkDir    " I 1 1 1"
+CPF11 ~  Regular            " I 3"
+CPF12 ~  SymbolicLink       " I 1 1"
+CPF13 ~  Block              " I 5"
+CPF14 ~  Character          " I 9"
+CPF15 ~  Fifo               " I 4"
+CPF16 ~  Socket             " I 6"
+CPF17 ~  Name               " I 4"
+CPF18 ~  Type               " I 2"
+CPF19 ~  IsDirectory        " I 2 3"
+CPF20 ~  IsSymbolicLink     " I 2 1 1"
+CPF21 ~  Size               " I 4"
+CPF22 ~  Date               " I 4"
+CPF23 ~  MDate              " I 1 1"
+CPF24 ~  BDate              " I 1 1"
+CPF25 ~  CDate              " I 1 1"
+CPF26 ~  ADate              " I 1 1"
+CPF27 ~  PermissionS        " I 4 0"
+CPF28 ~  KiloBytes          " I 1 1"
+CPF29 ~  MegaBytes          " I 1 1"
+CPF30 ~  GigaBytes          " I 1 1"
+CPF31 ~  TeraBytes          " I 1 1"
+CPF32 ~  PetaBytes          " I 1 1"
+CPF33 ~  ExaBytes           " I 1 1"
+CPF34 ~  Owner              " I 5"
+CPF35 ~  Group              " I 5"
+CPF36 ~  UserID             " I 1 1 1"
+CPF37 ~  GroupID            " I 1 1 1"
+CPF38 ~  Path               " I 4"
+

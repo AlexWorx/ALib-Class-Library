@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -22,44 +22,44 @@ and easy to integrate into existing workflows.
 <b>Custom Printability with Conversion Functions</b><br>
 The assertion system includes functionality for converting values into human-readable strings,
 even for complex or custom types.
-This is achieved through the type alias \ref alib::assert::AnyConversionFunc, a function pointer
+This is achieved through the type alias #"alib::assert::AnyConversionFunc", a function pointer
 that enables conversion of <c>std::any</c> objects to <c>std::string</c>.
 \alib modules rely on this to display meaningful debug information for internal types.
 If required, custom conversion functions can be registered using
-\ref alib::assert::RegisterPrintable, extending this feature to user-defined types.
+#"alib::assert::RegisterPrintable", extending this feature to user-defined types.
 
 <b>Assertion Output Format</b><br>
-A predefined format string, \ref alib::assert::FORMAT, governs how assertion messages are
+A predefined format string, #"alib::assert::FORMAT", governs how assertion messages are
 structured. The default format, compatible with IDEs such as JetBrains CLion, links messages
 in the output window to source code locations. It can be customized if you need to adapt the
 output for specific IDEs.
 
 <b>Stream Management</b><br>
 To segregate error, warning, and informational messages, the system provides dedicated streams:
-\alib{assert;STREAM_ERRORS}, \alib{assert;STREAM_WARNINGS}, and \alib{assert;STREAM_MESSAGES}.
+#"STREAM_ERRORS", #"STREAM_WARNINGS", and #"STREAM_MESSAGES".
 These streams default to <c>std::cerr</c> or <c>std::cout</c>, but can be redirected to custom
 destinations.
 
 <b>Raising Assertions and Warnings and sending Messages</b><br>
-At the heart of the system lies the templated function \alib{assert;Raise}, which processes
+At the heart of the system lies the templated function #"Raise", which processes
 events based on caller information, the message type, and variadic arguments.
 This central function is responsible for formatting and routing messages to the appropriate
 output streams.
 
 <b>Custom Assertion Handling</b><br>
 The system includes a mechanism for overriding its default behavior.
-By setting the function pointer \ref alib::assert::PLUGIN, developers can replace the standard
+By setting the function pointer #"alib::assert::PLUGIN", developers can replace the standard
 assertion output mechanics with custom one.
 For example, you could use this feature to integrate assertions with external logging systems or
 monitoring tools.
 Module \alib_alox provides such a plugin. Further information is given with
-the chapter \ref alib_mod_alox_debug_and_release_logging_ft_4 of the Programmer's Manual of that
+the chapter #"alib_mod_alox_debug_and_release_logging_ft_4" of the Programmer's Manual of that
 module.
 
 <b>Preprocessor Macros</b><br>
-A suite of macros, such as \ref ALIB_ERROR, \ref ALIB_WARNING, or \ref ALIB_ASSERT_ERROR, simplifies
+A suite of macros, such as #"ALIB_ERROR", #"ALIB_WARNING", or #"ALIB_ASSERT_ERROR", simplifies
 the use of the assertion system. These macros encapsulate common assertion patterns, collect
-the \alib{lang;CallerInfo} struct, prune the code away with release-compilations, etc.
+the #"CallerInfo" struct, prune the code away with release-compilations, etc.
 Developers can use these macros directly in their custom code, if they choose to adopt the
 assertion system.
 

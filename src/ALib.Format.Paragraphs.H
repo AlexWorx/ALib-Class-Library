@@ -2,23 +2,30 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_FORMAT_PARAGRAPHS
 #define H_ALIB_FORMAT_PARAGRAPHS
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 #if ALIB_FORMAT
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Format.Paragraphs;
-#   elif !defined(ALIB_INC_FORMAT_PARAGRAPHS_MPP)
-#       define ALIB_INC_FORMAT_PARAGRAPHS_MPP
-#       include "alib/format/paragraphs.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include <stack>
+#include "ALib.Monomem.StdContainers.H"
+#include "ALib.Boxing.H"
+#include "ALib.Strings.H"
+#include "ALib.Format.H"
 
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Format.Paragraphs;
+#else
+#include "alib/format/paragraphs.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_FORMAT
 #endif // H_ALIB_FORMAT_PARAGRAPHS

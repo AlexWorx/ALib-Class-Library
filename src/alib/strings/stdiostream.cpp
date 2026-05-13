@@ -1,32 +1,5 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include <algorithm>
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Strings.StdIOStream;
-    import   ALib.Strings;
-#else
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.StdIOStream.H"
-#endif
-//========================================== Implementation ========================================
 
 #if ALIB_STRINGS
-
-#   include "ALib.Characters.Functions.H"
 
 #if !DOXYGEN
 
@@ -60,8 +33,8 @@ template<typename TChar>
 void alib::strings::AppendableTraits<alib::strings::compatibility::std::TIStreamLine<TChar>,
                                      TChar,
                                      alib::lang::HeapAllocator>::operator()(
-         TAString<TChar, HeapAllocator>&                 target,
-         const compatibility::std::TIStreamLine<TChar>&   constIsLine     ) {
+         TAString<TChar, HeapAllocator>&                  target,
+         const compatibility::std::TIStreamLine<TChar>&   constIsLine     )   {
     // we are required to read from to the param object. So we cast to non-const.
     // This is OK, as the const specifier came through template programming.
     compatibility::std::TIStreamLine<TChar>& isLine=
@@ -69,7 +42,7 @@ void alib::strings::AppendableTraits<alib::strings::compatibility::std::TIStream
 
     if ( isLine.TargetData == lang::CurrentData::Clear )
         target.Reset();
-    alib::integer origLength= target.Length();
+    integer origLength= target.Length();
 
     // read loop
     while( !isLine.IStream->eof() ) {
@@ -94,16 +67,16 @@ void alib::strings::AppendableTraits<alib::strings::compatibility::std::TIStream
         if ( count > 0 ) {
             // be sure to not have a carriage return at the start
             if( *(target.Buffer() + start) == '\r' ) {
-                target.template Delete<NC>( static_cast<alib::integer>(start), 1 );
+                target.template Delete<NC>( static_cast<integer>(start), 1 );
                 --count;
             }
 
             // be sure to not have a carriage return at the end
-            start+= count;
+            start+= integer(count);
             if( *(target.Buffer() + start -1 ) == '\r' )
                 --start;
 
-            target.SetLength( static_cast<alib::integer>(start) );
+            target.SetLength( static_cast<integer>(start) );
 
             // if we are at the end of the file (without delimiter) we stop now
             if ( isLine.IStream->eof() ) {

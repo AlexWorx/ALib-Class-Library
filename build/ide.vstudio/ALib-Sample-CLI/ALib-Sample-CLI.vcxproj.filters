@@ -9,5 +9,13 @@
     <ClCompile Include="..\..\..\src.samples\CLI\sample.cpp">
       <Filter>CLI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src.samples\CLI\samplecamp.cpp">
+      <Filter>CLI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src.samples\CLI\samplecamp.hpp">
+      <Filter>CLI</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

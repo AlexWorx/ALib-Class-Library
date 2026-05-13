@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -12,7 +12,6 @@
 #   include "ALib.Compatibility.QTCharacters.H"
 #endif
 
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.Strings.Search.H"
 #include "ALib.Strings.Token.H"
@@ -83,7 +82,7 @@ UT_METHOD( TextTests )
 
     AString exp("");
 
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
         st.PushIndent(2);
 
@@ -102,7 +101,7 @@ UT_METHOD( TextTests )
     }
 
 
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
 
         st.LineWidth= 4;
@@ -123,7 +122,7 @@ UT_METHOD( TextTests )
         UT_EQ( exp, st.Buffer )
     }
 
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
         st.Add("123456789 123<--------" );
         st.LineWidth= 11;
@@ -146,7 +145,7 @@ UT_METHOD( TextTests )
         UT_EQ( exp, st.Buffer )
     }
 
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
         st.Add("123456789 12345<-------" );
         st.LineWidth= 15;
@@ -167,7 +166,7 @@ UT_METHOD( TextTests )
     }
 
     // indent
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
         //st.LineWidth= 15;
         st.PushIndent(A_CHAR("  "));  st.Buffer._();  st.Add( ""             );  st.PopIndent();  exp._() << A_CHAR(""                      );        UT_EQ( exp , st.Buffer )
@@ -183,7 +182,7 @@ UT_METHOD( TextTests )
 
     const String& lorem= A_CHAR("Lorem ipsum dolor sit amet, consetetur.\n"
                               "Sadipscing elitr, sed diam nonumy eirmod tempor.");
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
 
         // unchanged
@@ -253,7 +252,7 @@ UT_METHOD( TextTests )
 
 
     //-------- full justification ("Blocksatz") -------
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
 
         st.JustifyChar= ' ';
@@ -304,7 +303,7 @@ UT_METHOD( TextMarked )
 
     AString exp("");
 
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         Paragraphs st;
         st.Clear().AddMarked("@*>Bullet1@Pxxx@P\nBullet2\n@<*Normal text" );
         UT_PRINT( st.Buffer )
@@ -1052,7 +1051,7 @@ UT_METHOD( OStreamWriterNLCorrection )
     std::wostringstream	    wos;
     OStreamWriter<wchar_t>  wsw(wos);
 
-    ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
+    ALIB_ALLOW_UNREACHABLE_CODE
     // standard newline conversion ("\n")
     if constexpr (NEW_LINE.Length()==1) {
         nos.str(""); nsw.Write(        "\n"                      ); UT_EQ("\n"            , nos.str() )
@@ -1131,7 +1130,7 @@ UT_METHOD( OStreamWriterNLCorrection )
         wos.str(L""); wsw.Write( L"x\ntest\ny\n\n"         ); UT_EQ(L"x\r\ntest\r\ny\r\n\r\n", wos.str() )
 
     }
-    ALIB_WARNINGS_RESTORE
+    ALIB_POP_ALLOWANCE
 }
 
 #include "aworx_unittests_end.hpp"

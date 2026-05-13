@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -31,7 +31,7 @@ using namespace alib::expressions;
 
 #include "expressions/ut_expr_testfunc.hpp"
 
-ALIB_WARNINGS_MACRO_NOT_USED_OFF
+ALIB_ALLOW_UNUSED_MACRO
 
 namespace ut_aworx {
 
@@ -170,7 +170,7 @@ class ETExceptionThrowers : public plugins::Calculus
 // ### MultiThreaded test
 // #################################################################################################
 #if !ALIB_SINGLE_THREADED
-ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION
+ALIB_ALLOW_UNUSED_FUNCTION
 struct EvaluationThread : public threads::Thread
 {
     Expression        expr;
@@ -192,7 +192,7 @@ struct EvaluationThread : public threads::Thread
         }
     }
 };
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 #endif
 
 } // anonymous namespace
@@ -209,7 +209,7 @@ UT_CLASS
 // #################################################################################################
 // ### ParseSpeed
 // #################################################################################################
-UT_METHOD(ParseSpeed)
+UT_METHOD(CompileSpeed)
 {
     UT_INIT()
     Compiler compiler;
@@ -218,43 +218,44 @@ UT_METHOD(ParseSpeed)
 
     Ticks time;
 
+    compiler.Compile( ALIB_STRINGIFY(  1+2+3+4+5+6+7+8+9+10+11+12+13+14+15+16+17+18+19+20 ) );
 
-    // 0 ms seconds (release)
+    // 1 micro seconds (release)
     UT_PRINT("Expression A1:")
     time= Ticks::Now();
-    compiler.Compile( ALIB_STRINGIFY(  1+2+3+4+5+6+7+8+9+10+11+12+13+14+15+16+17+18+19+20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    compiler.Compile( ALIB_STRINGIFY(  1+2 ) );
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
-    // 0 ms seconds (release)
+    // 7 micro seconds (release)
     UT_PRINT("Expression A2:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  1+2*3+4*5+6*7+8*9+10*11+12*13+14*15+16*17+18*19+20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
-    // 0 ms seconds (release)
+    // 7 micro seconds (release)
     UT_PRINT("Expression A3:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  1&2+3*4&5+6*7&8+9*10&11+12*13&14+15*16&17+18*19&20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
 
-    // 120 ms seconds (release)
+    // 8 micro seconds (release)
     UT_PRINT("Expression B1:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))))   );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
-    // 250 ms seconds (release)
+    // 9 micro seconds (release)
     UT_PRINT("Expression B2:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * ((2 + 6 * (2 + 6 * (2 + 1)) + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))))  ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
-    // 7,5 min, 760,250 ms seconds (release)
+    // 16 micro seconds (release)
     UT_PRINT("Expression B3:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) ))))) ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))));
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
+    UT_PRINT("  Compile Time: {}", time.Age() )
 
 }
 
@@ -302,7 +303,7 @@ UT_METHOD(ProgramListing)
         UT_PRINT("")
         UT_PRINT("Human check needed:")
         UT_PRINT("  Check if listings are right. Especially the argument numbers in last column")
-        UT_PRINT("  Testing stops with exit code 42.")
+        UT_PRINT("  Testing stops with exit-code 42.")
         UT_PRINT("")
         exit(42);
     #endif
@@ -1325,7 +1326,7 @@ DOX_MARKER( [DOX_EXPRESSIONS_LITERALS_DECIMALPOINTCHAR])
         UT_TRUE(stdExceptionCaught)
     }
 
-    // run-time exceptions in callbacks
+    // runtime exceptions in callbacks
     {
         Compiler compiler;
         ETExceptionThrowers exceptionThrowers(compiler);
@@ -1895,6 +1896,6 @@ UT_METHOD(MultiThreaded)
 
 } //namespace
 
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 #endif // ALIB_UT_EXPRESSIONS

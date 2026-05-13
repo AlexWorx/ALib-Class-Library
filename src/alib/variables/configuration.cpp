@@ -1,43 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/variables/variables.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Boxing;
-#  if ALIB_RESOURCES
-    import   ALib.Resources;
-#  endif
-    import   ALib.Variables.Plugins;
-#  if ALIB_CAMP
-    import   ALib.Camp;
-#  endif
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.Resources.H"
-#   include "ALib.Variables.Plugins.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Variables.H"
-#endif
-//========================================== Implementation ========================================
 
 ALIB_BOXING_VTABLE_DEFINE( alib::variables::Priority                  , vt_config_priorities)
 ALIB_BOXING_VTABLE_DEFINE( alib::variables::Variable                  , vt_config_variable    )
@@ -49,9 +9,9 @@ namespace alib {
 //==================================================================================================
 /// This is the namespace of\alibmod, which implements access, evaluation and writing of
 /// configuration variables. Variable data can be load from different sources, for example
-/// configuration files, command line parameters, environment variables, or any custom storage type.
+/// configuration files, command-line parameters, environment variables, or any custom storage type.
 ///
-/// Please consult \ref alib_mod_variables "ALib Module Config - Programmer's Manual"
+/// Please consult #"alib_mod_variables;ALib Module Config - Programmer's Manual"
 /// for further information.
 //==================================================================================================
 namespace variables {
@@ -274,7 +234,7 @@ void Configuration::presetImportString( const String&        name,     const Str
         auto*  meta= entry.meta= *it;
 
         // initialize fields
-        entry.data   =  reinterpret_cast<detail::VDATA*>(Pool().Alloc( meta->size(), alignof(detail::VDATA)));
+        entry.data   =  static_cast<detail::VDATA*>(Pool().Alloc( meta->size(), alignof(detail::VDATA)));
         meta->construct( cursor->data, Pool );
         entry.priority= priority;
     }

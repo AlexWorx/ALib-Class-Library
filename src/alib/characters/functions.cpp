@@ -1,27 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alib.inl"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Characters.Functions;
-    import   ALib.Lang;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Characters.Functions.H"
-#endif
-//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 
 namespace alib {
@@ -31,7 +7,7 @@ namespace alib {
 /// holds types of library module \alib_characters.
 ///
 /// Extensive documentation for this module is provided with
-/// \ref alib_mod_characters "ALib Module Characters - Programmer's Manual".
+/// #"alib_mod_characters;ALib Module Characters - Programmer's Manual".
 namespace characters {
 
 //! @cond NO_DOX

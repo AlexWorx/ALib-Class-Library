@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -13,7 +13,6 @@
 #include "ALib.Characters.Functions.H"
 #include "ALib.Strings.H"
 #include "ALib.Strings.Calendar.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 #include <iostream>
 #include <sstream>
@@ -51,7 +50,8 @@ namespace characters {
 
 #if ALIB_CAMP
 namespace strings {
-    template<> struct AppendableTraits<alib::time::DateTime, character, lang::HeapAllocator>
+    template<>
+    struct AppendableTraits<alib::time::DateTime, character, lang::HeapAllocator>
     {
         void operator()( AString& target, const alib::time::DateTime& ticks )
         {
@@ -60,7 +60,6 @@ namespace strings {
             calendarTime.Format(A_CHAR("yyyy-MM-dd HH:mm"), target );
         }
     };
-
 }
 #endif
 

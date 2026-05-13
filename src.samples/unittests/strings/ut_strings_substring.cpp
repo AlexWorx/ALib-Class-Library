@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -13,7 +13,6 @@
 #endif
 
 #include "ALib.ALox.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.Tokenizer.H"
 #include "ALib.Strings.H"
 
@@ -327,12 +326,12 @@ UT_METHOD( Consume )
         UT_EQ(  'd',       s.ConsumeChar   ( )         )
         UT_EQ(  '1',       s.ConsumeChar   ( )         )
 
-        UT_EQ(  false    , s.ConsumeChar                                       ('w'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('w'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  ) )
-        UT_EQ(  false    , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('r'  ) )
-        UT_EQ(  false    , s.ConsumeString<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   (A_CHAR("D2") ) )
+        UT_EQ(  false    , s.ConsumeChar                                                               ('w'  ) )
+        UT_EQ(  true     ,(s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('w'  )) )
+        UT_EQ(  true     ,(s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  )) )
+        UT_EQ(  false    ,(s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  )) )
+        UT_EQ(  true     ,(s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('r'  )) )
+        UT_EQ(  false    ,(s.ConsumeString<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   (A_CHAR("D2") )) )
         UT_EQ(  false    , s.ConsumeString                                                             (A_CHAR("D2") ) )
         UT_EQ(  true     , s.ConsumeString                                                             (A_CHAR("d2") ) )
 
@@ -347,14 +346,14 @@ UT_METHOD( Consume )
         UT_EQ(  'o',       s.ConsumeCharFromEnd( )         )
         UT_EQ(  'w',       s.ConsumeCharFromEnd( )         )
 
-        UT_EQ(  false    , s.ConsumeCharFromEnd                                    ('2')   )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('2')  )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')  )
-        UT_EQ(  false    , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')  )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('r')  )
-        UT_EQ(  false    , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO")) )
-        UT_EQ(  false    , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO")) )
-        UT_EQ(  true     , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("wo")) )
+        UT_EQ(  false    , s.ConsumeCharFromEnd                                                            ('2')           )
+        UT_EQ(  true     ,(s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('2')         ) )
+        UT_EQ(  true     ,(s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')         ) )
+        UT_EQ(  false    ,(s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')         ) )
+        UT_EQ(  true     ,(s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('r')         ) )
+        UT_EQ(  false    ,(s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO"))) )
+        UT_EQ(  false    ,(s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO"))) )
+        UT_EQ(  true     ,(s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("wo"))) )
 
         UT_EQ(  2   , s.ConsumeCharsFromEnd( 4 )   )
         UT_EQ(  A_CHAR("wo")     , s )

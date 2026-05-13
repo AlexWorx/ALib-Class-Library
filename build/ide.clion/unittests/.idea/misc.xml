@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="sdkName" value="Python 3.14 (.venv)" />
+  </component>
   <component name="CMakePythonSetting">
     <option name="pythonIntegrationState" value="YES" />
   </component>
@@ -12,10 +15,6 @@
     </sourceRoots>
     <excludeRoots>
       <file path="$PROJECT_DIR$/../../../.private/build/_builds_" />
-      <file path="$PROJECT_DIR$/../../_builds_" />
-      <file path="$PROJECT_DIR$/../../_builds_/ide.cpp.clion/ALox_Unit_Tests/CMakeFiles" />
-      <file path="$PROJECT_DIR$/cmake-build-debug/CMakeFiles" />
-      <file path="$PROJECT_DIR$/../../ide.cs.monodevelop/Solution/packages" />
     </excludeRoots>
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.5.2 (/usr/bin/python3.5)" project-jdk-type="Python SDK" />

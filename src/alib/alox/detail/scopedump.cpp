@@ -1,45 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alox/alox.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.ALox.Impl;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Variables;
-    import   ALib.Camp;
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.Containers.StringTreeIterator.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.ALox.H"
-#   include "ALib.ALox.Impl.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace lox { namespace detail {
 
 //! @cond NO_DOX
@@ -154,13 +112,13 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store ) {
     }
 
 #if !ALIB_SINGLE_THREADED
-    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread ) {
-        if ( thread->first.first== false )
+    for ( auto threadIt= store->threadStore.begin() ; threadIt != store->threadStore.end() ; ++threadIt ) {
+        if ( threadIt->first.first== false )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._<NC>("  Scope::ThreadOuter ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
-        cnt+= int( thread->second->Size() );
-        maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
+        targetBuffer._<NC>("  Scope::ThreadOuter ");  storeThreadToScope( threadIt->first.second )._( ':' ).NewLine();
+        cnt+= int( threadIt->second->Size() );
+        maximumKeyLength= writeStoreMapHelper( *threadIt->second, "    " );
     }
 #endif
 
@@ -183,13 +141,13 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store ) {
     }
 
 #if !ALIB_SINGLE_THREADED
-    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread ) {
-        if ( thread->first.first == true )
+    for ( auto threadIt= store->threadStore.begin() ; threadIt != store->threadStore.end() ; ++threadIt ) {
+        if ( threadIt->first.first == true )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._<NC>("  Scope::ThreadInner ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
-        cnt+= int( thread->second->Size() );
-        maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
+        targetBuffer._<NC>("  Scope::ThreadInner ");  storeThreadToScope( threadIt->first.second )._( ':' ).NewLine();
+        cnt+= int( threadIt->second->Size() );
+        maximumKeyLength= writeStoreMapHelper( *threadIt->second, "    " );
     }
 #endif
     return cnt;
@@ -209,15 +167,15 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces ) {
 
     // outer thread store
 #if !ALIB_SINGLE_THREADED
-    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
-        if( thread->first.first == false )
-            for ( auto& it : thread->second ) {
+    for ( auto threadIt= store->threadStore.begin() ; threadIt != store->threadStore.end() ; ++threadIt )
+        if( threadIt->first.first == false )
+            for ( auto& it : threadIt->second ) {
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
                 targetBuffer._<NC>( NTab( 25, -1 ) )
                       ._<NC>( "Scope::ThreadOuter " );
-                storeThreadToScope( thread->first.second ).NewLine();
+                storeThreadToScope( threadIt->first.second ).NewLine();
             }
 #endif
 
@@ -242,15 +200,15 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces ) {
 
     // inner thread store
 #if !ALIB_SINGLE_THREADED
-    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
-        if( thread->first.first == true )
-            for ( auto& it : thread->second ) {
+    for ( auto threadIt= store->threadStore.begin() ; threadIt != store->threadStore.end() ; ++threadIt )
+        if( threadIt->first.first == true )
+            for ( auto& it : threadIt->second ) {
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
                 targetBuffer._<NC>( NTab( 25, -1 ) )
                       ._<NC>( "Scope::ThreadInner " );
-                storeThreadToScope( thread->first.second ).NewLine();
+                storeThreadToScope( threadIt->first.second ).NewLine();
             }
 #endif
     return cnt;

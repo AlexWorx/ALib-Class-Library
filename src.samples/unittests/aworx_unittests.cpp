@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -230,10 +230,13 @@ void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::BoxesMA& args
     #endif
 }
 
-void AWorxUnitTesting::Failed( const alib::CallerInfo& ci, const Box& exp, const Box& given )
+void AWorxUnitTesting::Failed( const alib::CallerInfo& ci,
+                               const Box&     exp   , const Box&     given,
+                               const String&  expStr, const String&  givenStr )
 {
-    Print( ci, alib::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
-                                                "               given: \"{!ESC}\"", exp, given );
+    Print( ci, alib::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"  <{}>\n"
+                                                "               given: \"{!ESC}\"  <{}>",
+                                                exp, expStr, given, givenStr );
     assert(!AssertOnFailure);
 }
 
@@ -291,9 +294,10 @@ void AWorxUnitTesting::writeResultFile(const NString& name, alib::AString& outpu
                                    Verbosity     verbosity,
                                    AString&      msg,
                                    ScopeInfo&    scope,
-                                   int           lineNumber )
+                                   int           lineNumber,
+                                   bool          isRecursion )
     {
-        MemoryLogger::logText( domain, verbosity, msg, scope, lineNumber );
+        MemoryLogger::logText( domain, verbosity, msg, scope, lineNumber, isRecursion);
         outputString.Reset( MemoryLog )._(NEW_LINE);
         Microsoft::VisualStudio::CppUnitTestFramework::Logger::WriteMessage( outputString );
         MemoryLog.Reset();
@@ -306,26 +310,26 @@ void AWorxUnitTesting::writeResultFile(const NString& name, alib::AString& outpu
 // #################################################################################################
 
 #if ALIB_GTEST
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); EXPECT_TRUE( false );} }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); EXPECT_TRUE( false );} }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, long double    exp, long double     d )  { EQ(ci,double(exp), double(d) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const NString& exp, const NString&  s )  { if (!exp.Equals(s))                  Failed(ci,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const WString& exp, const WString&  s )  { if (!exp.Equals(s))                  Failed(ci,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, wchar_t*       exp, wchar_t*        s )  { if (wcscmp(exp,s)!=0)                Failed(ci,exp,s); EXPECT_STREQ( exp, s        ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, float          exp, float           d, const String& es, const String& gs)  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d,es,gs); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, double         exp, double          d, const String& es, const String& gs)  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d,es,gs); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, long double    exp, long double     d, const String& es, const String& gs)  { EQ(ci,double(exp), double(d),es,gs ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, const NString& exp, const NString&  s, const String& es, const String& gs)  { if (!exp.Equals(s))                 Failed(ci,exp,s,es,gs); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, const WString& exp, const WString&  s, const String& es, const String& gs)  { if (!exp.Equals(s))                 Failed(ci,exp,s,es,gs); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, wchar_t*       exp, wchar_t*        s, const String& es, const String& gs)  { if (wcscmp(exp,s)!=0)               Failed(ci,exp,s,es,gs); EXPECT_STREQ( exp, s        ); }
 
-    void AWorxUnitTesting::IsTrue ( const alib::CallerInfo& ci, bool cond )                              {                        if (!cond )   Failed(ci, true , false ); EXPECT_TRUE ( cond ); }
-    void AWorxUnitTesting::IsFalse( const alib::CallerInfo& ci, bool cond )                              {                        if (cond )    Failed(ci, false, true  ); EXPECT_FALSE( cond ); }
+    void AWorxUnitTesting::IsTrue ( const CallerInfo& ci, bool cond, const String& condStr )                                          {                        if (!cond)   Failed(ci, true , false,condStr,A_CHAR("")); EXPECT_TRUE ( cond ); }
+    void AWorxUnitTesting::IsFalse( const CallerInfo& ci, bool cond, const String& condStr )                                          {                        if ( cond)   Failed(ci, false, true ,condStr,A_CHAR("")); EXPECT_FALSE( cond ); }
 
 #elif defined(_WIN32)
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, long double    exp, long double     d )  { EQ(ci,double(exp), double(d) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const NString& exp, const NString&  v )  { if (!exp.Equals(v))                              Failed(ci,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const WString& exp, const WString&  v )  { if (!exp.Equals(v))                              Failed(ci,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
-    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, wchar_t*       exp,       wchar_t*  v )  { bool c= wcscmp( v, exp )==0;              if(!c) Failed(ci,"","Differences in wchar string."); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, float          exp, float           d, const String& es, const String& gs)  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d,es,gs); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, double         exp, double          d, const String& es, const String& gs)  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d,es,gs); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, long double    exp, long double     d, const String& es, const String& gs)  { EQ(ci,double(exp), double(d),es,gs); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, const NString& exp, const NString&  v, const String& es, const String& gs)  { if (!exp.Equals(v))                 Failed(ci,exp,v,es,gs);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, const WString& exp, const WString&  v, const String& es, const String& gs)  { if (!exp.Equals(v))                 Failed(ci,exp,v,es,gs);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const CallerInfo& ci, wchar_t*       exp,       wchar_t*  v, const String& es, const String& gs)  { bool c= wcscmp( v, exp )==0; if(!c) Failed(ci,"","Differences in wchar string.",es,gs); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue(c); }
 
-    void AWorxUnitTesting::IsTrue ( const alib::CallerInfo& ci, bool c )                                 {                                           if(!c) Failed(ci,true ,false);Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
-    void AWorxUnitTesting::IsFalse( const alib::CallerInfo& ci, bool c )                                 {                                           if( c) Failed(ci,false,true );Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( c      ); }
+    void AWorxUnitTesting::IsTrue ( const CallerInfo& ci, bool cond, const String& condStr)                                           {                        if(!cond)    Failed(ci,true ,false,condStr,A_CHAR(""));Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( cond); }
+    void AWorxUnitTesting::IsFalse( const CallerInfo& ci, bool cond, const String& condStr)                                           {                        if( cond)    Failed(ci,false, true,condStr,A_CHAR(""));Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( cond); }
 
 #else
     #pragma message ("Unknown Testing platform in: " __FILE__ )

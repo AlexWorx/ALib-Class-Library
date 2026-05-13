@@ -1,5 +1,5 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Framework
 //  Boxing Sample
 //
 //  Copyright 2025 A-Worx GmbH, Germany
@@ -8,7 +8,6 @@
 #include "ALib.Boxing.H"
 #include "ALib.Bootstrap.H"
 #include "ALib.Compatibility.StdBoxtraits.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 #include <iostream>
 #include <iomanip>

@@ -2,14 +2,14 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_VARIABLES_PP
 #define HPP_ALIB_VARIABLES_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 #if ALIB_VARIABLES
 
@@ -22,13 +22,12 @@ namespace alib {  namespace variables {
 
 
 //==================================================================================================
-/// \alib{enumops;ArithmeticalTraits;Arithmetical enumeration} used to control write access to
+/// #"ArithmeticalTraits;Arithmetical enumeration" used to control write access to
 /// configuration variables, depending on the source of assignable values.
-/// @see Chapter \ref alib_variables_definition_prios of the Programmer's Manual of camp
+/// @see Chapter #"alib_variables_definition_prios" of the Programmer's Manual of camp
 ///      \alib_variables_nl.
 //==================================================================================================
-enum class Priority : uint16_t
-{
+enum class Priority : uint16_t {
     /// This priority value denotes that a variable is undefined and has no value set.
     /// The underlying integral value is \c 0.
     NONE                    = 0,
@@ -43,7 +42,8 @@ enum class Priority : uint16_t
     AutoDetected            = 1000,
 
     /// Used to store default values, either from (resourced) declarations, hard-coded values,
-    /// or values provided with method \alib{variables;Configuration::PresetImportString}.
+    /// or values provided with the method
+    /// #"Configuration::PresetImportString(StringEscaper*);Configuration::PresetImportString".
     /// The underlying integral value is \c 2,000.
     DefaultValues           = 2000,
 
@@ -53,22 +53,22 @@ enum class Priority : uint16_t
     Standard                = 4000,
 
     /// External application configuration sources use this element to define variables
-    /// found. This element is also used with built-in class \alib{variables;IniFileFeeder}.
+    /// found. This element is also used with built-in class #"IniFileFeeder".
     /// The underlying integral value is \c 6,000.
     ConfigFile              = 6000,
 
-    /// Used with plug-in \alib{variables;EnvironmentVariablesPlugin}.
+    /// Used with plug-in #"EnvironmentVariablesPlugin".
     /// The underlying integral value is \c 8,000.
     Environment             = 8000,
 
-    /// Used to store temporary session information. Those are higher than \b Environment but lower
-    /// than \b CLI. This session priority is only a proposal. Implementations might use a
+    /// Used to store temporary session information. Those are higher than #"%Environment" but lower
+    /// than #"%CLI". This session priority is only a proposal. Implementations might use a
     /// different value, even for different variables, for example, <b>Environment - 1 </b> or
     /// <b>CLI + 1 </b>. It depends on the use case.<br>
     /// The underlying integral value is \c 10,000.
     SessionFile             = 10000,
 
-    /// Used with plug-in \alib{variables;CLIVariablesPlugin}.
+    /// Used with plug-in #"CLIVariablesPlugin".
     /// The underlying integral value is \c 12,000.
     CLI                     = 12000,
 
@@ -81,9 +81,9 @@ enum class Priority : uint16_t
     Session                 = 14000,
 
     /// Used to define variables with protected values. If all code entities apply to the
-    /// \ref alib_variables_definition "contract that this camp imposes" in respect to variable
+    /// #"alib_variables_definition;contract that this camp imposes" in respect to variable
     /// definitions and priorities, a value set with this priority cannot be manipulated from
-    /// "outside", hence by config files, command line arguments or any custom configuration source
+    /// "outside", hence by config files, command-line arguments or any custom configuration source
     /// or plug-in.
     ///
     /// The underlying integral value is <c>std::numeric_limits<int>::max()</c>.
@@ -93,13 +93,13 @@ enum class Priority : uint16_t
 
 } // namespace alib::[config]
 
-/// Type alias in namespace \b alib.
+/// Type alias in namespace #"%alib".
 using     Priority=       alib::variables::Priority;
 
 } // namespace [alib]
 
 //##################################################################################################
-// Symbols introduced by module ALib.Variables
+// Macro  introduced by module ALib.Variables
 //##################################################################################################
 #define ALIB_VARIABLES_DEFINE_TYPE( Namespace, CPPName,CfgTypeString)                              \
 ALIB_EXPORT namespace alib::variables::detail {                                                    \
@@ -107,8 +107,8 @@ struct VMeta_ ## CPPName : public VMeta                                         
 {                                                                                                  \
          ALIB_DLL String                typeName ()                                                     const  override { return CfgTypeString; }      \
 ALIB_DBG(ALIB_DLL const std::type_info& dbgTypeID()                                                            override { return typeid(Namespace  CPPName); }  )  \
-         ALIB_DLL void                  construct(void* obj, PoolAllocator&)                                   override { new (obj) Namespace  CPPName(); }        \
-         ALIB_DLL void                  destruct (void* obj, PoolAllocator&)                                   override { reinterpret_cast<Namespace  CPPName*>(obj)->~CPPName(); } \
+         ALIB_DLL void                  construct(VDATA* obj, PoolAllocator&)                                  override { new (obj) Namespace  CPPName(); }        \
+         ALIB_DLL void                  destruct (VDATA* obj, PoolAllocator&)                                  override { reinterpret_cast<Namespace  CPPName*>(obj)->~CPPName(); } \
          ALIB_DLL size_t                size     ()                                                            override { static_assert(alignof(Namespace CPPName) <= alib::PoolAllocator::MAX_ALIGNMENT); return (std::max)( sizeof(Namespace CPPName), sizeof(void*) ); } \
          ALIB_DLL void                  imPort   (VDATA*, Configuration&, const StringEscaper&, const String&) override;\
          ALIB_DLL void                  exPort   (VDATA*, Configuration&, const StringEscaper&,      AString&) override;\
@@ -120,8 +120,8 @@ struct VMeta_ ## CPPName : public VMeta                                         
 {                                                                                                  \
          ALIB_DLL String                typeName ()                                                     const  override { return CfgTypeString; }      \
 ALIB_DBG(ALIB_DLL const std::type_info& dbgTypeID()                                                            override { return typeid(Namespace  CPPName); }  )  \
-         ALIB_DLL void                  construct(void* obj, PoolAllocator& pool)                              override { new (obj) Namespace  CPPName(pool); }        \
-         ALIB_DLL void                  destruct (void* obj, PoolAllocator&)                                   override { reinterpret_cast<Namespace  CPPName*>(obj)->~CPPName(); } \
+         ALIB_DLL void                  construct(VDATA* obj, PoolAllocator& pool)                             override { new (obj) Namespace  CPPName(pool); }        \
+         ALIB_DLL void                  destruct (VDATA* obj, PoolAllocator&)                                  override { reinterpret_cast<Namespace  CPPName*>(obj)->~CPPName(); } \
          ALIB_DLL size_t                size     ()                                                            override { static_assert(alignof(Namespace CPPName) <= alib::PoolAllocator::MAX_ALIGNMENT); return (std::max)( sizeof(Namespace CPPName), sizeof(void*) ); } \
          ALIB_DLL void                  imPort   (VDATA*, Configuration&, const StringEscaper&, const String&) override;\
          ALIB_DLL void                  exPort   (VDATA*, Configuration&, const StringEscaper&,      AString&) override;\

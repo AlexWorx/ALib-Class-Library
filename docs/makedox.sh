@@ -8,22 +8,31 @@ echo "      3. ALox Sample has to be run once (generates an INI-file in doxygen/
 # echo "!!! Cleaning before build. This is for testing.  !!!"
 #makeclean.sh
 
-# prior used doxygen version
-#Doxygen="doxygen"
+##--------------------------  Doxygen  --------------------------
+#Doxygen=/opt/doxygen/doxygen-1.14.0/bin/doxygen
+#Doxygen=/opt/doxygen/doxygen-1.15.0/bin/doxygen
+#Doxygen=/opt/doxygen/doxygen-1.16.0/bin/doxygen
+#Doxygen=/opt/doxygen/doxygen-1.16.1/bin/doxygen
 #Doxygen=/opt/doxygen/doxygen.git/_builds_/bin/doxygen
-Doxygen=/opt/doxygen/doxygen14.git/_builds_/bin/doxygen
-
+Doxygen="doxygen"
 echo "Doxygen version: "
 $Doxygen --version
 $Doxygen /tmp/alib_doxyfile.ini
 
-#$Doxygen /tmp/alib_doxyfile.ini  2>&1 | grep -i ".hpp"
+##--------------------------  DoxygenXLinks --------------------------
+#DXL=/tmp/_builds_/doxygenxlinks_clang_release/DoxygenXLinks
+#DXL=/tmp/_builds_/doxygenxlinks_clang_debug/DoxygenXLinks
+DXL=/hub/projects/_MORE/tools/DoxygenXLinks.260423
 
+$DXL   --xdryrun --xdoxyfy=../srccpy /tmp/alib_doxyfile.ini --STATISTICS=off --WORKING_DIR=$(dirname "$0")
+#$DXL --xdryrun /tmp/alib_doxyfile.ini --STATISTICS=on --WORKING_DIR=$(dirname "$0")
+#/usr/bin/time -v $DXL --xdryrun /tmp/alib_doxyfile.ini --STATISTICS=on --WORKING_DIR=$(dirname "$0")
+
+##--------------------------  Final Steps  --------------------------
+echo
 echo '*** Copying other additional resources ***'
 cp resources/*   /tmp/alib_html/
 
 echo '*** Patching menu.js ***'
 sed -i 's/).smartmenus()/).smartmenus({markCurrentItem:true})/g' /tmp/alib_html/menu.js
 
-# This is not needed anymore (after a doxygen bug was fixed)
-#doxygen/dot postprocess /tmp/alib_html/

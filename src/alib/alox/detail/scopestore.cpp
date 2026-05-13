@@ -1,44 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alox/alox.prepro.hpp"
-#include "ALib.Monomem.StdContainers.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.ALox.Impl;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Variables;
-    import   ALib.Camp;
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.ALox.H"
-#   include "ALib.ALox.Impl.H"
-#endif
-//========================================== Implementation ========================================
 using namespace alib::strings;
 
 namespace alib {  namespace lox { namespace detail {
@@ -337,7 +296,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
 }
 
 
-ALIB_WARNINGS_IGNORE_NOT_ELIDING_COPY_ON_RETURN
+ALIB_ALLOW_NOT_ELIDING_COPY_ON_RETURN
 template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>& self,
                                                             int                  cmd , T value ) {
 
@@ -397,11 +356,11 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
 
             // remove a specific one.
             else
-                for ( auto rem= values->begin() ; rem != values->end(); ++rem )
-                    if ( (*rem) == value ) {
+                for ( auto remIt= values->begin() ; remIt != values->end(); ++remIt )
+                    if ( (*remIt) == value ) {
                         // If found, we return the value, otherwise we don't do anything
-                        oldValue= *rem;
-                        values->erase( rem );
+                        oldValue= *remIt;
+                        values->erase( remIt );
                         break;
         }           }
 
@@ -425,7 +384,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
         return oldValue;
 }   }
 
-ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_NOT_ELIDING_COPY_ON_RETURN
+ALIB_POP_ALLOWANCE // ALIB_ALLOW_NOT_ELIDING_COPY_ON_RETURN
 
 #endif
 
@@ -455,11 +414,11 @@ void ScopeStore<T,TStackedThreadValues>::initCursor( bool create ) {
         if ( remainingPath.IsNotEmpty() )
             return;
 
-        // filename: append '#' to distinguish from directories
+        // filename: append '#"'" to distinguish from directories
         if ( !actStringTreeNode.GoToChild( path.Reset<NC>( scopeInfo.GetFileNameWithoutExtension() )._( '#' ) ) )
             return;
 
-        // method: prepend '#' to distinguish from filenames
+        // method: prepend '#"'" to distinguish from filenames
         actStringTreeNode.GoToChild( path.Reset<NC>( '#' )._<NC>( scopeInfo.GetMethod() ) );
 
         return;
@@ -475,7 +434,7 @@ void ScopeStore<T,TStackedThreadValues>::initCursor( bool create ) {
         return;
     }
 
-    // filename: append '#' to distinguish from directories
+    // filename: append '#"'" to distinguish from directories
     path.Reset( scopeInfo.GetFileNameWithoutExtension() )._( '#' );
 
     // method: prepend '#' to distinguish from filenames

@@ -1,35 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/expressions/expressions.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-    import   ALib.Strings.Search;
-    import   ALib.Strings.Tokenizer;
-#else
-#   include "ALib.Characters.Functions.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Search.H"
-#   include "ALib.Strings.Tokenizer.H"
-#   include "ALib.Expressions.Impl.H"
-#endif
-//========================================== Implementation ========================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -225,8 +193,7 @@ FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<CHK ALIB_COMMA lang:
 // ### Strings - Wildcard matching
 //##################################################################################################
 DOX_MARKER([DOX_EXPR_CTRES_1])
-struct ScopeWildcardMatcher : public ScopeResource
-{
+struct ScopeWildcardMatcher : public ScopeResource {
     // the matcher object
     WildcardMatcher matcher;
 
@@ -267,8 +234,7 @@ DOX_MARKER([DOX_EXPR_CTRES_7])
 // ### Strings - Regex matching
 //##################################################################################################
 #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
-struct ScopeRegexMatcher : public ScopeResource
-{
+struct ScopeRegexMatcher : public ScopeResource {
     // the matcher object
     RegexMatcher matcher;
 
@@ -341,12 +307,7 @@ Strings::Strings( Compiler& compiler )
     AddOperators( operatorTableStrings );
 
     // load identifier/function names from resources
-    #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
-        constexpr int tableSize= 25;
-    #else
-        constexpr int tableSize= 24;
-    #endif
-
+    constexpr int tableSize= 25;
     Token functionNames[tableSize];
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPS", functionNames
                                         ALIB_DBG(,tableSize)                 );
@@ -400,9 +361,13 @@ Strings::Strings( Compiler& compiler )
         #endif
     };
 
-    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
-                       "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
-                       descriptor - functionNames, tableSize                                     )
+    // correct the descriptor by 1 for the assertion below
+    #if ALIB_DEBUG && !(ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR))
+        descriptor++;
+        ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
+                           "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
+                           descriptor - functionNames, tableSize                                     )
+    #endif
 }
 
 namespace {

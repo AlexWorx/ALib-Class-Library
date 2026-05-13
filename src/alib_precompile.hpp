@@ -2,14 +2,10 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
-#if defined(ALIB_C20_MODULES) || defined(DOXYGEN)
-#   if ALIB_C20_MODULES != 0
-#       error "Symbol ALIB_C20_MODULES must not be specified. C+20 module support is deprecated."
-#   endif
-#else
+#if !defined(ALIB_C20_MODULES) && !defined(DOXYGEN)
 #   define ALIB_C20_MODULES 0
 #endif
 #if !ALIB_C20_MODULES
@@ -18,10 +14,9 @@
 #if defined(_MSC_VER)
 #  define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
 #endif
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
 #if !ALIB_C20_MODULES && defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
 #   include "ALib.Lang.H"
 #   include "ALib.Time.H"

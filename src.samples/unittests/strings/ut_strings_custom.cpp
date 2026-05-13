@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -10,7 +10,6 @@
 
 #include "ALib.ALox.H"
 #include "ALib.Strings.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 #include <iostream>
 #include <sstream>
@@ -355,10 +354,10 @@ void testAccept( ut_aworx::AWorxUnitTesting& ut,
                  T& object, bool  SImplicitAllowed, bool  SExplicitAllowed,
                             bool CSImplicitAllowed, bool CSExplicitAllowed )
 {
-    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value )  accept_S_implicit<TChar>( object );
-    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value )  accept_S_explicit<TChar>( object );
-    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ) accept_CS_implicit<TChar>( object );
-    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ) accept_CS_explicit<TChar>( object );
+    UT_EQ( SImplicitAllowed, ( t_accepts_S_implicit<TChar ALIB_COMMA T>::value) )  accept_S_implicit<TChar>( object );
+    UT_EQ( SExplicitAllowed, ( t_accepts_S_explicit<TChar ALIB_COMMA T>::value) )  accept_S_explicit<TChar>( object );
+    UT_EQ(CSImplicitAllowed, (t_accepts_CS_implicit<TChar ALIB_COMMA T>::value) ) accept_CS_implicit<TChar>( object );
+    UT_EQ(CSExplicitAllowed, (t_accepts_CS_explicit<TChar ALIB_COMMA T>::value) ) accept_CS_explicit<TChar>( object );
 }
 
 template<typename TChar, typename T>
@@ -366,10 +365,10 @@ void testAccept( ut_aworx::AWorxUnitTesting& ut,
                  T* object, bool  SImplicitAllowed, bool  SExplicitAllowed,
                             bool CSImplicitAllowed, bool CSExplicitAllowed )
 {
-    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value )  accept_S_implicit<TChar>( object );
-    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value )  accept_S_explicit<TChar>( object );
-    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ) accept_CS_implicit<TChar>( object );
-    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ) accept_CS_explicit<TChar>( object );
+    UT_EQ( SImplicitAllowed, ( t_accepts_S_implicit<TChar ALIB_COMMA T>::value) )  accept_S_implicit<TChar>( object );
+    UT_EQ( SExplicitAllowed, ( t_accepts_S_explicit<TChar ALIB_COMMA T>::value) )  accept_S_explicit<TChar>( object );
+    UT_EQ(CSImplicitAllowed, (t_accepts_CS_implicit<TChar ALIB_COMMA T>::value) ) accept_CS_implicit<TChar>( object );
+    UT_EQ(CSExplicitAllowed, (t_accepts_CS_explicit<TChar ALIB_COMMA T>::value) ) accept_CS_explicit<TChar>( object );
 }
 
 

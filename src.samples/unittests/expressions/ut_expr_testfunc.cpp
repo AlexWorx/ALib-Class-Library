@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -27,7 +27,7 @@ using namespace alib;
 using namespace alib;
 #include "expressions/ut_expr_testfunc.hpp"
 
-ALIB_WARNINGS_MACRO_NOT_USED_OFF
+ALIB_ALLOW_UNUSED_MACRO
 
 #define LOX_LOX ut.lox;
 
@@ -766,6 +766,6 @@ Expression printProgram( const CallerInfo&  ci,
 
 } //namespace
 
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 #endif // ALIB_UT_EXPRESSIONS

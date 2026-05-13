@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -22,7 +22,7 @@ using namespace std::literals::chrono_literals;
 
 namespace {
 
-ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION
+ALIB_ALLOW_UNUSED_FUNCTION
 //--------------------------------------------------------------------------------------------------
 //--- Trigger sample
 //--------------------------------------------------------------------------------------------------
@@ -267,7 +267,7 @@ DOX_MARKER( [DOX_THREADMODEL_POOL_SIMPLE])
 
 }// anonymous namespace
 #include "ALib.Lang.CIMethods.H"
-ALIB_WARNINGS_RESTORE // UNUSED_FUNCTION
+ALIB_POP_ALLOWANCE // UNUSED_FUNCTION
 
 #if !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 

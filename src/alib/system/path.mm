@@ -2,8 +2,8 @@
 /// \file
 /// This header-file is part of module \alib_system of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #if   defined(__APPLE__)
 
@@ -14,16 +14,14 @@ using namespace std;
 
 namespace alib::system::macos {
 
-void ALIB_APPLE_OC_NSTemporaryDirectory( Path& target)
-{
+void ALIB_APPLE_OC_NSTemporaryDirectory( Path& target ) {
     target.Reset();
     NSString* tempDir = NSTemporaryDirectory();
     if( tempDir )
         target <<  [tempDir UTF8String];
 }
 
-void ALIB_APPLE_OC_NSHomeDirectory( Path& target)
-{
+void ALIB_APPLE_OC_NSHomeDirectory( Path& target ) {
     target.Reset();
     NSString* tempDir = NSHomeDirectory();
     if( tempDir )

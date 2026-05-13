@@ -1,53 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/system/system.prepro.hpp"
-#include "alib/alox/alox.prepro.hpp"
-#include <vector>
-#   include "ALib.Strings.StdFunctors.H"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.ALox.Impl;
-    import   ALib.Lang;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-    import   ALib.Strings.Tokenizer;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Variables;
-    import   ALib.Camp;
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Characters.Functions.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Tokenizer.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Variables.H"
-#   include "ALib.System.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.ALox.H"
-#   include "ALib.ALox.Impl.H"
-#endif
-//========================================== Implementation ========================================
 
 using namespace alib::system;
 
@@ -120,7 +70,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
                     continue;
                 }
 
-                if( DIRECTORY_SEPARATOR == '/' )
+                if constexpr( DIRECTORY_SEPARATOR == '/' )
                     rule.Path.SearchAndReplace( '\\', '/'  );
                 else
                     rule.Path.SearchAndReplace( '/' , '\\' );
@@ -148,7 +98,7 @@ void ScopeInfo::Set ( const lang::CallerInfo& ci ) {
         resultPair.second.Construct(ci.File);
     scope.Parsed    =  &*resultPair.second;
 
-   // we must not use ci.ThreadID, because this might be nulled with release logging
+    // we must not use ci.ThreadID, because this might be nulled with release logging
     IF_ALIB_THREADS(  threadNativeIDx= std::this_thread::get_id();
                       thread        = nullptr;
                       threadName    = nullptr;
@@ -200,7 +150,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
         return;
     }
 
-    if( DIRECTORY_SEPARATOR == '/' )
+    if constexpr ( DIRECTORY_SEPARATOR == '/' )
         rule.Path.SearchAndReplace( '\\', '/'  );
     else
         rule.Path.SearchAndReplace( '/' , '\\' );
@@ -209,7 +159,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
     rule.TrimOffset=      trimOffset;
     rule.Sensitivity=     sensitivity;
     rule.TrimReplacement.Reset( trimReplacement );
-    if( DIRECTORY_SEPARATOR == '/' )
+    if constexpr ( DIRECTORY_SEPARATOR == '/' )
         rule.TrimReplacement.SearchAndReplace( '\\', '/'  );
     else
         rule.TrimReplacement.SearchAndReplace( '/' , '\\' );
@@ -289,7 +239,3 @@ void ScopeInfo::trimPath() {
 
 
 }}} // namespace [alib::lox::detail]
-
-#if defined(_MSC_VER)
-    #pragma warning( pop )
-#endif

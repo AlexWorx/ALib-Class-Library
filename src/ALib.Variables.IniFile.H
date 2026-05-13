@@ -2,25 +2,35 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_VARIABLES_INIFILE
 #define H_ALIB_VARIABLES_INIFILE
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/variables/variables.prepro.hpp"
 
 #if ALIB_VARIABLES
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Variables.IniFile;
-#   elif !defined(ALIB_INC_VARIABLES_INIFILE_MPP)
-#       define ALIB_INC_VARIABLES_INIFILE_MPP
-#       include "alib/variables/inifile.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Monomem.H"
+#include "ALib.Containers.List.H"
+#include "ALib.Containers.HashTable.H"
+#include "ALib.Boxing.H"
+#include "ALib.EnumRecords.H"
+#include "ALib.Exceptions.H"
+#include "ALib.Resources.H"
+#include "ALib.System.H"
+#include "ALib.Variables.H"
 
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Variables.IniFile;
+#else
+#include "alib/variables/inifile.hpp"
+#include "alib/variables/inifilefeeder.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_VARIABLES
 #endif // H_ALIB_VARIABLES_INIFILE

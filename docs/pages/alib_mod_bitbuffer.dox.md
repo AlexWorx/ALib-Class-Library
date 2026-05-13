@@ -1,14 +1,14 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
 \page alib_mod_bitbuffer   ALib Module BitBuffer - Programmer's Manual
 
 \I{################################################################################################}
-# 1. Introduction
+# 1\. Introduction
 Serialization of data is usually needed for storage and for communication (data transport) purposes.
 Here, algorithmic overhead to perform such serialization is mostly a welcome drawback at the moment
 it helps to reasonably compress the data in respect to its usual representation in random access memory.
@@ -36,21 +36,21 @@ and tools), attribute information is purely defined by the position of the data 
   for their use. It all depends on the use case scenario. In this respect, bit buffers are
   not at all to be seen as an alternative to those. They just cover a different set of use cases.
 
-# 2. Classes BitBuffer, BitWriter and BitReader # {#alib_bitbuffer_classes}
+# 2\. Classes BitBuffer, BitWriter and BitReader # {#alib_bitbuffer_classes}
 To encode and decode data into a stream of bits, three classes are provided.
-Class \alib{bitbuffer;BitBuffer} provides the memory allocation for the bit data as well as mechanics
+Class #"BitBuffer" provides the memory allocation for the bit data as well as mechanics
 for writing the encoded byte streams to <c>std::ostream</c> and likewise for retrieving them from
 <c>std::istream</c>.<br>
-Variants of \b BitBuffer are classes \alib{bitbuffer;BitBufferMA} and \alib{bitbuffer;BitBufferLocal},
+Variants of \b BitBuffer are classes #"BitBufferMA" and #"BitBufferLocal",
 which provide alternative memory management.
 
-Class \alib{bitbuffer;BitWriter} is used to fill a \b BitBuffer and class \alib{bitbuffer;BitReader}
+Class #"BitWriter" is used to fill a \b BitBuffer and class #"BitReader"
 reads data back (either data just written by a \b BitWriter or data loaded using \c std::istream.
 
 The interface of the classes is rather simple and straight forward, and for that reason this manual
 refers its reader to the reference documentation for further information.
 
-# 3. Array Compression # {#alib_bitbuffer_arrays}
+# 3\. Array Compression # {#alib_bitbuffer_arrays}
 When writing bigger amounts of integral data, it might be reasonable to compress such data.
 Several different algorithms for compression are available. While the most prominent among them
 implements \https{Huffman compression,en.wikipedia.org/wiki/Huffman_coding}, real-life data is often
@@ -65,8 +65,8 @@ such signal often is either:
 
 The algorithms incorporated with \alib address such specialties.
 
-All mechanics in respect to array compression are interfaced by class
-#alib::bitbuffer::ac_v1::ArrayCompressor, which is as usually aliased to #alib::ArrayCompressor.
+All mechanics in respect to array compression are interfaced by the class
+#"ArrayCompressor", which is as usually aliased to #"alib::ArrayCompressor;2".
 The rationale for introducing inner namespace \b v1 is that future versions of \alib may incorporate
 changes in the binary format of one or more of the algorithms. In this case, a new namespace
 \c v2 will be introduced and the old version will still be available to support the deserialization
@@ -74,19 +74,19 @@ of existing datasets. However, it is up to the programmer of software to detect 
 of compression used with filed data and to add mechanics to use the right version of the class
 for decompression.
 
-The list of algorithms are given with bitwise enumeration \alib{bitbuffer::ac_v1;ArrayCompressor::Algorithm}.
+The list of algorithms are given with bitwise enumeration #"ArrayCompressor::Algorithm".
 For details about them, please consult the reference documentation of this type.
 
-If parameter \p{algorithmsToTry} is set to \alib{bitbuffer::ac_v1::ArrayCompressor;Algorithm::ALL} when
-invoking method \alib{bitbuffer::ac_v1;ArrayCompressor::Compress}, each built-in algorithms is executed
+If parameter \p{algorithmsToTry} is set to #"Algorithm::ALL" when
+invoking method #"ArrayCompressor::Compress", each built-in algorithms is executed
 and finally the one with the best compression ratio is chosen. With that, an algorithm-identifier
-(currently 3 bits) is written upfront to enable method \alib{bitbuffer::ac_v1;ArrayCompressor::Decompress}
+(currently 3 bits) is written upfront to enable method #"ArrayCompressor::Decompress"
 to choose the right algorithm for decoding the data.
 
 While this incorporates a certain degree of overhead in respect to execution performance, such
 overhead is exclusively done for encoding the data. With the fact that usually any data
 is encoded only once and decoded (very) often, such overhead should not weigh in too much.
-If so, the set of algorithms may be narrowed by providing a different set of algorithms with
+If so, the set of algorithms may be narrowed by providing a different set of algorithms with the
 parameter \p{algorithmsToTry}.
 
 Most of the algorithms perform best if no unusual disruptive change in the data definition

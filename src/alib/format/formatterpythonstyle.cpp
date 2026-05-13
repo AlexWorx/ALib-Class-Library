@@ -1,36 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alib.inl"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format.FormatterPythonStyle;
-    import   ALib.Lang;
-    import   ALib.EnumOps;
-    import   ALib.Strings;
-    import   ALib.Exceptions;
-#   if ALIB_CAMP
-      import ALib.Camp.Base;
-#   endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.Format.FormatterPythonStyle.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 using namespace alib::strings;
 
 namespace alib::format {
@@ -50,7 +17,7 @@ SPFormatter   FormatterPythonStyle::Clone() {
     SPFormatter clone;
     clone.InsertDerived<FormatterPythonStyle>();
 
-    // create a clone of #Next, in the case that next is derived from std base class
+    // create a clone of Next, in the case that next is derived from std base class
     if( Next )
         clone->Next= Next->Clone();
 
@@ -227,10 +194,14 @@ bool FormatterPythonStyle::parseStdFormatSpec() {
             if ( placeholder.TypeCode != '\0' )
                 throw Exception( ALIB_CALLER_NULLED, FMTExceptions::DuplicateTypeCode,
                                  actChar, placeholder.TypeCode,
-                                 placeholder.Arg->TypeID(),
                                  formatString,
                                  formatString.Length() - parser.Length()
-                                                       - formatSpec.Length() - 1 );
+                                                       - formatSpec.Length() - 1
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
+                                                       );
 
             placeholder.TypeCode= actChar;
             placeholder.TypeCodePosition= int(   formatString.Length()
@@ -289,7 +260,7 @@ bool FormatterPythonStyle::parseStdFormatSpec() {
             case '-':   placeholder.NF.PlusSign= '\0';  break;
             case ' ':   placeholder.NF.PlusSign= ' ' ;  break;
 
-            // alternate version ('#')
+            // alternate version ('#"')"
             case '#':   placeholder.WriteBinOctHexPrefix=             true;
                         placeholder.NF.Flags+= NumberFormatFlags::ForceDecimalPoint;
                         placeholder.NF.Flags-= NumberFormatFlags::OmitTrailingFractionalZeros;
@@ -306,8 +277,11 @@ bool FormatterPythonStyle::parseStdFormatSpec() {
                                    formatString,
                                    formatString.Length()
                                  - parser.Length()
-                                 - formatSpec.Length() - 1,
-                                 placeholder.Arg->TypeID()
+                                 - formatSpec.Length() - 1
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
                                  );
         }
 
@@ -342,19 +316,20 @@ void    FormatterPythonStyle::writeStringPortion( integer length ) {
         {
             if(  c1 == '\\' )
                 switch(c2) {
-                    case 'r': c1= '\r' ; break;
+                    case  'r': c1= '\r' ; break;
                     case 'n': c1= '\n' ;
                               // reset auto-sizes with \n
                               targetStringStartLength=  dest - targetString->VBuffer() + 1;
                               Sizes->Restart();
                               break;
-                    case 't': c1= '\t' ; break;
-                    case 'a': c1= '\a' ; break;
-                    case 'b': c1= '\b' ; break;
-                    case 'v': c1= '\v' ; break;
-                    case 'f': c1= '\f' ; break;
-                    case '"': c1= '"'  ; break;
-                    default:  c1= '?'  ; break;
+                    case  't': c1= '\t' ; break;
+                    case  'a': c1= '\a' ; break;
+                    case  'b': c1= '\b' ; break;
+                    case  'v': c1= '\v' ; break;
+                    case  'f': c1= '\f' ; break;
+                    case  '"': c1= '"'  ; break;
+                    case '\\': c1= '\\' ; break;
+                    default:  c1= '?'   ; break;
                 }
 
             c2= *++src;
@@ -365,7 +340,7 @@ void    FormatterPythonStyle::writeStringPortion( integer length ) {
         --length;
     }
 
-    // copy last character and adjust target string length:
+    // copy the last character and adjust target string length:
     // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
     if( length == 1) {
         *dest= *src;
@@ -386,10 +361,14 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
     while( conversion.IsNotEmpty() ) {
         if( !conversion.ConsumeChar('!') )
             throw Exception(ALIB_CALLER_NULLED, FMTExceptions::ExclamationMarkExpected,
-                            placeholder.Arg->TypeID(),
                             formatString,  placeholderPS.ConversionPos
                                            + placeholderPS.Conversion.Length()
-                                           - conversion.Length() );
+                                           - conversion.Length()
+                        #if ALIB_DEBUG
+                            , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                            ,        placeholder.Arg->TypeID()
+                        #endif
+                                           );
 
              if(  conversion.ConsumePartOf( A_CHAR( "Xtinguish" ) ) > 0 )   { return false;                                                         }
              if(  conversion.ConsumePartOf( A_CHAR( "Upper"     ) ) > 0 )   { if (isPostProcess) targetString->ToUpper( startIdx );                 }
@@ -482,10 +461,14 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
             String replace= conversion.ConsumeField( '<', '>' );
             if( search.IsNull() || replace.IsNull() )
                 throw Exception( ALIB_CALLER_NULLED, FMTExceptions::MissingReplacementStrings,
-                                 placeholder.Arg->TypeID(),
                                  formatString, placeholderPS.ConversionPos
                                                + placeholderPS.Conversion.Length()
-                                               - conversion.Length() );
+                                               - conversion.Length()
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
+                                               );
 
             if( target != nullptr ) {
                 // special case: fill empty fields
@@ -499,10 +482,15 @@ bool    FormatterPythonStyle::preAndPostProcess( integer startIdx, AString* targ
         // error (not recognized)
         else
             throw Exception( ALIB_CALLER_NULLED, FMTExceptions::UnknownConversionPS,
-                             conversion, placeholder.Arg->TypeID(),
+                             conversion,
                              formatString,  placeholderPS.ConversionPos
                                             + placeholderPS.Conversion.Length()
-                                            - conversion.Length() );
+                                            - conversion.Length()
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
+                                            );
     }
 
     return true;
@@ -531,8 +519,12 @@ bool  FormatterPythonStyle::checkStdFieldAgainstArgument() {
     else if (   placeholderPS.Precision >= 0
              && placeholder.Type != PHTypes::Float )
         throw Exception(ALIB_CALLER_NULLED, FMTExceptions::PrecisionSpecificationWithInteger,
-                        placeholder.Arg->TypeID(),
-                        formatString, placeholderPS.PrecisionPos );
+                        formatString, placeholderPS.PrecisionPos
+                    #if ALIB_DEBUG
+                        , A_CHAR("\nDbgInfo: Native argument type:   <{}>")
+                        ,        placeholder.Arg->TypeID()
+                    #endif
+                        );
     return result;
 
 }

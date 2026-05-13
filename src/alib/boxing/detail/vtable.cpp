@@ -1,45 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#if ALIB_MONOMEM && ALIB_CONTAINERS
-#include "alib/boxing/boxing.prepro.hpp"
-#endif
-#if ALIB_DEBUG && (!ALIB_MONOMEM || !ALIB_CONTAINERS )
-#   include <unordered_map>
-#   include <unordered_set>
-#endif
-#if ALIB_DEBUG_BOXING
-#   include <vector>
-#endif
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Boxing;
-#  if ALIB_DEBUG && ALIB_MONOMEM && ALIB_CONTAINERS
-    import   ALib.Monomem;
-    import   ALib.Containers.HashTable;
-#  endif
-
-#else
-#   include "ALib.Boxing.H"
-#   if ALIB_DEBUG && ALIB_MONOMEM && ALIB_CONTAINERS
-#      include "ALib.Containers.HashTable.H"
-#      include "ALib.Monomem.H"
-#   endif
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace boxing { namespace detail {
 
 //##################################################################################################
@@ -151,8 +109,7 @@ using namespace detail;
 // (located here due to anonymous function table)
 //##################################################################################################
 #if ALIB_DEBUG_BOXING
-std::vector<detail::VTable*>  debug::GetKnownVTables()
-{
+std::vector<detail::VTable*>  debug::GetKnownVTables() {
     DbgLockMaps(true);
 
         std::vector<detail::VTable*> result;
@@ -165,8 +122,7 @@ std::vector<detail::VTable*>  debug::GetKnownVTables()
                         + DbgKnownVTablesArray.size()  );
     #endif
 
-        for( int type= 0 ; type < 2 ; ++type )
-        {
+        for( int type= 0 ; type < 2 ; ++type ) {
             auto& map= type == 0 ? DbgKnownVTables
                                  : DbgKnownVTablesArray;
             for( auto it= map.begin() ; it!= map.end() ; ++it )
@@ -177,8 +133,7 @@ std::vector<detail::VTable*>  debug::GetKnownVTables()
     return result;
 }
 
-std::vector<std::pair<const std::type_info*,uinteger>>  debug::GetKnownFunctionTypes()
-{
+std::vector<std::pair<const std::type_info*,uinteger>>  debug::GetKnownFunctionTypes() {
     std::vector<std::pair<const std::type_info*,uinteger>> result;
     result.emplace_back( &typeid( FHashcode                    ), detail::DEFAULT_FUNCTIONS.fHashcode  ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFHashcode  : (std::numeric_limits<uinteger>::max)() );
 IF_ALIB_MONOMEM(
@@ -190,8 +145,7 @@ IF_ALIB_MONOMEM(
 
     debug::DbgLockMaps(true);
     {
-        for (auto* typeIt : debug::DbgKnownCustomFunctions )
-        {
+        for (auto* typeIt : debug::DbgKnownCustomFunctions ) {
             // search corresponding default implementation.
             auto usage= (std::numeric_limits<uinteger>::max)();
 
@@ -204,32 +158,29 @@ IF_ALIB_MONOMEM(
                 usage= implIt->second.DbgCntInvocations;
 
             result.emplace_back( typeIt, usage );
-        }
-    }
+    }   }
     debug::DbgLockMaps(false);
 
     return result;
 }
 
-void debug::getFunctionTypes( const detail::FunctionTable&                             functionTable,
-                                  std::vector<std::pair<const std::type_info*,uinteger>>&  output  )
-{
+void debug::getFunctionTypes( const detail::FunctionTable&                            functionTable,
+                              std::vector<std::pair<const std::type_info*,uinteger>>& output  )  {
     output.clear();
-    if(functionTable.fHashcode ) output.emplace_back( &typeid( FHashcode                    ), functionTable.DbgCntInvocationsFHashcode  );
+    if(functionTable.fHashcode ) output.emplace_back( &typeid( FHashcode ), functionTable.DbgCntInvocationsFHashcode  );
   IF_ALIB_MONOMEM(
-    if(functionTable.fClone    ) output.emplace_back( &typeid( FClone                       ), functionTable.DbgCntInvocationsFClone     ); )
-    if(functionTable.fIsNotNull) output.emplace_back( &typeid( FIsNotNull                   ), functionTable.DbgCntInvocationsFIsNotNull );
-    if(functionTable.fEquals   ) output.emplace_back( &typeid( FEquals                      ), functionTable.DbgCntInvocationsFEquals    );
-    if(functionTable.fIsLess   ) output.emplace_back( &typeid( FIsLess                      ), functionTable.DbgCntInvocationsFIsLess    );
-    if(functionTable.fIsTrue   ) output.emplace_back( &typeid( FIsTrue                      ), functionTable.DbgCntInvocationsFIsTrue    );
+    if(functionTable.fClone    ) output.emplace_back( &typeid( FClone    ), functionTable.DbgCntInvocationsFClone     ); )
+    if(functionTable.fIsNotNull) output.emplace_back( &typeid( FIsNotNull), functionTable.DbgCntInvocationsFIsNotNull );
+    if(functionTable.fEquals   ) output.emplace_back( &typeid( FEquals   ), functionTable.DbgCntInvocationsFEquals    );
+    if(functionTable.fIsLess   ) output.emplace_back( &typeid( FIsLess   ), functionTable.DbgCntInvocationsFIsLess    );
+    if(functionTable.fIsTrue   ) output.emplace_back( &typeid( FIsTrue   ), functionTable.DbgCntInvocationsFIsTrue    );
 
     // add custom function types
     {
         for( auto funcIt= customFunctionMap.begin() ; funcIt != customFunctionMap.end() ; ++funcIt )
             if( funcIt->first.Parent == &functionTable )
                 output.emplace_back( &funcIt->first.Type , funcIt->second.DbgCntInvocations );
-    }
-}
+}   }
 
 #endif // ALIB_DEBUG_BOXING
 

@@ -2,7 +2,7 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -141,7 +141,6 @@ int dox_calculator_sample( int argc, const char **argv )
 #undef main
 
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 
 #include "ALib.ALox.H"

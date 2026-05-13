@@ -1,49 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/variables/variables.prepro.hpp"
-#include "alib/alox/alox.prepro.hpp"
-#include "ALib.Compatibility.StdStrings.H"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.ALox;
-    import   ALib.Lang;
-    import   ALib.Containers.List;
-    import   ALib.Monomem;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.Strings;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Variables;
-    import   ALib.Camp;
-    import   ALib.Camp.Base;
-    import   ALib.ALox.Impl;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Containers.List.H"
-#   include "ALib.Monomem.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.ALox.H"
-#   include "ALib.ALox.Impl.H"
-#endif
-//========================================== Implementation ========================================
 #if !DOXYGEN
 namespace alib::lox::detail {
 namespace { ListMA<Lox*>      loxes(monomem::GLOBAL_ALLOCATOR); }
@@ -105,9 +59,9 @@ void     Lox::Register( Lox* lox, lang::ContainerOp operation ) {
 
     // remove
     if( operation == lang::ContainerOp::Remove ) {
-        for( auto search= detail::loxes.begin() ; search != detail::loxes.end() ; ++search )
-            if ( *search == lox ) {
-                (void) detail::loxes.erase( search );
+        for( auto searchIt= detail::loxes.begin() ; searchIt != detail::loxes.end() ; ++searchIt )
+            if ( *searchIt == lox ) {
+                (void) detail::loxes.erase( searchIt );
                 return;
             }
         ALIB_WARNING( "ALOX", "Given lox named \"{}\" could not be found for removal.",
@@ -187,8 +141,8 @@ TextLogger* Lox::CreateConsoleLogger(const NString& name) {
 //##################################################################################################
 // Auto detection of DEBUG environment
 //##################################################################################################
-TextLogger*   Log::DebugLogger= nullptr;
-TextLogger*   Log::IDELogger  = nullptr;
+TextLogger*   Log::DEBUG_LOGGER= nullptr;
+TextLogger*   Log::IDE_LOGGER  = nullptr;
 
 void Log::AddDebugLogger( Lox* lox ) {
     static bool recursion= false;
@@ -197,12 +151,12 @@ void Log::AddDebugLogger( Lox* lox ) {
     recursion= true;
 
     // block recursion caused by log operations in this code
-    if ( DebugLogger != nullptr ) {
+    if ( DEBUG_LOGGER != nullptr ) {
         ALIB_WARNING( "ALOX", "Log::AddDebugLogger(): called twice." )
         recursion= false;
         return;
     }
-    DebugLogger= reinterpret_cast<decltype(DebugLogger)>(-1);
+    DEBUG_LOGGER= reinterpret_cast<decltype(DEBUG_LOGGER)>(-1);
 
     // add a VStudio logger if this is a VStudio debug session
     #if defined(_MSC_VER) && ALIB_DEBUG
@@ -211,20 +165,20 @@ void Log::AddDebugLogger( Lox* lox ) {
             bool createIDELogger= variable.IsNotDefined() || (variable.GetBool() == false);
 
             if(createIDELogger) {
-                IDELogger= new VStudioLogger("IDE_LOGGER");
+                IDE_LOGGER= new VStudioLogger("IDE_LOGGER");
 
                 // add logger
-                lox->SetVerbosity( IDELogger, Verbosity::Verbose, "/"  );
-                lox->SetVerbosity( IDELogger, Verbosity::Warning, Lox::InternalDomains );
+                lox->SetVerbosity( IDE_LOGGER, Verbosity::Verbose, "/"  );
+                lox->SetVerbosity( IDE_LOGGER, Verbosity::Warning, Lox::InternalDomains );
     }       }
     #endif
 
     // add a default console logger
-    DebugLogger= Lox::CreateConsoleLogger("DEBUG_LOGGER");
+    DEBUG_LOGGER= Lox::CreateConsoleLogger("DEBUG_LOGGER");
 
     // add logger by setting verbosities
-    lox->SetVerbosity( DebugLogger, Verbosity::Verbose );
-    lox->SetVerbosity( DebugLogger, Verbosity::Warning, Lox::InternalDomains );
+    lox->SetVerbosity( DEBUG_LOGGER, Verbosity::Verbose );
+    lox->SetVerbosity( DEBUG_LOGGER, Verbosity::Warning, Lox::InternalDomains );
 
     // check various variables, if existed already externally. If not, create them empty or
     // with debug defaults (only done here, namely for debug logger)
@@ -242,7 +196,7 @@ void Log::AddDebugLogger( Lox* lox ) {
         variable.Declare( Variables::DOMAIN_SUBSTITUTION, "LOG" );   (void) variable.Define();
         variable.Declare( Variables::PREFIXES           , "LOG" );   (void) variable.Define();
         variable.Declare( Variables::DUMP_STATE_ON_EXIT , "LOG" );   (void) variable.Define();
-        if( dynamic_cast<AnsiConsoleLogger*>(DebugLogger) != nullptr )
+        if( dynamic_cast<AnsiConsoleLogger*>(DEBUG_LOGGER) != nullptr )
             variable.Declare( Variables::CONSOLE_LIGHT_COLORS );   (void) variable.Define();
     }
 
@@ -257,22 +211,22 @@ void Log::RemoveDebugLogger( Lox* lox ) {
     SetALibAssertionPlugin( nullptr );
 
     // remove debug logger(s)
-    ALIB_ASSERT_WARNING( DebugLogger != nullptr, "ALOX",
+    ALIB_ASSERT_WARNING( DEBUG_LOGGER != nullptr, "ALOX",
                          "Log::RemoveDebugLogger(): no debug logger to remove." )
 
-    if ( DebugLogger != nullptr ) {
-        lox->RemoveLogger( DebugLogger );
+    if ( DEBUG_LOGGER != nullptr ) {
+        lox->RemoveLogger( DEBUG_LOGGER );
 
-        delete DebugLogger;
-        DebugLogger= nullptr;
+        delete DEBUG_LOGGER;
+        DEBUG_LOGGER= nullptr;
     }
 
-    #if defined(_WIN32) && ALIB_DEBUG
-        if ( IDELogger != nullptr ) {
-            lox->RemoveLogger( IDELogger );
+    #if defined(_MSC_VER) && ALIB_DEBUG
+        if ( IDE_LOGGER != nullptr ) {
+            lox->RemoveLogger( IDE_LOGGER );
 
-            delete IDELogger;
-            IDELogger= nullptr;
+            delete IDE_LOGGER;
+            IDE_LOGGER= nullptr;
         }
     #endif
 }
@@ -285,13 +239,13 @@ void Log::RemoveDebugLogger( Lox* lox ) {
 #if ALIB_DEBUG
 
 //==================================================================================================
-/// This function will be set to global pointer \alib{assert::PLUGIN} when calling
-/// method \alib{lox;Log::AddDebugLogger}.<br>
-/// If no debug-logging is used, or method \b AddDebugLogger is not used, then
-/// this function can also be used with a different \b Lox and explicitly activated using
-/// the static method \alib{lox;Log::SetALibAssertionPlugin}.
+/// This function will be set to global pointer #"assert::PLUGIN" when calling
+/// method #"Log::AddDebugLogger;*".<br>
+/// If no debug-logging is used, or method #"%AddDebugLogger" is not used, then
+/// this function can also be used with a different #"%Lox" and explicitly activated using
+/// the static method #"Log::SetALibAssertionPlugin;*".
 /// Uses internal domain <b>"/ALIB"</b> for logging, respectively to what the global variable
-/// \ref ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX is set.
+/// #"ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX" is set.
 /// @param ci      Information about the scope of invocation.
 /// @param type    The type of the message. As a convention, \c 0 is an assertion, \c 1 is a
 ///                warning, \c 2 is an info message, \c 3 or above are a verbose messages.
@@ -328,7 +282,7 @@ void Log::SetALibAssertionPlugin ( Lox* pLox ) {
     }
 
     // add plugin
-    assertionLox      = pLox;
+    assertionLox  = pLox;
     assert::PLUGIN= ALoxAssertionPlugin;
     assertionLox->Acquire( ALIB_CALLER );
         assertionLox->GetLogableContainer().Add( "ALoxAssertionPlugin set to Lox {!Q}.", pLox->GetName() );
@@ -338,7 +292,8 @@ void Log::SetALibAssertionPlugin ( Lox* pLox ) {
         // - allow to have the above verbose message seen once
         // - in case the values become externalized, this setting is written to such external
         //   configuration file and thus is not displayed a second time.
-        assertionLox->SetVerbosity( DebugLogger, Verbosity::Warning, ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX );
+        assertionLox->SetVerbosity( DEBUG_LOGGER, Verbosity::Warning,
+                                    ALOX_ASSERTION_PLUGIN_DOMAIN_PREFIX );
     assertionLox->Release ();
 }
 
@@ -365,5 +320,4 @@ void ALoxAssertionPlugin( const lang::CallerInfo&  ci,
 
 #endif //ALIB_DEBUG
 
-#   include "ALib.Lang.CIMethods.H"
 }// namespace [alib::lox]

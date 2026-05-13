@@ -469,7 +469,7 @@
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_ENUMS.cpp" />
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_EXPR_CALCULATOR.cpp" />
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_EXPR_TUTORIAL.cpp" />
-    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_FILES.cpp" />
+    <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_FILETREE.cpp" />
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_FORMAT.cpp" />
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_SINGLETON.cpp" />
     <ClCompile Include="..\..\..\src.samples\unittests\docsamples\DOX_STRINGS.cpp" />

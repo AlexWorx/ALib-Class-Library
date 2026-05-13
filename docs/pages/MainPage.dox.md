@@ -1,167 +1,234 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
 \mainpage    Overview
 
 ## Abstract ##
+The \aliblong provides industrial-strength infrastructure components for modern 
+C++20 applications, including logging, formatting, memory management, configuration systems, 
+expression parsing, and diagnostics.<br>
+Its mission is to provide reusable infrastructure, diagnostics, utilities,
+and development patterns relevant to modern C++ applications.
+                   
+\alib is modular and subsets of the available modules can be selectively included in 
+custom builds of the framework.
 
-\alib is a general purpose, use-case agnostic, platform-independent, low-level C++ class library.
+## Why ALib?
+\alib was created as an alternative to assembling large C++ projects from dozens of disconnected 
+micro-libraries. It is a cohesive infrastructure layer for C++20 applications.
 
-Its mission is to provide foundational concepts, types, and idioms relevant to any C++ project.
-As of today, \alib consists of \ref alib_manual_modules_graph "25 modules", each addressing
-different topics.<br>
-A subset of the available modules can be selectively included in a custom library build.
-This means you just get what you choose from the menu.
-
+The focus is:
+- high runtime efficiency
+- low allocation overhead
+- modular integration (choose what you need)
+- cross-platform consistency
+- deep debug capabilities
+                               
+\alib combines capabilities typically spread across libraries such as
+spdlog, fmt, Boost, CLI11, magic_enum, Abseil, folly, exprtk,
+and dedicated diagnostics, configuration, allocator, and utility frameworks.
+For many C++20 applications, \alib might be the better-integrated alternative.
+                                      
+\alib is particularly suited for:
+- small and large native C++ applications
+- tools and infrastructure software
+- performance-sensitive systems
+- long-lived enterprise codebases
+- diagnostic-heavy development environments
+ 
 ## New In this Version ##
-This time, we release rather a maintenance version with just a few updates and fixes.
-We had to pause our efforts to provide optional C++20 Module compilation, as the approach
-(which we just had published with the last release) fails on the newest Clang compiler version.
+Introduced the new module [ALib App](https://alib.dev/alib_mod_app.html) which aggregates several
+features of lower-level modules and orchestrates bootstrapping. 
+With this addition, we felt it was appropriate to rename \alib from a "class library" to 
+a "framework".
+Furthermore the optional C++20-Module compilation is back. Nevertheless, it is only supported on
+GNU/Linux platform with the newest Clang compiler version. 
+We are waiting for GCC to relax its currently restrictive interpretation of the standard.
 
-Besides smaller changes, with this release the module \alib_threadmodel is marked stable for the 
-first time.
+In addition to many smaller improvements, we added an external resource format definition and
+introduced a corresponding resource compiler that writes C++ code.
                                                                         
-All details of changes are provided in the \ref alib_changelog.
+All details of changes are provided in the [Changelog](https://alib.dev/alib_changelog.html). 
 
-## Some highlights of the functionality ##
-- Module \alib_strings: String-types with interfaces similar to Java/C#, compatible with anything that
-  "smells" like a string.
-  (Technically, this is achieved by using some \ref alib_manual_appendix_tca "type traits" magic.)
-- Module \alib_boxing: Consider this as "std::any on steroids".
-- Modules \alib_enumops and \alib_enumrecords: Finally, we get what we expected from C++ enums.
-- Module \alib_monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
-- Module \ref alib_mod_alox "ALox": Logging for adults.
-- Module \alib_bitbuffer: Write bit-streams instead of human-readable text.
-- Module \alib_cli: Command line parser with support of environment variables and configuration files.
-- Module \alib_expressions: Type-safe run-time expression compiler. Easily extensible to support your
+## A Quick Sample ##
+```cpp
+#include "ALib.Bootstrap.H"
+#include "ALib.Lang.CIFunctions.H"
+#include "ALib.Expressions.H"
+
+int main( int, const char ** ) {
+    alib::Bootstrap();
+ 
+    alib::Compiler compiler;
+    compiler.SetupDefaults();
+
+    alib::Expression expression = compiler.Compile( "40+2 * 3-4" );
+ 
+    Log_Info( "Input:      {!Q}", expression->GetOriginalString()   )
+    Log_Info( "Normalized: {!Q}", expression->GetNormalizedString() )
+    Log_Info( "Optimized:  {!Q}", expression->GetOptimizedString()  )
+
+    alib::expressions::Scope scope( compiler.CfgFormatter );
+    Log_Info( "Result:     "    , expression->Evaluate( scope )     )
+ 
+    alib::Shutdown();
+    return 0;
+}
+```
+Produces the following output:
+```
+sample.cpp:13: main [0.000 +---   ][PROCESS][/] #002: Input:      "40+2 * 3-4"
+sample.cpp:14: main [0.000 +---   ][PROCESS][/] #003: Normalized: "40 + (2 * 3) - 4"
+sample.cpp:15: main [0.000 +---   ][PROCESS][/] #004: Optimized:  "42"
+sample.cpp:18: main [0.000 +---   ][PROCESS][/] #005: Result:     42
+```
+     
+This small example already demonstrates several core \alib capabilities:
+- bootstrapping and lifecycle management
+- expression parsing (extensible with custom functions and context variables)
+- logging 
+- formatting
+- boxing (much more than std::any provides)
+- type erasure
+- runtime diagnostics
+
+
+## Some highlights of the functionality: ##
+- \alib_strings: String types with interfaces similar to Java/C#, compatible with anything 
+  that "smells" like a string. (Technically achieved using C++20 concepts).
+- \alib_boxing: Consider this "std::any on steroids".
+- \alib_enumops and \alib_enumrecords: Finally, we get what we expected from C++ enums.
+- \alib_monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
+- \alib_alox: High-performance logging with deep diagnostics support.
+- \alib_app: Applications with a well-structured execution design and command-line parsing.
+- \alib_bitbuffer: Write bit-streams instead of human-readable text.
+- \alib_expressions: Type-safe runtime expression compiler. Easily extensible to support your 
   custom expression functions. 130+ (optional) predefined functions (math, string compare, date/time, etc.)
-- Module \alib_variables: Run-time variables for C++.
+- \alib_variables: Runtime variables for C++. 
   Its priority-management allows hard-coding defaults and having them be overridden by
-  configuration files, environment-variables or command-line parameters.
-- Module \alib_files: A directory and file scanner (with run-time expression support).
-- Module \alib_format: Formatting of strings with Python-like and alternatively Java-like syntax.
-- Module \alib_threadmodel: A dynamic thread-pool implementation, dedicated worker threads with prioritized
-  job-management, and periodic event-triggering.
-- And last but not least: Many more tools like managing bootstrapping of C++ software, externalized resources,
-  configuration data, singletons with Windows DLLs, ...
+  configuration files, environment-variables or command-line parameters.  
+- \alib_filetree: A directory and file scanner (with runtime expression support)
+- \alib_format: Formatting of strings with Python-like and alternatively Java-like syntax.
+- \alib_threads: Thread diagnostics and deadlock detection. 
+- \alib_threadmodel: A dynamic thread-pool implementation, 
+  dedicated worker threads with prioritized job-management, and periodic event triggering.
+- And last but not least: Many more tools like managing bootstrapping of C++ software, 
+  externalized resources, configuration data, singletons with Windows DLLs, ...  
 
-\anchor mainpage_goals
-## Main Characteristics And Design Goals ##
+## IDE / Build System Setup ##
+The current version was tested on the following platform combinations:
+- GNU/Linux Arch 7.0.5, Clang++ 21.1.5, C++20/23, 32-Bit / 64-Bit<br>
+  (This is the main development platform.)
+- GNU/Linux Arch 7.0.5, GNU C++ 16.1.1, C++20/23, 32-Bit / 64-Bit
+- WindowsOS 11, MSC 19.51 (Visual Studio 2026 Insiders), C++20, 32-Bit/64-Bit
+- WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
+- macOS Tahoe 26.4.1, Apple M2 / ARM64, Apple Clang Version 21.0.0, C++20/23, 64-Bit
+- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23
+- Raspberry 4, aarch64, Cortex-A72, GNU C++ 14.2.0, C++20/23
+- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23
 
-- \alib is <b>free software</b>.
-- Compiles with standards <b>C++20 and 23</b>.
-- \b Modularization: Possible selective use of only parts of the library.
-- Extensive \b documentation.
-- <b>Least intrusive</b>: Designed to keep user code as independent of \alib types and idioms as possible.
-- <b>Ease of use</b> by design.<br>
-  When things become complex, features are hidden behind default
-  behavior and are only available to users who read the detail chapters of the various Programmer's Manuals.
-  \emoji :sweat_smile:
-- Developed and steadily tested under <b>GNU/Linux</b>, <b>Windows OS</b>, <b>Mac OS</b>, and
-  <b>Raspberry</b>. For details in respect to the current release, see section below.
+The Programmer's Manual contains an extensive chapter about how to compile and use \alib in your 
+C++ environment.
 
 ## Documentation ##
 
-The following documentation is provided.
+The following documentation is provided:
 
-1. A \ref alib_manual "General Library Manual" is available describing the library structure,
-   its setup and compilation, bootstrapping, etc.
+1. A #"alib_manual;General Framework Manual" is available describing 
+   \alib's structure, its compilation, bootstrapping, etc.
 
-2. \b 25 separated \ref alib_manual_modules_table "Programmer's Manuals" are published
-   on this website! (One for each \alibmod_nl).<br>
-   The manuals are well-structured, provide <b>step-by-step source-code tutorials</b> and
-   often go into in-depth discussions in respect to design decisions and overall
-   rationals behind important features of the \alibmods.
+2. Separated #"alib_manual_modules_table;Programmer's Manuals" are provided. 
+   One dedicated manual is provided for each \alib Module. 
+ 
+   The manuals are well-structured, provide **step-by-step source code tutorials** and sometimes go 
+   into in-depth discussion in respect to design decisions and overall rationales behind important 
+   features of the \alib Modules. 
 
-3. \ref alib "Reference Documentation" which is covering 100% of the provided types, members,
-   functions, namespaces, macros, etc. In short, <b>each and every C++ entity is documented</b>.
+3. #"alib;Reference Documentation,annotated.html" covering 100% of the provided types, members,
+   functions, namespaces, macros, etc. In short, **each and every C++ entity is documented**.
 
-4. A detailed version history, documenting every interface change is found in the \ref alib_changelog.
+4. A detailed version history, documenting every interface change is found in the #"alib_changelog".
 
-5. All documentation provided leverages the full power of \https{Doxygen,doxygen.nl} (the industry standard).
+5. All documentation provided leverages the full power of \https{Doxygen,doxygen.nl}
+   (the industry standard).
+
    Therefore, changes in the library's interfaces are always detected and corrected.
-   The many <b>code samples</b> are implemented as unit tests and thus are "live"-integrated
-   to the documentation, often together with the output text snippets of the recent unit test run.
-   (See \ref alib_expressions_calculator "an example here".)
+   Most **code samples** are implemented as unit tests and thus are tested when compiling
+   the documentation. This is also mostly true for the output text of the code samples.
+   (See  #"alib_expressions_calculator;an example here").
 
-\note
-   Summary: \alib comes with a <b>complete book of documentation</b>, which has more than
-   <b>1000 pages</b> if printed. Its all explained, for beginners and experts!
+Summary: \alib comes with a **complete book of documentation**, which has more than
+**1000 pages** if it was printed. It is all explained, for beginners and experts!
 
-## IDE / Build System Setup ##
-Check out chapter \ref alib_manual_build "6. Building The Library" for details of how to compile
-and use ALib in your C++ environment.
+## License ## {#mainpage_license}
+\alib is free software and can be 
+[downloaded at Github](https://github.com/AlexWorx/ALib-Class-Library).
 
-The current release got tested on the following platform combinations:
-- GNU/Linux Arch 6.16.8, Clang++ 21.1.5, C++20/23, 32-Bit / 64-Bit<br>
-  (This is the main development platform.)
-- GNU/Linux Arch 6.16.8, GNU C++ 15.2.1, C++20/23, 32-Bit / 64-Bit
-- WindowsOS 11, MSC 19.44 (Visual Studio 2026 Insiders, Platform v145), C++20, 32-Bit/64-Bit
-- WindowsOS 11, MinGW, 64-Bit, GCC 13.47, C++20
-- macOS Tahoe 26.0, Apple M2 / ARM64, Apple Clang Version 17.0.0, C++20/23, 64-Bit
-- Raspberry 3, aarch64, Cortex-A53, GNU C++ 12.2.0, C++20/23
-- Raspberry 4, aarch64, Cortex-A72, GNU C++ 12.2.0, C++20/23
-- Raspberry 4, armhf (32-bit), Cortex-A72, GNU C++ 12.2.0, C++20/23
+Starting with version 2605, \alib is licensed under the MIT License:
+\verbinclude "../../LICENSE"
 
+The change from the Boost Software License 1.0 to the MIT License is intended
+to simplify future integration of third-party MIT-licensed components and
+adaptations within \alib.
+
+Previous releases remain available under the Boost Software License 1.0.
+
+## Main Characteristics And Design Goals ## {#mainpage_goals}
+
+- \alib is **free software**.
+- Compiles with standards **C++20 and 23**.
+- **Modularization**: Possible selective use and compilation of the Framework.
+- Extensive **documentation**.
+- **Least intrusive**: Designed to keep user code independent of \alib types and idioms when possible.
+- **Ease of use** by design.
+  When things become complex, features are hidden behind default
+  behavior and are only available to users who investigate deeper. 
+  For example, by consulting the detailed chapters of the Programmer's Manuals. 
+  There is one manual available for each module. 
+- Developed and steadily tested under **GNU/Linux**, **Windows OS**, **macOS**, and
+  **Raspberry Pi** devices. For details in respect to the current release, see the section below. 
+
+## No Dependencies ##
+
+\alib builds without mandatory third-party dependencies.
+Optional integrations exist. For example, if [boost](https://www.boost.org) is available,
+**ALib Strings** are using its regular-expression searches.
+In contrast, \alib provides optional compatibility headers for 3rd-party libraries
+(e.g., [QT Class Library](https://www.qt.io)), which, for example, provide adaptations of 
+\alib type-traits for QT-types.
+
+##  Contributions ##
+We are happy about community input and contributions.
+For legal clarity, contributions must be provided under the MIT License
+(or a more permissive license). 
 
 ## C# and Java Versions Of ALib ##
+Historically, parts of \alib were also developed for C# and Java.
+Those projects are currently unmaintained but remain available as reference
+implementations and experimental sibling projects.   
 
-Parts of \alib have sibling incarnations in programming languages C# and JAVA. Historically,
-\alib aimed to be a cross platform/cross language library. This goal was (mostly) dropped
-in favor to be able to independently develop <b>ALib for C++</b>.
+The primary and actively maintained version is <b>ALib for C++</b>.         
 
 <b>ALib for C#</b> and <b>ALib for Java</b> are included in and distributed with the
-cross platform \https{ALox Logging Library,alexworx.github.io/ALox-Logging-Library/}.
-
-For C++, since May 2018 release, the situation was inverted: Instead of having \alib bundled
-with \alox, the logging library is now an \alibmod.
-
-\anchor mainpage_license
-## License ##
-
-\alib is free software, can be \https{downloaded at Github,github.com/AlexWorx/ALib-Class-Library}
-and sources are published under Boost Software License:
-
-\verbinclude "../../LICENSE.txt"
-
-## Library Dependencies ##
-
-\alib compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
-Optional dependencies exist. For example, if \https{boost,www.boost.org} is available,
-\alib_strings_nl are using its regex search.<br>
-In contrast, \alib provides optional compatibility headers for 3rd-party libraries
-(e.g., \https{QT Class Library,www.qt.io}), which, for example, provide adoptions of \alib type-traits
-for QT-types.
-
-## Contributions ##
-We would be happy, if the community started to support this library and are willing to receive
-contributions and, if accepted, to update the code accordingly.<br>
-Note that for legal reasons, we hereby explicitly refuse and reject code (or ideas for code)
-that are not explicitly provided under the Boost Software License.
-Please do not even contact us with your ideas/code in that case.
-
+cross-platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Library/).
 
 ## Thanks ##
-
-Our thanks go to all supporters that did and do help realizing this project. Furthermore
-to just all of these millions of supporters of *free software*, including:
-- The \https{GNU/Linux,gnu.org} project and community,
-- The \https{LLVM/Clang,llvm.org/} project,
-- The \https{CMake,cmake.org/} project,
-- To <b>Dimitri van Heesch</b> for providing marvelous documentation software \https{Doxygen,doxygen.nl}.
-- To company \https{JetBrains,www.jetbrains.com} for providing a free
-  \https{Open Source License,www.jetbrains.com/buy/opensource/}
+Our thanks go to all supporters that did and do help to realize this project. 
+Furthermore, to just all of these millions of supporters of *free software*, including:
+- The [GNU/Linux](https://gnu.org) project and community,
+- The [LLVM/Clang](http://llvm.org/) project,
+- The [CMake](https://cmake.org/) project,
+- To **Dimitri van Heesch** for providing marvelous documentation software [Doxygen](http://doxygen.nl).
+- To company [JetBrains](https://www.jetbrains.com) for providing 
+  [free licenses](https://www.jetbrains.com/buy/opensource/) to open source developers
   of their absolutely superb and unrivalled set of IDEs for various programming languages.
-- The \https{QT Creator,doc.qt.io/qtcreator} team,
-- Microsoft for providing \https{Visual Studio Community Edition,www.visualstudio.com/vs/community/} project,
-- \https{Uniki GmbH,uniki.de} for supporting cross-platform compatibility tests.
-
-Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
-until he - when things became too crazy - disappeared in 1882.
+- The [QT Creator](http://doc.qt.io/qtcreator) team,
+- Microsoft for providing [Visual Studio Community Edition](https://www.visualstudio.com/vs/community/) project,
+- [Uniki GmbH](https://uniki.de) for supporting cross-platform compatibility tests.
 
 
 \I{################################################################################################}
@@ -172,14 +239,10 @@ until he - when things became too crazy - disappeared in 1882.
 \page alib_download    How to Download
 
 \alib can be downloaded via the following link:
-[ALib C++ Library on <img src=github-mark.png height=20 width=20> GitHub](https://github.com/AlexWorx/ALib-Class-Library)
+[ALib C++ Framework on <img src=github-mark.png height=20 width=20> GitHub](https://github.com/AlexWorx/ALib-Class-Library)
 
 Note that GitHub is the perfect tool to add your contributions!
 
-
-\note
-    A similar, but less feature rich <b>version for C# and Java</b> is available as well:
-    [ALox Logging Library on <img src=github-mark.png height=20 width=20> GitHub](https://github.com/AlexWorx/ALox-Logging-Library)
                                                                                  
 \I{################################################################################################}
 \I{################################################################################################}

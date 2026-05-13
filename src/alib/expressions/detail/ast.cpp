@@ -1,29 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/expressions/expressions.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-#else
-#   include "ALib.Expressions.Impl.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace expressions { namespace detail {
 
 
@@ -109,7 +83,7 @@ AST* ASTUnaryOp::Optimize( Normalization normalization ) {
 // Assemble implementations
 //##################################################################################################
 
-void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalized ) {
+void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString&  normalized ) {
     integer idxInNormalized= normalized.Length();
 
     auto* func= Value.GetFunction<FToLiteral>( lang::Reach::Local );
@@ -155,7 +129,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
     program.AssembleConstant( Value, Position, idxInNormalized );
 }
 
-void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString & normalized ) {
+void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString&  normalized ) {
     auto format= program.compiler.CfgNormalization;
 
     String64 identifier;
@@ -230,7 +204,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
                     && !HasBits(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
                 {
                     {
-                        ALIB_STRING_RESETTER(normalized);
+                        ALIB_STRING_RESETTER(normalized)
                         argAst->Assemble( program, allocator, normalized );
                     }
                     normalized << dynamic_cast<ASTLiteral*>(argAst)->Value.Unbox<String>();
@@ -257,7 +231,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
 }
 
 
-void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
+void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString&  normalized ) {
     auto format= program.compiler.CfgNormalization;
     String op= Operator;
 
@@ -363,7 +337,7 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
 }
 
 
-void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
+void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString&  normalized ) {
     auto format= program.compiler.CfgNormalization;
     String op=    Operator;
 
@@ -495,7 +469,7 @@ void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString 
 }
 
 
-void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) {
+void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AString&  normalized ) {
     auto format= program.compiler.CfgNormalization;
 
     int bracketStringIdx=  (HasBits(format,  Normalization::InnerBracketSpace   ) +

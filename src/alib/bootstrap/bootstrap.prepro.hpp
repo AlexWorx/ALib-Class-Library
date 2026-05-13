@@ -2,36 +2,38 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_BOOTSTRAP_PP
 #define HPP_ALIB_BOOTSTRAP_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 //##################################################################################################
-// Symbols introduced by module ALib.Bootstrap
+// Macro  introduced by module ALib.Bootstrap
 //##################################################################################################
 
 // Compilation flags
 // Create a bitset from the ALib compilation features.
 // For this, we ensure that the individual headers tested are included
-#if !DOXYGEN
+#if DOXYGEN
+#   define    ALIB_COMPILATION_FLAGS
+#else
 #   define    ALIB_COMPILATION_FLAGS                       \
  +  (1<<0)  *  ALIB_ALOX                                   \
- +  (1<<1)  *  ALIB_BITBUFFER                              \
- +  (1<<2)  *  ALIB_BOXING                                 \
- +  (1<<3)  *  ALIB_CAMP                                   \
- +  (1<<4)  *  ALIB_CONTAINERS                             \
- +  (1<<5)  *  ALIB_CLI                                    \
+ +  (1<<1)  *  ALIB_APP                                    \
+ +  (1<<2)  *  ALIB_BITBUFFER                              \
+ +  (1<<3)  *  ALIB_BOXING                                 \
+ +  (1<<4)  *  ALIB_CAMP                                   \
+ +  (1<<5)  *  ALIB_CONTAINERS                             \
  +  (1<<6)  *  ALIB_ENUMRECORDS                            \
  +  (1<<7)  *  ALIB_EXCEPTIONS                             \
  ,                                                         \
  +  (1<<0)  *  ALIB_EXPRESSIONS                            \
- +  (1<<1)  *  ALIB_FILES                                  \
+ +  (1<<1)  *  ALIB_FILETREE                               \
  +  (1<<2)  *  ALIB_FORMAT                                 \
  +  (1<<3)  *  ALIB_MONOMEM                                \
  +  (1<<4)  *  ALIB_RESOURCES                              \
@@ -47,7 +49,7 @@
  +  (1<<5)  *  ALIB_DEBUG_BOXING                           \
  +  (1<<6)  *  ALIB_DEBUG_CONTAINERS                       \
  +  (1<<7)  *  ALIB_DEBUG_CRITICAL_SECTIONS                \
- ,                                                          \
+ ,                                                         \
  +  (1<<1)  *  ALIB_DEBUG_MEMORY                           \
  +  (1<<2)  *  ALIB_DEBUG_STRINGS                          \
  +  (1<<3)  *  ALIB_DEBUG_RESOURCES                        \

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -26,7 +26,7 @@ UT_CLASS
 //--------------------------------------------------------------------------------------------------
 //--- Path
 //--------------------------------------------------------------------------------------------------
-UT_METHOD(Path)
+UT_METHOD(PathTest)
 {
     UT_INIT()
 
@@ -87,9 +87,9 @@ UT_METHOD(Path)
     {  Path p= A_PATH( "/test") ; UT_EQ( A_PATH("/") , p.Parent(  ) ) }
     {  Path p= A_PATH( "test" ) ; UT_EQ( A_PATH("" ) , p.Parent(  ) ) }
 
-    {  Path p= A_PATH("/"    ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("/"   )), p ) }
-    {  Path p= A_PATH("/test") ; UT_TRUE(  p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("/"   )), p ) }
-    {  Path p= A_PATH("test" ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( system::PathString(A_PATH("test")), p ) }
+    {  Path p= A_PATH("/"    ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( PathString(A_PATH("/"   )), p ) }
+    {  Path p= A_PATH("/test") ; UT_TRUE(  p.ChangeToParent( ) ) UT_EQ( PathString(A_PATH("/"   )), p ) }
+    {  Path p= A_PATH("test" ) ; UT_FALSE( p.ChangeToParent( ) ) UT_EQ( PathString(A_PATH("test")), p ) }
     #endif
 }
 
@@ -205,9 +205,9 @@ UT_METHOD(ShellCommand)
         cmdResult= shellCmd.Run(cmd);
         UT_EQ(   0, cmdResult)
     #if !defined(_WIN32)
-        UT_EQ(17UL, shellCmd.size())
+        UT_EQ(28UL, shellCmd.size())
     #else
-        UT_EQ(21UL, shellCmd.size())
+        UT_EQ(32UL, shellCmd.size())
     #endif
     #if !defined(_WIN32)
         if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
@@ -229,7 +229,7 @@ UT_METHOD(ShellCommand)
                 for ( auto& line : shellCmd )
                     Log_Info("{:>2}: {}", ++lineNo, line )
             )
-            UT_EQ(17UL, shellCmd.size())
+            UT_EQ(28UL, shellCmd.size())
         }
 
         cmd= "ls -la " ALIB_BASE_DIR "/src/alib/threadmodel";
@@ -243,7 +243,7 @@ UT_METHOD(ShellCommand)
                 for ( auto& line : shellCmd )
                     Log_Info("{:>2}: {}", ++lineNo, line )
             )
-            UT_EQ(28UL, shellCmd.size())
+            UT_EQ(43UL, shellCmd.size())
         }
     #endif
     }
@@ -263,7 +263,7 @@ UT_METHOD(ShellCommand)
         UT_PRINT("Cmd: {!Q'}", cmd)
         cmdResult= shellCmd.Run(cmd);
         UT_EQ(   0, cmdResult)
-        UT_EQ(17UL, shellCmd.size())
+        UT_EQ(28UL, shellCmd.size())
         if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
             Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
             Log_Prune(
@@ -271,7 +271,7 @@ UT_METHOD(ShellCommand)
                 for ( auto& line : shellCmd )
                     Log_Info("{:>2}: {}", ++lineNo, line )
             )
-            UT_EQ(17UL, shellCmd.size())
+            UT_EQ(28UL, shellCmd.size())
         }
     }
 
@@ -291,7 +291,7 @@ UT_METHOD(ShellCommand)
         UT_PRINT("Cmd: {!Q'}", cmd)
         cmdResult= shellCmd.Run(cmd);
         UT_EQ(   0, cmdResult)
-        UT_EQ(17UL, shellCmd.size())
+        UT_EQ(28UL, shellCmd.size())
         if ( cmdResult == 0 && shellCmd.ReadBuffer.IsNotEmpty()) {
             Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, shellCmd.size(), cmd )
             Log_Prune(
@@ -299,7 +299,7 @@ UT_METHOD(ShellCommand)
                 for ( auto& line : shellCmd )
                     Log_Info("{:>2}: {}", ++lineNo, line )
             )
-            UT_EQ(17UL, shellCmd.size())
+            UT_EQ(28UL, shellCmd.size())
         }
     }
 
@@ -311,30 +311,14 @@ UT_METHOD(ShellCommand)
 
         UT_PRINT("Passing invalid command")
         NCString cmd= "notacommand";
-        int cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
+        int cmdResult= ShellCommandMA::Run(cmd, as, &sv);
         UT_EQ( 127, cmdResult)
         UT_EQ( 0UL, sv.size())
 
         // read directory
         cmd= "ls -la " ALIB_BASE_DIR "/src/alib/system";
         UT_PRINT("Cmd: {!Q'}", cmd)
-        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
-        UT_EQ(   0, cmdResult)
-        UT_EQ(17UL, sv.size())
-        if ( cmdResult == 0 && as.IsNotEmpty()) {
-            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
-            Log_Prune(
-                int lineNo= 0;
-                for ( auto& line : sv )
-                    Log_Info("{:>2}: {}", ++lineNo, line )
-            )
-            UT_EQ(17UL, sv.size())
-        }
-
-        // read a next directory
-        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/threadmodel";
-        UT_PRINT("Cmd: {!Q'}", cmd)
-        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as, &sv);
+        cmdResult= ShellCommandMA::Run(cmd, as, &sv);
         UT_EQ(   0, cmdResult)
         UT_EQ(28UL, sv.size())
         if ( cmdResult == 0 && as.IsNotEmpty()) {
@@ -347,12 +331,28 @@ UT_METHOD(ShellCommand)
             UT_EQ(28UL, sv.size())
         }
 
+        // read a next directory
+        cmd= "ls -la " ALIB_BASE_DIR "/src/alib/threadmodel";
+        UT_PRINT("Cmd: {!Q'}", cmd)
+        cmdResult= ShellCommandMA::Run(cmd, as, &sv);
+        UT_EQ(   0, cmdResult)
+        UT_EQ(43UL, sv.size())
+        if ( cmdResult == 0 && as.IsNotEmpty()) {
+            Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
+            Log_Prune(
+                int lineNo= 0;
+                for ( auto& line : sv )
+                    Log_Info("{:>2}: {}", ++lineNo, line )
+            )
+            UT_EQ(43UL, sv.size())
+        }
+
         // repeat without providing the vector (test nullptr checks)
         UT_PRINT("Cmd: {!Q'}", cmd)
         integer oldBuffLen= as.Length();
-        cmdResult= system::TShellCommand<MonoAllocator>::Run(cmd, as);
+        cmdResult= ShellCommandMA::Run(cmd, as);
         UT_EQ(   0, cmdResult)
-        UT_EQ(28UL, sv.size())
+        UT_EQ(43UL, sv.size())
         UT_TRUE(oldBuffLen + 20 < as.Length() )
         if ( cmdResult == 0 && as.IsNotEmpty()) {
             Log_Info("Cmd executed. Result={:>03}, lines: {}, cmd: {!Q'}", cmdResult, sv.size(), cmd )
@@ -361,7 +361,7 @@ UT_METHOD(ShellCommand)
                 for ( auto& line : sv )
                     Log_Info("{:>2}: {}", ++lineNo, line )
             )
-            UT_EQ(28UL, sv.size())
+            UT_EQ(43UL, sv.size())
         }
     }
     #endif
@@ -482,8 +482,8 @@ UT_METHOD(ClassByteSize)
 #endif
 
     //--------------------- AString::Append(Box) --------------
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-        auto fmt= Formatter::Default;
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+        auto fmt= Formatter::DEFAULT;
         buf.Reset(); fmt->Format(buf, "Test in fmt-field: <{:>10}>", ByteSize(  100000, ' ') ); UT_PRINT(buf)
         buf.Reset(); fmt->Format(buf, "Test in fmt-field: <{:>10}>", ByteSizeSI(100000, '-') ); UT_PRINT(buf)
     }

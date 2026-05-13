@@ -1,34 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alib.inl"
-#if ALIB_DEBUG && !ALIB_STRINGS
-#   include <format>
-#endif
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module   ALib.Threads;
-    import   ALib.Lang;
-#  if ALIB_STRINGS
-    import   ALib.Strings;
-#  endif
-#else
-#   include "ALib.Threads.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Lang.H"
-#endif
-//========================================== Implementation ========================================
 #if !ALIB_SINGLE_THREADED
 
 namespace alib {  namespace threads {
@@ -38,11 +7,11 @@ namespace alib {  namespace threads {
 //##################################################################################################
 /// This global mutex is acquired by \alib-types, whenever data is written to either
 /// <c>std::cout</c> or <c>std::cerr</c>.
-/// This is, for example, acquired by function #alib::assert::Raise and by loggers of
+/// This is, for example, acquired by function #"alib::assert::Raise;3" and by loggers of
 /// module \alib_alox that log to the console
-/// (\ref alib_mod_alox_loggers_textlogger_stdio_lock "see here").
+/// (#"alib_mod_alox_loggers_textlogger_stdio_lock;see here").
 ///
-/// The utility type \alib{strings::compatibility::std;OStreamWriter} uses this lock as well
+/// The utility type #"std::OStreamWriter" uses this lock as well
 /// as C++20 type <b>std::basic_osyncstream</b> (if available with the toolchain used) to have
 /// maximum protection in respect to writing to the console.
 Lock STD_IOSTREAMS_LOCK;

@@ -1,28 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include <math.h>
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Strings;
-    import   ALib.Lang;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#endif
-//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 
 namespace alib {  namespace strings {
@@ -100,7 +75,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx ) {
 
 // compilers can't know that the parse-methods above leave idx as it is or succeed.
 // Therefore , it would warn that result may not be initialized. But this will never happen.
-ALIB_WARNINGS_UNINITIALIZED_OFF
+ALIB_ALLOW_UNINITIALIZED
 
 template<typename TChar>
 int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {
@@ -180,7 +155,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
                     : int64_t( result);
 }
 
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 template<typename TChar>
 uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFormat<TChar>& nf ) {

@@ -18,7 +18,7 @@
             <tab type="classindex"       visible="yes" title="Index of Types"/>
             <tab type="concepts"         visible="yes" title="Index of Concepts "/>
             <tab type="namespacelist"    visible="yes" title="Namespaces" intro="Each inner namespace of 'alib' comprises an ALib Module, except namespace 'alib::lang' which contains ALib types that are not related to a specific module. "/>
-            <tab type="user"             visible="yes" title="Preprocessor Symbols And Macros"     url="@ref alib_ref_prepro" />
+            <tab type="user"             visible="yes" title="Preprocessor Symbols And Macros"     url="@ref alib_macros" />
             <tab type="user"             visible="yes" title="External Configuration Variables"    url="@ref alib_cfgvars" />
             <tab type="hierarchy"        visible="yes" title="Type Hierarchy" intro=""/>
             <tab type="filelist"         visible="yes" title="" intro="This is a list of files relevant for the documentation system. The complete source code included when downloading ALib."/>
@@ -236,7 +236,7 @@
         <authorsection visible="yes"/>
       </group>
 
-      <!-- Layout definition for a C++20 Module page -->
+      <!-- Layout definition for a C++20-Module page -->
       <module>
         <briefdescription visible="yes"/>
         <detaileddescription title="Description:"/>

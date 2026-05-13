@@ -2,25 +2,32 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_CAMP_BASE
 #define H_ALIB_CAMP_BASE
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/camp/camp.prepro.hpp"
 
 #if ALIB_CAMP
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Camp.Base;
-#   elif !defined(ALIB_INC_CAMP_BASE_MPP)
-#       define ALIB_INC_CAMP_BASE_MPP
-#       include "alib/camp/basecamp.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.System.H"
+#include "ALib.Exceptions.H"
+#include "ALib.Format.H"
+#include "ALib.Variables.H"
+#include "ALib.Variables.IniFile.H"
+#include "ALib.Camp.H"
 
+#include <stack>
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Camp.Base;
+#else
+#include "alib/camp/basecamp.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_CAMP
 #endif // H_ALIB_CAMP_BASE

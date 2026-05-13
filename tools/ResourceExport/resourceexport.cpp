@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib C++ Library - Resource Export Tool
+//  ALib C++ Framework - Resource Export Tool
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 //  Notes:

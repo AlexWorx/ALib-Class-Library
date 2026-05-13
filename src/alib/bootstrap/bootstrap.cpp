@@ -1,143 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/singletons/singletons.prepro.hpp"
-#include "alib/monomem/monomem.prepro.hpp"
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/containers/containers.prepro.hpp"
-#include "alib/resources/resources.prepro.hpp"
-#include "alib/bitbuffer/bitbuffer.prepro.hpp"
-#include "alib/alox/alox.prepro.hpp"
-#include "alib/bootstrap/bootstrap.prepro.hpp"
-#if ALIB_DEBUG && !DOXYGEN
-#   if defined(__GNUC__) || defined(__clang__)
-#      include <cxxabi.h>
-#      include <cassert>
-#   endif
-#   include <cstdlib>
-#   if defined(_WIN32)
-#      include <cstring>
-#   endif
-#endif
-
-#if !DOXYGEN
-#   include "alib/platformincludes.hpp"
-#   if (ALIB_DEBUG)
-#       include <cassert>
-#       include <cstring>
-#       if defined( _WIN32 ) && !defined(_STRING_)
-#          include <string>
-#       endif
-#   endif
-
-#endif // !DOXYGEN
-
-#include <iostream>
-#include <iomanip>
-
-#if (ALIB_SINGLE_THREADED && ALIB_EXT_LIB_THREADS_AVAILABLE)
-#  include <thread>
-#endif
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-      module ALib.Bootstrap;
-      import   ALib.Lang;
-      import   ALib.Time;
-      import   ALib.Threads;
-#   if ALIB_MONOMEM
-      import   ALib.Monomem;
-#   endif
-#   if ALIB_STRINGS
-      import   ALib.Strings;
-#   endif
-#   if ALIB_SINGLETONS
-      import   ALib.Singletons;
-#   endif
-#   if ALIB_BOXING
-      import   ALib.Boxing;
-#   endif
-#   if ALIB_ENUMRECORDS
-      import   ALib.EnumRecords.Bootstrap;
-#   endif
-#   if ALIB_THREADMODEL
-      import   ALib.ThreadModel;
-#   endif
-#   if ALIB_EXCEPTIONS
-      import   ALib.Exceptions;
-#   endif
-#   if ALIB_SYSTEM
-      import   ALib.System;
-#   endif
-#   if ALIB_FORMAT
-      import   ALib.Format;
-      import   ALib.Format.StdImplementation;
-      import   ALib.Format.FormatterPythonStyle;
-      import   ALib.Format.FormatterJavaStyle;
-#   endif
-#   if ALIB_CAMP
-      import   ALib.Camp;
-      import   ALib.Camp.Base;
-      import   ALib.Resources;
-      import   ALib.Variables;
-#   endif
-#   if ALIB_BITBUFFER
-      import   ALib.BitBuffer;
-#   endif
-#   if ALIB_ALOX
-      import ALib.ALox;
-      import ALib.ALox.Impl;
-#   endif
-#   if ALIB_EXPRESSIONS
-      import ALib.Expressions;
-#   endif
-#   if ALIB_CLI
-      import ALib.CLI;
-#   endif
-#   if ALIB_FILES
-      import ALib.Files;
-#   endif
-
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Time.H"
-#   include "ALib.Threads.H"
-#   include "ALib.Monomem.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Singletons.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.ThreadModel.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.System.H"
-#   include "ALib.Format.H"
-#   include "ALib.Format.StdImplementation.H"
-#   include "ALib.Format.FormatterPythonStyle.H"
-#   include "ALib.Format.FormatterJavaStyle.H"
-#   include "ALib.Variables.H"
-#   include "ALib.BitBuffer.H"
-#   include "ALib.Camp.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Bootstrap.H"
-#   include "ALib.CLI.H"
-#   include "ALib.Expressions.H"
-#   include "ALib.ALox.Impl.H"
-#   include "ALib.Files.H"
-#endif
-
-//========================================== Implementation ========================================
 #   include "ALib.Lang.CIFunctions.H"
 namespace alib {
 
@@ -151,16 +11,16 @@ TCompilationFlags   COMPILATION_FLAGS    = {ALIB_COMPILATION_FLAGS};
 
 CompilationFlagMeaningsEntry COMPILATION_FLAG_MEANINGS[40]=  {
     {  0, "ALOX"                             }, // modules
-    {  1, "BITBUFFER"                        },
-    {  2, "BOXING"                           },
-    {  3, "CAMP"                             },
-    {  4, "CONTAINERS"                       },
-    {  5, "CLI"                              },
+    {  1, "APP"                              },
+    {  2, "BITBUFFER"                        },
+    {  3, "BOXING"                           },
+    {  4, "CAMP"                             },
+    {  5, "CONTAINERS"                       },
     {  6, "ENUMRECORDS"                      },
     {  7, "EXCEPTIONS"                       },
 
     {  8, "EXPRESSIONS"                      },
-    {  9, "FILES"                            },
+    {  9, "FILETREE"                         },
     { 10, "FORMAT"                           },
     { 11, "MONOMEM"                          },
     { 12, "RESOURCES"                        },
@@ -216,7 +76,7 @@ void AssertALibVersionAndFlags( int alibVersion, int alibRevision,
         return;
 
     std::cerr << "!!! Error in ALib library compilation: linked library of ALib has "
-                 "different compiler-symbols set than the using executable (or library)." << std::endl;
+                 "different configuration macros set than the using executable (or library)." << std::endl;
 
     // dump out the flags
     std::cerr << std::left << std::setw(35) <<  "Symbol" << '|' << std::setw(5) << " Lib" <<'|' << " Comp. Unit"  << std::endl;
@@ -260,13 +120,13 @@ void     Bootstrap( int alibVersion, int alibRevision, TCompilationFlags compila
         IF_ALIB_THREADS( threads::bootstrap(); )
 
         #if ALIB_FORMAT
-            Formatter::Default      .InsertDerived<FormatterPythonStyle>();
-            Formatter::Default->Next.InsertDerived<FormatterJavaStyle  >();
+            Formatter::DEFAULT      .InsertDerived<FormatterPythonStyle>();
+            Formatter::DEFAULT->Next.InsertDerived<FormatterJavaStyle  >();
         #   if !ALIB_SINGLE_THREADED
-                ALIB_DBG(Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";)
+                ALIB_DBG(Formatter::DEFAULT_LOCK.Dbg.Name= "DefaultFormatter";)
         #       if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
-                    Formatter::Default->DCSLock= &Formatter::DefaultLock;
-                    Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";
+                    Formatter::DEFAULT->DCSLock= &Formatter::DEFAULT_LOCK;
+                    Formatter::DEFAULT_LOCK.Dbg.Name= "DefaultFormatter";
         #       endif
         #   endif
         #endif
@@ -531,7 +391,6 @@ enumrecords::bootstrap::Bootstrap<format::FMTExceptions>( {
                                                        "Placeholder type:      {} ({})"
                                                                 "Placeholder type:      {} ({})\n"
                                                                 "Deduced argument type: {!Q}\n"
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}> ")
                                                                 "In: {!Q}\n    >{!FillC-}^"
 
       "," "101,MissingClosingBracket,"                 "Closing bracket '}}' of placeholder not found (or syntax error).\n"
@@ -539,23 +398,17 @@ enumrecords::bootstrap::Bootstrap<format::FMTExceptions>( {
       "," "102,MissingPrecisionValuePS,"               "Missing precision value after '.' character."
                                                      "\nIn: {!Q}\n    >{!FillC-}^"
       "," "103,DuplicateTypeCode,"                     "Duplicate type code {!Q'} given (previous was {!Q'})."
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}> ")
                                                      "\nIn: {!Q}\n    >{!FillC-}^"
       "," "104,UnknownTypeCode,"                       "Unknown type code {!Q'} given."
                                                      "\nIn: {!Q}\n    >{!FillC-}^"
-                                         ALIB_REL_DBG( "{!X}" ,"\nNative argument type: <{}>")
       "," "105,ExclamationMarkExpected,"               "Expected '!' in continuation of placeholder."
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}>")
-                                                    "\nIn: {!Q}\n    >{!FillC-}^"
+                                                     "\nIn: {!Q}\n    >{!FillC-}^"
       "," "106,UnknownConversionPS,"                   "Unknown conversion \"!{}\"."
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}>")
-                                                    "\nIn: {!Q}\n    >{!FillC-}^"
+                                                     "\nIn: {!Q}\n    >{!FillC-}^"
       "," "107,PrecisionSpecificationWithInteger,"     "Precision not allowed with integer format."
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}>")
-                                                    "\nIn: {!Q}\n    >{!FillC-}^"
+                                                     "\nIn: {!Q}\n    >{!FillC-}^"
       "," "108,MissingReplacementStrings,"             "Missing pair of replacement strings \"<src><repl>\" after \"!Replace\"."
-                                         ALIB_REL_DBG( "{!X}" ,  "\nNative argument type: <{}>")
-                                                    "\nIn: {!Q}\n    >{!FillC-}^"
+                                                     "\nIn: {!Q}\n    >{!FillC-}^"
 
       "," "201,NegativeValuesInBracketsNotSupported,"  "Brackets for negative values not implemented/supported."
                                                        "\nIn: {!Q}\n    >{!FillC-}^"
@@ -652,7 +505,7 @@ void Shutdown()
     #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
         monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
         #if ALIB_FORMAT
-            Formatter::Default->DCSLock= nullptr;
+            Formatter::DEFAULT->DCSLock= nullptr;
         #endif
     #endif
 
@@ -662,9 +515,9 @@ void Shutdown()
     IF_ALIB_SINGLETONS ( alib::singletons         ::shutdown(); )
 
     #if ALIB_FORMAT
-        ALIB_ASSERT_WARNING( Formatter::Default.UseCount() == 1, "ALIB",
-            "DefaultFormatter still shared more than once: ", Formatter::Default.UseCount() )
-        Formatter::Default= nullptr;
+        ALIB_ASSERT_WARNING( Formatter::DEFAULT.UseCount() == 1, "ALIB",
+            "DefaultFormatter still shared more than once: ", Formatter::DEFAULT.UseCount() )
+        Formatter::DEFAULT= nullptr;
     #endif
 
     NonCampModulesInitialized= false;
@@ -689,9 +542,9 @@ void BootstrapAddDefaultCamps() {
 
                            CAMPS.push_back( &BASECAMP    );
     IF_ALIB_ALOX(          CAMPS.push_back( &ALOX        );  )
-    IF_ALIB_CLI(           CAMPS.push_back( &CLI         );  )
+    IF_ALIB_APP(           CAMPS.push_back( &APP         );  )
     IF_ALIB_EXPRESSIONS(   CAMPS.push_back( &EXPRESSIONS );  )
-    IF_ALIB_FILES(         CAMPS.push_back( &FILES       );  )
+    IF_ALIB_FILETREE(      CAMPS.push_back( &FILETREE       );  )
 }
 
 void Bootstrap( BootstrapPhases     targetPhase,
@@ -704,6 +557,22 @@ void Bootstrap( BootstrapPhases     targetPhase,
     if( CAMPS.empty() )
         BootstrapAddDefaultCamps();
 
+    // check for doubly added camps
+    #if ALIB_DEBUG
+    {
+        ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
+        MonoAllocator::Resetter resetter(monomem::GLOBAL_ALLOCATOR);
+        StdVectorMA<camp::Camp*>   dedup(monomem::GLOBAL_ALLOCATOR);
+        std::ranges::copy(CAMPS.begin(), CAMPS.end(), std::back_inserter(dedup) );
+        std::ranges::sort(dedup);
+        for(auto it= dedup.begin() + 1; it != dedup.end(); ++it)
+            ALIB_ASSERT_ERROR( *it != *(it -1), "CAMPS",
+                "Duplicate entry in CAMPS list. ResourceCategory of duplicated camp is: ",
+                (*it)->ResourceCategory )
+    }
+    #endif
+
+
     if( targetCamp == nullptr )
         targetCamp= CAMPS.back();
 
@@ -715,11 +584,11 @@ void Bootstrap( BootstrapPhases     targetPhase,
         IF_ALIB_THREADS( threads            ::bootstrap(); )
 
         #if ALIB_FORMAT
-                         Formatter::Default      .InsertDerived<FormatterPythonStyle>();
-                         Formatter::Default->Next.InsertDerived<FormatterJavaStyle  >();
+                         Formatter::DEFAULT      .InsertDerived<FormatterPythonStyle>();
+                         Formatter::DEFAULT->Next.InsertDerived<FormatterJavaStyle  >();
 DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
-    Formatter::Default->DCSLock= &Formatter::DefaultLock;
+    Formatter::DEFAULT->DCSLock= &Formatter::DEFAULT_LOCK;
 #endif
 DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
         #endif
@@ -749,17 +618,17 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
             bool skipOne= false;
             
             // create a resource pool?
-            if ( targetCamp->GetResourcePool() == nullptr ) {
+            if ( !targetCamp->HasPool() ) {
                 camp::Camp::SPResourcePool spPool;
                 spPool.InsertDerived<resources::LocalResourcePool>(monomem::GLOBAL_ALLOCATOR);
                 resources::LocalResourcePool* lPool= dynamic_cast<resources::LocalResourcePool*>(spPool.Get());
 
-                // \releasetask{Update resource numbers numbers. Create resource reference dox for that}
-                integer                  expectedSize=   102     // [ALib]
-                IF_ALIB_ALOX(                          + 48   )
-                IF_ALIB_CLI            (               + 17   )
-                IF_ALIB_EXPRESSIONS    (               + 256  )
-                IF_ALIB_FILES          (               + 49    ) ;
+                // \releasetask{Update resource numbers with ALIB_DEBUG_RESOURCES. Create resource reference dox for that.}
+                integer                  expectedSize=   108     // [ALib]
+                IF_ALIB_ALOX(                          + 50   )
+                IF_ALIB_APP            (               + 60   )  //
+                IF_ALIB_EXPRESSIONS    (               + 257  )
+                IF_ALIB_FILETREE       (               + 49   ) ;
 
                 auto& hashMap= lPool->BootstrapGetInternalHashMap();
                 hashMap.BaseLoadFactor( 2.0 );
@@ -771,19 +640,19 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
             }
 
             // loop in reverse order over modules, start with this module
-            auto actPool  =  targetCamp->GetResourcePool();
+            auto& actPoolSP  =  targetCamp->GetResourcePoolSP();
             for(auto campIt=  targetCampIt ; campIt != CAMPS.rend() ; ++campIt ) {
                 if ( skipOne ) { skipOne= false; continue; }
 
                 // if a different resources object is set, then use that one from now on
-                if(    (*campIt)->GetResourcePool() != nullptr
-                    && (*campIt)->GetResourcePool() != actPool  )
+                if(    (*campIt)->GetResourcePoolSP() != nullptr
+                    && (*campIt)->GetResourcePoolSP() != actPoolSP  )
                 {
-                    actPool= (*campIt)->GetResourcePool();
+                    actPoolSP= (*campIt)->GetResourcePoolSP();
                     continue;
                 }
 
-                (*campIt)->BootstrapSetResourcePool( actPool );
+                (*campIt)->BootstrapSetResourcePool( actPoolSP );
 
             } // resources distribution loop
         }
@@ -805,14 +674,14 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 
             // loop in reverse order over modules, start with this module
             SharedConfiguration* actConfig= &targetCamp->GetConfig();
-            for(auto module=   targetCampIt ; module != CAMPS.rend() ; ++module ) {
+            for(auto moduleIt=   targetCampIt ; moduleIt != CAMPS.rend() ; ++moduleIt ) {
                 if ( skipOne ) { skipOne= false; continue; }
 
                 // if a different config object is set, then use that one from now on
-                if( (*module)->GetConfig() != nullptr && (*module)->GetConfig() != *actConfig)
-                    actConfig    = &(*module)->GetConfig();
+                if( (*moduleIt)->GetConfig() != nullptr && (*moduleIt)->GetConfig() != *actConfig)
+                    actConfig    = &(*moduleIt)->GetConfig();
                 else
-                    (*module)->BootstrapSetConfig( *actConfig );
+                    (*moduleIt)->BootstrapSetConfig( *actConfig );
 
             } // resources distribution loop
         }
@@ -826,7 +695,7 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 
             //std::cout << "Camp::Bootstrap  '" << module->ResourceCategory << "', phase: " << int(actualPhase) << std::endl;
 
-            ALIB_ASSERT_ERROR( int(camp->GetBootstrapState()) == phaseIntegral - 1,
+            ALIB_ASSERT_ERROR( int(camp->GetBootstrapState()) == phaseIntegral - 1, "CAMPS",
               "With this invocation of Bootstrap() a camp skips a bootstrap phase.\n"
               "Resource category of the target camp: ", camp->ResourceCategory         )
             camp->BootstrapSetPhase(actualPhase);
@@ -854,7 +723,7 @@ DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
 void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp ) {
     #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
         monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
-        Formatter::Default->DCSLock= nullptr;
+        Formatter::DEFAULT->DCSLock= nullptr;
     #endif
 
     ALIB_ASSERT_ERROR( CAMPS.IsNotEmpty(), "CAMPS",
@@ -940,9 +809,9 @@ void Shutdown( ShutdownPhases targetPhase, camp::Camp*    targetCamp ) {
         IF_ALIB_BOXING(     boxing             ::shutdown(); )
         IF_ALIB_SINGLETONS( singletons         ::shutdown(); )
 
-        ALIB_ASSERT_WARNING( Formatter::Default.UseCount() == 1, "ALIB",
-            "DefaultFormatter still shared more than once: ", Formatter::Default.UseCount() )
-        Formatter::Default= nullptr;
+        ALIB_ASSERT_WARNING( Formatter::DEFAULT.UseCount() == 1, "ALIB",
+            "DefaultFormatter still shared more than once: ", Formatter::DEFAULT.UseCount() )
+        Formatter::DEFAULT= nullptr;
 
         CAMPS.Reset();
         NonCampModulesInitialized= false;

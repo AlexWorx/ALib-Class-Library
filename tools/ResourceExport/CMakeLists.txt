@@ -1,13 +1,13 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Resource Export Tool
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Notes:
 #   This tool exports ALib resources for externalization.
-#   See section "3.5.3 Exporting Resources For Externalization" of the Programmer's Manual
-#   of ALib for more information.
+#   See Programmer's Manual of the ALib module Resources at
+#       https://alib.dev/alib_mod_resources.html
 #
 #   Starting with version 1903, the output of this tool for each version is found in folder
 #   <b>./docs/pages/resource-exports/</b> of the ALib base directory.
@@ -16,7 +16,7 @@
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
+    cmake_minimum_required(VERSION 3.20)
     project( "ResourceExport" )
 
 ## -------------------------------------------------------------------------------------------------

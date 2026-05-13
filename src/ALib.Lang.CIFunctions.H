@@ -4,11 +4,11 @@
 /// included in any \alibbuild.
 ///
 /// \note This is a special header-file which has to be included for switchng preprocessor macro
-///       \ref ALIB_CALLER and a bigger list of macros that are using it.<br>
-///       Please refer to manual section \ref alib_manual_appendix_callerinfo for details.
+///       #"ALIB_CALLER" and a bigger list of macros that are using it.<br>
+///       Please refer to manual section #"alib_manual_appendix_callerinfo" for details.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 ///
 /// \note
 ///   To reduce their complexity, this header is not shown in inclusion graphs of this documentation.

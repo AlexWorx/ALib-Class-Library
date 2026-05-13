@@ -2,21 +2,29 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_TIME
 #define H_ALIB_TIME
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
-#if ALIB_C20_MODULES && !DOXYGEN
-    import ALib.Time;
-#elif !defined(ALIB_INC_TIME_MPP)
-#   define ALIB_INC_TIME_MPP
-#   include "alib/time/time.mpp"
-#endif
-
+//=========================================== Dependencies =========================================
+#include "ALib.Lang.H"
+#include "alib/platform.prepro.hpp"
+#include <chrono>
+#include <cmath>
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Time;
+#else
+#include "alib/time/timepointbase.hpp"
+#include "alib/time/datetime.hpp"
+#include "alib/time/ticks.hpp"
+#include "alib/time/tickconverter.hpp"
+#include "alib/time/stopwatch.hpp"
+#endif // ALIB_C20_MODULES
 #endif // H_ALIB_TIME

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -15,7 +15,6 @@
 #include <iostream>
 #include <sstream>
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.H"
 #include "ALib.Exceptions.H"
 #include "ALib.Format.H"
@@ -248,11 +247,11 @@ DOX_MARKER( [DOX_SF_USING_6])
     #if ALIB_DEBUG
     {
 DOX_MARKER( [DOX_SF_USING_EXC_1])
-ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
 try
 {
     AString target;
-    alib::Formatter::Default->Format(target, "Unknown syntax: {X}", "Test");
+    alib::Formatter::DEFAULT->Format(target, "Unknown syntax: {X}", "Test");
     cout << target;
 }
 catch(Exception& e)
@@ -278,8 +277,8 @@ DOX_MARKER( [DOX_SF_CUSTOM_APPEND_1])
 Kelvin    temperature { 287.65 };
 AString   target;
 
-ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-Formatter::Default->Format(target, "The temperature is {}\n", temperature);
+ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+Formatter::DEFAULT->Format(target, "The temperature is {}\n", temperature);
 
 cout << target;
 DOX_MARKER( [DOX_SF_CUSTOM_APPEND_1])
@@ -339,8 +338,8 @@ DOX_MARKER( [DOX_SF_CUSTOM_APPEND_6])
 Kelvin    temperature { 287.65 };
 AString   target;
 
-ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-Formatter::Default->Format(target, "The temperature is {}", temperature);
+ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+Formatter::DEFAULT->Format(target, "The temperature is {}", temperature);
 
 cout << target << endl;
 DOX_MARKER( [DOX_SF_CUSTOM_APPEND_6])
@@ -365,10 +364,10 @@ DOX_MARKER( [DOX_SF_CUSTOM_IFORMAT_4])
 Kelvin    temperature { 287.65 };
 AString   target;
 
-ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-Formatter::Default->Format(target, "The temperature is {:C2}\n", temperature);
-Formatter::Default->Format(target, "The temperature is {:F0}\n", temperature);
-Formatter::Default->Format(target, "The temperature is {:K5}\n", temperature);
+ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+Formatter::DEFAULT->Format(target, "The temperature is {:C2}\n", temperature);
+Formatter::DEFAULT->Format(target, "The temperature is {:F0}\n", temperature);
+Formatter::DEFAULT->Format(target, "The temperature is {:K5}\n", temperature);
 
 cout << target;
 DOX_MARKER( [DOX_SF_CUSTOM_IFORMAT_4])

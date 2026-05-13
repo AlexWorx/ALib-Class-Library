@@ -2,13 +2,13 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for module ALib CLI.
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
 #include "alib_test_selection.hpp"
 
-#if ALIB_UT_DOCS && ALIB_UT_CLI && ALIB_CAMP  && !defined(_WIN32)
+#if ALIB_UT_DOCS && ALIB_UT_APP && ALIB_CAMP  && !defined(_WIN32)
 
 // the namespace of our software
 
@@ -57,8 +57,8 @@ std::pair<int, NAString>  utExecCLI(AWorxUnitTesting& ut, NString args, NString 
              result.second )
 
     String2K buffer( result.second );
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-     Formatter::Default->Format( buffer, "<Exit code {:>2}>{}", result.first, NEW_LINE ); }
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+     Formatter::DEFAULT->Format( buffer, "<Exit-code {:>2}>{}", result.first, NEW_LINE ); }
     ut.WriteResultFile( NString256("DOX_CLI_").Append(fileExt).Append(".txt"), buffer, "" );
     return result;
 }
@@ -120,4 +120,4 @@ UT_METHOD( CLI )
 
 } //namespace
 
-#endif //  ALIB_UT_DOCS && ALIB_CLI
+#endif //  ALIB_UT_DOCS && ALIB_APP

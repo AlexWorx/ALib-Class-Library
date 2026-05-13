@@ -1,44 +1,15 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <cmath>
-#include "alib/boxing/boxing.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Boxing;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.Format.H"
-#endif
-//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::format::FMTExceptions    , vt_system_fmtexceptions )
 
 using namespace alib::strings;
 
 /// This is the reference documentation module \alib_format.<br>
 /// Extensive documentation for this namespace is provided with the
-/// \ref alib_mod_format "Programmer's Manual" of that module.
+/// #"alib_mod_format;Programmer's Manual" of that module.
 namespace alib::format {
 
-SPFormatter                 Formatter::Default;
+SPFormatter                 Formatter::DEFAULT;
 #if !ALIB_SINGLE_THREADED
-    threads::RecursiveLock  Formatter::DefaultLock;
+    threads::RecursiveLock  Formatter::DEFAULT_LOCK;
 #endif
 
 
@@ -83,16 +54,19 @@ Formatter& Formatter::formatLoop( AString& target, const BoxesMA&  args )       
 
         // no formatter reacted?
         if( qtyConsume == 0 )
-            // we just append the string...
-            target.template _<NC>( formatString );
+            // we append the unescaped string...
+            Formatter::writeStringPortion(target, formatString);
         else
             // ...otherwise arguments were consumed
             argIdx+= size_t( qtyConsume );
     }
 
     // the last argument was not consumed?
-    if ( argIdx==args.Size() - 1 && !args.back().template IsType<void>() )
-        target.template _<NC>( args.back() );
+    if ( argIdx==args.Size() - 1 && !args.back().template IsType<void>() ){
+        String256 lastArg; lastArg.DbgDisableBufferReplacementWarning();
+        lastArg._(args.back());
+        Formatter::writeStringPortion(target, lastArg);
+    }
     return *this;
 }
 #endif // !DOXYGEN
@@ -125,5 +99,44 @@ Formatter& Formatter::formatLoop(AString& target, const boxing::TBoxes<PoolAlloc
     return *this;
 }
 #endif // !DOXYGEN
+
+void    Formatter::writeStringPortion( AString& target, const String& escaped ) {
+    integer length= escaped.Length();
+    if( length == 0)
+        return;
+
+    target.EnsureRemainingCapacity( length );
+    auto* src = escaped.Buffer();
+    auto* dest= target.VBuffer() + target.Length();
+
+    character c1;
+    character c2= *src;
+    while( length > 1 ) {
+        c1= c2;
+        c2= *++src;
+        if( c1 == '\\' ) {  switch(c2) {
+                case  'r': c1= '\r' ; break;
+                case  'n': c1= '\n' ; break;
+                case  't': c1= '\t' ; break;
+                case  'a': c1= '\a' ; break;
+                case  'b': c1= '\b' ; break;
+                case  'v': c1= '\v' ; break;
+                case  'f': c1= '\f' ; break;
+                case  '"': c1= '"'  ; break;
+                case '\\': c1= '\\' ; break;
+                default:   c1= '?'  ; break;
+            }
+            c2= *++src; --length;
+        }
+        *dest++= c1; --length;
+    }
+
+    // copy the last character and adjust target string length:
+    // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
+    if( length == 1)
+        *dest= *src;
+
+    target.SetLength( dest - target.VBuffer() + length);
+}
 
 } // namespace [alib::format]

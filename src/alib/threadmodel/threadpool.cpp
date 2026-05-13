@@ -1,31 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/alib.inl"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.ThreadModel;
-#  if ALIB_STRINGS
-    import   ALib.Strings;
-#  endif
-    import   ALib.Boxing;
-#else
-#   include "ALib.Strings.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.ThreadModel.H"
-#endif
-//========================================== Implementation ========================================
 using namespace std::literals::chrono_literals;
 
 #if ALIB_STRINGS
@@ -54,7 +26,7 @@ void PoolWorker::Run()  {
         if ( queueEntry.job == nullptr )
             break;
 
-        // Prepare job (a noop with default pool worker) and call Do()
+        // Prepare job (a no-op with default pool worker) and call Do()
         PrepareJob(queueEntry.job);
         if ( queueEntry.job->Do() )
             goto CONTINUE;
@@ -166,13 +138,13 @@ bool ThreadPool::DCSIsSharedAcquired()                const { return Dbg.IsOwned
 #if ALIB_STRINGS
 int ThreadPool::DbgDumpKnownJobs(NAString& target, const NString& linePrefix ) {
     int i= 0;
-    for ( auto job : DbgKnownJobs ) {
+    for ( auto jobIt : DbgKnownJobs ) {
         target << linePrefix << NField( ++i, 2) << ": "
-               << *job.TID << NTab(30,-1)
-               << NField( job.JobSize, 3) << " (PA "
+               << *jobIt.TID << NTab(30,-1)
+               << NField( jobIt.JobSize, 3) << " (PA "
                << NField( PoolAllocator::GetAllocationSize(
-                                      PoolAllocator::GetAllocInformation(job.JobSize)), 3) << ")  "
-                  "Usage: " << NField(job.Usage, 5) << "\n";
+                                      PoolAllocator::GetAllocInformation(jobIt.JobSize)), 3) << ")  "
+                  "Usage: " << NField(jobIt.Usage, 5) << "\n";
     }
     return i;
 }
@@ -214,10 +186,9 @@ void     ThreadPool::addThread()    {
 namespace {
 
 // An internal job used to task the next worker to join a thread that stopped.
-// Note: The last thread will add itself to #lastThreadToJoin, which will be joined
-//       with the method #Shutdown or when a new thread is added.
-struct JobJoin  : Job
-{
+// Note: The last thread will add itself to lastThreadToJoin, which will be joined
+//       with the method #".Shutdown" or when a new thread is added.
+struct JobJoin  : Job {
     PoolWorker*   workerToJoin;
     JobJoin() :
         Job( typeid(JobJoin) )
@@ -227,7 +198,7 @@ struct JobJoin  : Job
 // we only need one instance
 JobJoin JOB_JOIN;
 
-// An internal job used by #Shutdown. It is only emplaced if the queue is empty and
+// An internal job used by #".Shutdown". It is only emplaced if the queue is empty and
 // all types are idle
 struct JobStop  : Job {
     JobStop() :Job(typeid(JobStop))                                                               {}

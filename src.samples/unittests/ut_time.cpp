@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -13,7 +13,6 @@
 #include "ALib.Time.H"
 #include "ALib.Strings.H"
 #include "ALib.Strings.Calendar.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 
 #define TESTCLASSNAME       UT_Time
@@ -130,7 +129,7 @@ UT_METHOD(Basics)
     {
         auto creationTimeDiff= time::CreationTime().Age();
         UT_PRINT( "Time library creation was: {} ns ago"        , creationTimeDiff.InNanoseconds()  )
-        UT_PRINT( "Time library creation was: {} \u00B5s ago"   , creationTimeDiff.InAbsoluteMicroseconds() )
+        UT_PRINT( "Time library creation was: {} \u03BCs ago"   , creationTimeDiff.InAbsoluteMicroseconds() )
         UT_PRINT( "Time library creation was: {} ms ago"        , creationTimeDiff.InAbsoluteMilliseconds() )
         UT_PRINT( "Time library creation was: {} s  ago"        , creationTimeDiff.InAbsoluteSeconds())
         UT_TRUE ( creationTimeDiff.InNanoseconds()     > 100  ) // It should really take 100 nanoseconds to get here!
@@ -143,7 +142,7 @@ UT_METHOD(Basics)
         Ticks start;
             Thread::SleepMillis( 30 );
         auto sleepTime= start.Age();
-        UT_PRINT( "Time diff after 30ms sleep: {}\u00B5s ago", sleepTime.InAbsoluteMicroseconds() )
+        UT_PRINT( "Time diff after 30ms sleep: {}\u03BCs ago", sleepTime.InAbsoluteMicroseconds() )
         UT_TRUE ( sleepTime.InAbsoluteMilliseconds() >  25 )
         UT_TRUE ( sleepTime.InAbsoluteMilliseconds() < 150 ) // should work even on heavily loaded machines
     }
@@ -770,7 +769,7 @@ UT_METHOD(DurationAppend)
     ts-= Ticks::Duration::FromMilliseconds( 250 );  durationToStringCheck( ut, ts, A_CHAR("5.25 seconds")        );
 
     ts=  Ticks::Duration::FromMilliseconds(   5 );  durationToStringCheck( ut, ts, A_CHAR("005 ms")              );
-    ts=  Ticks::Duration::FromMicroseconds( 500 );  durationToStringCheck( ut, ts, A_CHAR("500 \u00B5s")         );
+    ts=  Ticks::Duration::FromMicroseconds( 500 );  durationToStringCheck( ut, ts, A_CHAR("500 \u03BCs")         );
     ts=  Ticks::Duration::FromNanoseconds ( 250 );  durationToStringCheck( ut, ts, A_CHAR("250 ns")              );
 }
 #endif

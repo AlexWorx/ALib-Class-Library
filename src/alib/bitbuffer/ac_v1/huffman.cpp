@@ -1,28 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/bitbuffer/bitbuffer.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.BitBuffer;
-    import   ALib.Containers.FixedCapacityVector;
-#else
-#   include "ALib.Containers.FixedCapacityVector.H"
-#   include "ALib.BitBuffer.H"
-#endif
-
 namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 #if !DOXYGEN
@@ -30,19 +5,17 @@ namespace alib {  namespace bitbuffer { namespace ac_v1 {
 #   define TEMP_PT(...)
 #endif
 
-#if !DOXYGEN
 namespace
 {
 /// Internal struct representing nodes of the huffman code tree.
-class Node
-{
+class Node {
+    /// Shortcut to the symbol-struct.
     using Symbol= HuffmanEncoder::Symbol;
 
   protected:
     /// Either a pointer to a left subtree or to a symbol.
     /// The latter makes the node a leaf.
-    union LeftPointer
-    {
+    union LeftPointer {
         Symbol*         symbol;      ///< The symbol represented by this node (if not \c nullptr).
         Node*           left;        ///< The left subtree.
 
@@ -59,7 +32,7 @@ class Node
         : left ( l )                                                                              {}
     };
 
-    LeftPointer left;   ///< If #right set, then this is a pointer to the left subtree,
+    LeftPointer left;   ///< If #".right" is set, then this is a pointer to the left subtree,
                         ///< otherwise a pointer to a symbol.
     Node*       right;  ///< The right subtree.
 
@@ -72,7 +45,7 @@ class Node
 
     /// Constructs a node representing a symbol (leaf).
     /// Left and right pointers are set to nullptr
-    /// @param s Pointer to the symbol in #symbols, that this node represents.
+    /// @param s Pointer to the symbol in #"symbols", that this node represents.
     Node(Symbol* s)
     : left      (s)
     , right     (nullptr)
@@ -103,8 +76,6 @@ class Node
     Node*   getRight()                                                       const { return right; }
 }; //struct Node
 } // anonymous namespace
-
-#endif
 
 
 void HuffmanEncoder::Generate() {
@@ -146,8 +117,7 @@ ALIB_DBG( dbgAllValuesAreSame= (sortedNodes.size() == 1);  )
 
     // generate codes and write tree information to bit buffer
     {
-        struct Stack
-        {
+        struct Stack {
             Node* node;
             int   walked;
         };
@@ -169,7 +139,7 @@ TEMP_PT(Log_Warning("------ Huffman Encoding Table ----------")    )
             // leaf?
             if( node->isLeaf() ) {
                 // write '1' for leaf and symbol value
-                bw.Write<9>( 1 | static_cast<unsigned>(node->getSymbol() - symbols) << 1  );
+                bw.WriteBits<9>( 1 | static_cast<unsigned>(node->getSymbol() - symbols) << 1  );
 
                 // store word length and words to symbol's data
                 node->getSymbol()->wordLength= depth;
@@ -191,7 +161,7 @@ TEMP_PT(        NString512 bits; bits << Bin(node->symbol->words[0], node->symbo
             }
 
             // write '0' for not being a leave
-            bw.Write<1>( 0u );
+            bw.WriteBits<1>( 0u );
 
             // process left child
             if( stack[depth].walked == 0) {
@@ -220,8 +190,7 @@ TEMP_PT(  Log_Warning("------End of Huffman Encoding Table ----------")  )
 void HuffmanDecoder::ReadTree() {
 TEMP_PT(  Log_Warning("------ Huffman Decoding Table ----------")    )
 TEMP_PT( String512 dbgWord; )
-    struct Stack
-    {
+    struct Stack {
         Node* node;
         int   read; // 0: none, 1: left, 2: both
     };
@@ -232,8 +201,8 @@ TEMP_PT( String512 dbgWord; )
     while(depth>=0) {
         auto* node= stack[depth].node;
         // leaf?
-        if( br.Read<1>() ) {
-            node->symbol= uint8_t(br.Read<8>());
+        if( br.ReadBits<1>() ) {
+            node->symbol= uint8_t(br.ReadBits<8>());
 TEMP_PT(        Log_Warning("HM D: {:3}: {:5} (len={})",
                         (node->symbol),
                          dbgWord,

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -10,9 +10,7 @@
 
 #include "ALib.Monomem.H"
 #include "ALib.Strings.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Strings.Monomem.H"
 #include "ALib.ALox.H"
 
 #include <iostream>
@@ -29,15 +27,12 @@
     #undef min
 #endif
 
-
 using namespace std;
 using namespace alib;
 
 namespace ut_aworx {
 
-
 UT_CLASS
-
 
 //--------------------------------------------------------------------------------------------------
 //--- Test Constructors
@@ -402,7 +397,7 @@ UT_METHOD( Append )
         ms.Reset()._<NC>( t, 5,3); UT_EQ( A_CHAR("567"),  ms )
     }
 
-    // const complementChar*
+    // const characters::complementChar*
     {
         AString ms;  const complementChar* csNull= nullptr;
 #if !ALIB_CHARACTERS_WIDE
@@ -1382,34 +1377,34 @@ UT_METHOD( Count )
     UT_EQ( 0, str.CountChar( '\0') )
 
     str= A_CHAR("abcdef");
-    UT_EQ( 1, str.Count( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar( 'a'  ) )   UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar<NC>( 'a'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar( 'b'  ) )   UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar<NC>( 'b'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar( 'e'  ) )   UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar<NC>( 'e'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar( 'f'  ) )   UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar<NC>( 'f'  ) )
-    UT_EQ( 0, str.Count( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar( 'x'  ) )   UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar<NC>( 'x'  ) )
-    UT_EQ( 0, str.Count( A_CHAR("")   ) )                                       UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("")   ) )
-    UT_EQ( 1, str.Count( A_CHAR("ab") ) )                                       UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab") ) )
-    UT_EQ( 1, str.Count( A_CHAR("bc") ) )                                       UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("bc") ) )
-    UT_EQ( 1, str.Count( A_CHAR("ef") ) )                                       UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ef") ) )
+    UT_EQ( 1, str.Count( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar( 'a'  ) )   UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("a")  )) )   UT_EQ( 1, str.CountChar<NC>( 'a'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar( 'b'  ) )   UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("b")  )) )   UT_EQ( 1, str.CountChar<NC>( 'b'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar( 'e'  ) )   UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("e")  )) )   UT_EQ( 1, str.CountChar<NC>( 'e'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar( 'f'  ) )   UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("f")  )) )   UT_EQ( 1, str.CountChar<NC>( 'f'  ) )
+    UT_EQ( 0, str.Count( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar( 'x'  ) )   UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("x")  )) )   UT_EQ( 0, str.CountChar<NC>( 'x'  ) )
+    UT_EQ( 0, str.Count( A_CHAR("")   ) )                                       UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("")   )) )
+    UT_EQ( 1, str.Count( A_CHAR("ab") ) )                                       UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab") )) )
+    UT_EQ( 1, str.Count( A_CHAR("bc") ) )                                       UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("bc") )) )
+    UT_EQ( 1, str.Count( A_CHAR("ef") ) )                                       UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ef") )) )
 
-    UT_EQ( 1, str.Count( A_CHAR("ab"), A_CHAR("X") ) )                          UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("X") ) )
-    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("c") ) )                          UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("c") ) )
-    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("")  ) )                          UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("")  ) )
+    UT_EQ( 1, str.Count( A_CHAR("ab"), A_CHAR("X") ) )                          UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("X") )) )
+    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("c") ) )                          UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("c") )) )
+    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("")  ) )                          UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("")  )) )
 
     str= A_CHAR("abcabcabcabc");
-    UT_EQ( 1, str.Count( A_CHAR("abcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabc")    ) )
-    UT_EQ( 0, str.Count( A_CHAR("abcabcabcabcX")      ) )                                         UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabcX")   ) )
-    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcabc")    ) )
-    UT_EQ( 1, str.Count( A_CHAR("abcabcabcab")        ) )                                         UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcab")     ) )
-    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcab")        ) )                                         UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcab")     ) )
-    UT_EQ( 1, str.Count(   A_CHAR("cabcabc")          ) )                                         UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cabcabc")       ) )
-    UT_EQ( 4, str.Count(   A_CHAR("abc")              ) )                                         UT_EQ( 4, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("abc")           ) )
-    UT_EQ( 3, str.Count(   A_CHAR("cab")              ) )                                         UT_EQ( 3, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cab")           ) )
-    UT_EQ( 4, str.Count(   A_CHAR("ab")               ) )                                         UT_EQ( 4, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab")            ) )
-    UT_EQ( 4, str.Count(   A_CHAR("a")                ) )  UT_EQ( 4, str.CountChar('a'        ) ) UT_EQ( 4, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a")             ) ) UT_EQ( 4, str.CountChar<NC>(   'a'          ) )
-    UT_EQ( 0, str.Count(   A_CHAR("a")  ,A_CHAR("b")  ) )  UT_EQ( 0, str.CountChar('a', 'b', 0) ) UT_EQ( 0, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("b"))) UT_EQ( 0, str.CountChar<NC>(   'a' ,'b' , 0 ) )
-    UT_EQ( 4, str.Count(   A_CHAR("a")  ,A_CHAR("c")  ) )  UT_EQ( 4, str.CountChar('a', 'c', 0) ) UT_EQ( 4, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("c"))) UT_EQ( 4, str.CountChar<NC>(   'a' ,'c' , 0 ) )
-    UT_EQ( 1, str.Count(   A_CHAR("ab") ,A_CHAR("ca") ) )  UT_EQ( 1, str.CountChar('c', 'a', 0) ) UT_EQ( 1, str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab"),A_CHAR("ca"))) UT_EQ( 1, str.CountChar<NC>(   'c' ,'a' , 0 ) )
+    UT_EQ( 1, str.Count( A_CHAR("abcabcabcabc")       ) )                                         UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabc")    ) ))
+    UT_EQ( 0, str.Count( A_CHAR("abcabcabcabcX")      ) )                                         UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabcX")   ) ))
+    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcabc")       ) )                                         UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcabc")    ) ))
+    UT_EQ( 1, str.Count( A_CHAR("abcabcabcab")        ) )                                         UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcab")     ) ))
+    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcab")        ) )                                         UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcab")     ) ))
+    UT_EQ( 1, str.Count(   A_CHAR("cabcabc")          ) )                                         UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cabcabc")       ) ))
+    UT_EQ( 4, str.Count(   A_CHAR("abc")              ) )                                         UT_EQ( 4, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("abc")           ) ))
+    UT_EQ( 3, str.Count(   A_CHAR("cab")              ) )                                         UT_EQ( 3, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cab")           ) ))
+    UT_EQ( 4, str.Count(   A_CHAR("ab")               ) )                                         UT_EQ( 4, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab")            ) ))
+    UT_EQ( 4, str.Count(   A_CHAR("a")                ) )  UT_EQ( 4, str.CountChar('a'        ) ) UT_EQ( 4, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a")             ) )) UT_EQ( 4, str.CountChar<NC>(   'a'          ) )
+    UT_EQ( 0, str.Count(   A_CHAR("a")  ,A_CHAR("b")  ) )  UT_EQ( 0, str.CountChar('a', 'b', 0) ) UT_EQ( 0, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("b")))) UT_EQ( 0, str.CountChar<NC>(   'a' ,'b' , 0 ) )
+    UT_EQ( 4, str.Count(   A_CHAR("a")  ,A_CHAR("c")  ) )  UT_EQ( 4, str.CountChar('a', 'c', 0) ) UT_EQ( 4, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("c")))) UT_EQ( 4, str.CountChar<NC>(   'a' ,'c' , 0 ) )
+    UT_EQ( 1, str.Count(   A_CHAR("ab") ,A_CHAR("ca") ) )  UT_EQ( 1, str.CountChar('c', 'a', 0) ) UT_EQ( 1, (str.Count<NC ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab"),A_CHAR("ca")))) UT_EQ( 1, str.CountChar<NC>(   'c' ,'a' , 0 ) )
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1605,24 +1600,24 @@ UT_METHOD( Compare )
                        UT_FALSE ( ms.EndsWith                                     ( sub2    ) )
     ms.Reset( s3 );    UT_TRUE  ( ms.ContainsAt                                   ( sub1, 4 ) )
                        UT_FALSE ( ms.ContainsAt                                   ( sub2, 4 ) )
-                       UT_TRUE  ( ms.ContainsAt<CHK ALIB_COMMA lang::Case::Ignore>( sub2, 4 ) )
+                       UT_TRUE  ((ms.ContainsAt<CHK ALIB_COMMA lang::Case::Ignore>( sub2, 4 ) ))
     ms.Reset( s4 );    UT_FALSE ( ms.ContainsAt                                   ( sub1, 4 ) )
                        UT_FALSE ( ms.ContainsAt                                   ( sub2, 4 ) )
     ms.Reset( s4 );    UT_FALSE ( ms.ContainsAt                                   ( sub1, 0 ) )
-                       UT_FALSE ( ms.ContainsAt<CHK ALIB_COMMA lang::Case::Ignore>( sub2, 0 ) )
+                       UT_FALSE ((ms.ContainsAt<CHK ALIB_COMMA lang::Case::Ignore>( sub2, 0 )))
 
     ms.Reset( A_CHAR("Hello ALib classes") );
 
-    UT_TRUE( ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
-    UT_TRUE( ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
-    UT_TRUE( ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classesx")  ) == false )
-    UT_TRUE( ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("xHello ALib classes")  ) == false )
-    UT_TRUE( ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == true  )
-    UT_TRUE( ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("HeLLO")                ) == true  )
-    UT_TRUE( ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == false )
-    UT_TRUE( ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == false )
-    UT_TRUE( ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == true  )
-    UT_TRUE( ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("clASSes")              ) == true  )
+    UT_TRUE( (ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  ))
+    UT_TRUE( (ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  ))
+    UT_TRUE( (ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classesx")  ) == false ))
+    UT_TRUE( (ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("xHello ALib classes")  ) == false ))
+    UT_TRUE( (ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == true  ))
+    UT_TRUE( (ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("HeLLO")                ) == true  ))
+    UT_TRUE( (ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == false ))
+    UT_TRUE( (ms.StartsWith<CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == false ))
+    UT_TRUE( (ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == true  ))
+    UT_TRUE( (ms.EndsWith  <CHK ALIB_COMMA   lang::Case::Ignore>( A_CHAR("clASSes")              ) == true  ))
 
     // contains with empty/null strings
     ms.Reset(A_CHAR("AB"));       UT_FALSE ( ms.ContainsAt( NULL_STRING, -1 )  )
@@ -1804,11 +1799,11 @@ UT_METHOD( Test_XAString )
     UT_FALSE( A_XCHAR( "CBCDEX" )   == xstr                )
     UT_TRUE(  A_XCHAR( "CBCDEX" )   != xstr                )
 
-    UT_TRUE(  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdef" )) == 0 )
-    UT_TRUE(  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "acdef" )) >  0 )
-    UT_TRUE(  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdaa" )) >  0 )
-    UT_TRUE(  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcd"   )) >  0 )
-    UT_TRUE(  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "ccdef" )) <  0 )
+    UT_TRUE((  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdef" )) == 0 ))
+    UT_TRUE((  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "acdef" )) >  0 ))
+    UT_TRUE((  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdaa" )) >  0 ))
+    UT_TRUE((  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcd"   )) >  0 ))
+    UT_TRUE((  xstr.CompareTo<CHK ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "ccdef" )) <  0 ))
 
 
     xstr.InsertAt(A_XCHAR( "123"), 2 );

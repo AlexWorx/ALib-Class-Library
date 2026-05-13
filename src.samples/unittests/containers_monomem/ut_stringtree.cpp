@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -474,7 +474,7 @@ int doIterations( AWorxUnitTesting&              ut,
 }
 #include "ALib.Lang.CIMethods.H"
 
-UT_METHOD(StringTreeIterator)
+UT_METHOD(StringTreeIteratorTest)
 {
     UT_INIT()
 
@@ -520,8 +520,6 @@ UT_METHOD(StringTreeIterator)
     qtyIt = doIterations( ut, stit, start, false, 0 ); UT_EQ( 3, qtyIt)
     qtyIt = doIterations( ut, stit, start, true , 0 ); UT_EQ( 1, qtyIt)
     qtyIt = doIterations( ut, stit, start, true , 1 ); UT_EQ( 4, qtyIt)
-
-
 
     UT_PRINT(NEW_LINE, "--- non recursive decending---" )
     decltype(stit)::NameSorter sorter;
@@ -684,6 +682,8 @@ UT_METHOD(StringTreeIterator)
     stit.DeleteNode();                                        UT_EQ( A_CHAR("dir2"     ) , stit.Node().Name() )
     stit.DeleteNode();                                        UT_TRUE( !stit.IsValid() )
     stit.Initialize( tree.Root(), lang::Inclusion::Exclude ); UT_TRUE( !stit.IsValid() )
+
+    tree.DestructRootValue();
 }
 
 UT_METHOD(StringTree_RecIter_Const)

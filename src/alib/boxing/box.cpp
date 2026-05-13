@@ -1,38 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-
-#include <cmath>
-#include <functional>
-#include <cstring>
-#include <typeindex>
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Boxing;
-#else
-#if ALIB_MONOMEM && ALIB_CONTAINERS
-#   include "ALib.Monomem.H"
-#endif
-#   include "ALib.Boxing.H"
-#if ALIB_MONOMEM && ALIB_CONTAINERS
-#   include "ALib.Monomem.H"
-#endif
-#endif
-#   include "ALib.Lang.H"
-//========================================== Implementation ========================================
 #if ALIB_STRINGS
 ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<alib::strings::TAString<nchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tanstring )
 ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<alib::strings::TAString<wchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tawstring )
@@ -47,7 +12,7 @@ namespace alib {
 /// holds types of library module \alib_boxing.
 ///
 /// Extensive documentation for this module is provided with
-/// \ref alib_mod_boxing "ALib Module Boxing - Programmer's Manual".
+/// #"alib_mod_boxing;ALib Module Boxing - Programmer's Manual".
 //==================================================================================================
 namespace boxing {
 

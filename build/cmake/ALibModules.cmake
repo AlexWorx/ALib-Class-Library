@@ -1,7 +1,7 @@
 # #################################################################################################
 #  ALibModules.cmake - CMake file for projects using ALib
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Notes:
@@ -14,16 +14,15 @@
 # List of available modules
 SET( ALibKnownModules "" )
 LIST( APPEND ALibKnownModules  "ALOX"           )
+LIST( APPEND ALibKnownModules  "APP"            )
 LIST( APPEND ALibKnownModules  "BITBUFFER"      )
 LIST( APPEND ALibKnownModules  "BOXING"         )
 LIST( APPEND ALibKnownModules  "CAMP"           )
-LIST( APPEND ALibKnownModules  "CLI"            )
-LIST( APPEND ALibKnownModules  "VARIABLES"  )
 LIST( APPEND ALibKnownModules  "CONTAINERS"     )
 LIST( APPEND ALibKnownModules  "ENUMRECORDS"    )
 LIST( APPEND ALibKnownModules  "EXCEPTIONS"     )
 LIST( APPEND ALibKnownModules  "EXPRESSIONS"    )
-LIST( APPEND ALibKnownModules  "FILES"          )
+LIST( APPEND ALibKnownModules  "FILETREE"       )
 LIST( APPEND ALibKnownModules  "FORMAT"         )
 LIST( APPEND ALibKnownModules  "MONOMEM"        )
 LIST( APPEND ALibKnownModules  "RESOURCES"      )
@@ -31,7 +30,7 @@ LIST( APPEND ALibKnownModules  "SINGLETONS"     )
 LIST( APPEND ALibKnownModules  "STRINGS"        )
 LIST( APPEND ALibKnownModules  "SYSTEM"         )
 LIST( APPEND ALibKnownModules  "THREADMODEL"    )
-
+LIST( APPEND ALibKnownModules  "VARIABLES"  )
 
 # convert given list to upper case
 SET( ALibBuild "" )
@@ -60,35 +59,34 @@ endif()
 list( FIND   ALibBuild  "ALL"            idx )
 if( NOT idx LESS 0 )
     LIST( REMOVE_AT ALibBuild  ${idx}        )
-    list( APPEND  ALibBuild  "ALOX"          )
+    list( APPEND  ALibBuild  "APP"           )
     list( APPEND  ALibBuild  "BITBUFFER"     )
-    list( APPEND  ALibBuild  "CLI"           )
     list( APPEND  ALibBuild  "EXPRESSIONS"   )
-    list( APPEND  ALibBuild  "FILES"         )
-
+    list( APPEND  ALibBuild  "FILETREE"      )
     if( NOT ALIB_SINGLE_THREADED )
         list( APPEND  ALibBuild  "THREADMODEL"   )
     endif()
 elseif( ALIB_SINGLE_THREADED )
     list( FIND   ALibBuild  "THREADMODEL"            idx )
     if( NOT idx LESS 0 )
-        message( FATAL_ERROR "ALib Module THREADMODEL requested, while symbol ALIB_SINGLE_THREADED is set" )
+        message( FATAL_ERROR "ALib Module THREADMODEL requested, while macro ALIB_SINGLE_THREADED is set" )
         return()
     endif()
 endif()
 
 #### camp modules ####
+list( FIND   ALibBuild  "APP"    idx )
+if( NOT idx LESS 0 )
+    list( APPEND  ALibBuild  "ALOX"  )
+    list( APPEND  ALibBuild  "CAMP"   )
+endif()
+
 list( FIND   ALibBuild  "EXPRESSIONS"    idx )
 if( NOT idx LESS 0 )
     list( APPEND  ALibBuild  "CAMP"   )
 endif()
 
-list( FIND   ALibBuild  "CLI"            idx )
-if( NOT idx LESS 0 )
-    list( APPEND  ALibBuild  "CAMP"       )
-endif()
-
-list( FIND   ALibBuild  "FILES"    idx )
+list( FIND   ALibBuild  "FILETREE"       idx )
 if( NOT idx LESS 0 )
     list( APPEND  ALibBuild  "CAMP"   )
 endif()

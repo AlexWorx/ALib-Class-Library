@@ -2,25 +2,26 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_CONTAINERS_SHAREDVAL
 #define H_ALIB_CONTAINERS_SHAREDVAL
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/containers/containers.prepro.hpp"
 
 #if ALIB_CONTAINERS
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Containers.SharedVal;
-#   elif !defined(ALIB_INC_CONTAINERS_SHAREDVAL_MPP)
-#       define ALIB_INC_CONTAINERS_SHAREDVAL_MPP
-#       include "alib/containers/sharedval.mpp"
-#   endif
-#endif
 
+//=========================================== Dependencies =========================================
+#include "ALib.Lang.H"
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Containers.SharedVal;
+#else
+#include "alib/containers/sharedval.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_CONTAINERS
 #endif // H_ALIB_CONTAINERS_SHAREDVAL

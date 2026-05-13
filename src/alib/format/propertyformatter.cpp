@@ -1,47 +1,15 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <vector>
-#include "alib/alib.inl"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format.PropertyFormatter;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Exceptions;
-#   if ALIB_CAMP
-      import ALib.Camp.Base;
-#   endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.Format.PropertyFormatter.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib::format {
 
-PropertyFormatter::PropertyFormatter( const String             customFormatString,
+PropertyFormatter::PropertyFormatter( const String             customFormatStringx,
                                       const TCallbackTable&    propertyTable,
                                       SPFormatter              formatter,
                                       character                ESCCharacter          )
 : stdFormatter        ( formatter )
-, propertyFormatString( customFormatString )
-, formatString        ( customFormatString ) {
+, propertyFormatString( customFormatStringx ) {
     if(!formatter.Get())
-        stdFormatter= Formatter::Default;
+        stdFormatter= Formatter::DEFAULT;
+
+    StringEscaperStandard().Escape(customFormatStringx, formatString, EMPTY_STRING);
 
     integer parsePos= 0;
     while(parsePos < formatString.Length() ) {
@@ -92,7 +60,7 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
         // identifier not found?
         if( entryIt == propertyTable.end() ) {
             Exception e( ALIB_CALLER_NULLED, FMTExceptions::UnknownPropertyInFormatString,
-                         ESCCharacter, identifier, customFormatString  );
+                         ESCCharacter, identifier, customFormatStringx  );
             for( auto& row : propertyTable )
                e.Back().Add( ESCCharacter, row.Name, ", " );
             e.Back().back()= '.'; // replace the last comma

@@ -1,34 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/expressions/expressions.prepro.hpp"
-#include "ALib.Monomem.StdContainers.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions;
-    import   ALib.Expressions.Impl;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-    import   ALib.Variables;
-#else
-#   include "ALib.Expressions.Impl.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace expressions {
 
 using namespace detail;
@@ -116,7 +85,7 @@ Compiler::Compiler()
 , BinaryOperators                (allocator)
 , CfgNormalizationDisallowed     (allocator) {
     // create a clone of the default formatter.
-    CfgFormatter= Formatter::Default->Clone();
+    CfgFormatter= Formatter::DEFAULT->Clone();
 
     // register compiler types
     constexpr std::pair<Box&,NString> typeKeys[]=

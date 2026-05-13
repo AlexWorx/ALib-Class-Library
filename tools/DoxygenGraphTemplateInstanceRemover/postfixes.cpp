@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -17,9 +17,9 @@
 #include "ALib.ALox.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.System.H"
-#include "ALib.Files.H"
-#include "ALib.Files.Expressions.H"
-#include "ALib.Files.TextFile.H"
+#include "ALib.FileTree.H"
+#include "ALib.FileTree.Expressions.H"
+#include "ALib.System.TextFile.H"
 #include "ALib.Containers.StringTreeIterator.H"
 
 using namespace alib;
@@ -55,8 +55,8 @@ namespace {
  * @param fileNameForLoggingOnly As it says.
  * @return The number of anchors fixed. If \c 0 is returned, the file was not changed.
  */
-int fixHTMLAnchors(TextFile& file, const String& fileNameForLoggingOnly);
-int fixHTMLAnchors(TextFile& file, const String& fileNameForLoggingOnly)
+int fixHTMLAnchors(TextFile<16*1024>& file, const String& fileNameForLoggingOnly);
+int fixHTMLAnchors(TextFile<16*1024>& file, const String& fileNameForLoggingOnly)
 {
     Log_SetDomain( "ANCHORS", Scope::Method)
 
@@ -151,8 +151,8 @@ int fixHTMLAnchors(TextFile& file, const String& fileNameForLoggingOnly)
  * @param fileNameForLoggingOnly As it says.
  * @return The number of anchors fixed. If \c 0 is returned, the file was not changed.
  */
-int fixExternalLinkImage(TextFile& file, const String& fileNameForLoggingOnly);
-int fixExternalLinkImage(TextFile& file, const String& fileNameForLoggingOnly)
+int fixExternalLinkImage(TextFile<16*1024>& file, const String& fileNameForLoggingOnly);
+int fixExternalLinkImage(TextFile<16*1024>& file, const String& fileNameForLoggingOnly)
 {
     Log_SetDomain( "ANCHORS", Scope::Method)
 
@@ -184,7 +184,7 @@ if ( cntFixes > 0 && oldCntFixes < cntFixes )
 }
 
 /**
- * This function searches all HTML files and calls #fixHTMLAnchors for each file.
+ * This function searches all HTML files and calls #"fixHTMLAnchors" for each file.
  * If the latter changes the file, the file is written here.
  * @param srcDir The source directory to scan for HTML files.
  * @return \c 0 if all is well. Other values indicate some error.
@@ -194,7 +194,7 @@ int postProcessHTMLFiles(const String& srcDir)
 {
     Log_AddDebugLogger()
     Log_SetDomain( "DOXFX", Scope::Filename  )
-    Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/ALIB/FILES/TXTF" )
+    Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/ALIB/FILETREE/TXTF" )
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose  , "/DOXFX" )
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/DOXFX/ANCHORS" )
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning  , "/DOXFX/ANCHORS/LINES" )
@@ -202,12 +202,12 @@ int postProcessHTMLFiles(const String& srcDir)
     //----------------------- scan html directory ---------------------------
     SharedFTree                 fileTree(10);
     ScanParameters              scanParameters(srcDir);
-    std::vector<ResultsPaths>   resultPaths;
+    CanonicalPathList           resultPaths;
     FileExpressions             fex;
 
     scanParameters.IncludeArtificialFS= true;
     scanParameters.FileFilter= fex.CreateFilter(A_CHAR("EndsWith(name, \".html\")"));
-    files::ScanFiles( fileTree, scanParameters, resultPaths);
+    filetree::ScanFiles( *fileTree, scanParameters, &resultPaths);
     if( resultPaths.size() == 0 )
     {
         Log_Error( "No files found with given directory {} ", srcDir )
@@ -228,10 +228,10 @@ int postProcessHTMLFiles(const String& srcDir)
         ; fit.IsValid()
         ; fit.Next() )
     {
-        if( fit.Node()->Type() != alib::files::FInfo::Types::REGULAR )
+        if( fit.Node()->Type() != FileStatus::Types::REGULAR )
             continue;
 
-        TextFile file( ma );
+        TextFile<16*1024> file( ma );
         ++sumFiles;
         filePath.Reset( fit.Path() );
         file.Read( filePath );

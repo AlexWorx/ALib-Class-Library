@@ -2,25 +2,41 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_VARIABLES
 #define H_ALIB_VARIABLES
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/variables/variables.prepro.hpp"
 
 #if ALIB_VARIABLES
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Variables;
-#   elif !defined(ALIB_INC_VARIABLES_MPP)
-#       define ALIB_INC_VARIABLES_MPP
-#       include "alib/variables/variables.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Monomem.SharedMonoVal.H"
+#include "ALib.Containers.StringTree.H"
+#include "ALib.Containers.List.H"
+#include "ALib.Boxing.H"
+#include "ALib.Strings.Token.H"
+#include "ALib.Strings.StdFunctors.H"
+#include "ALib.Strings.Vector.H"
+#include "ALib.Strings.Escaper.H"
+#include "ALib.EnumRecords.H"
+#include "ALib.Resources.H"
 
+#include "alib/variables/variables.prepro.hpp"
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Variables;
+#else
+#include "alib/variables/vmeta.hpp"
+#include "alib/variables/erpriority.hpp"
+#include "alib/variables/declaration.hpp"
+
+
+#include "alib/variables/configuration.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_VARIABLES
 #endif // H_ALIB_VARIABLES

@@ -1,26 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/bitbuffer/bitbuffer.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.BitBuffer;
-#else
-#   include "ALib.BitBuffer.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {
 
 //==================================================================================================
@@ -30,7 +7,7 @@ namespace alib {
 /// stored.
 ///
 /// Please consult the little quick
-/// \ref alib_mod_bitbuffer "ALib Module BitBuffer - Programmer's Manual" for further information.
+/// #"alib_mod_bitbuffer;ALib Module BitBuffer - Programmer's Manual" for further information.
 //==================================================================================================
 namespace bitbuffer {
 
@@ -38,7 +15,7 @@ BitBufferBase::Index BitBufferBase::Terminate( Index idx ) {
     // write termination bit
     {
         BitWriter bw(*this, idx);
-        bw.Write<1>(1);
+        bw.WriteBits<1>(1);
         idx= bw.GetIndex();
     }// <bw.Flush
 
@@ -102,7 +79,7 @@ bool IsLittleEndianEncoding() {
         }
 
         else if constexpr ( bitsof(BitBufferBase::TStorage) == 64 ) {
-            ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
+            ALIB_ALLOW_INTEGRAL_CONSTANT_OVERFLOW
             testWord= 0x8877665544332211u;
             uint8_t* bytes= reinterpret_cast<uint8_t*>( &testWord );
             if(    * bytes    == 0x11 && *(bytes+1) == 0x22
@@ -110,7 +87,7 @@ bool IsLittleEndianEncoding() {
                 && *(bytes+4) == 0x55 && *(bytes+5) == 0x66
                 && *(bytes+6) == 0x77 && *(bytes+7) == 0x88 )
                 isLittleEndianEncoding= 1;
-            ALIB_WARNINGS_RESTORE
+            ALIB_POP_ALLOWANCE
 
     }   }
 
@@ -163,12 +140,12 @@ void  BitBufferBase::FromLittleEndianEncoding( const Index& startIndex, const In
         }
 
         if constexpr ( bitsof(TStorage) > 32 ) {
-            ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
+            ALIB_ALLOW_INTEGER_OVERFLOW
             word|=  TStorage(bytes[4]) << 32;
             word|=  TStorage(bytes[5]) << 40;
             word|=  TStorage(bytes[6]) << 48;
             word|=  TStorage(bytes[7]) << 56;
-            ALIB_WARNINGS_RESTORE
+            ALIB_POP_ALLOWANCE
         }
 
         data[pos]= word;
@@ -179,85 +156,85 @@ void  BitBufferBase::FromLittleEndianEncoding( const Index& startIndex, const In
 // write 8-bit values
 void BitWriter::writeUIntegral(uint8_t val) {
     if( val < (1<<3) ) {
-        Write<4>( val << 1); // | 0
+        WriteBits<4>( val << 1); // | 0
         return;
     }
 
-    Write<9>( (val << 1) |1 ) ;
+    WriteBits<9>( (val << 1) |1 ) ;
 }
 
 // write  16-bit values
 void BitWriter::writeUIntegral(uint16_t val) {
     if( val < (1<<8) ) {
-        Write<9>( val << 1);
+        WriteBits<9>( val << 1);
         return;
     }
 
-    Write<17>( ( val << 1 ) | 1 ) ;
+    WriteBits<17>( ( val << 1 ) | 1 ) ;
 }
 
 // write  32-bit byte values
 void BitWriter::writeUIntegral(uint32_t val) {
-         if( val < (1<< 8) )       { Write<10>(  val << 2       );  }
-    else if( val < (1<<16) )       { Write<18>(( val << 2) | 1u );  }
-    else if( val < (1<<24) )       { Write<26>(( val << 2) | 2u );  }
-    else                           { Write< 2>(  3 );
-                                     Write<32>( val );  }
+         if( val < (1<< 8) )       { WriteBits<10>(  val << 2       );  }
+    else if( val < (1<<16) )       { WriteBits<18>(( val << 2) | 1u );  }
+    else if( val < (1<<24) )       { WriteBits<26>(( val << 2) | 2u );  }
+    else                           { WriteBits< 2>(  3 );
+                                     WriteBits<32>( val );  }
 }
 
 // write  64-bit byte values
 void BitWriter::writeUIntegral(uint64_t val) {
-         if( val < uint64_t(1) <<  8 )    { Write<11>(   int16_t  (val) << 3        );  }
-    else if( val < uint64_t(1) << 16 )    { Write<19>( ( uint32_t (val) << 3 )  | 1u);  }
-    else if( val < uint64_t(1) << 24 )    { Write<27>( ( uint32_t (val) << 3 )  | 2u);  }
-    else if( val < uint64_t(1) << 32 )    { Write<35>( (           val  << 3 )  | 3u);  }
-    else if( val < uint64_t(1) << 40 )    { Write<43>( (           val  << 3 )  | 4u);  }
-    else if( val < uint64_t(1) << 48 )    { Write<51>( (           val  << 3 )  | 5u);  }
-    else if( val < uint64_t(1) << 56 )    { Write<59>( (           val  << 3 )  | 6u);  }
-    else                                  { Write< 3>(             7                );
-                                            Write<64>(             val              );  }
+         if( val < uint64_t(1) <<  8 )    { WriteBits<11>(   int16_t  (val) << 3        );  }
+    else if( val < uint64_t(1) << 16 )    { WriteBits<19>( ( uint32_t (val) << 3 )  | 1u);  }
+    else if( val < uint64_t(1) << 24 )    { WriteBits<27>( ( uint32_t (val) << 3 )  | 2u);  }
+    else if( val < uint64_t(1) << 32 )    { WriteBits<35>( (           val  << 3 )  | 3u);  }
+    else if( val < uint64_t(1) << 40 )    { WriteBits<43>( (           val  << 3 )  | 4u);  }
+    else if( val < uint64_t(1) << 48 )    { WriteBits<51>( (           val  << 3 )  | 5u);  }
+    else if( val < uint64_t(1) << 56 )    { WriteBits<59>( (           val  << 3 )  | 6u);  }
+    else                                  { WriteBits< 3>(             7                );
+                                            WriteBits<64>(             val              );  }
 }
 
 
 // read 8-bit values
 uint8_t BitReader::readUIntegral8() {
-    auto result= Read<4>();
+    auto result= ReadBits<4>();
     if( !(result & 1))
         return uint8_t(result >> 1);
 
     return    uint8_t(    result >> 1
-                        | Read<5>() << 3  );
+                        | ReadBits<5>() << 3  );
 }
 
 uint16_t BitReader::readUIntegral16() {
-    auto result= Read< 9>();
+    auto result= ReadBits< 9>();
     if( !(result & 1))
         return uint16_t(result >> 1);
 
     return    uint16_t(   result    >> 1
-                        | Read<8>() << 8 );
+                        | ReadBits<8>() << 8 );
 }
 
 uint32_t BitReader::readUIntegral32() {
-    uint32_t result= Read< 10, uint32_t>();
+    uint32_t result= ReadBits< 10, uint32_t>();
     switch (result & 3) {
         case 0: return uint32_t(result >> 2);
-        case 1: return uint32_t(result >> 2  | (Read<  8, uint32_t>() << 8 ) );
-        case 2: return uint32_t(result >> 2  | (Read< 16, uint32_t>() << 8 ) );
-       default: return uint32_t(result >> 2  | (Read< 24, uint32_t>() << 8 ) );
+        case 1: return uint32_t(result >> 2  | (ReadBits<  8, uint32_t>() << 8 ) );
+        case 2: return uint32_t(result >> 2  | (ReadBits< 16, uint32_t>() << 8 ) );
+       default: return uint32_t(result >> 2  | (ReadBits< 24, uint32_t>() << 8 ) );
 }   }
 
 uint64_t BitReader::readUIntegral64() {
-    uint64_t result= Read< 11, uint64_t>();
+    uint64_t result= ReadBits< 11, uint64_t>();
     switch (result & 7) {
         case 0: return uint64_t(result >> 3);
-        case 1: return uint64_t(result >> 3 |  (Read<  8, uint64_t>() << 8 ));
-        case 2: return uint64_t(result >> 3 |  (Read< 16, uint64_t>() << 8 ));
-        case 3: return uint64_t(result >> 3 |  (Read< 24, uint64_t>() << 8 ));
-        case 4: return uint64_t(result >> 3 |  (Read< 32, uint64_t>() << 8 ));
-        case 5: return uint64_t(result >> 3 |  (Read< 40, uint64_t>() << 8 ));
-        case 6: return uint64_t(result >> 3 |  (Read< 48, uint64_t>() << 8 ));
-       default: return uint64_t(result >> 3 |  (Read< 56, uint64_t>() << 8 ));
+        case 1: return uint64_t(result >> 3 |  (ReadBits<  8, uint64_t>() << 8 ));
+        case 2: return uint64_t(result >> 3 |  (ReadBits< 16, uint64_t>() << 8 ));
+        case 3: return uint64_t(result >> 3 |  (ReadBits< 24, uint64_t>() << 8 ));
+        case 4: return uint64_t(result >> 3 |  (ReadBits< 32, uint64_t>() << 8 ));
+        case 5: return uint64_t(result >> 3 |  (ReadBits< 40, uint64_t>() << 8 ));
+        case 6: return uint64_t(result >> 3 |  (ReadBits< 48, uint64_t>() << 8 ));
+       default: return uint64_t(result >> 3 |  (ReadBits< 56, uint64_t>() << 8 ));
 }   }
 
 }} // namespace [alib::bitbuffer]

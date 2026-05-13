@@ -1,0 +1,134 @@
+/// \file
+// #################################################################################################
+//  ALib C++ Framework
+//  Resources of ALib Camp "App"
+//
+//  Copyright 2025 A-Worx GmbH, Germany
+//  Published under Boost Software License (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+//------------------------------------------ CLI Exceptions ----------------------------------------
+// general exceptions
+E<     app::
+E0 ~     1   , NoCommandGiven                  , ED1
+E1 ~     2   , UnknownCommand                  , ED2
+E2 ~     10  , ParsingOptions                  , ED10
+E3 ~     11  , MissingOptionValue              , ED11
+E4 ~     12  , IllegalOptionNameContinuation   , ED12
+E5 ~     20  , ParsingCommand                  , ED20
+E6 ~     21  , MissingParameterValue           , ED21
+
+// messages of general exceptions
+ED1    No command given.
+ED2    Unknown command found with CLI argument{!Q[]}={!Q}
+ED10 >|
+    Error parsing option. Usage:\n
+    {}
+ED20 >|
+    Error parsing command. Usage: {}\n
+    {}
+
+// messages of internal exceptions
+ED11 >|
+    Missing argument(s) of option {!Q<>} found with CLI argument{!Q[]}={!Q}.\n
+    Expected {}, given {}.
+ED12 >|
+    Option identifier {!Q<>} found at start of CLI argument{!Q[]}={!Q},\n
+    while CLI argument string continues with non-argument identifier characters.
+ED21 >|
+    Missing argument(s) of parameter {!Q<>} found with CLI argument{!Q[]}={!Q}.\n
+    Quantity expected {}, quantity given {}.
+
+//------------------------------------------ Single Strings ----------------------------------------
+AppVersion    V.{}.
+
+//--------------------------------------------- Commands -------------------------------------------
+Commands<   Commands::
+//enum   ident          minread     Params
+Commands ~|
+    1,    help          ,1        ,TOPIC     ,
+    2,    version       ,3        ,          ,
+    3,    info          ,4        ,
+
+
+THlpCmdSht_help Shows general help or help on topics,
+THlpCmdLng_help >|
+    Shows general help, respectively detail help on the optionally given TOPIC(s), which
+    can be a command or an option - or a parameter of such.\n
+    If command 'help' is given, no further CLI commands are processed and execution is stopped.
+
+THlpCmdSht_version      Shows the version of this software.
+THlpCmdLng_version      Shows the version of this software.
+THlpCmdSht_info         Shows information about this software.
+THlpCmdLng_info         Shows information about this software.
+
+
+//--------------------------------------------- Options --------------------------------------------
+Options<,Options::
+    //enum  ident        minread    identChar   in-arg-separ.   args to consume    ShortcutTo
+Options ~|
+    1,  help          ,4,        h,            =               ,0,                ,
+    2,  version       ,7,        ,                             ,0,                ,
+    3,  dryrun        ,6,        d,            =               ,0,                ,
+    4,  config        ,6,        c,            =               ,1,                ,
+    5,  verbose       ,7,        v,            =               ,0,
+
+TOptUsg_help        --help[[=]TOPIC]
+TOptHlp_help        Displays usage information.
+TOptUsg_version     --version
+TOptHlp_version     Displays the version of this software.
+TOptUsg_dryrun      -d|--dryrun[=yes|no]
+TOptHlp_dryrun      Enables dryrun-mode for sandbox testing. No changes are performed.
+TOptUsg_config      --config=filename1[[,filename2],filename3]...
+TOptHlp_config      Allows to change the name (and path) of the configuration file(s)
+TOptUsg_verbose     --verbose[=\level\]
+TOptHlp_verbose     Changes verbosity to 'VERBOSE' or the optionally given preset.
+
+
+//-------------------------------------------- Parameters ------------------------------------------
+// enum  name           minIdentLen   identifier          in-arg-sep   delim   args to consume  isOptional
+//                                       (if empty -> mandatory!)
+Parameters ~|
+    1,   TOPIC            ,1,                        ,          =        ,           ,-1          ,1
+
+Parameters<   Parameters::
+THlpParSht_TOPIC    Optional parameter of command (or option) 'help'.
+THlpParLng_TOPIC    Denotes a specific topic that the help command should be verbose about.
+
+
+//-------------------------------------------- ExitCodes -------------------------------------------
+ExitCodes<  ExitCodes::
+ExitCodes ~|
+      0,  OK                        ,
+      1,  ErrNoCmdGiven             ,
+      2,  ErrUnknownCommand         ,
+      3,  ErrParsingOption          ,
+      4,  ErrParsingCommand         ,
+      5,  ErrMissingCmdParam        ,
+      6,  ErrMissingOptParam        ,
+      7,  ErrBadParamValue          ,
+     10,  ErrConfigFileNotFound     ,
+     11,  ErrConfigFileNotWritable  ,
+    127,  UnknownError
+
+TExit0    Success (no error).
+TExit1    No command given.
+TExit2    Unknown command {!Q} given.
+TExit3    Unknown option {!Q} was given.
+TExit4    An error occurred when parsing the command {!Q}.
+TExit5    Missing a mandatory parameter {!Q} of the given command {!Q}.
+TExit6    Missing a mandatory parameter {!Q} of the given option {!Q}.
+TExit7    Parameter {!Q} is not suitable for command or option {!Q}.
+TExit10   Configuration file {!Q} not found.
+TExit11   Configuration file {!Q} not writeable.
+TExit127  An unexpected (unhandled) internal error occurred.
+
+
+//-------------------------------------------- Help Texts ------------------------------------------
+HlpHdlOpts     OPTIONS:
+HlpHdlCmds     COMMANDS:
+HlpHdlExtCds   EXIT-CODES:
+HlpHdlUsage    USAGE:
+HlpHdlDscr     DESCRIPTION:
+HlpHdlPDscr    PARAMETER DESCRIPTION:
+HlpHdlTopic    Help on {} {!Q<>}:\n

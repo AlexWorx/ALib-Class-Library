@@ -1,32 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/boxing/boxing.prepro.hpp"
-#if !ALIB_MONOMEM || !ALIB_CONTAINERS
-#   include <unordered_map>
-#   include <unordered_set>
-#endif
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Boxing;
-    import   ALib.Lang;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Boxing.H"
-#endif
-//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE(        void*   , vt_voidP  )
 ALIB_BOXING_VTABLE_DEFINE(        Boxes*  , vt_boxes  )
 #if ALIB_MONOMEM
@@ -90,7 +61,8 @@ ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char32_t , vt_arr_char32_t)
 //##################################################################################################
 // Static VTables for standard types
 //##################################################################################################
-ALIB_BOXING_VTABLE_DEFINE( std::type_info*              , vt_std_type_info          )
+ALIB_BOXING_VTABLE_DEFINE( std::type_info*              , vt_std_type_info     )
+ALIB_BOXING_VTABLE_DEFINE( std::errc                    , vt_std_errc          )
 
 //##################################################################################################
 // Static VTables for low-level ALib types
@@ -134,3 +106,5 @@ ALIB_BOXING_VTABLE_DEFINE( alib::time::DateTime::Duration , vt_time_datetime_dur
 #if !ALIB_SINGLE_THREADED
   ALIB_BOXING_VTABLE_DEFINE(alib::threads::Thread*        , vt_threads_tp             )
 #endif
+
+ALIB_BOXING_VTABLE_DEFINE( alib::boxing::TBoxes<HeapAllocator>*, vt_boxing_tboxes )

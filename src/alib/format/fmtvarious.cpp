@@ -1,45 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <cmath>
-#include <cstring>
-#include "alib/boxing/boxing.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format;
-    import   ALib.Lang;
-    import   ALib.Time;
-    import   ALib.Strings;
-    import   ALib.Strings.Calendar;
-    import   ALib.Boxing;
-#  if ALIB_SYSTEM
-    import   ALib.System;
-#  endif
-#if ALIB_CAMP
-    import   ALib.Camp.Base;
-#  endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Time.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Calendar.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.System.H"
-#   include "ALib.Format.H"
-#   include "ALib.Camp.Base.H"
-#endif
-//========================================== Implementation ========================================
 namespace   alib::format {
 
 void FFormat_CallerInfo(const Box& box, const String& formatSpec, NumberFormat&, AString& target) {
@@ -151,17 +109,17 @@ AString& FMTCallerInfo::Format( Substring         format     , AString& target,
                     if ( format.ConsumeChar('c') ) {
                         if constexpr ( sizeof(std::thread::id) == sizeof(uint16_t) ) {
                             uint16_t nativeID= 0;
-                            memcpy(&nativeID, &ci.ThreadID, 2);
+                            std::memcpy(&nativeID, &ci.ThreadID, 2);
                             target._<NC>("0x")._<NC>(Hex(nativeID, 4));
                         }
                         if constexpr ( sizeof(std::thread::id) == sizeof(uint32_t) ) {
                             uint32_t nativeID= 0;
-                            memcpy(&nativeID, &ci.ThreadID, 4);
+                            std::memcpy(&nativeID, &ci.ThreadID, 4);
                             target._<NC>("0x")._<NC>(Hex(nativeID, 8));
                         }
                         if constexpr ( sizeof(std::thread::id) == sizeof(uint64_t) ) {
                             uint64_t nativeID= 0;
-                            memcpy(&nativeID, &ci.ThreadID, 8);
+                            std::memcpy(&nativeID, &ci.ThreadID, 8);
                             target._<NC>("0x")._<NC>(Hex(nativeID, 16));
                         }
 
@@ -307,7 +265,7 @@ double   convertTo(uinteger val, ByteSizeUnits unit) {
     return v;
 }
 
-ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
+ALIB_ALLOW_NOTHING_RETURNED
 std::pair<double,ByteSizeUnits>   getMagnitude( uinteger val, uinteger byteLimit, uinteger factor) {
     ByteSizeUnits unit= ByteSizeUnits(0);
     if( val < byteLimit )
@@ -320,7 +278,7 @@ std::pair<double,ByteSizeUnits>   getMagnitude( uinteger val, uinteger byteLimit
 
         val/= factor;
 }   }
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 } // namespace alib::format[::anonymous]
 
 void FormatByteSize(AString& target, uinteger val, uint16_t magnitudeThreshold,

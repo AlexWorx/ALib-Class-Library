@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,12 +11,12 @@
 \tableofcontents
 
 \I{################################################################################################}
-# 1. Introduction # {#alib_singleton_intro}
-The namespace #alib::singletons contains the concise and low-level module \alib_singletons.
+# 1\. Introduction # {#alib_singleton_intro}
+The namespace #"alib::singletons;2" contains the concise and low-level module \alib_singletons.
 Although its scope is minimal, organizing the library orthogonally makes this separation beneficial.
 
 This manual tries to tell you all about singletons and shows you alternative implementations.
-The use-case that class \b Singleton tackles are
+The use-case that class \b Singleton tackles is described as:
 - Templated types that should have a single instance per template instantiation.
 - The number of instantiations is not foreseeable: For example, this is the case when a library
   offers such a type, not "knowing" which instantiations a using code will perform.
@@ -24,8 +24,8 @@ The use-case that class \b Singleton tackles are
   management. (Which is the typical situation for \alib).
 
 \I{################################################################################################}
-# 2. C++ Singletons # {#alib_singleton_background}
-This module contains a single class \alib{singletons;Singleton}, which implements a singleton
+# 2\. C++ Singletons # {#alib_singleton_background}
+This module contains a single class #"Singleton", which implements a singleton
 suitable for the use-case described above.
  
 In C++, the commonly proposed solution using templates is straightforward
@@ -78,36 +78,36 @@ to the already valid pointer is performed.
 On other systems, like GNU/Linux or macOS, the whole mechanism is omitted and the simple fallback
 variant that implements the design shown above is activated.
 
-In case \alib is compiled in \ref alib_manual_multithreading "multithreaded mode", the
+In case \alib is compiled in #"alib_manual_multithreading;multithreaded mode", the
 creation and access of the singletons is threadsafe.
 
 
 \I{################################################################################################}
-# 3. Switching Compilation Mode # {#alib_singleton_mode}
+# 3\. Switching Compilation Mode # {#alib_singleton_mode}
 As mentioned above, this implementation is necessary only if a software process uses different
 data segments for different portions of the code, such as processes that load DLLs on Windows OS.
 Since this approach introduces a small overhead, the implementation can be switched to a simpler
 version that stores the singletons in a static field of the class.
-This behavior is controlled by the compiler-symbol \ref ALIB_FEAT_SINGLETON_MAPPED, which defaults
+This behavior is controlled by the configuration macro #"ALIB_FEAT_SINGLETON_MAPPED", which defaults
 to \c true on Windows OS and \c false otherwise.
 
                                        
 You might consider changing these defaults for the following reasons:
 - If \alib is used on WindowsOS but not compiled as a DLL, and the code using \alib is restricted
   to a single DLL or the main application exclusively, you can pass
-  \ref ALIB_FEAT_SINGLETON_MAPPED <c>=0</c> to the compiler to switch to the simple mode.
+  #"ALIB_FEAT_SINGLETON_MAPPED" <c>=0</c> to the compiler to switch to the simple mode.
 - If ALib is used on GNU/Linux and you want to utilize the debug features for listing all created
-  singletons (described below), you can pass \ref ALIB_FEAT_SINGLETON_MAPPED <c>=1</c> to the
+  singletons (described below), you can pass #"ALIB_FEAT_SINGLETON_MAPPED" <c>=1</c> to the
   compiler to enable the hash map, even though it's not necessary for that platform.
 
 \I{################################################################################################}
-# 4. Usage # {#alib_singleton_usage}
+# 4\. Usage # {#alib_singleton_usage}
 The implementation details described above are transparent to the user when utilizing the
 Singleton class.
 A user-defined type can inherit the singleton functionality by deriving from
 <b>Singleton<TDerivedClass></b>, where the template parameter is simply the name of the derived
 class.
-The static method \alib{singletons;Singleton::GetSingleton} will then return a singleton instance
+The static method #"Singleton::GetSingleton;*" will then return a singleton instance
 of the derived type.
 
 Here is a sample code deriving from this class:
@@ -123,8 +123,8 @@ the class, ensuring a <em>lazy initialization</em>.
 
 
 \I{################################################################################################}
-# 5. Strict Singletons # {#alib_singleton_strict}
-Note that the object returned by method \alib{singletons;Singleton::GetSingleton} is
+# 5\. Strict Singletons # {#alib_singleton_strict}
+Note that the object returned by method #"Singleton::GetSingleton;*" is
 not automatically the only instance of the custom class: While it can be considered to be
 <em>"the"</em> singleton instance, other instances might still be created.
 Usually, the term "strictness" is used to denote if a singleton type is to be allowed to have
@@ -143,17 +143,17 @@ This is shown in the following sample:
  \snippet "DOX_SINGLETON.cpp"     DOX_SINGLETON_STRICT_2
 
 \I{################################################################################################}
-# 6. Memory Cleanup # {#alib_singleton_termination}
+# 6\. Memory Cleanup # {#alib_singleton_termination}
 Before terminating the process, the singletons collected in the global map, are to be destructed and
-deleted with namespace function \alib{singletons::shutdown}, which is done with standard
-\ref alib_mod_bs_nocamps "library shutdown"
+deleted with namespace function #"singletons::shutdown", which is done with standard
+#"alib_mod_bs_nocamps;library shutdown"
 
 
-Especially note that the default \ref alib_mod_bs "ALib termination process" described with
+Especially note that the default #"alib_mod_bs;ALib termination process" described with
 module \alib_bootstrap, invokes this method already.
 
 \I{################################################################################################}
-# 7. Restrictions / Penalties# {#alib_singleton_restrictions}
+# 7\. Restrictions / Penalties# {#alib_singleton_restrictions}
 - The singleton class needs to have a default (parameterless) constructor.
   (This might be overcome with a templated get-method that forwards variadic arguments, but
   is not implemented here.)
@@ -181,17 +181,17 @@ module \alib_bootstrap, invokes this method already.
   However, there can be great reasons for having singletons in software.
 
 \I{################################################################################################}
-# 8. Listing Types in Debug Compilations # {#alib_singleton_debug}
+# 8\. Listing Types in Debug Compilations # {#alib_singleton_debug}
 As described above, to extend the singleton concept across DLL bounds, a static hash map is
-needed. Now, with debug-builds (see compiler-symbol \ref ALIB_DEBUG), this map can be
-accessed with namespace function \alib{singletons;DbgGetSingletons}.
+needed. Now, with debug-builds (see configuration macro #"ALIB_DEBUG"), this map can be
+accessed with the overloaded namespace function #"DbgGetSingletons()".
 
 If the \alibbuild includes module \alib_strings, then an overloaded version exists with
-\doxlinkproblem{namespacealib_1_1singletons.html;a948c1f6836cb54448392fedaa213fc79;DbgGetSingletons(NAString&);singletons::DbgGetSingletons(NAString&)}.
+#"DbgGetSingletons(NAString&)".
 This function performs a simple dump of all singleton types into the given \b %AString.
 
 \I{################################################################################################}
-# 9. Use-Cases, Alternatives, Optimization # {#alib_singleton_uao}
+# 9\. Use-Cases, Alternatives, Optimization # {#alib_singleton_uao}
 
 \I{################################################################################################}
 ## 9.1 Use-Cases ## {#alib_singleton_uao_usecase}
@@ -212,7 +212,7 @@ Now, if a custom code says:
         Box box= myObject;
 
 a pointer to a singleton of type \b VTable<MyType> is needed. The use of class
-\alib{singletons;Singleton} allows creating such singletons "on-the-fly" without the need of a
+#"Singleton" allows creating such singletons "on-the-fly" without the need of a
 corresponding global object definition.
 
 
@@ -228,7 +228,7 @@ in the following situations:
 
 - If software is \b not planned to be compiled for Windows OS, or only for monolithic (non-DLL)
   executables. In this case, the simple alternative is to use a code
-  similar to the one \ref alib_singleton_background "sampled above".
+  similar to the one #"alib_singleton_background;sampled above".
         
 In these cases, alternatives may be:
 - Meyers’ Singleton (static local variable in a function) – Sufficient if cross-DLL usage is not
@@ -244,16 +244,16 @@ In these cases, alternatives may be:
 
 It is possible to "optimize" the creation of singletons when using this module by providing
 specializations of dedicated "foreseeable" instantiations of the custom template type that is
-derived from class \alib{singletons;Singleton}.
+derived from class #"Singleton".
 
-As a sample, we stick to the one presented in the section \ref alib_singleton_uao_usecase.
+As a sample, we stick to the one presented in the section #"alib_singleton_uao_usecase".
 For all fundamental types and other important, aka "frequently boxed" types, the singleton
 mechanism of class \b Singleton is "disabled". Hence, if an integral is boxed:
 
         Box box= 42;
 
 the singleton of the \b VTable object is \b not created by method
-\alib{singletons;Singleton::GetSingleton}. Only for "unknown" types this is done.<br>
+#"Singleton::GetSingleton;*". Only for "unknown" types this is done.<br>
 With that, not only the code size of the templated constructor of class \b Box shrinks, but it
 is allowed to create global objects of type \b Box that are initialized with values of such types.
 
@@ -265,11 +265,11 @@ is allowed to create global objects of type \b Box that are initialized with val
 In contrast to what was proposed above, namely by giving specializations of the templated
 \b VTable type, module \alib_boxing_nl takes a slightly modified approach: The \b VTable
 singletons are exclusively received through the type trait
-\alib{boxing;VTableOptimizationTraits}.
+#"VTableOptimizationTraits".
 Instead of specializing the \b VTable, this type is specialized for frequently used boxed types.
 
 For further details on this implementation, consult chapter
-\ref alib_boxing_more_opt_staticvt of the Programmer's Manual of module \alib_boxing_nl
-and feel free to review the relevant source code found in \alibheader{boxing/detail/vtable.inl}.
+#"alib_boxing_more_opt_staticvt" of the Programmer's Manual of module \alib_boxing_nl
+and feel free to review the relevant source code found in #"F;boxing/detail/vtable.hpp;3".
 
 <br><br><br><br><br><br> */

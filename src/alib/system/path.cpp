@@ -1,52 +1,4 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/system/system.prepro.hpp"
-#if !DOXYGEN
-#   if defined ( _WIN32 )
-#      include <direct.h>
-#   elif   defined(__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__APPLE__)    || defined(__ANDROID_NDK__)
-#      include <unistd.h>
-#      include <dirent.h>
-#      include <sys/stat.h>
-#      include <pwd.h>
-#   else
-#      pragma message ("Unknown Platform in file: " __FILE__ )
-#   endif
-#   include <fstream>
-#endif // !DOXYGEN
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.System;
-#  if ALIB_STRINGS
-    import   ALib.Strings;
-#  endif
-    import   ALib.Strings.StdIOStream;
-#  if ALIB_BOXING
-    import   ALib.Boxing;
-#  endif
-#else
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.StdIOStream.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.System.H"
-#endif
-//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::system::Path*            , vt_system_path          )
-ALIB_BOXING_VTABLE_DEFINE( alib::system::SystemErrors     , vt_system_systemerrors  )
 
 /// This is the reference documentation of module \alib_system, which exposes it's entities
 /// in this namespace.
@@ -56,7 +8,7 @@ namespace alib::system {
 //----------------- two versions to load environment variables into a Path instance ----------------
 namespace {
 
-ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION
+ALIB_ALLOW_UNUSED_FUNCTION
 template<typename TRequires= PathCharType>
 requires std::same_as<TRequires, character>
 bool loadEnvVar( const CString& name, AString& target,
@@ -73,7 +25,7 @@ bool loadEnvVar( const CString& name, Path& target,
     target.Reset( buf );
     return result;
 }
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 } // anonymous namespace
 
@@ -100,7 +52,7 @@ void createTempFolderInHomeDir( const PathString& folderName, Path& resultPath,
     homeTemp._( DIRECTORY_SEPARATOR )._( folderName );
     bool exists= homeTemp.IsDirectory();
     if( !exists ) {
-        if( homeTemp.Create() == SystemErrors::OK ) {
+        if( homeTemp.Create() == std::errc(0) ) {
             exists= true;
             NAString fileName( homeTemp ); fileName._( DIRECTORY_SEPARATOR )._( "readme.txt" );
 
@@ -416,16 +368,15 @@ void Path::AddModuleName( const PathString& extension ) {
 }
 
 bool Path::Change( const PathString& ppath ) {
-    // absolute addressing
     Path path(ppath);
-    if( path.CharAtStart() == DIRECTORY_SEPARATOR ) {
+
+    if( path.IsAbsolute() ) {
         if( !path.IsDirectory() )
             return false;
 
         Reset( path );
         return true;
     }
-
 
     // relative addressing
     integer origLength= Length();
@@ -464,7 +415,7 @@ bool Path::ChangeToParent() {
 
 bool Path::IsDirectory() {
     #if defined (__GLIBC__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
-        ALIB_STRINGS_TO_NARROW(*this, nPath, 512)
+        ALIB_STRINGS_TO_NARROW(*this, nPath, MAX_PATH)
         DIR* dir= opendir( nPath );
         if ( dir != nullptr ) {
             closedir( dir );
@@ -490,7 +441,8 @@ bool Path::IsDirectory() {
     #endif
 }
 
-SystemErrors Path::MakeReal() {
+
+std::errc Path::MakeCanonical() {
 
     #if    (defined(__GLIBCXX__) && !defined(__MINGW32__))             \
          || defined(__APPLE__)                                         \
@@ -498,14 +450,13 @@ SystemErrors Path::MakeReal() {
 
         Path realPath;
         if(!realpath(Terminate(), realPath.VBuffer() ) )
-            return SystemErrors(errno);
+            return std::errc(errno);
 
         realPath.DetectLength();
         Reset(realPath);
-        return SystemErrors::OK;
+        return std::errc(0);
 
     #else
-
         namespace fs = std::filesystem;
 
         std::error_code errorCode;
@@ -516,25 +467,26 @@ SystemErrors Path::MakeReal() {
         ALIB_DBG(if(errno==ENOENT && !errorCode) errno= 0;)
 
         if(errorCode)
-            return SystemErrors(errorCode.value());
+            return std::errc(errorCode.value());
 
         Reset(fsRealPath.c_str());
-        return SystemErrors::OK;
+        return std::errc(0);
     
     #endif
 }
-SystemErrors Path::Create( const PathString& ppath ) {
+
+std::errc Path::Create( const PathString& ppath ) {
     if( Path::IsAbsolute(ppath) )
         Reset( ppath );
     else
         (*this)._( DIRECTORY_SEPARATOR )._( ppath );
 
     #if defined (__GLIBC__)  || defined(__APPLE__) || defined(__ANDROID_NDK__)
-        ALIB_STRINGS_TO_NARROW(*this,nPath,512)
+        ALIB_STRINGS_TO_NARROW(*this,nPath,MAX_PATH)
         int errCode= mkdir( nPath,    S_IRWXU | S_IRGRP | S_IROTH
                                     | S_IXGRP | S_IXOTH             );
 
-        return SystemErrors(errCode);
+        return std::errc(errCode);
 
     #elif defined(_WIN32)
         #if !ALIB_PATH_CHARACTERS_WIDE
@@ -545,11 +497,37 @@ SystemErrors Path::Create( const PathString& ppath ) {
 
 
         if( result )
-            return SystemErrors::OK;
+            return std::errc(0);
 
-        return SystemErrors( GetLastError() );
+        return std::errc( GetLastError() );
     #else
         #pragma message ("Unknown Platform in file: " __FILE__ )
+    #endif
+}
+
+void Path::MakeAbsolute() {
+
+    if( IsAbsolute() )
+        return;
+
+    Path original(*this);
+    #if !defined(_WIN32)
+        Change(SystemFolders::Current);
+        _(DIRECTORY_SEPARATOR)._(original);
+    #else
+        if( original.IsEmpty() ) {
+            Change( SystemFolders::Current );
+            return;
+        }
+
+        TLocalString<PathCharType, 8192> fullPath;
+        DWORD actualLength= GetFullPathNameW( original.Terminate(), 8192,
+                                              fullPath.VBuffer(), nullptr );
+        if( actualLength == 0 )
+            return;
+
+        fullPath.SetLength( integer(actualLength) );
+        Reset( fullPath );
     #endif
 }
 

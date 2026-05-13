@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -10,7 +10,7 @@
 \tableofcontents
 
 \I{################################################################################################}
-# 1. Introduction # {#alib_boxing_intro}
+# 1\. Introduction # {#alib_boxing_intro}
 
 The original motivation to implement \alib_boxing_nl was the need to allow functions to
 accept an arbitrary amount of arguments of arbitrary type.
@@ -20,32 +20,31 @@ the limitation of the template approach is that all needs to happen at compile-t
 This limits the concept tremendously - for the sake of gaining the typical unrivalled C++
 performance!
 
-We were searching for a way to collect the arguments and pass them further for run-time interpretation.
-With other programming languages which provide a superclass \c Object and <b>run-time type information</b>
+We were searching for a way to collect the arguments and pass them further for runtime interpretation.
+With other programming languages which provide a superclass \c Object and <b>runtime type information</b>
 this is a no-brainer. In C++ it needs some effort to achieve this. This library provides a very
 generalized, extensible approach that is not at all limited to variadic function arguments.
 
 The prerequisites needed to reach the original goal were much more than we first expected, and in fact,
-only chapter \ref alib_boxing_boxes "11. Variadic Function Arguments and Class TBoxes" presents
-the solution for this.
+only chapter #"alib_boxing_boxes" presents the solution for this.
 
 
 \I{################################################################################################}
 ## 1.1 Abstract ## {#alib_boxing_intro_abstract}
 
-This module, \alib_boxing_nl, provides means to use C++ run-time type information in
+This module, \alib_boxing_nl, provides means to use C++ runtime type information in
 a most easy fashion.
 
 For this, any C++ type, from fundamental "scalar" types to complex composite custom classes, can be
-assigned to an object of type \alib{boxing;Box}.
-With the assignment, besides the object's value or a pointer to it, <em>"run-time type information"</em>
+assigned to an object of type #"Box".
+With the assignment, besides the object's value or a pointer to it, <em>"runtime type information"</em>
 is stored.
 The so-called "Boxes", including their content, can be passed to functions as arguments, returned
 by functions or stored for later use. Finally, the contents can of course be unboxed in a type-safe
 fashion.
 
 The seamless way of how \alib boxes are usable, is achieved using
-\ref alib_manual_appendix_tca "type traits" and quite complex C++20 Concepts, which in earlier
+#"alib_manual_appendix_tca;type traits" and quite complex C++20 Concepts, which in earlier
 versions was implemented with template meta programming.
 
 \note
@@ -60,7 +59,7 @@ inherent, hidden fashion (then sometimes called "auto-boxing").
   the following simple line of code perform "inherent auto-boxing":
 
         int    i  = 5; // No boxing, as simple "value-type" int is used.
-        Object box= 6; // Auto-boxing: Creation of a container-object that includes run-time type-information.
+        Object box= 6; // Auto-boxing: Creation of a container-object that includes runtime type-information.
 
 
 Starting with version C++17, the standard C++ library provides type \c std::any, which implements
@@ -102,7 +101,7 @@ As a quick summary and motivation, in short, the differences are:
 7. <b>Ease Of Use</b><br>
    We furthermore think that the use of class \b Box is much easier than that of \c std::any.
 
-One drawback is: Class \alib{boxing;Box} does not free the user of life-cycle considerations.
+One drawback is: Class #"Box" does not free the user of life-cycle considerations.
 Classes with a footprint not fitting into class \b Box, are, by default, boxed as pointers to
 the source value. Such source values have to survive the \b Box instance.
 We believe that in 99% of all use-cases such survival is guaranteed "by nature".
@@ -124,13 +123,13 @@ in the moment a \b Box goes out of scope.
 
 \I{################################################################################################}
 ## 1.2 Module Dependencies ## {#alib_boxing_intro_dependecies}
-This \alibmod is located at a quite low level of the \ref alib_manual_modules_graph and hence can
+This \alibmod is located at a quite low-level of the #"alib_manual_modules_graph" and hence can
 be extracted and compiled with a surprisingly small fraction of the overall library source.
 For the convenience of the authors, the samples in this manual rely on
 (and therefore probably compile only with) the full \alibbuild.
 
 However, several sections of this manual give detail on the
-\ref alib_manual_alib_build "optional module dependencies" and the according features of \alib,
+#"alib_manual_alib_build;optional module dependencies" and the according features of \alib,
 which leverage this module.
 
 
@@ -168,16 +167,16 @@ Let us now quickly jump into code and have a look at a "hello world" sample:
 
 \note
   This manual will seldom show the inclusion of necessary header-files and "bootstrapping" of \alib.<br>
-  Manual chapter \ref alib_boxing_more_bootstrap will give details on what is needed.
+  Manual chapter #"alib_boxing_more_bootstrap" will give details on what is needed.
 
 Compiling and running this program, the output is:
 
 \verbinclude "DOX_BOXING_TUT_MAIN.txt"
 
-The central type of this module is class \alib{boxing;Box}, located in this module's
-namespace #alib::boxing.
-As done with most \alib classes, it has an \ref alib_manual_appendix_typealiases "alias name"
-defined in namespace #alib, hence the shortcut #alib::Box can be used.
+The central type of this module is class #"Box", located in this module's
+namespace #"alib::boxing;2".
+As done with most \alib classes, it has an #"alib_manual_appendix_typealiases;alias name"
+defined in namespace #alib, hence the shortcut #"alib::Box;2" can be used.
 Now, as the sample states
 
        using namespace alib;
@@ -233,7 +232,7 @@ We repeat the nested call several times to get a random result:
 In the samples of the previous sections, values have been \e boxed and the boxes then have been
 streamed into \c std::cout.
 The overloaded streaming <c>operator <<</c>, that accepts type \b Box, was provided with the
-inclusion of header \implude{Strings.StdIOStream}.<br>
+inclusion of header #"F;ALib.Strings.StdIOStream.H".<br>
 This operator is able to unbox values and print their contents to the stream.
 
 \note
@@ -247,7 +246,7 @@ and considered a severe error.
 
 We cannot simply unbox a value if the type that was boxed is not known.
 Instead, unfortunately <b>type detection is a game of guessing!</b>.
-For making a guess, templated method \alib{boxing;Box::IsType} exists. This method has no
+For making a guess, templated method #"Box::IsType" exists. This method has no
 arguments, but expects the type to "guess" as a template parameter.
 As the method's name suggests, the return value is boolean:
 
@@ -263,7 +262,7 @@ For the time being, this is all we need to know to proceed with unboxing.
 ## 2.3 Tutorial: Unboxing ## {#alib_boxing_basicstut_unboxing}
 
 Likewise method \b IsType, introduced in the previous chapter (and likewise the overloaded
-constructors of class \b Box), method \alib{boxing;Box::Unbox} used for unboxing a value is
+constructors of class \b Box), method #"Box::Unbox" used for unboxing a value is
 templated.
 
 The template type determines the type of value to be unboxed:
@@ -280,7 +279,7 @@ we unboxed a different type? This code does this:
 
 The bad news is: this code compiles well! This means, the error in the code is not detected by
 the compiler.
-Unfortunately, the malformed code is detected only at run-time.
+Unfortunately, the malformed code is detected only at runtime.
 In debug-compilations of \alib, an assertion would be raised, with a message similar to
 
         Cannot unbox type <long> from boxed type <double>.
@@ -300,15 +299,15 @@ which is the nice wording for "this software will probably crash very soon!".
 \note
   While we just named this behavior a "pitfall", on the other hand it could be said that this
   is exactly what module \alib_boxing_nl is all about: transfer type checking from
-  compile-time to run-time to enable type-agnostic coding.<br>
+  compile-time to runtime to enable type-agnostic coding.<br>
   With C++, generic programming is usually performed using templates. However, later in this manual we
-  will see use cases, that show when boxing and run-time type detection is just superior in respect
+  will see use cases, that show when boxing and runtime type detection is just superior in respect
   to code design, code size and even sometimes in respect to execution performance.<br>
   At the end of the day, these benefits are probably why type \c std::any was included in the
   standard library with C++17 and \alib_boxing_nl provides a little more.
 
 The two recent code samples, one that rightfully unboxes a \c double and the other that
-asserts at run-time, make little sense. An obvious use case for \alib_boxing_nl
+asserts at runtime, make little sense. An obvious use case for \alib_boxing_nl
 is given, when the acts of \e boxing and \e unboxing are decoupled. So let's look at how
 type-safe unboxing is performed in a function that accepts a \b Box.<br>
 Function \b ProcessBox tests the given box for "known" types, unboxes values and displays them.
@@ -324,9 +323,9 @@ produce the following output:
 
 \snippet "DOX_BOXING_TUT_UNBOX3.txt"     OUTPUT
 
-Using the "type guessing" method \alib{boxing;Box::IsType}, introduced in the previous chapter,
-this code is back to be fully type-safe. Nothing can crash at run-time. Of course, code that
-invokes function \b ProcessBox needs to check the return value at (again run-time) and react
+Using the "type guessing" method #"Box::IsType", introduced in the previous chapter,
+this code is back to be fully type-safe. Nothing can crash at runtime. Of course, code that
+invokes function \b ProcessBox needs to check the return value at (again runtime) and react
 properly if the box type was not "known" and \c false was returned.
 
 There are two drawbacks, one minor and a real major one. The minor is that in the case that
@@ -337,12 +336,12 @@ no constant data.
 
 The eventually much worse drawback lies in the fixed set of types that a function can process
 if it is designed based on "guessing" like sampled here. While in a closed source unit,
-this might be not a problem, imagine that function \c ProcessBox resides in an external class library,
+this might be not a problem, imagine that function \c ProcessBox resides in an external library,
 where it cannot be extended.
 In this case, the function cannot be used for custom types that are not known to the library.
 
 For both problems, module \alib_boxing_nl provides a solution, which is introduced
-in a later chapter \ref alib_boxing_functions "8. Box-Function Calls".
+in a later chapter #"alib_boxing_functions".
 
 \note
   While what we have seen so far could be implemented with C++17 type \c std::any in a similar,
@@ -358,14 +357,14 @@ facts can be named and explained already.
 
 \I{############################################################################################## }
 ### 2.4.1 Templated Approach ### {#alib_boxing_basics_expl_templated}
-Class \b Box provides templated method \alib{boxing;Box::IsType} and \alib{boxing;Box::Unbox}
+Class \b Box provides templated method #"Box::IsType" and #"Box::Unbox"
 to guess and unbox specific types of and from a box. The types in question are provided with the
 template parameter. Likewise, the constructor, which is also used by the copy-assign \c operator=
 of that class, uses templates. Otherwise, the straightforward assignment of any object to a
 box was not possible.
                   
 Besides using templates for "generic programming", a programming paradigm quickly described in
-chapter \ref alib_manual_appendix_tca of the general \alib manual is used.
+chapter #"alib_manual_appendix_tca" of the general \alib manual is used.
 
 \alib_boxing_nl makes quite a lot of use of "type traits" and hence the whole module can
 be easily considered as based on what was formerly called "template meta programming" and
@@ -399,7 +398,7 @@ assembly code is short and efficient for both, boxing and unboxing.
 \I{############################################################################################## }
 ### 2.4.3 Type Guessing ### {#alib_boxing_basics_expl_typeinfo}
 In addition to the boxed data, class \b Box stores type information. Otherwise, method
-\alib{boxing;Box::IsType} could obviously not be implemented.
+#"Box::IsType" could obviously not be implemented.
 In C++, type information is received with operator keyword \b typeid. While using standard function
 call syntax (round braces), it takes a C++ type as an argument. Returned is a constant reference to
 struct \c std::type_info.
@@ -428,7 +427,7 @@ These mechanics explain why types can only be "guessed"!
 \I{################################################################################################}
 \I{##############################       3. Non-Bijective      ###################################  }
 \I{################################################################################################}
-# 3. Non-Bijective Type Relationships # {#alib_boxing_bijective}
+# 3\. Non-Bijective Type Relationships # {#alib_boxing_bijective}
 
 \I{################################################################################################}
 ## 3.1 Type Relationships ## {#alib_boxing_bijective_intro}
@@ -452,7 +451,7 @@ tutorial sample.
 \I{############################################################################################## }
 ## 3.2 Tutorial: A Reduced Set Of Types To Test ## {#alib_boxing_bijective_tut1}
 
-In previous chapter \ref alib_boxing_basicstut_unboxing, the following simple function
+In previous chapter #"alib_boxing_basicstut_unboxing", the following simple function
 \b ProcessBox was introduced:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_TUT_UNBOX3
@@ -469,7 +468,7 @@ You should be quite surprised about the following output:
 \snippet "DOX_BOXING_TUT_UNBOX3_BIJECTIVE.txt"     OUTPUT
 
 While only \b two boxed (target) types are tested by function \b ProcessBox, namely
-\ref alib::integer and \c double, a variety of \b six types can be passed to the function.
+#"alib::integer;2" and \c double, a variety of \b six types can be passed to the function.
 Obviously, different signed integral types are all "mapped" to the same destination type and
 the two floating point types \c float and \c double are both mapped to type \c double.
 
@@ -498,9 +497,9 @@ Here, we quickly interrupt this tutorial an continue with a manual documentation
 The relationship between C++ types and resulting mapped types is not \e injective.
 This means, two different C++ types may result in the same boxed type.
 For example, by default, all signed integral types (of different byte width) are boxed
-as the same type \ref alib::integer, which is just an alias to the "biggest natural integral type"
+as the same type #"alib::integer;2", which is just an alias to the "biggest natural integral type"
 of the compilation platform. (In short, type \b alib::integer aliases \c std::ptrdiff_t).<br>
-Likewise, all unsigned integral types are boxed to type \ref alib::uinteger, which is
+Likewise, all unsigned integral types are boxed to type #"alib::uinteger;2", which is
 an alias to \c std::size_t.
 
 This relationship of boxing C++ fundamental types, is the built-in default behavior.
@@ -513,7 +512,7 @@ As such, it can be modified. This leads us to general important statement:
   Built-in customizations can be disabled.</b>
 
 The details of how boxing can be customized for a type can only be explained
-\ref alib_boxing_customizing "in a later chapter", when other prerequisites are made.
+#"alib_boxing_customizing;in a later chapter", when other prerequisites are made.
 
 We have learned that \alib_boxing_nl is not \e injective. The next question
 is whether it is at least \e surjective. If it was, all types that can be boxed, can also
@@ -546,7 +545,7 @@ hinting to the third line of the snippet:
 
 
 This seems surprising in two ways. Not only that this type can't be unboxed, but also that this is
-not a run-time assertion but caused by a C++ \c static_assert which is a compile-time message.
+not a runtime assertion but caused by a C++ \c static_assert which is a compile-time message.
 As the message's text elaborates, it is just not possible to unbox type \c int16_t - no matter
 what was previously stored in the box.
 Furthermore we understand: This was explicitly forbidden, which means "voluntarily" in this case.<br>
@@ -570,7 +569,7 @@ an not-unboxable type, is already illegal. This code:
 produces the very same compilation error as the one above that tries to unbox the type.
 
 \note This design decision is only effective with the library defaults. Chapter
-      \ref alib_boxing_fundamentals "4. Boxing Fundamental Types" will show how this behavior
+      #"alib_boxing_fundamentals" will show how this behavior
       can be changed.
 
 To conclude this tutorial section, an next important observation has to be made.
@@ -587,7 +586,7 @@ it cannot be concluded  that the original type \b A is not unboxable. While this
 true for types \c int16_t and \b integer, this is not true for types \c std::string and \alib strings.
 
 \note
-  With \ref alib_boxing_strings "10. Boxing Character Strings", this manual later dedicates a whole
+  With #"alib_boxing_strings", this manual later dedicates a whole
   chapter on using character strings with \alib_boxing_nl.
 
 
@@ -621,8 +620,8 @@ A quick summary of what was said in this chapter should be given in bullets:
 - While usually any type can be boxed, unboxing of certain types may be forbidden by
   compile-time assertions. In this case, usually the target type of the boxing conversion can
   be unboxed. Besides that, also other types might be available for unboxing.
-- The exact same static assertions given with method \alib{boxing;Box::Unbox} are
-  applied with method \alib{boxing;Box::IsType}. This means, if a type must not be unboxed,
+- The exact same static assertions given with method #"Box::Unbox" are
+  applied with method #"Box::IsType". This means, if a type must not be unboxed,
   it must not even be "guessed".
 - Apart from one important exception (which is only explained later), by default
   a \e bijective type relationship is established, likewise class \c std::any suggests.<br>
@@ -679,7 +678,7 @@ But even in these cases, \e bijective boxing remains the default.
 \I{################################################################################################}
 \I{##########################      4. Boxing Fundamental Types    ###############################  }
 \I{################################################################################################}
-# 4. Boxing Fundamental Types # {#alib_boxing_fundamentals}
+# 4\. Boxing Fundamental Types # {#alib_boxing_fundamentals}
 
 \I{################################################################################################}
 ## 4.1 Definition Of Fundamental Types ## {#alib_boxing_fundamentals_def}
@@ -706,17 +705,18 @@ a one to one relationship. Those are:
 - <c>long double</c> (a floating point value usually larger than 64 bits)
 
 Furthermore, character types (<c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>)
-are (by default) boxed non-bijective: Characters of any type are converted to type #alib::wchar
+are (by default) boxed non-bijective: Characters of any type are converted to type #"alib::wchar;2"
 when boxed.
 
 All remaining fundamentals by default are boxed in an \e injective way. By that, they can be grouped
 into three different sets:
 
-1. All signed integrals up to a maximum of 64 bits length, will be boxed to type \ref alib::integer.
-2. All unsigned integrals up to a maximum of 64 bits length, will be boxed to type \ref alib::uinteger.
+1. All signed integrals up to a maximum of 64 bits length, will be boxed to type #"alib::integer;2".
+2. All unsigned integrals up to a maximum of 64 bits length, will be boxed to type 
+   #"alib::uinteger;2".
 3. Types \c float and \c double will be boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref alib::wchar.
+   will be boxed to #"alib::wchar;2".
 
 Only the destination type of each group is allowed to be guessed and unboxed.
 
@@ -736,11 +736,12 @@ Integrals of a size of 64 bits are boxed in a bijective way, which means in a on
 All remaining fundamentals by default are boxed in an \e injective way.
 By that, they can be grouped into \b four different sets:
 
-1. All signed integrals up to a maximum of 32 bits length, will be boxed to type \ref alib::integer.
-2. All unsigned integrals up to a maximum of 32 bits length, will be boxed to type \ref alib::uinteger.
+1. All signed integrals up to a maximum of 32 bits length, will be boxed to type #"alib::integer;2".
+2. All unsigned integrals up to a maximum of 32 bits length, will be boxed to type 
+   #"alib::uinteger;2".
 3. Types \c float and \c double will be boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref alib::wchar.
+   will be boxed to #"alib::wchar;2".
 
 Only the destination type of each group is allowed to be guessed and unboxed.
 
@@ -750,18 +751,18 @@ Only the destination type of each group is allowed to be guessed and unboxed.
 
 In the previous two sections, a fourth group of aggregated types was named with character types.
 Note, that the non-bijective boxing of character types was not shown in the tutorial.
-Destination type \alib{characters;wchar} is defined with dependency module \alib_characters,
+Destination type #"characters::wchar" is defined with dependency module \alib_characters,
 which sorts a little of the "mess" a C++ programmer faces when dealing with characters.
 \alib_boxing_nl leverages this module here for boxing plain character types.
 As we will see later, the benefits of module \alib_characters_nl for boxing are even
 much greater.
 
-Three \ref GrpALibPreproSymbols are available, which disable the custom boxing definitions.
-- Symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS is used to enable bijective boxing
+Three #"alib_macros_config" are available, which disable the custom boxing definitions.
+- Symbol #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS" is used to enable bijective boxing
   of integrals.<br>
-- Symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_FLOATS is used to enable bijective boxing
+- Symbol #"ALIB_FEAT_BOXING_BIJECTIVE_FLOATS" is used to enable bijective boxing
   of floating point values.<br>
-- Symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS is used to enable bijective boxing
+- Symbol #"ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS" is used to enable bijective boxing
   of characters.<br>
 
 The consequences of changing the defaults (enabling bijective behavior) should be obvious.
@@ -772,21 +773,21 @@ Different code units that use a different setting in respect to one of the three
 symbols, <b>must not be mixed</b>. For example, a box created from type \c int16_t in a code
 unit that enabled bijective boxing on compilation, cannot be processed by a code unit that
 uses default non-bijective boxing enabled.
-\ref alib_boxing_bijective_nonsurjective_tut "Remember" that the processing code unit would receive
+#"alib_boxing_bijective_nonsurjective_tut;Remember" that the processing code unit would receive
 a compile-time assertion, if it tried to unbox the value.
 
-To write code that is agnostic to the compilation symbols above, the following set of methods
+To write code that is agnostic to the configuration macros above, the following set of methods
 may help:
-- \alib{boxing;Box::IsSignedIntegral}
-- \alib{boxing;Box::IsUnsignedIntegral}
-- \alib{boxing;Box::IsFloatingPoint}
-- \alib{boxing;Box::IsCharacter}
-- \alib{boxing;Box::UnboxSignedIntegral}
-- \alib{boxing;Box::UnboxUnsignedIntegral}
-- \alib{boxing;Box::UnboxFloatingPoint}
-- \alib{boxing;Box::UnboxCharacter}
+- #"Box::IsSignedIntegral"
+- #"Box::IsUnsignedIntegral"
+- #"Box::IsFloatingPoint"
+- #"Box::IsCharacter"
+- #"Box::UnboxSignedIntegral"
+- #"Box::UnboxUnsignedIntegral"
+- #"Box::UnboxFloatingPoint"
+- #"Box::UnboxCharacter"
  
-These methods internally select code depending on the according compiler-symbols.
+These methods internally select code depending on the according configuration macros.
 Some of these methods are just a simple inline alias functions in the non-bijective case,
 while otherwise they become true library functions that aggregate all necessary tests and unboxing
 operations of the different possible types.
@@ -804,8 +805,8 @@ operations of the different possible types.
   replacement of the non-bijective boxing relationships by a custom one is not.
 
 \see
-   Chapter \ref alib_manual_build "6. Building The Library" of the Programmer's Manual of \alib
-   for more information on compiling the library and using the compiler-symbols. For example,
+   Chapter #"alib_manual_build" of the Programmer's Manual of \alib
+   for more information on compiling the library and using the configuration macros. For example,
    if using \https{CMake,cmake.org/}, corresponding cached \b CMake variables
    \e %ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, \e %ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS and
    \e %ALIB_FEAT_BOXING_BIJECTIVE_FLOATS are available.
@@ -814,7 +815,7 @@ operations of the different possible types.
 \I{################################################################################################}
 \I{##############################      5. Boxing Arrays         #################################  }
 \I{################################################################################################}
-# 5. Boxing Arrays And Vectors # {#alib_boxing_arrays}
+# 5\. Boxing Arrays And Vectors # {#alib_boxing_arrays}
 
 \I{################################################################################################}
 ## 5.1 Support For 1-Dimensional Arrays ## {#alib_boxing_arrays_intro}
@@ -827,37 +828,37 @@ Therefore, let us at this point rather describe what is available and provide mo
 in later sections.
 
 Type guessing and unboxing for boxed array types slightly differs from those of scalar types.
-Method \alib{boxing;Box::IsType} is not applicable to array types. The reason is simply, that
+Method #"Box::IsType" is not applicable to array types. The reason is simply, that
 the C++ language does not allow to specify template types to be arrays of arbitrary size.
 The template parameter \p{TBoxable} of the method \b IsType might be \c int[3] or
 \c double[25], but cannot be just \c int[] or \c double[].
 
-Therefore, alternative method \alib{boxing;Box::IsArrayOf} is provided. For example
+Therefore, alternative method #"Box::IsArrayOf" is provided. For example
 \c IsArrayOf<int>() may be used to guess a boxed array of \b int values.
 
 \note
-  While \ref alib_boxing_fundamentals_disable "by default", fundamental integral types become boxed
-  as type \alib{integer}, the element types of arrays are not (and cannot) be modified.
+  While #"alib_boxing_fundamentals_disable;by default", fundamental integral types become boxed
+  as type #"lang::integer", the element types of arrays are not (and cannot) be modified.
   For example, an array of type \c int16_t[10], will be boxed as an array of \c int16_t.
 
 
 Further methods according to array boxing are:
-- \alib{boxing;Box::IsArray}
+- #"Box::IsArray"
   This is a non-templated method that returns \c true if the box holds an array of any type.
 
-- \alib{boxing;Box::UnboxLength}
+- #"Box::UnboxLength"
   Returns the length of a boxed array.
   The result of the method is well defined for boxed arrays and a due prior test for a boxed
-  array type using method \alib{boxing;Box::IsArray} is array.<br>
+  array type using method #"Box::IsArray" is array.<br>
   However, no compile- or runtime- assertion is made if invoked on non-array boxes. Also, a
   process will not signal any exception. In other words, the invocation on non-array types is
   harmless but the result is undefined.
 
-- \alib{boxing;Box::UnboxArray}
+- #"Box::UnboxArray"
   This templated method returns a pointer to the boxed array. The template type that has to
-  be provided is the element type of the array (likewise with method \alib{boxing;Box::IsArrayOf}).
+  be provided is the element type of the array (likewise with method #"Box::IsArrayOf").
 
-- \alib{boxing;Box::UnboxElement}
+- #"Box::UnboxElement"
   This templated method returns the value of an array element. Besides the template parameter
   specifying element type, the method has one argument denoting the element's index.
 
@@ -889,15 +890,15 @@ It is depending on the situation, which alternative is to be preferred. In this 
 we would choose the second alternative, because neither type nor range checks are necessary
 in debug-compilations. Maybe a matter of taste.
 
-Further note the use of method \alib{boxing;Box::TypeID}. In its default implementation,
+Further note the use of method #"Box::TypeID". In its default implementation,
 obviously this method returns the boxed type in case of scalars and the element type in case
 of vectors. This decision can be altered, by explicitly providing an otherwise defaulted and
 therefore in this sample not visible, template parameter.
-Please see the \alib{boxing;Box::TypeID;method's documentation} for further information.
+Please see the #"Box::TypeID;method's documentation" for further information.
 
 Finally, in debug-compilations - the result of method \b TypeID can just be streamed to \c std::out.
 This is very convenient and possible due to some tricks of other \alib modules, which includes the use of type
-\ref alib::lang::DbgTypeDemangler.
+#"alib::lang::DbgTypeDemangler".
 For technical reasons, type \b DbgTypeDemangler is only available in debug-compilations.
 Method \b TypeID itself is available also in release-compilations.
 
@@ -929,7 +930,7 @@ custom (3rd-party) types that store their elements in a single memory buffer.
 
 \alib_boxing_nl provides built-in support to customize the boxing of class \c std::vector.
 \note For built-in support of vector types of other (3rd-party) libraries, checkout
-      namespace \ref alib::boxing::compatibility and its inner namespaces.
+      namespace #"alib::boxing::compatibility" and its inner namespaces.
 
 With the customization, objects of the type \c std::vector are boxed to C++ arrays of the templated
 element type. The customization, requests a vector's allocated memory (method \c std::vector::data)
@@ -941,7 +942,7 @@ Separated checks for other vector types are not needed.
 Because it was not discussed yet, how custom boxing is performed, for now the important
 takeaway is that the \e injective boxing of objects of type \c std::vector to one-dimensional
 array types can be enabled per compilation unit, by simply including header-file
-\implude{Compatibility.StdBoxtraits}.
+#"F;ALib.Compatibility.StdBoxtraits.H".
 
 If so, we can feed method \b ProcessArray sampled above with objects of type vector:
 
@@ -955,9 +956,9 @@ unboxing to \c std::vector would impose a memory allocation and a deep copy of t
 
 Therefore, such unboxing should be performed only with very explicit code. With the inclusion
 of the compatibility header named above, a templated, inline function for this task is
-\alib{boxing::compatibility::std;CopyToVector;already provided}. This is its simple source code:
+#"CopyToVector;already provided". This is its simple source code:
 
-\snippet "ALib.Compatibility.StdBoxtraits.H"   DOX_BOXING_SAMPLE_ARR_UNBOX_VECTOR_IMPLEMENTATION
+\snippet "alib/boxing/stdboxtraits.hpp"   DOX_BOXING_SAMPLE_ARR_UNBOX_VECTOR_IMPLEMENTATION
 
 With that, unboxing a \c std::vector from a boxed C++ array is done as sampled here:
 \snippet "DOX_BOXING.cpp"    DOX_BOXING_SAMPLE_ARR_UNBOX_VECTOR
@@ -989,7 +990,7 @@ disadvantages and hence is the result of a design decision.
 The disadvantages are:
 - The array length needs to be stored with every \b %Box object.
   This "space" for this exists with each and every instance of class \b Box, whether it is used or not.<br>
-  In fact, the footprint of type \alib{boxing;Box} on a standard 64-bit machine is 24 bytes
+  In fact, the footprint of type #"Box" on a standard 64-bit machine is 24 bytes
   (three times the size of a pointer). In contrast, the size of type \c std::any is only two thirds
   of that, namely 16 bytes.
 
@@ -1011,7 +1012,7 @@ The advantages of the approach taken are:
   other use in the case of boxing scalar types.
 
 
-It will be discussed in \ref alib_boxing_strings "a later chapter", that array-boxing is especially
+It will be discussed in #"alib_boxing_strings;a later chapter", that array-boxing is especially
 helpful in the domain of string types: Arbitrary string types can be boxed as nothing else but
 simple one-dimensional character arrays. This way, this messy bunch of types, coming from tons of
 3rd-party libraries, can all be aggregated to the very same type!
@@ -1038,7 +1039,7 @@ the length of the box represents the true length of the string given!
 
 This feature cannot be disabled. On the one hand, custom boxing is not available for
 C++ character types (for technical reasons, as already mentioned). Also, there is no
-\ref GrpALibPreproSymbols "preprocessor symbol" introduced to disable this behavior, as we cannot
+#"alib_macros_config;configuration macro" introduced to disable this behavior, as we cannot
 consider a use case where this behavior wasn't acceptable. If it was, too many dependent features
 of various \alibmods_nl would discontinue working and had to be disabled.
 
@@ -1046,7 +1047,7 @@ of various \alibmods_nl would discontinue working and had to be disabled.
 \I{################################################################################################}
 \I{############################   6. Boxing Structs And Classes    ##############################  }
 \I{################################################################################################}
-# 6. Boxing Structs And Classes # {#alib_boxing_classes}
+# 6\. Boxing Structs And Classes # {#alib_boxing_classes}
 
 So far in this manual we have only been boxing fundamental C++ types and C++ arrays.
 The only exception we saw, was class \c std::vector<T> in the previous chapter. Here, it was only
@@ -1080,8 +1081,8 @@ With that, we use the same code as above:
 \snippet "DOX_BOXING.cpp"    DOX_BOXING_CLASSES_BIG_USING
 
 Unfortunately, this code does not compile.
-The compiler complains twice, once with call \alib{boxing;Box::IsType;IsType<BigClass>}
-and also with \alib{boxing;Box::Unbox;Unbox<BigClass>}.
+The compiler complains twice, once with call #"boxing::Box::IsType;IsType<BigClass>"
+and also with #"boxing::Box::Unbox;Unbox<BigClass>".
 The error message is as follows:
 
     static_assert failed due to requirement 'DefaultBoxingRule1'
@@ -1133,11 +1134,11 @@ In both cases, the chosen type is used, no matter if a pointer to the type a val
 
 A question now is: what types do fit in? The answer is quite simple. On a 64-bit platform,
 class \b Box is ready to store a pointer or any other 64-bit wide argument. In addition to that,
-due to the built-in ability of \ref alib_boxing_arrays "boxing one-dimensional C++ arrays", a second
+due to the built-in ability of #"alib_boxing_arrays;boxing one-dimensional C++ arrays", a second
 64-bit value can be stored. With C++ array types, this member holds the array's length. With
 other types, it is available for free use.<br>
 As a result two times 64-bit, hence 16 bytes can be stored. If type \b BigClass from the previous
-tutorial section held only two values of type \alib{integer} instead of three, it would fit
+tutorial section held only two values of type #"lang::integer" instead of three, it would fit
 in and became boxed as value. Likewise, on a 32-bit platform, the usable value data of class
 \b Box is two times 32-bit equalling 8 bytes.
 
@@ -1193,7 +1194,7 @@ to redefine this automatic default treatment. Arbitrary combinations are possibl
 Between the type mapping seen so far and this mapping of value and pointer types, two
 differences exist:
 1. The mapping of a type to a completely different type
-   (like all signed integer types to type \alib{integer}) needs customizing. In contrast
+   (like all signed integer types to type #"lang::integer") needs customizing. In contrast
    The pointer/value mapping is a built-in default and needs customizing to be switched off.
 2. As we will see later, often the mapping of a type to a completely different type needs
    some custom "conversion" method. In contrast to this, the compiler can easily perform the
@@ -1207,16 +1208,16 @@ of boxing the given type itself.
 \I{################################################################################################}
 ## 6.4 Pointers To Fundamental Types ## {#alib_boxing_classes_pointers_fundamentals}
 
-In previous chapter \ref alib_boxing_fundamentals "4. Boxing Fundamental Types", nothing was
+In previous chapter #"alib_boxing_fundamentals", nothing was
 said about boxing pointers to fundamental types. But this was only to avoid confusion at that
 point in time! Instead, it was explained was that the non-bijective boxing groups all fundamental
 types into four sets:
 
-1. Signed integral types that get boxed to type \alib{integer}
-2. Unsigned integral types that get boxed to type \alib{uinteger}
+1. Signed integral types that get boxed to type #"lang::integer"
+2. Unsigned integral types that get boxed to type #"lang::uinteger"
 3. Types \b float and \b double that get boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref alib::wchar.
+   will be boxed to #"alib::wchar;2".
 
 Now, pointers to all fundamental types are boxed like their value counterpart.
 Likewise with structs and classes, the two boxes from the following sample:
@@ -1232,7 +1233,7 @@ receive the identical contents of type \b integer and value 42.
   or <c>const alib::character*</c>.
   These are considered zero-terminated strings and are boxed to C++ array types.
   A rationale for, and all details on this exception will be given in chapter
-  \ref alib_boxing_strings "10. Boxing Character Strings".
+  #"alib_boxing_strings".
 
 \I{################################################################################################}
 ## 6.5 Constant vs. Mutable Box Contents ## {#alib_boxing_classes_constant}
@@ -1265,12 +1266,12 @@ The rationals for this are:
 This all means that the information about whether a type was constant or mutable is lost with
 boxing it. Only when a processing code is "sure" that a boxed pointer points to a mutable object
 it might apply a \c static_cast on the result of method \b Unbox if it intents to perform
-modifications. Furthermore, for convenience, method \alib{boxing;Box::UnboxMutable} is available,
+modifications. Furthermore, for convenience, method #"Box::UnboxMutable" is available,
 which just calls \b Unbox() and performs the <c>const_cast</c> to return a mutable result.
 
 Finally, it is important to understand that although types that are boxed as pointers are always
 treated as pointers to constant objects, this is never noted anywhere.
-For example, template parameters of method \alib{boxing;Box::IsType} and \alib{boxing;Box::Unbox}
+For example, template parameters of method #"Box::IsType" and #"Box::Unbox"
 expect a non-const type for value- and pointer-types.<br>
 The rationale for this is: Because all pointer types are returned as pointers to constant objects,
 a need to pass keyword \c const with pointer types was redundant.<br>
@@ -1299,7 +1300,7 @@ If tried, compile-time assertion:
 
 will be given.
 
-Methods \alib{boxing;Box::IsType} and \alib{boxing;Box::Unbox} will statically assert
+Methods #"Box::IsType" and #"Box::Unbox" will statically assert
 if type specifier \c volatile was given with template parameter \p{TUnboxable}.
 
 \I{################################################################################################}
@@ -1324,7 +1325,7 @@ coincidence the value fits to the box and is thus copied. A programmer should ju
 to take this little chance of her worries being unnecessary into account.<br>
 
 However, some thinking has always to be given. For example, reconsider how class \b std::vector<T>
-is boxed to a C++ array, as demonstrated in \ref alib_boxing_arrays_vectors. Well, while this
+is boxed to a C++ array, as demonstrated in #"alib_boxing_arrays_vectors". Well, while this
 is not pointer boxing, still a pointer to the first array element is stored.
 Now a user of the standard C++ library knows that class \b std::vector<T> allocates dynamic
 memory for storing the values. This memory is deleted with the destruction of the vector.
@@ -1340,7 +1341,7 @@ software. Instead, they are implicitly created when generic functions accept arg
 of type <c>const Box&</c>. In this most frequent case, after the function returns,
 the current thread's stack frame is \https{unwinded,en.wikipedia.org/wiki/Call_stack#Unwinding},
 and the boxed argument objects are disposed!<br>
-A sample for this is given in \ref alib_boxing_appendix_usecases_format "appendix chapter C1".
+A sample for this is given in #"alib_boxing_appendix_usecases_format;appendix chapter C1".
 of this manual.
 
 Should the processing function want to store some data that it received from a box argument
@@ -1349,7 +1350,7 @@ that might be not available after the function returns. The function can quite e
 perform this, as it has anyhow knowledge about how to interpreted different boxed types and their
 contents.<br>
 A sample for this is implemented with \alib_expressions, which is discussed in more detail
-in chapter \ref alib_boxing_appendix_usecases_expressions of this manual.
+in chapter #"alib_boxing_appendix_usecases_expressions" of this manual.
 
 With \alib_expressions_nl, class \b Box is also used as a return value of functions.
 While this is a more rare case, it is absolute rightful and necessary to do so in that module.
@@ -1359,11 +1360,11 @@ This \e scope is individual per library and in case of \alib_expressions_nl it i
 documented in the according Programmer's Manual.
 
 Finally, if the contents of boxes need to survive their originating object's deletion,
-then a next option to achieve this, is given in chapter \ref alib_boxing_more_iclone.
+then a next option to achieve this, is given in chapter #"alib_boxing_more_iclone".
 
 \I{################################################################################################}
 ## 6.7 Comparison To std::any ## {#alib_boxing_classes_stdany}
-It was already pointed out in chapter \ref alib_boxing_bijective "3. Non-Bijective Type Relationships"
+It was already pointed out in chapter #"alib_boxing_bijective"
 that C++17 type \c std::any does not offer non-bijective boxing. Value type \c T is boxed as value
 and type \c T* is boxed as pointer.
 Consequently, a processing function implemented with \c std::any always had to check both types,
@@ -1411,7 +1412,7 @@ implementation, each parameter has to be checked by the programmer to apply the 
 \I{################################################################################################}
 \I{############################      7. Customizing Boxing       ##############################  }
 \I{################################################################################################}
-# 7. Customizing Boxing # {#alib_boxing_customizing}
+# 7\. Customizing Boxing # {#alib_boxing_customizing}
 In previous chapters it was mentioned already several times that \alib_boxing_nl can be
 customized per source type. From this, a good indication of what is customizable was already
 given. At this point in the manual, it is a good time for explaining the customization in detail.
@@ -1423,7 +1424,7 @@ The following customizations can be performed for a type:
 <b>1. Type Mapping</b><br>
 Customization allows mapping a source type (aka "boxable type") to a specific target type (aka "mapped type").
 For example, the built-in customization (which can be deactivated) maps all common signed integral
-types to the same destination type #alib::integer, unless they are bigger than the latter.
+types to the same destination type #"alib::integer;2", unless they are bigger than the latter.
 
 <b>2. Type Conversion Mechanics</b><br>
 Depending on the customization performed, specific code for type conversion for both, boxing and
@@ -1440,8 +1441,8 @@ This default behavior can be altered in arbitrary ways.
 If a type is mapped to a different target type, it might still be unboxable from this target type.
 Sometimes, to forbid unboxing can be just a voluntary design decision. In other cases, unboxing the
 original type might technically just not be feasible.<br>
-(A sample for both options had been given in \ref alib_boxing_bijective_nonsurjective_tut.
-A further sample was already explained in \ref alib_boxing_arrays_vectors)
+(A sample for both options had been given in #"alib_boxing_bijective_nonsurjective_tut".
+A further sample was already explained in #"alib_boxing_arrays_vectors")
 
 <b>5. Disallowing Boxing</b><br>
 Finally, boxing may also be completely forbidden for a type. With that, any assignment to
@@ -1460,21 +1461,21 @@ processing of otherwise unknown (source) types.
 With type mapping, two scenarios may occur:
 1. The full information of the source type remains available.<br>
    The obvious sample is the built-in customization of types \c int8_t or \c int16_t to type
-   \alib{integer}. As the latter is larger than the source types, all information contained
+   #"lang::integer". As the latter is larger than the source types, all information contained
    in the source remains, except for the original type information.<br>
    In such a case it generally is a design decision, if unboxing the source type is still
-   allowed. We had \ref alib_boxing_bijective_nonsurjective_tut "already seen" that the library
+   allowed. We had #"alib_boxing_bijective_nonsurjective_tut;already seen" that the library
    itself has samples of both decisions implemented.
 
 2. Only a part of the information stored in the source object is boxed.<br>
-   Also for this, a sample was given already with chapter \ref alib_boxing_arrays_vectors which
+   Also for this, a sample was given already with chapter #"alib_boxing_arrays_vectors" which
    explained the built-in optional use of class \c std::vector<T>. This type holds a pointer
    to its buffer as well as the length of the stored array. In addition, also the length of the
    allocated buffer is stored. This is equal or greater to the array length.
    With the optional built-in boxing, this information is not stored. Instead, the type is boxed
    as a C++ array type, hence only the pointer to the buffer and its fill-length survive.<br>
    While in this specific case, unboxing is still feasible (by creating a new instance and copying
-   the data into it like done by tool function \alib{boxing::compatibility::std;CopyToVector}),
+   the data into it like done by tool function #"std::CopyToVector"),
    in more complex cases, unboxing might not be feasible at all. The recommendation is
    to disallow unboxing in general for partly stored types.
 
@@ -1483,23 +1484,23 @@ With type mapping, two scenarios may occur:
 \I{################################################################################################}
 ## 7.3 Type Trait BoxTraits ## {#alib_boxing_customizing_traits}
 
-As noticed in chapter \ref alib_boxing_basics_expl_templated, the design pattern of using
-\ref alib_manual_appendix_tca "type-traits" is also leveraged with \alib_boxing_nl.
+As noticed in chapter #"alib_boxing_basics_expl_templated", the design pattern of using
+#"alib_manual_appendix_tca;type-traits" is also leveraged with \alib_boxing_nl.
 The type trait that is to be specialized for customization is given with
-\ref alib::boxing::BoxTraits.
+#"alib::boxing::BoxTraits".
 
 \attention
   Two code units must use the same custom boxing settings for all types that they share
   by passing boxes. Otherwise, this library has undefined behavior.
-  The reason for this, was already explained in chapter \ref alib_boxing_fundamentals_disable.<br>
+  The reason for this, was already explained in chapter #"alib_boxing_fundamentals_disable".<br>
   This means that specializations of the type trait \b BoxTraits, need to be shared between all
   code units in question.
   In practice, specializations for this reason are made in header-files and such are to be included
   by each code unit that boxes or unboxes shared types.
 
-Type trait \alib{boxing;BoxTraits} is well documented and should be referred to for all
+Type trait #"BoxTraits" is well documented and should be referred to for all
 details. The specialization of the struct can optionally be performed using helper macro
-\ref ALIB_BOXING_CUSTOMIZE and its siblings.
+#"ALIB_BOXING_CUSTOMIZE" and its siblings.
 
 Instead of repeating what is said in the reference documentation of the struct and macro,
 this manual rather gives various real life samples along the lines of the important use cases.
@@ -1512,18 +1513,18 @@ this documentation.
 Let's now look at how this is done with the built-in customization of type <c>int16_t</c>.
 This piece of code does the job:
 
-\snippet "boxing/boxingcustoms.inl.inl"    DOX_BOXING_CUSTOM_MANUAL
+\snippet "boxing/boxingcustoms.hpp.inl"    DOX_BOXING_CUSTOM_MANUAL
 
 
 This is what is done:
-- Struct \alib{boxing;BoxTraits} is specialized for source-type \c int_16_t.
+- Struct #"BoxTraits" is specialized for source-type \c int_16_t.
   The type that a specialization is made for, always denotes the C++ source type supposed to be
   boxed differently.
 - The type alias <em>"Mapping"</em>, specifies the target type as \c integer.
 - The \c constexpr boolean value \b is specified to \c false.
 - Static method <em>"Write"</em> is defined in a standard way: It just calls one of the overloaded
-  \b Write methods of class \alib{boxing;Placeholder}, but is as well casting the 2-byte type to the
-  platform-dependent type #alib::integer.
+  \b Write methods of class #"boxing::Placeholder", but is as well casting the 2-byte type to the
+  platform-dependent type #"alib::integer;2".
 - Finally Method <em>"Read"</em> is declared. However, it is declared to return \c void, instead of
   the source type \c int16_t. Declaring \b Read to return \c void disables unboxing!
   As it is not called, no implementation of the function needs to be given.
@@ -1532,17 +1533,17 @@ Note that with non-bijective type mapping, all boxable types (source types) that
 same destination type, have to "agree" to write the data in the same format.
 It should be easy to understand that if doing otherwise, the result is undefined behavior.
 The format that default boxing, as well as built-in customized boxing use, is documented with union
-\alib{boxing;Placeholder}. In a later chapter, more information on this class is given.
+#"boxing::Placeholder". In a later chapter, more information on this class is given.
 
 Instead of providing all the code "manually", we could also pick and use one out of
-\ref ALIB_BOXING_CUSTOMIZE "a set of provided macros":
+#"ALIB_BOXING_CUSTOMIZE;a set of provided macros":
 
     ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE( int16_t, integer )
 
 This macro produces the exact same code as shown above.
 
 The principal differences when using the macros, are:
-1. The code is less error prone.
+1. The code is less error-prone.
 2. The code is better readable.
 3. Most important: Chances are high, that the code is compatible with future versions of the
    library.
@@ -1551,22 +1552,22 @@ The principal differences when using the macros, are:
 \I{################################################################################################}
 ## 7.5 Tutorial: Mapping Type 'std::vector<T>' to Type 'T[]' ## {#alib_boxing_customizing_tut_vector}
 
-In chapter \ref alib_boxing_arrays_vectors, boxing of \c std::vector<T> was demonstrated. It was
-said that by including the header-file \implude{Compatibility.StdBoxtraits} a default
+In chapter #"alib_boxing_arrays_vectors", boxing of \c std::vector<T> was demonstrated. It was
+said that by including the header-file #"F;ALib.Compatibility.StdBoxtraits.H" a default
 customization was given. In comparison to the sample of the previous tutorial section, there is one
 small challenge here: The type is templated. The goal is now to define custom boxing for the type
 \c std::vector<T> - independent of any element type \c T.
 
 The syntax introduced with C++20 Concepts supports templated specializations in a straight forward
 way.
-In chapter \ref alib_boxing_strings "10. Boxing Character Strings" it will be shown that
+In chapter #"alib_boxing_strings" it will be shown that
 \c std::vector<T> is to be customized differently if \b T is a character type.
 Therefore, those have to be excluded from the templated specialization.
 
 Here is the code for specializing the struct for all but character types, taken from the header
 file named above:
 
-\snippet "ALib.Compatibility.StdBoxtraits.H"    DOX_BOXING_CUSTOM_VECTOR
+\snippet "alib/boxing/stdboxtraits.hpp"    DOX_BOXING_CUSTOM_VECTOR
 
 This specialization defines \c constexpr boolean value \b IsArray to \c true.
 This denotes that the type should be boxed to a C++ array type, with elements of type \b Mapped.
@@ -1574,7 +1575,7 @@ Remember that C++ array types of arbitrary size cannot be defined with a (non-te
 definition. This is just not possible by the language.
 
 The boxing method \b Write is so simple, its definition should not need any further explanation.
-Finally, like in the sample shown in \ref alib_boxing_customizing_tut_int16_t, method
+Finally, like in the sample shown in #"alib_boxing_customizing_tut_int16_t", method
 \b Read is declared to return \c void, which disables any unboxing of class \c std::vector<T>.
 If a code still tried to unbox one, the compiler would complain something like that:
 
@@ -1604,13 +1605,13 @@ Should - for whatever reason - a fitting (small) and copy-constructible and triv
 type be boxed as a pointer, a customization for the pointer type has to be given. The mapped type
 then is the same pointer type as the source type.<br>
 For example, if we wanted to have class \b SmallClass from a
-\ref alib_boxing_classes_tut "previous tutorial sample", to always be boxed as pointers,
+#"alib_boxing_classes_tut;previous tutorial sample", to always be boxed as pointers,
 the customization would look like this:
 
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING( SmallClass*, SmallClass* )
 
 As the default boxing and unboxing mechanics work well with pointer types, we can simply use
-macro \ref ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING for this.
+macro #"ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING" for this.
 
 Of course, a different target type could be specified likewise. The important point here is, that
 if a specialization for \b T* is given and none for \b T, this customization is used for mapping
@@ -1634,7 +1635,7 @@ macros were used.
 
 For this variant, valid use cases exist - although again, no \alibmod uses that internally.
 As a sample, let us stick to type \c std::vector<T>.
-We learned, that with the inclusion of header \implude{Compatibility.StdBoxtraits},
+We learned, that with the inclusion of header #"F;ALib.Compatibility.StdBoxtraits.H",
 values and pointers to the type becomes boxed as C++ array type.<br>
 With this custom boxing, internal information of the vector object is lost (the capacity).
 A processing function, can only access the currently stored elements, but the vector
@@ -1644,11 +1645,11 @@ This could rightfully be wanted behavior and looking at C++17 type \c std::any t
 with its lack of non-bijective type mapping, this is even the only possible behavior there.
 
 Because for a templated specialization, none of the helper macros can be used, the following
-templated specialization of the type trait \alib{boxing;BoxTraits} has to be given:
+templated specialization of the type trait #"BoxTraits" has to be given:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_CUSTOM_VECTOR_POINTERS_CUSTOMIZE
 
-Still the header \implude{Compatibility.StdBoxtraits}
+Still the header #"F;ALib.Compatibility.StdBoxtraits.H"
 is to be included, as we want to keep mapping of value types to C++ arrays intact.
 
 Without the customization shown above, the following code would not compile:
@@ -1677,11 +1678,11 @@ With the additional customization, the code compiles fine and the output is:
 This manual cannot go into the all details of the C++ language. The good news is that with the
 C++20 language version, the syntax of what was formerly called "template meta programming"
 became a lot of easier to understand. Once more, we want to hint to the quick appendix chapter
-\ref alib_manual_appendix_tca of the general \alib manual.
+#"alib_manual_appendix_tca" of the general \alib manual.
 
 Now, this tutorial section gives an example and an indication of what is possible.
 
-We had seen, that specializing the type trait \alib{boxing;BoxTraits} for a single type
+We had seen, that specializing the type trait #"BoxTraits" for a single type
 has the following syntax:
 
     template<>
@@ -1715,7 +1716,7 @@ We do specialization for type \b MyBase and all derived types:
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_CONDITIONAL_CUSTOMIZING
 
 The following sample proves that we achieved what we wanted, because it successfully compiles
-and when running, it does not produce a run-time assertion about unboxing wrong types:
+and when running, it does not produce a runtime assertion about unboxing wrong types:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_CONDITIONAL_USING
 
@@ -1735,13 +1736,13 @@ The following compiler error was given:
 ## 7.8 The Nested Union "Placeholder" ## {#alib_boxing_customizing_placeholder}
 
 We have seen in the previous chapters, that even when boxing is customized, such customization often
-can conveniently use the simple default implementations of methods \alib{boxing;Placeholder::Write}
-and \alib{boxing;Placeholder::Read}.
+can conveniently use the simple default implementations of the overloaded method 
+#"Placeholder::Write(const TInt)" and #"Placeholder::Read".
 
 This is because the methods are implemented by a set of overloaded and type-traits enabled
 methods, that go along well with fundamental and fitting value types.
 
-A closer look at the \alib{boxing;Placeholder;reference documentation of union Placeholder},
+A closer look at the #"Placeholder;reference documentation of union Placeholder",
 shows that this type is a union of different unions.<br>
 Besides using the overloaded methods \b Read and \b Write, it is also possible to directly access
 its different members from within the \b BoxTraits specialization.
@@ -1751,16 +1752,16 @@ Two little challenges should be considered when writing custom values.
 In a few special cases, \c constexpr boxing may be desired. This requirement was the reason
 to introduce all these unions with their \c constexpr constructors. All built-in boxing of
 fundamental types meet this requirement.
-More on this topic is given in later chapter \ref alib_boxing_more_opt_constexpr.
+More on this topic is given in later chapter #"alib_boxing_more_opt_constexpr".
 
 <b>2. Gapless Use Of the Placeholder </b><br>
 A second goal that the various unions try to enable is that values of custom type are written
 without gaps. While a gap is not the real problem, problems might occur if random data
 remain in these gaps. A rationale why this might be a problem is given in the upcoming
-chapter \ref alib_boxing_functions.<br>
+chapter #"alib_boxing_functions".<br>
 By the same token, the size of the data written to the placeholder should be announced
 by the user in the case that it differs from the value size, respectively pointer size.
-Such announcement can be done by modifying the traits struct \alib{boxing;SizeTraits}.
+Such announcement can be done by modifying the traits struct #"SizeTraits".
   
 \I{################################################################################################}
 \I{################################################################################################}
@@ -1786,9 +1787,9 @@ The following sample demonstrates the technique with two types:
   custom struct \b WrappedFloat is given. By default, fundamental type \c float is converted
   to \c double when boxed.
 
-- \alib{strings;TAString;AString}<br>
+- #"^AString"<br>
   This is a class found in module \alib_strings.
-  While an own, \ref alib_boxing_strings "dedicated chapter about string-boxing" is given later,
+  While an own, #"alib_boxing_strings;dedicated chapter about string-boxing" is given later,
   so much should be explained here: The class manages an own string buffer and does not fit
   into a box's placeholder. Customization defines it to be boxed as character array.
   Thus, an \b AString cannot be retrieved back when unboxing.
@@ -1841,10 +1842,10 @@ a processing function does not even need to be changed. This is very helpful if 
 just can't change such function, when it resides in a library, or her co-worker is just responsible
 for it.
 
-We will see in later chapter \ref alib_boxing_strings "10. Boxing Character Strings" that
+We will see in later chapter #"alib_boxing_strings" that
 \alib_boxing_nl by default maps arbitrary (3rd-party) string types to simple C++ character
 arrays. A function that processes boxed character arrays
-will this way \b generically be able to digest any 3rd party string without the need of adoption.
+will this way \b generically be able to digest any 3rd party string without the need of adaptation.
 
 Of course, there are limits in achieving generic processing of arbitrary boxed types by just
 mapping the types. While strings are a great sample, often it is not an option to just map a
@@ -1857,14 +1858,14 @@ To revoke these limitations, lets quickly move on to the next chapter of this ma
 \I{################################################################################################}
 \I{##############################          8. Functions          ################################  }
 \I{################################################################################################}
-# 8. Box-Functions # {#alib_boxing_functions}
+# 8\. Box-Functions # {#alib_boxing_functions}
 
 You, the reader of this manual, probably know all details of C++ and virtual functions.
 The first section of this chapter provides a brief recap of some basic knowledge on that matter,
 You are free to skip that!
 
-People in a hurry, might also want to skip section \ref alib_boxing_functions_concepts
-and instead right jump into code with \ref alib_boxing_functions_tut.
+People in a hurry, might also want to skip section #"alib_boxing_functions_concepts"
+and instead right jump into code with #"alib_boxing_functions_tut".
 
 
 \I{################################################################################################}
@@ -1883,16 +1884,16 @@ This way, the responsibility is passed back to the object that is processed.<br>
 But how is this technically solved? How does the processing function know the address of the
 function that is to be called, when it is a different function for each object type?
 
-C++ uses run-time type information for that. While non-virtual class methods are statically
+C++ uses runtime type information for that. While non-virtual class methods are statically
 linked at compile-time (respectively at link time), the address of a virtual function
-call is only evaluated at run-time.
+call is only evaluated at runtime.
 As soon as a first virtual function is declared with a class (or one of its base classes),
 a \https{virtual function table,en.wikipedia.org/wiki/Virtual_method_table} (aka "vtable")
 is added by the compiler, and each new instance of that type contains a hidden member that points
 to that table. Such types are called "polymorphic types" or just "virtual types".
 
 Adding this \e vtable increases the footprint of virtual C++ types by the size of one pointer.
-Together with the loss of run-time performance, this increase of object size is the general disadvantage of
+Together with the loss of runtime performance, this increase of object size is the general disadvantage of
 virtual classes. It is technically just not avoidable: If a processing function should be able
 to call variants of methods tailored to types that it does not "know" at compile-time, then the
 memory addresses of these methods have to be passed together with the argument object.
@@ -1900,11 +1901,11 @@ memory addresses of these methods have to be passed together with the argument o
 Virtual functions are just one out of <b>two purposes</b> for having a
 \https{vtable,en.wikipedia.org/wiki/Virtual_method_table} in C++.
 Its second use is with C++ keyword \c dynamic_cast<T>. While a \c static_cast is performed by the
-compiler, a \c dynamic_cast<T> is performed at run-time by special code inserted by the compiler.
+compiler, a \c dynamic_cast<T> is performed at runtime by special code inserted by the compiler.
 This code performs a type-check using the vtable. On failure, \c dynamic_cast returns \c nullptr.
 
-We had learned in chapter \ref alib_boxing_basics_expl, that \alib_boxing_nl stores
-run-time type-information along with the boxed data.
+We had learned in chapter #"alib_boxing_basics_expl", that \alib_boxing_nl stores
+runtime type-information along with the boxed data.
 You could rightfully say, that the disadvantage of needing a \e vtable with instances of virtual
 C++ classes, is of the very same nature like the need to store type-information with boxes.
 While C++ uses this pointer for type-checks and virtual function calls, so far we had seen
@@ -1917,7 +1918,7 @@ Well, here is the good news: Also \alib_boxing_nl supports virtual function call
 ## 8.2 Function Declarations, Implementations and Registrations ## {#alib_boxing_functions_concepts}
 
 In the sense of the C++ language, any function that is invokable on an instance of
-type \alib{boxing;Box} is "virtual", because run-time type information is used to determine
+type #"Box" is "virtual", because runtime type information is used to determine
 the right version of the function for a box containing a certain mapped type.
 However, from the perspective of \alib_boxing_nl, there is nothing like a "static" or "link-time" function.
 As a consequence, this manual of module \alib_boxing_nl does not talk about
@@ -1931,10 +1932,10 @@ This section explains the three steps to define box-functions.
 Type-safeness is a mandatory feature of any C++ software. \alib_boxing_nl is a type-safe
 software, although - for technical reasons - some heavy use of keyword \c reinterpret_cast
 is done when boxing and unboxing values.
-While the type-safeness is lost at compile-time, it is regained at run-time with the
+While the type-safeness is lost at compile-time, it is regained at runtime with the
 use of the templated interface methods.
-For example, if \p{T} in a call to \alib{boxing;Box::Unbox<T>} does not match the boxed type,
-a run-time assertion is given. And such can be prevented using \alib{boxing;Box::IsType<T>},
+For example, if \p{T} in a call to #"Box::Unbox" does not match the boxed type,
+a runtime assertion is given. And such can be prevented using #"Box::IsType",
 which never asserts.
 
 With box-functions, the situation is similar: For technical reasons, the \e vtable of a box stores
@@ -1959,7 +1960,7 @@ that it denotes a function pointer, only two further conditions need to be met:
 1. <b>The first argument of the function has to be of type 'const Box&' or 'Box&':</b><br>
    When a function is invoked on a box, a reference to the box is passed as the first argument.
    Most box-functions do not modify the box and use <c>const Box&</c>.
-   We will learn in \ref alib_boxing_functions_mutable "a later section" about the difference of
+   We will learn in #"alib_boxing_functions_mutable;a later section" about the difference of
    invoking constant and non-constant box-functions.<br>
    The name of this parameter is not necessarily needed to be specified. Internally,
    \alib_boxing_nl volunteers to do so and always use name \b "self".<br>
@@ -1997,20 +1998,20 @@ their address stored in the vtable of the box.
 ### 8.2.3 Function Registration ### {#alib_boxing_functions_concepts_reg}
 
 The final step is to associate the function implementation with boxes of a specific mapped type.
-This is done with templated namespace function \ref alib::boxing::BootstrapRegister.
+This is done with templated namespace function #"alib::boxing::BootstrapRegister".
 
 \attention
   Function registration and function invocation are not protected against racing conditions
   of multithreaded access. For this reason, it is mandatory to perform function registration exclusively
-  while \ref alib_mod_bs "bootstrapping" software, when no threads are started,
+  while #"alib_mod_bs;bootstrapping" software, when no threads are started,
   yet. Registrations can be made before bootstrapping \alib, respectively during or after
-  phase \alib{BootstrapPhases::PrepareResources}.
+  phase #"BootstrapPhases::PrepareResources".
 
 \attention
   If for any reason registration is performed \b after bootstrapping \alib and module
   \alib_monomem is included in the \alibbuild, and this function is invoked after
   \alib was bootstrapped, then before an invocation of this method, mutex
-  \alib{monomem;GLOBAL_ALLOCATOR_LOCK} has to be acquired. This can be done with:
+  #"GLOBAL_ALLOCATOR_LOCK" has to be acquired. This can be done with:
            \snippet "ut_monomem.cpp"     DOX_MONOMEM_LOCK_GLOBALALLOCATOR
  
 \attention
@@ -2024,14 +2025,14 @@ cannot be deduced by the compiler:
 3. A boolean value denoting whether array-boxing is used or not.
    This third value defaults to \c false and hence can be omitted for plain-type boxing.
 
-The address of the box-function is to be passed to \alib{boxing;BootstrapRegister} as the single
+The address of the box-function is to be passed to #"BootstrapRegister" as the single
 normal argument of the function.
 
 \note
   Details on the internal implementation of boxes are given in later chapter
-  \ref alib_boxing_more_opt_staticvt_bg.<br>
+  #"alib_boxing_more_opt_staticvt_bg".<br>
   An understanding of these details will make clear, why box-functions have to be registered
-  at <b>run-time</b>.
+  at <b>runtime</b>.
 
 
 
@@ -2048,9 +2049,9 @@ Here is the declaration of the function:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_FUNCTIONS_DESCRIPTOR
 
-Besides the box itself, the function expects an \alib{strings;TAString;AString} defined with module
-\alib_strings. This is used as a buffer to write to.
-The return value is \alib{strings;TString;String}, which is a lightweight string type, similar to
+Besides the box itself, the function expects an #"^AString" defined with the module \alib_strings. 
+This is used as a buffer to write to.
+The return value is #"^String", which is a lightweight string type, similar to
 C++17 type \c std::string_view.
 
 Let's create three implementations for different types:
@@ -2058,27 +2059,27 @@ Let's create three implementations for different types:
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_FUNCTIONS_IMPLEMENTATION
 
 First of all, it has to be noticed that unboxing from parameter \p{self} does not need
-type-guessing with \alib{boxing;Box::IsType}.
+type-guessing with #"Box::IsType".
 The reason is that each function is associated with boxes of a corresponding type and thus \p{self}
 always contains the right type.
 
 The first two implementations simply unbox the right type and use
-\alib{strings;TAString::operator<<;AString::operator<<} to convert the type.<br>
+#"strings::TAString::operator<<;AString::operator<<" to convert the type.<br>
 The third function is templated. It is designed to be usable with different boxed array types.
 Unfortunately, we cannot attach a templated method to just various boxes.
 Instead, an instantiation of the templated function has to be given for each boxed array type
 that we want to support.
 Such instantiation is implicitly performed by the compiler when passing the function to
-\alib{boxing;BootstrapRegister}.
+#"BootstrapRegister".
 
 Let's register 4 functions that way:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_FUNCTIONS_REGISTER
 
 A call to \e RegisterMyFunctions() needs to go to the
-\ref alib_mod_bs "bootstrap section" of the process.
+#"alib_mod_bs;bootstrap section" of the process.
 
-With all that in place, functions can be "called" with templated method \alib{boxing;Box::Call}.
+With all that in place, functions can be "called" with templated method #"Box::Call".
 It expects the function declaration as a template type and the function argument as its own
 arguments. Its return type is equivalent to the return type of the box-function!<br>
 
@@ -2100,16 +2101,16 @@ Running this does not assert! The output is:
 
 \verbinclude "DOX_BOXING_FUNCTIONS_INVOKE2.txt"
 
-Obviously an empty string was returned by \alib{boxing;Box::Call}, without further complaints.
+Obviously an empty string was returned by #"Box::Call", without further complaints.
 
 \I{################################################################################################}
 ## 8.4 Default Functions ## {#alib_boxing_functions_defaults}
 
 It is a design decision of \alib_boxing_nl, that calls to box-functions that are not
-registered for the actually boxed type, do not assert. Method \alib{boxing;Box::Call} just returns
+registered for the actually boxed type, do not assert. Method #"Box::Call" just returns
 a default value of the designated return type, that's it. The rationale for this design is once more
 to favor convenience when handling boxes over other considerations. A processing code could
-use \alib{boxing;Box::GetFunction} before invoking the function, if it wanted to react on
+use #"Box::GetFunction" before invoking the function, if it wanted to react on
 boxes that do not support a box-function.
 
 Looking at virtual functions of OO-languages once more: There, virtual functions may or may not be
@@ -2125,25 +2126,25 @@ But in theory there are at least two levels!
 And that is our little fallback: This library supports to define "default functions" that - if
 available - are used when no specific function.
 
-Often, there is not much to do for them, because interpreting the \alib{boxing;Placeholder}
+Often, there is not much to do for them, because interpreting the #"boxing::Placeholder"
 contents without knowing the type, is not possible. Still we will see in a next chapter that
 there are some good use cases for them.<br>
 Sometimes it is useful to implement and register a default function solely in debug-compilations of
 software: These can then assert, write log file warnings or perform other appropriate actions.
 
-Default functions are registered with namespace function \alib{boxing;BootstrapRegisterDefault}.
-Compared to \alib{boxing;BootstrapRegister}, the function omits the second template parameter specifying
+Default functions are registered with namespace function #"BootstrapRegisterDefault".
+Compared to #"BootstrapRegister", the function omits the second template parameter specifying
 the mapped type.
 
 \I{################################################################################################}
 ## 8.5 Tutorial: A Default ToString() Function ## {#alib_boxing_functions_tutdefaults}
 
-To continue the sample of section \ref alib_boxing_functions_tut, a default implementation
+To continue the sample of section #"alib_boxing_functions_tut", a default implementation
 usable with any box of \b FToString should be developed. Here it is:
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_FUNCTIONS_IMPLEMENTATION3
 
-It is registered with \alib{boxing;BootstrapRegisterDefault}
+It is registered with #"BootstrapRegisterDefault"
 
 \snippet "DOX_BOXING.cpp"     DOX_BOXING_FUNCTIONS_REGISTER3
 
@@ -2164,9 +2165,9 @@ The result is now:
 It was already mentioned, that \alib_boxing_nl is tolerant towards calling a function
 on a box whose mapped type is not associated with an implementation.
 The call is just not performed and instead, a default-constructed value of the according return
-type is returned by method \alib{boxing;Box::Call}.<br>
+type is returned by method #"Box::Call".<br>
 By the same token, a call of a function performed on a box that "does not contain a value"
-(see chapter \ref alib_boxing_more_void) is likewise tolerated.
+(see chapter #"alib_boxing_more_void") is likewise tolerated.
 
 This design decision is once more justified with the common use cases for this module.
 The expectation of a programmer calling a box-function is: "Perform what is appropriate with
@@ -2175,16 +2176,16 @@ Consequently, specific checks for the availability of function implementations c
 
 If a code wanted to take action on the fact that no type-specific implementation exists or
 that neither a type specific, nor a default implementation exists, such availabilities
-can be queried using \alib{boxing;Box::GetFunction}. The method's parameter \p{searchScope}
+can be queried using #"Box::GetFunction". The method's parameter \p{searchScope}
 controls which sorts of functions are searched. The method is likewise tolerant against
 unset boxes.<br>
 If this is done, the returned function pointer already contains the function found, respectively is
 \c nullptr on failure. To avoid a repeated search for that same function with a subsequent
-\b Call, alternative method \alib{boxing;Box::CallDirect} can be used, which omits the search
+\b Call, alternative method #"Box::CallDirect" can be used, which omits the search
 and instead expects the function pointer as a first parameter.
 
 Finally, to check whether a box does not contain a value before calling a box-function,
-type-guessing for type \c void is to be used with \alib{boxing::Box;IsType<void>()}.
+type-guessing for type \c void is to be used with #"Box::IsType;IsType<void>()".
 
 \I{################################################################################################}
 ## 8.7 Function Calls On Mutable Boxes ## {#alib_boxing_functions_mutable}
@@ -2195,9 +2196,9 @@ common use-case.
 Two things are needed to allow that:
 1. The type definition \b Signature of the function descriptor needs to specify mutable type
    <c>Box&</c> for first parameter \p{self}.
-2. The non-constant version of \alib{boxing;Box::Call} has to be selectable by the compiler, hence
+2. The non-constant version of #"Box::Call" has to be selectable by the compiler, hence
    the box that \b call is invoked on has to be mutable.<br>
-   Method \alib{boxing;Box::CallDirect} is likewise available in a non-constant version for cases
+   Method #"Box::CallDirect" is likewise available in a non-constant version for cases
    that tested for the availability of a function upfront.
 
 The next chapter introduces the built-in functions of \alib_boxing_nl.
@@ -2208,21 +2209,21 @@ With them, one quite useful sample of a mutable box-function is found.
 
 ### 8.8.1 Equals, Hashcode, Clone...   ### {#alib_boxing_functions_builtin_intro}
 In contrast to C++, many other object oriented programming languages declare any class to be
-inherited of a built-in base type. For example, in \b JAVA, all classes inherit class \b Object.
+inherited of a built-in base type. For example, in \b Java, all classes inherit class \b Object.
 Such  "mother of all objects", usually provides a set of methods that are available for
-any object in the language. In \b JAVA, the methods, for example, include
+any object in the language. In \b Java, the methods, for example, include
 \e equals(), \e hashCode(), \e clone() and \e toString().
 
 Likewise, module \alib_boxing_nl implements a set of built-in box-functions. Those are:
-- \alib{boxing;FIsNotNull}
-- \alib{boxing;FHashcode}
-- \alib{boxing;FEquals}
-- \alib{boxing;FIsLess}
-- \alib{boxing;FIsTrue}
-- \alib{boxing;FClone} (Available only with the inclusion of module \alib_monomem in the \alibbuild.)
-- \alib{boxing;FAppend} (Available only with the inclusion of module \alib_strings in the \alibbuild.)
+- #"FIsNotNull"
+- #"FHashcode"
+- #"FEquals"
+- #"FIsLess"
+- #"FIsTrue"
+- #"FClone" (Available only with the inclusion of module \alib_monomem in the \alibbuild.)
+- #"FAppend" (Available only with the inclusion of module \alib_strings in the \alibbuild.)
 
-With the inclusion of module \alib_format, furthermore function \alib{format;FFormat}
+With the inclusion of module \alib_format, furthermore function #"FFormat"
 becomes available.
 
 The following implementations are given:
@@ -2234,24 +2235,24 @@ The following implementations are given:
   descriptor struct. This way, notes to such templated functions are included in the reference
   documentation of the function descriptors listed above.
 - With the call of certain bootstrap functions declared in header-files like
-  \implude{Compatibility.StdBoxtraits}, or \implude{Compatibility.QTBoxing}, implementations for
+  #"F;ALib.Compatibility.StdBoxtraits.H", or #"F;ALib.Compatibility.QTBoxing.H", implementations for
   types of namespace \c std and 3rd-party types become available.
 
 \attention
   The registration of built-in box-function implementations, needs due bootstrapping of the
-  library. See chapter \ref alib_boxing_more_bootstrap for more information.
+  library. See chapter #"alib_boxing_more_bootstrap" for more information.
 
 This manual will not repeat a description of each function. Instead, please see the
 corresponding reference documentation, linked above with the enumeration of functions.
 Therefore, we conclude this section with just some quick facts:
-- Functions \alib{boxing;FEquals} and \alib{boxing;FIsLess} are called with
+- Functions #"FEquals" and #"FIsLess" are called with
   global operators
-  - \alib{boxing;Box::operator==}
-  - \alib{boxing;Box::operator!=}
-  - \alib{boxing;Box::operator<}
-  - \alib{boxing;Box::operator<=}
-  - \alib{boxing;Box::operator>}
-  - \alib{boxing;Box::operator>=}
+  - #"Box::operator=="
+  - #"Box::operator!=" 
+  - #"Box::operator<"
+  - #"Box::operator<="
+  - #"Box::operator>"
+  - #"Box::operator>="
 
   For example, the following if statement:
   \code{.cpp}
@@ -2270,21 +2271,21 @@ Therefore, we conclude this section with just some quick facts:
   The fist version results to shorter code, but slightly slower code, because the operator's
   implementations are not inlined.
 
-- Functions \alib{boxing;FIsNotNull} and \alib{boxing;FHashcode} are likewise available through members
-  \alib{boxing;Box::IsNotNull} and \alib{boxing;Box::IsNull}, respectively \alib{boxing;Box::Hashcode}.
+- Functions #"FIsNotNull" and #"FHashcode" are likewise available through members
+  #"Box::IsNotNull" and #"Box::IsNull", respectively #"Box::Hashcode".
   Also these methods are not inlined.<br>
-  More information on this function is given in chapter \ref alib_boxing_more_void_nulled.
+  More information on this function is given in chapter #"alib_boxing_more_void_nulled".
 
-- Function \alib{boxing;FClone} is explained in some detail in manual chapter
-  \ref alib_boxing_more_iclone. Furthermore, it is used with module \alib_exceptions, as
-  documented in the \ref alib_exceptions_message_lifecycle "Programmer's Manual of that module".
+- Function #"FClone" is explained in some detail in manual chapter
+  #"alib_boxing_more_iclone". Furthermore, it is used with module \alib_exceptions, as
+  documented in the #"alib_exceptions_message_lifecycle;Programmer's Manual of that module".
 
-- Function \alib{boxing;FAppend}, available with module \alib_strings is explained
-  in manual chapter \ref alib_boxing_strings "10. Boxing Character Strings".
+- Function #"FAppend", available with module \alib_strings is explained
+  in manual chapter #"alib_boxing_strings".
 
-- Function \alib{format;FFormat}, introduced by module \alib_format is not considered
+- Function #"FFormat", introduced by module \alib_format is not considered
   a built-in box-function (of this module) and therefor explained in that module's manual chapter
-  \ref alib_format_custom_types.
+  #"alib_format_custom_types".
   There, source-code samples of both, function \b %FAppend and \b %FFormat are given.
 
 As a final remark, some of the built-in function declarators provide inner static functions,
@@ -2294,21 +2295,21 @@ please consult the reference documentation for further details.
 \I{################################################################################################}
 ### 8.8.2 Overwriting A Built-In Function ### {#alib_boxing_functions_builtin_override}
 
-Repeated registrations of default or type-specific functions using \alib{boxing;BootstrapRegisterDefault}
-and \alib{boxing;BootstrapRegister}, are allowed.
+Repeated registrations of default or type-specific functions using #"BootstrapRegisterDefault"
+and #"BootstrapRegister", are allowed.
 Any formerly set function is simply replaced. It is also allowed to register \c nullptr, which
 disables a built-in function without providing a new one.
 
 The built-in default and type-specialized functions are registered with namespace function
-\alib{boxing;bootstrap}. This function is automatically invoked with
-\ref alib_mod_bs "bootstrapping the library".
+#"alib::Bootstrap(BootstrapPhases);2". This function is automatically invoked with
+#"alib_mod_bs;bootstrapping the library".
 
 Any function implementation that specializes the behavior for a mapped type, may call the
 default implementation internally, for example, to take specific action if a certain state of the
 boxed value is given, otherwise use the default implementation and probably return its result.
 To achieve this, the pointer to the default function implementation has to be received, which
-is done with method \alib{boxing;detail::FunctionTable::Get} that has to be invoked on
-singleton object \alib{boxing;detail::DEFAULT_FUNCTIONS}.
+is done with method #"detail::FunctionTable::Get" that has to be invoked on
+singleton object #"detail::DEFAULT_FUNCTIONS".
 
 While this already touches objects in namespace \b detail, calling a specialized version of a
 function that was replaced by another (like calling the implementation of a base class in C++)
@@ -2322,25 +2323,25 @@ box-function is out of the scope of the usual use cases for \alib_boxing_nl.
 \I{################################################################################################}
 \I{#########################         9. Boxing Enumerations         #############################  }
 \I{################################################################################################}
-# 9. Boxing Enumerations # {#alib_boxing_enums}
+# 9\. Boxing Enumerations # {#alib_boxing_enums}
 
 \I{################################################################################################}
 ## 9.1 Boxing Enumeration Elements  ## {#alib_boxing_enums_integer}
 Scoped enumerations as well as traditional enumerations, receive a special
 treatment with \alib_boxing_nl. Unless their boxing is not customized, they are boxed
-to their identical type, the value stored in the \alib{boxing;Placeholder} is cast
-from their underlying integral type to \alib{integer}.
+to their identical type, the value stored in the #"boxing::Placeholder" is cast
+from their underlying integral type to #"lang::integer".
 When unboxed, the value is cast back from \c integer to the original underlying type.
 
 While this speciality is not noticeable when boxing and unboxing enumerations, the advantage
 of this treatment is that the different enum element-values of different enum types become
-"generically usable" when read directly from \alib{boxing;Placeholder::Integrals}.
+"generically usable" when read directly from #"Placeholder::Integrals".
 The rationale why this constitutes "an advantage", is given in the next section.
 
 \I{################################################################################################}
 ## 9.2 Class Enum  ## {#alib_boxing_enums_class}
 
-Class \alib{boxing;Enum} is the only derivate of class \alib{boxing;Box} found in the library.
+Class #"boxing::Enum" is the only derivate of class #"Box" found in the library.
 
 The class is useful to store and pass around enum values of arbitrary C++ scoped enum types in
 a type-safe way.
@@ -2352,12 +2353,12 @@ as an "identifier". While C++ 11 introduced the syntax for <c>enum class</c> typ
 Thus, an API cannot define an interface method that accepts enums of "custom derived types".
 This is quite often a problem. Of course, using module \alib_boxing_nl, an interface method
 now may accept a box, but then anything else apart from enumeration types was accepted.
-Class \alib{boxing;Enum} as a good tool to help here.
+Class #"boxing::Enum" as a good tool to help here.
 
-In the constructor, enum elements of arbitrary type are accepted. With the run-time type-information
+In the constructor, enum elements of arbitrary type are accepted. With the runtime type-information
 added, the processing function can now work with any enum type transparently.
 
-A good example use case is given with type \alib{exceptions;Exception} of module \alib_exceptions.
+A good example use case is given with type #"exc Exception" of module \alib_exceptions.
 Any exception is created with an enum element of arbitrary type. The exception handlers then
 can use nested \c if statements: The outer \c if is about the exception type, the inner about
 the concrete exception. This gives a nice two-level order scheme for exceptions with no
@@ -2369,7 +2370,7 @@ need to define "error number ranges" for each code unit.
 \I{################################################################################################}
 \I{#########################      10. Boxing Character Strings       #############################  }
 \I{################################################################################################}
-# 10. Boxing Character Strings # {#alib_boxing_strings}
+# 10\. Boxing Character Strings # {#alib_boxing_strings}
 
 \I{################################################################################################}
 ## 10.1 Dependency Modules "Characters" And "Strings" ## {#alib_boxing_strings_intro}
@@ -2386,34 +2387,34 @@ The section after that, covers further options that are available when module \a
 is included in the \alibbuild_nl. Finally, some good use of \alib_boxing_nl and
 \alib_strings_nl is made by the module \alib_format. While this is not a part of this
 manual, some overview on it is provided in appendix
-chapter \ref alib_boxing_appendix_usecases_format "C.1 Use Case: Module Format".
+chapter #"alib_boxing_appendix_usecases_format;C.1 Use Case: Module Format".
 
 \I{################################################################################################}
 ## 10.2 Character Arrays ## {#alib_boxing_strings_characters}
-Previous manual chapter \ref alib_boxing_customizing "7. Customizing Boxing" explained in detail
-how the type trait \alib{boxing;BoxTraits} is used to provide information and static methods
+Previous manual chapter #"alib_boxing_customizing" explained in detail
+how the type trait #"BoxTraits" is used to provide information and static methods
 that allow to customize boxing of any type. The gaol with boxing string types is to map any of them
 to a character array. This could be done in the straight forward way, for example, by just
 specializing <b>BoxTraits<std::string></b> for C++ standard type \c std::string.
 
 But this is not what this library does! Instead, it leverages module \alib_characters_nl.
-An interested reader should read this module's \ref alib_mod_strings "Programmer's Manual" now
+An interested reader should read this module's #"alib_mod_strings;Programmer's Manual" now
 first, before continuing with this chapter of \alib_boxing_nl.
 A short summary of what is provided by this module should be given in bullets:
 - Module \alib_characters_nl defines a set of new character types with the aim to replace
   the C++ ones:
   - Three types that aim to make C++ character types \c wchar_t independent of platform and compiler:
-    \alib{characters;nchar}, \alib{characters;wchar} and \alib{characters;xchar}.
+    #"characters::nchar", #"characters::wchar" and #"characters::xchar".
   - Three types that make the use of narrow or wide character types transparent to a user's code:
-    \alib{characters;character}, \alib{characters;complementChar} and \alib{characters;strangeChar}.
+    #"characters::character", #"characters::complementChar" and #"characters::strangeChar".
   - Each type in the two groups is equivalent to one type of the other group.
-- As a result of these definitions, the module emphasizes the use of type \alib{characters;character}
+- As a result of these definitions, the module emphasizes the use of type #"characters::character"
   whenever possible. Depending on the platform and the chosen library compile options, this type
   is an alias of either \c char, \c wchar_t, \c char16_t or \c char32_t.
-- Next, the type trait \alib{characters;ArrayTraits<T, TChar>} is provided. Specializations can be
-  given to denote that a type \b T is a of array type of \b TChar. Furthermore access methods to
-  an object's array data and length are provided and optionally also a method that creates an object
-  of type \b T from a given character array.
+- Next, the type trait #"template <typename TStringSource, typename TChar>ArrayTraits;*" is provided. 
+  Specializations can be given to denote that a type \b T is a of array type of \b TChar. 
+  Furthermore access methods to an object's array data and length are provided and optionally also 
+  a method that creates an object of type \b T from a given character array.
 - The library defines such type-traits for built-in C++ "string types", like <c>const character*</c>,
   string literals and character arrays.
   With the inclusion of module \alib_strings, type-traits for the five string-types found in that
@@ -2427,34 +2428,33 @@ A short summary of what is provided by this module should be given in bullets:
   character array as if it was \b not zero-terminated.
 
 With this in place, all that this module provides is a conditional specialization of type-traits
-struct \alib{boxing;BoxTraits} for all types that \alib{characters;ArrayTraits} is specialized for!
+struct #"BoxTraits" for all types that #"ArrayTraits" is specialized for!
 \note
   A sample for a "conditional specialization" was given in tutorial chapter
-  \ref alib_boxing_customizing_conditional.
+  #"alib_boxing_customizing_conditional".
 
 Precisely, two conditional specializations are given:
-1. If field \alib{characters;ArrayTraits::Access} is specialized to equal
-   \alib{characters;Policy::Implicit}, \b and
-   field \alib{characters;ArrayTraits::Construction} is specialized to equal
-   \alib{characters;Policy::Implicit}, then \b BoxTraits is specialized to enable
+1. If field #"ArrayTraits::Access;*" is specialized to equal
+   #"Policy::Implicit;*", \b and
+   field #"ArrayTraits::Construction;*" is specialized to equal
+   #"Policy::Implicit;*", then \b BoxTraits is specialized to enable
    boxing and unboxing of the string type.<br>
    The latter of both conditions, namely the "implicit construction", indicates to \alib_boxing_nl
    that the string type is a "lightweight type" that can be unboxed with no effort.<br>
-   Samples for such types are C++17 type \c std::string_view, \alib type \alib{strings;TString;String}
+   Samples for such types are C++17 type \c std::string_view, \alib type #"^String"
    or \b QStringView.
-2. If the second condition is not met (field \alib{characters;ArrayTraits::Construction} does \b not
-   equal \alib{characters;Policy::Implicit}), then the type is
-   \ref alib_boxing_bijective_nonsurjective "locked" and cannot be unboxed from character arrays.<br>
+2. If the second condition is not met (field #"ArrayTraits::Construction;*" does \b not
+   equal #"Policy::Implicit;*"), then the type is
+   #"alib_boxing_bijective_nonsurjective;locked" and cannot be unboxed from character arrays.<br>
    Character array types that are not implicitly constructible, usually are "heavy types" which, for example, allocate
    memory and copy given string data when constructed. If such types are to be created from boxed
    character arrays, this has to be done using an \e explicit constructor invocation and passing
-   either an unboxed "lightweight type" or the result of methods \alib{boxing;Box::UnboxArray} and
-   \alib{boxing;Box::UnboxLength}. <br>
-   Samples for locked types are \c std::string, \alib type \alib{strings;TAString;AString}
-   or \b QString.
+   either an unboxed "lightweight type" or the result of methods #"Box::UnboxArray" and
+   #"Box::UnboxLength". <br>
+   Samples for locked types are \c std::string, \alib type #"^AString" or \b QString.
 
 As a result, to customize boxing for a custom string type, it is recommended to specialize
-\alib{characters;ArrayTraits} instead of \b BoxTraits.
+#"ArrayTraits" instead of \b BoxTraits.
 
 While it is still possible to use \b BoxTraits for customization, the advantage of the recommended
 approach is obvious: generally announcing the custom type to be of character array type enables
@@ -2464,32 +2464,31 @@ software built on \alib might directly benefit from such type-traits.
 In the unlikely case that \b ArrayTraits is specialized and still \b BoxTraits should be specialized
 (with the aim to provide a certain customization that is different from the one that this module
 automatically provides if \b ArrayTraits is given), then, to avoid ambiguities, the helper-type trait
-\alib{boxing;SuppressCharArrayBoxingTraits} may be specialized to inherit \c std::true_type.
+#"SuppressCharArrayBoxingTraits" may be specialized to inherit \c std::true_type.
 As its name says, a specialization of this type disables the automatic custom boxing and hence
 allows a specialization of \b ArrayTraits and a parallel specialization of \b BoxTraits.
 
 \attention
   <b>Header Inclusion Order:</b><br>
   The use of "underlying" module \alib_characters_nl and its type trait
-  \alib{characters;ArrayTraits} to specialize \alib{boxing;BoxTraits} for a whole set of types at
+  #"ArrayTraits" to specialize #"BoxTraits" for a whole set of types at
   once, imposes the requirement of keeping the right <b>header inclusion order</b> (respectively
-  C++20 Module import) order: Any specialization of \b ArrayTraits of module \alib_characters
-  (which included with \implude{Lang}) that is to be announced to a higher level
+  C++20-Module import) order: Any specialization of \b ArrayTraits of module \alib_characters
+  (which included with #"F;ALib.Lang.H") that is to be announced to a higher level
   compilation unit like \alib_boxing_nl, has to be made \b before the conditional customization
   of struct \b BoxTraits is given.<br>
   In practice, this means that any specializations of \b ArrayTraits have to be made right
-  after the inclusion of \implude{Lang}, and before the inclusion of \implude{Boxing}!
+  after the inclusion of #"F;ALib.Lang.H", and before the inclusion of #"F;ALib.Boxing.H"!
 
 \I{################################################################################################}
 ## 10.3 Box-Function FAppend ##{#alib_boxing_strings_fappend}
 
 With the inclusion of module \alib_strings in the \alibbuild, built-in box-function
-\alib{boxing;FAppend} becomes available.
+#"FAppend" becomes available.
 
 
-Class \alib{strings;TAString;AString} supports a concept-based mechanism to append objects of
-arbitrary type.
-This is documented with chapter \ref alib_strings_assembly_ttostring of the Programmer's Manual
+Class #"^AString" supports a concept-based mechanism to append objects of arbitrary type.
+This is documented with chapter #"alib_strings_assembly_ttostring" of the Programmer's Manual
 of module \alib_strings.
 
 Of course, if an object of type \b Box is "appended", then compile-time information about the boxed
@@ -2497,35 +2496,35 @@ data is lost. (It was lost when the box was created.)
 Consequently, the box-function \b FAppend is needed that performs the job in a virtual fashion.
 If a box is appended to an \b AString, simply this function is called.
 
-For all types which already specialize functor \alib{strings;AppendableTraits}, a templated
+For all types which already specialize functor #"AppendableTraits", a templated
 implementation of this function can be used: This unboxes the template type and appends it.
-This template function is provided with static member \alib{boxing;FAppend::Appendable}.
+This template function is provided with static member #"FAppend::Appendable".
 
 As a result, there are two ways of implementing interface \b %FAppend for a custom boxable type:
 1. As with other boxing interfaces: Provide a custom implementation.
-2. Make the type \ref alib_strings_assembly_ttostring "appendable" to class \b %AString and then
-   register \alib{boxing;FAppend::Appendable} for the mapped type.
+2. Make the type #"alib_strings_assembly_ttostring;appendable" to class \b %AString and then
+   register #"FAppend::Appendable" for the mapped type.
 
 The second approach has the advantage, that the custom type is directly appendable to objects of
 class \b %AString - independent of boxing. Therefore, this is the recommended option.
 
 \note
-  With module \alib_format, a next string-related box-function \alib{format;FFormat}
+  With module \alib_format, a next string-related box-function #"FFormat"
   becomes available, which allows controlling the string conversion of boxed values by the use of a
   format string.<br>
   Information and a sample implementation about both, \b FAppend and \b FFormat, is provided in
-  chapter \ref alib_format_custom_types of the
-  \ref alib_mod_format "Programmer's Manual" of that module.
+  chapter #"alib_format_custom_types" of the
+  #"alib_mod_format;Programmer's Manual" of that module.
 
 \I{################################################################################################}
 \I{##################     11. Class TBoxes and Variadic Function Arguments     ###################  }
 \I{################################################################################################}
-# 11. Variadic Function Arguments and Class TBoxes # {#alib_boxing_boxes}
+# 11\. Variadic Function Arguments and Class TBoxes # {#alib_boxing_boxes}
 
 \I{################################################################################################}
 ## 11.1 Variadic Function Arguments ## {#alib_boxing_boxes_variadic}
 
-With class \alib{boxing;Box} in place, it becomes possible to define functions and methods that take
+With class #"Box" in place, it becomes possible to define functions and methods that take
 an arbitrary value as an argument. The need for this is often combined with the need to allow an
 arbitrary number of such arbitrary arguments. C++ 11 introduced
 \https{variadic template arguments,en.cppreference.com/w/cpp/language/variadic_arguments} for this.
@@ -2567,14 +2566,14 @@ instead of a simple array would give more flexibility: It allows adding and remo
 array and to pass the array to other (non-templated functions) without passing its size in an
 extra parameter.
 
-For this and more purposes, templated class \alib{boxing;TBoxes} is provided. It publicly inherits
+For this and more purposes, templated class #"TBoxes" is provided. It publicly inherits
 from \c std::vector<alib::Box> and introduces method \b %Add accepting templated variadic arguments.
 This way, its use is as simple as this:
 
 \snippet "DOX_BOXING.cpp"      DOX_BOXING_BOXES_SAMPLE_1
 
 In this sample, five boxed objects are added to the container using method
-\alib{boxing;TBoxes::Add}.
+#"TBoxes::Add".
 
 We replace the simple C++ array of the recipe given in the previous section by an object of
 this type:
@@ -2582,9 +2581,9 @@ this type:
 \snippet "DOX_BOXING.cpp"      DOX_BOXING_BOXES_SAMPLE_VARIADIC
 
 The advantage of the former version is that the array was created on the \b "stack".
-In contrast to this, class \alib{Boxes} uses dynamic memory to store an arbitrary amount
+In contrast to this, class #"^Boxes" uses dynamic memory to store an arbitrary amount
 of boxes.<br>
-Even more efficient is the use of type \alib{BoxesMA}, which performs only one single
+Even more efficient is the use of type #"BoxesMA", which performs only one single
 allocation (as long as the list of boxes is not exceeding around 40 boxes, then a second allocation
 would be performed). More on this topic of memory management is discussed in the next section.
 
@@ -2594,22 +2593,22 @@ would be performed). More on this topic of memory management is discussed in the
 The previous chapter introduced class \b %TBoxes. It was said, that the class is derived from
 <c>std::vector<Box></c>. This is not exactly true. In fact it is derived from
 <c>std::vector<Box, lang::StdAllocator<Box, TAllocator>></c>. Together with the classes'
-template parameter \p{TAllocator} and the \c std allocator type \alib{lang;StdAllocator},
+template parameter \p{TAllocator} and the \c std allocator type #"StdAllocator",
 different allocation strategies than just heap allocation can be implemented. Now, in case that
 module \alib_monomem is included in the \alibbuild, the number of heap allocations can be
 reduced or even eliminated.
 
 The use cases for monotonic allocation mode are described with module \alib_monomem and not repeated
 here, besides the following hint: Should the given \b MonoAllocator be
-\alib{monomem;MonoAllocator::Reset;reset}, and the \b %TBoxes instance not be destructed but continued
+#"TMonoAllocator::Reset(Snapshot);reset", and the \b %TBoxes instance not be destructed but continued
 to be used, then the instance has to be "reset" as well. This is done by performing a C++
-placement-new, as \ref alib_ns_monomem_stdma_reset "described here".
+placement-new, as #"alib_ns_monomem_stdma_reset;described here".
 
 \I{################################################################################################}
 ## 11.4 Advanced Usage of Class %TBoxes ## {#alib_boxing_boxes_advanced}
 
-Besides providing variadic template arguments, method \b %TBoxes::Add uses some template meta
-programming to "flatten" the array in the case that another instance of class \b %TBoxes is added.
+Besides providing variadic template arguments, method \b %TBoxes::Add uses some C++ magic
+to "flatten" the array in the case that another instance of class \b %TBoxes is added.
 In other words, if an instance of class \b %TBoxes is passed to \b %TBoxes::Add, the boxes contained
 in this instance are copied into the destination vector! Due to this fact, when using sample
 method \b VariadicFunction from above, the invocation:
@@ -2658,20 +2657,18 @@ This can be invoked as follows:
 
 \verbinclude "DOX_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE.txt"
 
-A real world sample can be found in the logging library \ref alib::lox "ALox" which is
-built on \alib and makes a lot of use of \alib_boxing_nl.
-While straightforward methods
-\ref alib::lox::Lox::Info    "Lox::Info",
-\ref alib::lox::Lox::Verbose "Lox::Verbose", etc. accept variadic template arguments as objects
-to be logged, method
-\ref alib::lox::Lox::Once "Lox::Once" is more complicated: Various overloaded versions exist
-that interpret the term "once" differently. Therefore, each overloaded version accepts only one
-object to log - which at the first sight is only suitable to accept a simple log message string.
+A real world sample can be found in the camp \alib_alox which makes a lot of use of \alib_boxing_nl.
+While straightforward methods #"Lox::Info", #"Lox::Verbose", etc. accept variadic template 
+arguments as \e logables, the method 
+#"Once(const NString&, Verbosity, const Box&, const String&, Scope, int);Once" is more complicated: 
+Various overloaded versions exist that interpret the term "once" differently. 
+Therefore, each overloaded version accepts only one object to log - which at the first sight is 
+only suitable to accept a simple log message string.
 But internally, a \b %TBoxes instance is created and this way, multiple objects can be passed just
 as with other interface functions.
 
 As a final note, besides "flattening" a boxed instance of class \b %TBoxes,
-method \alib{boxing;TBoxes::Add} will do the same with a "boxed array of boxes".
+method #"TBoxes::Add" will do the same with a "boxed array of boxes".
 Hence the following code:
 
 \snippet "DOX_BOXING.cpp"      DOX_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE_2
@@ -2684,7 +2681,7 @@ produces:
 \I{################################################################################################}
 \I{#########################     12. Further Topics And Details     #############################  }
 \I{################################################################################################}
-# 12. Further Topics And Details # {#alib_boxing_more}
+# 12\. Further Topics And Details # {#alib_boxing_more}
 
 \I{################################################################################################}
 \I{#########################        12.1 Void And Nulled Boxes      #############################  }
@@ -2699,38 +2696,38 @@ Technically this means, that no \b VTable singleton is set, because \b VTables o
 mapped types.
 
 To test if a box <em>"is void"</em>, aka does not contain a value, a test for type \c void is to be
-performed by invoking \alib{boxing;Box::IsType;Box::IsType<void>}.<br>
+performed by invoking #"boxing::Box::IsType;Box::IsType<void>".<br>
 As soon as anything else but \c nullptr is boxed (with construction or assignment), the instance
 loses its void state.
 Vice versa, by assigning keyword \c nullptr, a box is "reset" to void state.
 
 The following methods are allowed to be called on void boxes:
-- All type guessing functions, like \alib{boxing::Box;IsType} or \alib{boxing::Box;IsArray},
-  also including \alib{boxing::Box;IsSameType}. However, the latter returns \c false, even if both
+- All type guessing functions, like #"Box::IsType" or #"Box::IsArray",
+  also including #"Box::IsSameType". However, the latter returns \c false, even if both
   boxes are in void state.<br>
-  Method \alib{boxing;Box::TypeID} returns <c>typeid(void)</c> if a box is not initialized.
-- Box-function methods, including \alib{boxing::Box;Call}, \alib{boxing::Box;CallDirect},
-  and \alib{boxing::Box;GetFunction}.
+  Method #"Box::TypeID" returns <c>typeid(void)</c> if a box is not initialized.
+- Box-function methods, including #"Box::Call", #"Box::CallDirect",
+  and #"Box::GetFunction".
   Nothing will be invoked with these methods, also no default methods.
 - Consequently also all interface methods and operators that internally call a box-function, namely
-  - \alib{boxing;Box::IsNull}
-  - \alib{boxing;Box::Hashcode}
-  - \alib{boxing;Box::Clone}
-  - \alib{boxing;Box::operator==}
-  - \alib{boxing;Box::operator!=}
-  - \alib{boxing;Box::operator<}
-  - \alib{boxing;Box::operator<=}
-  - \alib{boxing;Box::operator>}
-  - \alib{boxing;Box::operator>=}
+  - #"Box::IsNull"
+  - #"Box::Hashcode"
+  - #"Box::Clone"
+  - #"Box::operator=="
+  - #"Box::operator!="
+  - #"Box::operator<"
+  - #"Box::operator<="
+  - #"Box::operator>"
+  - #"Box::operator>="
 
 
 \b Forbidden methods that produce undefined behavior if invoked, are:
 
-- Method \alib{boxing::Box;Unbox} and related methods \alib{boxing::Box;UnboxArray},
-  \alib{boxing::Box;UnboxElement}, \alib{boxing::Box;UnboxLength} or \alib{boxing::Box;Data}.
-- Methods \alib{boxing::Box;ArrayElementSize} and \alib{boxing::Box;GetPlaceholderUsageLength}.
+- Method #"Box::Unbox" and related methods #"Box::UnboxArray",
+  #"Box::UnboxElement", #"Box::UnboxLength" or #"Box::Data".
+- Methods #"Box::ArrayElementSize" and #"Box::GetPlaceholderUsageLength".
 
-In debug-compilations these methods raise a run-time assertion when invoked on a void box.
+In debug-compilations these methods raise a runtime assertion when invoked on a void box.
 Most of the times an explicit test on whether a box is void is still not necessary, because
 unboxing is only allowed after successful type guessing.
 
@@ -2743,8 +2740,8 @@ Very different from the attribute of a Box being \e void, is the attribute of be
 The latter applies only to non-void boxes. In theory, the \e nulled-state of a box is undefined
 if no value is boxed.
 
-Whether a box is \e nulled or not is evaluated using built-in box-function \alib{boxing;FIsNotNull},
-which is invoked on the box with methods \alib{boxing;Box::IsNull} and \alib{boxing;Box::IsNotNull}.
+Whether a box is \e nulled or not is evaluated using built-in box-function #"FIsNotNull",
+which is invoked on the box with methods #"Box::IsNull" and #"Box::IsNotNull".
 
 \alib_boxing_nl is tolerant in respect to calling box-functions on \e void boxes.
 Calling \b FIsNotNull on a \e void box returns the default value of the type \c bool, which is
@@ -2754,8 +2751,8 @@ behavior with most use cases.
 
 Default implementations of \b FIsNotNull for fundamental types return \c true, as such types
 are not considered \e nullable. The default implementation returns \c false (\e nulled), for
-\alib{boxing;Box::IsArray;array types} that have a length of \c 0 and for
-\alib{boxing;Box::IsPointer;pointer types} that have value \c nullptr.
+#"Box::IsArray;array types" that have a length of \c 0 and for
+#"Box::IsPointer;pointer types" that have value \c nullptr.
 Otherwise the default implementation returns \c true (not \e nulled).
 
 
@@ -2781,7 +2778,7 @@ made:
      In older versions of this library, the optimization was not even possible.
   2. For C++ fundamental types and many \alib types, such optimization is already built-in.
   3. To keep this and the next manual section short, technical details are postponed to
-     a \ref alib_boxing_more_opt_staticvt_bg "third section" of this chapter only.
+     a #"alib_boxing_more_opt_staticvt_bg;third section" of this chapter only.
 
 
 The processes of boxing, type guessing and unboxing should be implemented in a fast
@@ -2789,7 +2786,7 @@ and lean code. The three share two actions:
 1. Identifying the mapped type: this is done with boxing and type guessing.
 2. Copying the data: this is done with boxing and unboxing.
 
-Point two is a matter of the implementation of struct \alib{boxing;BoxTraits}.
+Point two is a matter of the implementation of struct #"BoxTraits".
 If the default for methods \b Write and \b Read can be used, this is implemented most efficiently
 and cannot be optimized. What is left is point one. This in turn is split into three steps:
 1. Decide about the mapped type.
@@ -2797,7 +2794,7 @@ and cannot be optimized. What is left is point one. This in turn is split into t
 3. Store the singleton in the box (used with boxing) or compare the singleton with the stored one
    (used with type guessing).
 
-The good news is, that step one is performed at compile-time and this way has no run-time effects.
+The good news is, that step one is performed at compile-time and this way has no runtime effects.
 Step three is a most efficient simple pointer assignment, respectively comparison.<br>
 As a result, the only point that leaves room for optimizations is with step two, retrieving the
 \e vtable singleton.
@@ -2807,7 +2804,7 @@ For example, "boxing a value" is compiled to nothing more than just filling (all
 of) the 24 bytes (respectively 12 bytes on a 32-bit platform) with values that the CPU can
 simply load from other memory addresses!<br>
 As mentioned above, the impact of not performing the optimization for a mapped type, is described
-in the section \ref alib_boxing_more_opt_staticvt_bg.
+in the section #"alib_boxing_more_opt_staticvt_bg".
 
 \I{################################################################################################}
 ### 12.2.2 Declaration, Definition and Registration Of Static VTables ### {#alib_boxing_more_opt_staticvt_howto}
@@ -2819,34 +2816,34 @@ built into the library, the library code itself, namely that used for types \c b
 \c char[], are used as a sample.
 
 #### 1. Declaration of the vtable ####
-Named singletons of struct \alib{boxing;detail::VTable} have to be declared in a header-file.
+Named singletons of struct #"detail::VTable" have to be declared in a header-file.
 For this, macros
-- \ref ALIB_BOXING_VTABLE_DECLARE and
-- \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE
+- #"ALIB_BOXING_VTABLE_DECLARE" and
+- #"ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE"
 
 are to be used. For types \c bool and \c char[], the internal (always included) header-file
-\b alib/boxing/boxingcustoms.inl states:
+\b alib/boxing/boxingcustoms.inc states:
 
-\snippet "boxing/boxingcustoms.inl.inl"    DOX_BOXING_OPTIMIZE_DECLARE_1
-\snippet "boxing/detail/vtable.inl"               DOX_BOXING_OPTIMIZE_DECLARE_2
+\snippet "boxing/boxingcustoms.hpp.inl"    DOX_BOXING_OPTIMIZE_DECLARE_1
+\snippet "boxing/detail/vtable.hpp"               DOX_BOXING_OPTIMIZE_DECLARE_2
 
 Besides the mapped type, a second parameter specifies a valid and unique C++ identifier name.
 
 \attention
   Likewise with boxing customization (the provision of specializations of the type trait
-  \alib{boxing;BoxTraits}) it is mandatory, that each compilation unit that boxes, guesses,
+  #"BoxTraits") it is mandatory, that each compilation unit that boxes, guesses,
   or unboxes the mapped type, needs to "be aware" of that optimization.
   It is recommended to place the optimizations in the in the same header-file as the
   customizations and make sure it is always included.
   Otherwise, the result is undefined behavior!<br>
-  \alib_boxing_nl will give a run-time assertion in debug-compilations if a code unit
+  \alib_boxing_nl will give a runtime assertion in debug-compilations if a code unit
   misses such inclusion.
 
 #### 2. Definition of the vtable ####
 The singleton objects have to be defined in a <b>compilation unit</b> (e.g., cpp-file).
 Corresponding macros
-- \ref ALIB_BOXING_VTABLE_DEFINE and
-- \ref ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE
+- #"ALIB_BOXING_VTABLE_DEFINE" and
+- #"ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE"
 
 are used:
 
@@ -2858,14 +2855,14 @@ The macro parameters are the very same as for the declaration.
 #### 3. Registration of the vtable ####
 This final step is needed <b>only in debug-compilations</b>.
 Consequently, macro
-- \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER
+- #"ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER"
 
 (which is used to register both, non-array-type and array-type \e vtables) is empty when
 compiling a release-version.
 
-Similar to the \ref alib_boxing_functions_concepts_reg "registration of box-function implementations",
+Similar to the #"alib_boxing_functions_concepts_reg;registration of box-function implementations",
 the registration of static \e vtables has to be performed with the
-\ref alib_mod_bs "bootstrap code" of software. It is a good
+#"alib_mod_bs;bootstrap code" of software. It is a good
 idea to place the macros to the same bootstrap section, where function registrations are done.
 
 In our sample, this looks as follows:
@@ -2877,14 +2874,14 @@ The registration done in debug-compilations has two effects:
 1. It helps to detect if two or more code units use the mapped type in conflicting ways: some with
    the declaration of the static table, while others without it.
 2. It allows enumerating the overall known \e vtables, when creating debug status information
-   about \alib_boxing_nl, as documented with chapter \ref alib_boxing_more_debug.
+   about \alib_boxing_nl, as documented with chapter #"alib_boxing_more_debug".
    In turn, the use of such debug options helps <b>to identify vtable candidates</b> that might
    benefit from optimization, as this also lists the overall usage of a type.
 
 \note
   Although registration is purely introduced and performed for debug-purposes, it is mandatory
-  to be done in debug-compilations. Methods \alib{boxing;Box::Unbox}, \alib{boxing;Box::UnboxArray}
-  and \alib{boxing;Box::UnboxElement} will assert if a non-registered \e vtable is used with the current
+  to be done in debug-compilations. Methods #"Box::Unbox", #"Box::UnboxArray"
+  and #"Box::UnboxElement" will assert if a non-registered \e vtable is used with the current
   box.
 
 This is all that is needed to do. With that, \alib_boxing_nl is as fast as technically
@@ -2896,7 +2893,7 @@ execution performance.
 
 #### Creating Strict Singleton VTables: ####
 What the \https{vtable is in C++,en.wikipedia.org/wiki/Virtual_method_table}, is
-struct \alib{boxing;detail::VTable} for \alib_boxing_nl.
+struct #"detail::VTable" for \alib_boxing_nl.
 Both are strict singletons, which means that two objects of the same mapped type share a pointer
 to the same \b vtable and that for each mapped type only one instance exists.
 
@@ -2904,14 +2901,14 @@ At compile-time, when an object is boxed, the right singleton has be chosen and 
 the object's data in the box.
 The small challenge now is to find a way of how to define a singleton for the endless amount of
 types that can be mapped? The solution is done with a simple trick: An otherwise empty template class
-\alib{boxing;detail::VTableUnoptimized} is derived from \b VTable. In parallel this template class is also
-derived from \alib class \alib{singletons;Singleton}. Two template parameters are specified,
+#"detail::VTableUnoptimized" is derived from \b VTable. In parallel this template class is also
+derived from \alib class #"Singleton". Two template parameters are specified,
 \p{TMapped} and \p{TIsArray}.
-(Note that these are the same as found in traits-struct \alib{boxing;BoxTraits} and this way
+(Note that these are the same as found in traits-struct #"BoxTraits" and this way
 uniquely specify a mapped type.)
 
 If the \e vtable was \b not optimized (as shown in the previous section), then the static
-method \alib{singletons;Singleton::GetSingleton} is invoked on type \b VTableUnoptimized:
+method #"Singleton::GetSingleton;*" is invoked on type \b VTableUnoptimized:
 
     VTableUnoptimized<TMapped, TIsArray>::GetSingleton()
 
@@ -2919,22 +2916,22 @@ This gives the constructors of class \b Box the strict singleton object it needs
 
 Now, to allow optimizations, class \b Box does not perform the retrieval of the right singleton
 directly. Instead, it is done indirectly through a next type trait, namely
-\alib{boxing;VTableOptimizationTraits}.
+#"VTableOptimizationTraits".
 Only its default implementation (in the non-optimized case)  acts as described above.
 Specialized versions for its template parameters \p{TMapped} and \p{TIsArray} may return an
 \c extern dedicated object (which is DLL-exported under WindowsOS).
 
-The macros \ref ALIB_BOXING_VTABLE_DECLARE and \ref ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE
+The macros #"ALIB_BOXING_VTABLE_DECLARE" and #"ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE"
 declare such singleton and at the same time specialize the factory-function for the given mapped
 type to return this instance.
 Those are to be placed in header-files. The definition of the static <em>vtable</em>-instance
-is performed in a compilation unit usign macro \ref ALIB_BOXING_VTABLE_DEFINE.
-Finally, to support debugging facilities, macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER
+is performed in a compilation unit usign macro #"ALIB_BOXING_VTABLE_DEFINE".
+Finally, to support debugging facilities, macro #"ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER"
 needs to be placed in the bootstrap section of your program. The latter is empty in release builds.
 
 #### Impact of non-optimized vtables: ####
 The final technical question is now: what negative impact does the use of class
-\alib{singletons;Singleton::GetSingleton} have? As type \b Singleton has to be
+#"Singleton::GetSingleton;*" have? As type \b Singleton has to be
 templated, it's construction has to be performed inline. The same is the case with
 struct \b VTableUnoptimized which derives both \b VTable and the singleton. The first thing that
 \b Singleton::Get does is to check whether the singleton was already created by an earlier call.
@@ -2953,7 +2950,7 @@ Note that this \e "DLL-problem" does \b not apply for the optimized, static \e v
 Here, a definition can be used in a distinct compilation unit, that the process and the DLLs share.
 
 \attention
-  If static (global) instances of class \alib{boxing;Box} should be defined which are initialized
+  If static (global) instances of class #"Box" should be defined which are initialized
   by the non-structured initializer-code of C++, then optimization of the corresponding
   \e vtable becomes mandatory, if module \alib_singletons works in "mapped mode".<br>
   The latter is usually \b true on WindowsOS when working with DLLs.<br>
@@ -2961,18 +2958,18 @@ Here, a definition can be used in a distinct compilation unit, that the process 
   the initialization of a global instance of class \b Box is undefined behavior, because it is not
   guaranteed that the likewise global hashmap is yet initialized at this point in time!
 
-More details on this topic are found with the \ref alib_mod_singletons "Programmer's Manual" of
+More details on this topic are found with the #"alib_mod_singletons;Programmer's Manual" of
 the module \alib_singletons_nl.
                   
 
 
 #### Management Of Boxed Functions: ####
-With field \alib{boxing::detail;VTable::Functions}, each \e vtable embeds struct
-\alib{boxing::detail;FunctionTable} which is responsible to store and retrieve implementations of
+With field #"VTable::Functions", each \e vtable embeds struct
+#"detail::FunctionTable" which is responsible to store and retrieve implementations of
 box-functions. Furthermore, one dedicated instance of this type is defined in the namespace
 to store the default implementations.
 
-Methods \alib{boxing::detail;FunctionTable::Set} and \alib{boxing::detail;FunctionTable::Get}
+Methods #"FunctionTable::Set" and #"FunctionTable::Get"
 use concept-based overload mechanics by their template type \p{TFDescr}.
 For the built-in functions \b FClone, \b FEquals, etc, a direct access to a corresponding pointer
 member is performed.
@@ -3005,7 +3002,7 @@ that is residing in read-only memory (e.g., embedded systems).
 ### Requirements ###
 The C++ rules for creating \c constexpr objects imposes that the constructor of class \b Box
 that is chosen according to a given argument type \p{TBoxable}, is implemented \c constexpr.
-The constructor creates two field members, the \e vtable and the \alib{boxing;Placeholder}.
+The constructor creates two field members, the \e vtable and the #"boxing::Placeholder".
 Consequently, the creation of both objects need to be implemented \c constexpr.
 
 \note
@@ -3015,23 +3012,23 @@ Consequently, the creation of both objects need to be implemented \c constexpr.
 
 <b>1. Static VTable:</b><br>
 For the \e vtable to meet the requirement, the optimization discussed in previous chapter
-\ref alib_boxing_more_opt_staticvt has to be performed and thus is the first mandatory requirement
+#"alib_boxing_more_opt_staticvt" has to be performed and thus is the first mandatory requirement
 to enable \c constexpr boxes is to implement what is described in this chapter for the
 mapped type in question.
 \attention
   This first requirement is only needed, in case a \alib and your software is run under Windows OS,
   using Windows DLL and thus the implementation of module \alib_singletons is forced to use
-  feature \ref ALIB_FEAT_SINGLETON_MAPPED. On GNU/Linux and other OSes, this first requirement
+  feature #"ALIB_FEAT_SINGLETON_MAPPED". On GNU/Linux and other OSes, this first requirement
   is not needed to be met.
      
 
 <b>2. Constexpr Definition of BoxTraits::Write:</b><br>
 The second requirement of creating the \b Placeholder in a \c constexpr way, can be
-achieved with some of the overloaded versions of the method \alib{boxing;BoxTraits::Write}.
+achieved with some of the overloaded versions of the method #"BoxTraits::Write".
 Fortunately, with C++20 the restrictions got further relaxed in respect to C++ Unions, which
 class \b Placeholder uses in an even nested fashion.<br>
 
-Please refer to the reference documentation of class \alib{boxing;Placeholder} for further
+Please refer to the reference documentation of class #"boxing::Placeholder" for further
 information on your options of implementing a custom \b Write method that satisfies \c constexpr
 compilation.
 
@@ -3039,10 +3036,10 @@ compilation.
 The following rules apply for different types:
 
 - <b>Void, void* And Nulled Boxes:</b><br>
-  \ref alib_boxing_more_void "Void and nulled boxes" are \c constexpr.
+  #"alib_boxing_more_void;Void and nulled boxes" are \c constexpr.
 
 - <b>Fundamental Types:</b><br>
-  All C++ fundamental types can be created \c constexpr (built-in adoptions)
+  All C++ fundamental types can be created \c constexpr (built-in adaptations)
 
 - <b>Array Types:</b><br>
   If boxing is performed as an array type, the following applies:
@@ -3068,14 +3065,14 @@ The following rules apply for different types:
 \I{################################################################################################}
 ## 12.4 Global And Static Box Instances And Their Initialization ## {#alib_boxing_more_static_instances}
 
-Instances of class \alib{boxing;Box} may generally exist as global data or static members as long
+Instances of class #"Box" may generally exist as global data or static members as long
 as they not initialized with a boxed value.
 
 If a default-initialization should be given (and if WindowsOS/DLL use is required), then the
 resulting mapped type's \e vtable has to be statically defined as described in chapter
-\ref alib_boxing_more_opt_staticvt.
+#"alib_boxing_more_opt_staticvt".
 The reason for this is, that dynamically created \e vtables are using the mechanics implemented
-with \alib type \alib{singletons;Singleton}. To achieve the creation of process-wide "true"
+with \alib type #"Singleton". To achieve the creation of process-wide "true"
 singleton objects, this class uses a globally defined hash-map that in case of a first creation
 within a compilation unit might be used to receive one already created in another compilation unit.
 The technical background for this is explained with module \alib_singletons. In short, the
@@ -3085,13 +3082,13 @@ Because the sequence order of initialization of global objects is not defined wi
 it cannot be ensured that the hash-map is already initialized when the singleton \e vtable of
 an initialized global or static box is required.
 
-As it was documented in chapter \ref alib_boxing_more_opt_staticvt, for all fundamental types
+As it was documented in chapter #"alib_boxing_more_opt_staticvt", for all fundamental types
 as well as for character arrays, a static \e vtable implementation is always in place.
 Therefore, global or static boxes may well be initialized with values of these types.
 If a custom type is to be used for initialization, a static \e vtable has to be given.
 
 In debug-compilations, the use of dynamic \e vtables with global or static instances of class \b Box
-\ref alib_mod_assert "raises an error".
+#"alib_mod_assert;raises an error".
 
 \I{################################################################################################}
 \I{##########################    12.5 Bootstrapping This Module        ##########################  }
@@ -3101,15 +3098,15 @@ In debug-compilations, the use of dynamic \e vtables with global or static insta
 \I{################################################################################################}
 ### 12.5.1 Compilation Options ### {#alib_boxing_more_bootstrap_compilation}
 
-The following \ref GrpALibPreproSymbols are provided by this \alibmod_nl:
+The following #"alib_macros_config" are provided by this \alibmod_nl:
 
-- \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
-- \ref ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
-- \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+- #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS"
+- #"ALIB_FEAT_BOXING_BIJECTIVE_FLOATS"
+- #"ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS"
 
 \see
-  Chapter \ref alib_manual_build "6. Building The Library"
-  of the \ref alib_manual "ALib Programmer's Manual".
+  Chapter #"alib_manual_build"
+  of the #"alib_manual;ALib Programmer's Manual".
 
 
 
@@ -3119,7 +3116,7 @@ The following \ref GrpALibPreproSymbols are provided by this \alibmod_nl:
 ## 12.6 Life-Cycle Considerations ## {#alib_boxing_more_iclone}
 
 With \alib_boxing_nl, \b no mechanisms are in place that link the life-cycle of boxes with
-their boxed values. Class \alib{boxing;Box} does not even have a destructor defined!
+their boxed values. Class #"Box" does not even have a destructor defined!
 This is a huge difference to C++17 class \c std::any.<br>
 It is completely left to the user of the library to make sure that any pointer or data that
 otherwise references values available during boxing, are still intact and available when unboxed
@@ -3127,21 +3124,21 @@ and vice versa, that allocated objects that become boxed are de-allocated after 
 refers to them is disposed.
 
 In many use cases, this is absolutely no problem: Often, \alib_boxing_nl is used to
-implement generic (and \ref alib_boxing_boxes "optionally variadic") function arguments.
+implement generic (and #"alib_boxing_boxes;optionally variadic") function arguments.
 If those are then used inside the function only and not stored otherwise, the access to
 boxed data is safe. A prominent sample for this use case is given with
-\ref alib_boxing_appendix_usecases_format "appendix chapter C.1".
+#"alib_boxing_appendix_usecases_format;appendix chapter C.1".
 
 However, other use-cases might introduce the need to use boxed data out of the scope that
 boxed the data. A good sample for this is given with appendix chapter
-\ref alib_boxing_appendix_usecases_exceptions. Objects of type \b Exception carry exception
+#"alib_boxing_appendix_usecases_exceptions". Objects of type \b Exception carry exception
 arguments while the function-call stack is "unwinded". Hence, all locally defined objects
 are destructed and get out of scope.
 
 In this and similar cases, a user of the library has to ensure that boxes of mapped types whose
 data might become corrupted, are either not unboxed or the data is copied before having the box
 leaving the scope.
-A nice way to perform such copying is provided with built-in box-function \alib{boxing;FClone}.
+A nice way to perform such copying is provided with built-in box-function #"FClone".
 Its default implementation copies the data of boxed arrays.
 
 Depending on the use-case, the concept of "cloning" does not need be taken too literally, because
@@ -3162,17 +3159,17 @@ readable formatted log output.
 \I{################################################################################################}
 ### 12.7.1 Available Debug Objects And Fields ### {#alib_boxing_more_debug_general}
 
-In debug-compilations, the compiler-symbol \ref ALIB_DEBUG_BOXING may be set.
+In debug-compilations, the configuration macro #"ALIB_DEBUG_BOXING" may be set.
 With it, following entities become available:
-- Namespace \alib{boxing::debug} and its functions.
-- Method \alib{boxing;Box::DbgGetVTable}
-- Field \alib{boxing::detail;FunctionTable::DbgCntInvocationsFClone;FunctionTable::DbgCntInvocationsXYZ}
-- Field \alib{boxing::detail;VTable::DbgProduction}
-- Field \alib{boxing::detail;VTable::DbgCntUsage}
-- Function \alib{boxing;debug::DbgCheckIsInitialized}
-- Function \alib{boxing;debug::DbgRegisterVTable} along with macro
-  \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER
-- Function \alib{boxing;debug::DbgCheckRegistration}
+- Namespace #"boxing::debug" and its functions.
+- Method #"Box::DbgGetVTable"
+- Field #"boxing::detail::FunctionTable::DbgCntInvocationsFClone;FunctionTable::DbgCntInvocationsXYZ"
+- Field #"VTable::DbgProduction"
+- Field #"VTable::DbgCntUsage"
+- Function #"debug::DbgCheckIsInitialized"
+- Function #"debug::DbgRegisterVTable" along with macro
+  #"ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER"
+- Function #"debug::DbgCheckRegistration"
 
 Together, this discloses all information necessary to investigate into the built-in and default
 behavior of \alib_boxing_nl. Please consult the reference manual of the named types,
@@ -3181,27 +3178,27 @@ for further details.
 
 \I{################################################################################################}
 ### 12.7.2 Namespace alib::boxing::debug ### {#alib_boxing_more_debug_dbgboxing}
-Instead of using the methods and objects listed above, namespace \alib{boxing::debug} provides
+Instead of using the methods and objects listed above, namespace #"boxing::debug" provides
 a more handy alternative at the moment that module \alib_format is included in the \alibbuild.
 The namespace then offers additional functions that collect and format various sorts of information.
 
-For details, please consult the namespaces \alib{boxing;debug;reference documentation}.
+For details, please consult the namespaces #"debug;reference documentation".
 In this Programmer's Manual, we just want to provide some sample invocations.
 
 #### Showing The Mapped Type: ####
 If a programmer is unsure, which mapped type results from boxing, all that is needed to do is to
-pass a "sample box" to function \alib{boxing::debug;TypeName}:
+pass a "sample box" to function #"debug::TypeName(const Box&)":
 
 \snippet "DOX_BOXING.cpp"                    DOX_BOXING_DEBUG_TYPENNAME
 \verbinclude "DOX_BOXING_DEBUG_TYPENAME.txt"
 
 #### Detailed Info On Boxable And Corresponding Mapped Type: ####
-A next, quite powerful function is \alib{boxing::debug;TypeInfo}. It provides all information
-on a boxable type \p{TBoxable} and its a mapped type.<br>
+A next, quite powerful function is #"debug::TypeInfo(const String&, const String&)". It provides all 
+information on a boxable type \p{TBoxable} and its a mapped type.<br>
 The boxable type needs to be provided as a template parameter \p{TBoxable}.
 If it is not default-constructible, a corresponding the sample box has to be provided as well.
 To stay with sample above, to get information for mapped type \c char[], one possible \p{TBoxable}
-is \ref alib::String "alib::String". With that, the invocation looks like this:
+is #"^String". With that, the invocation looks like this:
 
 \snippet "DOX_BOXING.cpp"                    DOX_BOXING_DEBUG_TYPEINFO
 It produces the following details:
@@ -3212,7 +3209,7 @@ provides the quantity of unboxing operations and function invocations that have 
 on boxes of the mapped type so far.
 The value also depends on the point in time of a process's life-cycle the function was invoked.
 If this value indicates a high usage and line <b>"VTable Type"</b> denotes a dynamically created
-\e vtable type, it might make sense to \ref alib_boxing_more_opt_staticvt "define a static vtable"
+\e vtable type, it might make sense to #"alib_boxing_more_opt_staticvt;define a static vtable"
 for that mapped type.
 
 Likewise, with each specialized box-function, the number of its invocations is given in brackets
@@ -3231,18 +3228,18 @@ invocation of that default is given in brackets.
 
 #### Listing Mapped Types With Static/Dynamic VTables: ####
 To list just all types that a dynamic \e vtable is created for (and therefore could be
-\ref alib_boxing_more_opt_staticvt "optimized"), the following line of code can be used:
+#"alib_boxing_more_opt_staticvt;optimized"), the following line of code can be used:
 
 \snippet "DOX_BOXING.cpp"                    DOX_BOXING_DEBUG_DYNAMICTABLE
 Here is the list:
 \verbinclude "DOX_BOXING_DEBUG_DYNAMICTABLE.txt"
 
-If \c true was passed to \alib{boxing::debug;DumpVTables}, then those with static tables
+If \c true was passed to #"debug::DumpVTables", then those with static tables
 had been given. A second, default boolean parameter can be used to trigger the list of
 specialized functions with each \e vtable listed.
 
 #### Getting A Quick Overview: ####
-To finish this chapter, function \alib{boxing;debug::DumpAll} is invoked, which aggregates much of
+To finish this chapter, function #"debug::DumpAll" is invoked, which aggregates much of
 the above.<br>
 The following shows the invocation and a possible corresponding output:
 
@@ -3263,7 +3260,7 @@ and are run in the order of the chapters.
 The reason why the effort of implementing this library is needed is the C++ language design
 principle to be as performant and close to the hardware as possible. Other programming languages
 are designed for other goals. For example, in languages \b Java or \b C#, the principle "everything is an object"
-is (almost) implemented. In these languages, all instances (!) of class types have run-time type
+is (almost) implemented. In these languages, all instances (!) of class types have runtime type
 information attached. In C++, only virtual classes have that.
 
 And what happens in \b Java and \b C# when a plain, fundamental type is passed to a method that
@@ -3278,7 +3275,7 @@ We do this in a rather loose order:
 ### 12.8.1 A General Note On C++ RTTI ### {#alib_boxing_more_performance_rtti}
 
 Due to the C++ language history, there is some confusion and wrong information spread in consideration
-of run-time type information (\b RTTI), especially with programmers that have a long-term record
+of runtime type information (\b RTTI), especially with programmers that have a long-term record
 of C++ experience (because they probably went through the painful discussions of older days, which
 freshmen did not).
 
@@ -3300,16 +3297,16 @@ Therefore , quickly some facts:
 
 \I{################################################################################################}
 ### 12.8.2 VTables ### {#alib_boxing_more_performance_vtables}
-For each mapped type, a singleton of a type \alib{boxing;detail::VTable} is created once.
+For each mapped type, a singleton of a type #"detail::VTable" is created once.
 
-This is again is negligible, even if no \ref alib_boxing_more_opt_staticvt "static vtable" is
+This is again is negligible, even if no #"alib_boxing_more_opt_staticvt;static vtable" is
 declared for a mapped type. If it is, then the impact of using a mapped type is comparable to
 the use of \https{C++ vtables,en.wikipedia.org/wiki/Virtual_method_table} which are created
 by the compiler and included by the linker for each virtual C++ class used.
 
 \I{################################################################################################}
 ### 12.8.3 Footprint Of Class Box ### {#alib_boxing_more_performance_footpring}
-Class Box contains two members: A pointer to the vtable singleton and the data union \alib{boxing;Placeholder},
+Class Box contains two members: A pointer to the vtable singleton and the data union #"boxing::Placeholder",
 which consists of two "words".
 For example, on a standard 64-bit platform a pointer and a word is 8 bytes wide, hence
 an instance of class \b %Box on those platforms has a size of 24 bytes.
@@ -3317,7 +3314,7 @@ With many use cases, boxes are created in "stack memory" which allocates and dea
 zero time (yes, its less than "O(1)", it is just nothing).
 
 Once created, to pass them to another function or store them in a container like
-\alib{boxing;TBoxes}, these 24 bytes have to be copied.
+#"TBoxes", these 24 bytes have to be copied.
 
 While this is three times more than copying just a pointer, it might me much less effort in cases
 that composite types automatically become boxed as pointers. If those had been passed for example
@@ -3333,37 +3330,37 @@ retrieval of a singleton inlined.
 This rather tricky procedure is very efficient after it was done once for a type, but still the code
 that nees to be inlined for the case that it is the very first request to a singleton is rather big.
 This overhead in code-size can be optimized using
-\ref alib_boxing_more_opt_staticvt "static vtables".
+#"alib_boxing_more_opt_staticvt;static vtables".
 With such optimization, the effort is reduced to single copy operation of a pointer to a data
 structure residing in the global data segment of an executable.
 
-Secondly, the \alib{boxing;Placeholder} found with member \alib{boxing;Box::data} has to be set.
+Secondly, the #"boxing::Placeholder" found with member #"Box::data" has to be set.
 Again, this is mostly inlined template code and when compiled should be in most cases result
 in one or two simple copy operations of pointers or fundamental C++ values.
 
 Because the destructor of class \b Box is empty (as well as that of its embedded union
-\alib{boxing;Placeholder} and in turn that objects' members), destruction of boxes is a no-op.
+#"boxing::Placeholder" and in turn that objects' members), destruction of boxes is a no-op.
 
 
 \I{################################################################################################}
 ### 12.8.5 Type Guessing ### {#alib_boxing_more_performance_typeguessing}
 Template method
-\alib{boxing;Box::IsType} compares the internal pointer to the singleton \e vtable with the that
+#"Box::IsType" compares the internal pointer to the singleton \e vtable with the that
 singleton that would be chosen if the given type (the template parameter) was boxed.
 Therefore, the impact is the same as boxing a value, minus the process of boxing data,
 plus a pointer comparison.
 
-Again, if \ref alib_boxing_more_opt_staticvt "optimized vtables" are used for the mapped type
+Again, if #"alib_boxing_more_opt_staticvt;optimized vtables" are used for the mapped type
 resulting from the guessed type, method \b IsType is compiled to one simple inlined pointer comparison.
 
-Template methods \alib{boxing;Box::IsArray} and \alib{boxing;Box::IsArrayOf} have to perform
-an additional check for \ref alib_boxing_more_void "a void box", and then otherwise perform
+Template methods #"Box::IsArray" and #"Box::IsArrayOf" have to perform
+an additional check for #"alib_boxing_more_void;a void box", and then otherwise perform
 a similar pointer comparison.
 
 \I{################################################################################################}
 ### 12.8.6 Methods Box::GetFunction And Box::Call ### {#alib_boxing_more_performance_functions}
-Template method \alib{boxing;Box::GetFunction} performs a lookup of the function in struct
-\alib{boxing;detail::FunctionTable} that is embedded in the \e vtable member of each box.
+Template method #"Box::GetFunction" performs a lookup of the function in struct
+#"detail::FunctionTable" that is embedded in the \e vtable member of each box.
 This struct has simple pointer "slots" for each built-in function which are selected using template
 specializations of the corresponding access functions.
 
@@ -3375,9 +3372,9 @@ is slower and only in the average case is \e O(1).
 
 If parameter \p{searchScope} of method \b Box::GetFunction equals \b Reach::Global, then
 in case of not finding a specific implementation, the search is repeated using namespace
-object \alib{boxing;detail::DEFAULT_FUNCTIONS}.
+object #"detail::DEFAULT_FUNCTIONS".
 
-Finally, template method \alib{boxing;Box::Call} uses \b GetFunction and then just passes
+Finally, template method #"Box::Call" uses \b GetFunction and then just passes
 any given parameters to a C++ function call. Parameters are passed using C++ 11 "perfect forwarding".
 In the case that no interface method is found, a default value of the return type \p{TReturn}
 is created. Depending on the type, this might invoke a default constructor.
@@ -3397,7 +3394,7 @@ We consider the implementation of \alib_boxing_nl to be as performant as it is p
 
 It is hard or impossible to compare the impact on code size and performance between using of
 techniques like <em>C++ variadic template arguments</em> and the invocation of methods that do
-auto-boxing, probably using \ref alib_boxing_boxes_boxes "class TBoxes" to fetch variadic arguments.
+auto-boxing, probably using #"alib_boxing_boxes_boxes;class TBoxes" to fetch variadic arguments.
 
 In comparison to using C++17 type \c std::any, the most important advantage of \alib_boxing_nl
 is that no heap memory allocations are performed, because class \b Box "switches" to pointer-boxing
@@ -3405,7 +3402,7 @@ in the case a value does not fit to its placeholder.
 Reversely, when just fundamental types and small value classes are boxed, then \c std::any has an
 advantage in construction performance and memory footprint.
 
-At the end of the day, the typical \ref alib_boxing_appendix_usecases "use cases of ALib Boxing"
+At the end of the day, the typical #"alib_boxing_appendix_usecases;use cases of ALib Boxing"
 anyhow do not impose high demands on performance. The main motivation for providing this
 manual chapter is for the sake of completeness and furthermore, that the authors of the manual
 think that the previous considerations help to profoundly understand how \alib_boxing_nl
@@ -3419,40 +3416,40 @@ is implemented and therefore is to be used.
 \I{################################################################################################}
 # Appendix A Quick Reference # {#alib_boxing_appendix_quickref}
 
-While the \ref alib::boxing "namespace documentation" provides an extensive reference index
+While the #"alib::boxing;namespace documentation" provides an extensive reference index
 (generated with marvelous \https{Doxygen,https://www.doxygen.nl}),
 the following quick lists should help finding the information you need:
 
 ## A.1 Type Guessing ## {#alib_boxing_appendix_quickref_1}
 
-|Method   |Description
-|------------------------------------|---------------------
-|\alib{boxing;Box::IsType<void>}       | Tests for boxes that are default constructed or have a \c nullptr assigned, hence have no value boxed.
-|\alib{boxing;Box::IsType<T>}          | Tests a box for containing a value of boxable type \b T.
-|\alib{boxing;Box::IsArray}            | Returns \c true, if a one-dimensional C++ array had been boxed.
-|\alib{boxing;Box::IsArrayOf<T>}       | Returns \c true, if \b IsArray returns \c true and if the boxed array element type corresponds to given type \b T.
-|\alib{boxing;Box::IsPointer}          | Returns \c true, if the mapped type is of pointer type.
-|\alib{boxing;Box::IsEnum}             | Returns \c true, if the box contains an enumeration element.
-|\alib{boxing;Box::IsSameType<Box>}    | Non-template method that returns \c true if a box contains the same mapped-type than a given one.
-|\alib{boxing;Box::IsCharacter}        | Aggregation function that tests for mapped character types, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS.
-|\alib{boxing;Box::IsSignedIntegral}   | Aggregation function that tests for mapped signed integral types, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS.
-|\alib{boxing;Box::IsUnsignedIntegral} | Aggregation function that tests for mapped unsigned integral types, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS.
-|\alib{boxing;Box::IsFloatingPoint}    | Aggregation function that tests for mapped floating point types, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_FLOATS.
+| Method                     |Description
+|----------------------------|---------------------
+| #"Box::IsType;IsType<void>"| Tests for boxes that are default constructed or have a \c nullptr assigned, hence have no value boxed.
+| #"Box::IsType"             | Tests a box for containing a value of boxable type \b T.
+| #"Box::IsArray"            | Returns \c true, if a one-dimensional C++ array had been boxed.
+| #"Box::IsArrayOf"          | Returns \c true, if \b IsArray returns \c true and if the boxed array element type corresponds to given type \b T.
+| #"Box::IsPointer"          | Returns \c true, if the mapped type is of pointer type.
+| #"Box::IsEnum"             | Returns \c true, if the box contains an enumeration element.
+| #"Box::IsSameType"         | Non-template method that returns \c true if a box contains the same mapped-type than a given one.
+| #"Box::IsCharacter"        | Aggregation function that tests for mapped character types, respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS".
+| #"Box::IsSignedIntegral"   | Aggregation function that tests for mapped signed integral types, respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS".
+| #"Box::IsUnsignedIntegral" | Aggregation function that tests for mapped unsigned integral types, respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS".
+| #"Box::IsFloatingPoint"    | Aggregation function that tests for mapped floating point types, respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_FLOATS".
 
 
 ## A.2 Unboxing ## {#alib_boxing_appendix_quickref_2}
 
-|Method   |Description
-|------------------------------------|---------------------
-|\alib{boxing;Box::Unbox<T>}             | Unboxes non-array type \b T.
-|\alib{boxing;Box::UnboxArray<T>}        | Unboxes the pointer to an array of element type \b T.
-|\alib{boxing;Box::UnboxElement<T>}      | Unboxes an array's element of type \b T.
-|\alib{boxing;Box::UnboxLength}          | Unboxes an array's length.
-|\alib{boxing;Box::UnboxCharacter}       | Aggregation function that unboxes a \alib{characters;wchar}, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS.
-|\alib{boxing;Box::UnboxSignedIntegral}  | Aggregation function that unboxes a \alib{integer}, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS.
-|\alib{boxing;Box::UnboxUnsignedIntegral}| Aggregation function that unboxes a \alib{uinteger}, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS.
-|\alib{boxing;Box::UnboxFloatingPoint}   | Aggregation function that unboxes a value of type \b double, respecting the compiler-symbol \ref ALIB_FEAT_BOXING_BIJECTIVE_FLOATS.
-|\alib{boxing;Box::Data}                 | Allows direct constant access to a box's placeholder.
+| Method                        |Description
+|-------------------------------|---------------------
+| #"Box::Unbox"                 | Unboxes non-array type \b T.
+| #"Box::UnboxArray"            | Unboxes the pointer to an array of element type \b T.
+| #"Box::UnboxElement"          | Unboxes an array's element of type \b T.
+| #"Box::UnboxLength"           | Unboxes an array's length.
+| #"Box::UnboxCharacter"        | Aggregation function that unboxes a #"characters::wchar", respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS".
+| #"Box::UnboxSignedIntegral"   | Aggregation function that unboxes a #"lang::integer", respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS".
+| #"Box::UnboxUnsignedIntegral" | Aggregation function that unboxes a #"lang::uinteger", respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS".
+| #"Box::UnboxFloatingPoint"    | Aggregation function that unboxes a value of type \b double, respecting the configuration macro #"ALIB_FEAT_BOXING_BIJECTIVE_FLOATS".
+| #"Box::Data"                  | Allows direct constant access to a box's placeholder.
 
 
 ## A.3 Built-In Box-Functions ## {#alib_boxing_appendix_quickref_3}
@@ -3460,51 +3457,51 @@ The following box-functions are predefined with the library:
 
 |Name                    | Description/Notes
 |------------------------|-----------------------------------------------------------------------------------
-|\alib{boxing;FEquals}   |Logical comparison of the contents of two boxes. Specialization given for all fundamental and character array types<br>Templated implementations for comparable types are given with \alib{boxing;FEquals::ComparableTypes}.
-|\alib{boxing;FIsLess}   |Logical comparison of the contents of two boxes. Specialization given for all fundamental and character array types<br>Templated implementations for comparable types are given with \alib{boxing;FIsLess::ComparableTypes}.
-|\alib{boxing;FIsNotNull}|See chapter \ref alib_boxing_more_void_nulled for more information.
-|\alib{boxing;FClone}    |See chapter \ref alib_boxing_more_iclone for more information.
-|\alib{boxing;FIsTrue}   |Returns \c true if a boxed value is considered to represent <em>value true</em>; \c false otherwise.<br>The default implementation returns \c true for array types with zero length and for non-array types; if the \alib{boxing;Box::GetPlaceholderUsageLength;used placeholder bytes} do not all contain \c 0.<br>No type-specific implementations are given.
-|\alib{boxing;FHashcode} |Calculates a hash-code using the boxed type information as well as the boxed data.<br>A default implementation is given that takes all \alib{boxing;Box::GetPlaceholderUsageLength;used placeholder bytes} into account for types boxed as values or enums; the pointer address for types boxed as pointers and the array contents for boxed arrays. Furthermore specializations for all fundamental types are given by using static templated member \alib{boxing;FHashcode::UsePlaceholderBytes}.<br>For pointer types, the provision of a specialization that collects type-specific hashable data from the pointer may lead to advanced hashing results.
-|\alib{boxing;FAppend}   |Appends a string representation of the contents of the box to a given \b AString.<br>The default implementation writes the type name and a hexadecimal number in brackets behind for pointer types and similar information for other types. As type name information is available in debug-compilations only, in release code, the words "ValueType", "PointerType", "ArrayType" or "EnumType" are written instead. Hence, this indicates that a missing specialization is in fact an error and the default implementation is rather given for convenience and testing purposes.<br>Specializations are given for fundamental and character array types.
+|#"FEquals"   |Logical comparison of the contents of two boxes. Specialization given for all fundamental and character array types<br>Templated implementations for comparable types are given with #"FEquals::ComparableTypes".
+|#"FIsLess"   |Logical comparison of the contents of two boxes. Specialization given for all fundamental and character array types<br>Templated implementations for comparable types are given with #"FIsLess::ComparableTypes".
+|#"FIsNotNull"|See chapter #"alib_boxing_more_void_nulled" for more information.
+|#"FClone"    |See chapter #"alib_boxing_more_iclone" for more information.
+|#"FIsTrue"   |Returns \c true if a boxed value is considered to represent <em>value true</em>; \c false otherwise.<br>The default implementation returns \c true for array types with zero length and for non-array types; if the #"Box::GetPlaceholderUsageLength;used placeholder bytes" do not all contain \c 0.<br>No type-specific implementations are given.
+|#"FHashcode" |Calculates a hash-code using the boxed type information as well as the boxed data.<br>A default implementation is given that takes all #"Box::GetPlaceholderUsageLength;used placeholder bytes" into account for types boxed as values or enums; the pointer address for types boxed as pointers and the array contents for boxed arrays. Furthermore specializations for all fundamental types are given by using static templated member #"FHashcode::UsePlaceholderBytes".<br>For pointer types, the provision of a specialization that collects type-specific hashable data from the pointer may lead to advanced hashing results.
+|#"FAppend"   |Appends a string representation of the contents of the box to a given \b AString.<br>The default implementation writes the type name and a hexadecimal number in brackets behind for pointer types and similar information for other types. As type name information is available in debug-compilations only, in release code, the words "ValueType", "PointerType", "ArrayType" or "EnumType" are written instead. Hence, this indicates that a missing specialization is in fact an error and the default implementation is rather given for convenience and testing purposes.<br>Specializations are given for fundamental and character array types.
 
 ## A.4 Box-Function Invocation ## {#alib_boxing_appendix_quickref_4}
 
-|Method   |Description
-|----------------------------------|---------------------
-|\alib{boxing;Box::Call}           | Calls a box-function.
-|\alib{boxing;Box::CallDirect}     | Calls box-function previously received with \b GetFunction.
-|\alib{boxing;Box::GetFunction}    | Returns a box-function's implementation.
-|\alib{boxing;Box::Clone}          | Implicitly calls box-function \alib{boxing;FClone}.
-|\alib{boxing;Box::Hashcode}       | Implicitly calls box-function \alib{boxing;FHashcode}.
-|\alib{boxing;Box::IsNull}         | Implicitly calls box-function \alib{boxing;FIsNotNull}.
-|\alib{boxing;Box::IsNotNull}      | Implicitly calls box-function \alib{boxing;FIsNotNull}.
-|\alib{boxing;Box::operator bool()}| Implicitly calls box-function \alib{boxing;FIsTrue}.
-|\alib{boxing;Box::operator==}     | Implicitly calls box-function \alib{boxing;FEquals}.
-|\alib{boxing;Box::operator!=}     | Implicitly calls box-function \alib{boxing;FEquals}.
-|\alib{boxing;Box::operator<}      | Implicitly calls box-function \alib{boxing;FIsLess}.
-|\alib{boxing;Box::operator<=}     | Implicitly calls box-functions \alib{boxing;FIsLess} and \alib{boxing;FEquals}.
-|\alib{boxing;Box::operator>}      | Implicitly calls box-functions \alib{boxing;FIsLess} and \alib{boxing;FEquals}.
-|\alib{boxing;Box::operator>=}     | Implicitly calls box-function \alib{boxing;FIsLess}.
+| Method                  |Description
+|-------------------------|---------------------
+| #"Box::Call"            | Calls a box-function.
+| #"Box::CallDirect"      | Calls box-function previously received with \b GetFunction.
+| #"Box::GetFunction"     | Returns a box-function's implementation.
+| #"Box::Clone"           | Implicitly calls box-function #"FClone".
+| #"Box::Hashcode"        | Implicitly calls box-function #"FHashcode".
+| #"Box::IsNull"          | Implicitly calls box-function #"FIsNotNull".
+| #"Box::IsNotNull"       | Implicitly calls box-function #"FIsNotNull".
+| #"Box::operator bool"   | Implicitly calls box-function #"FIsTrue".
+| #"Box::operator=="      | Implicitly calls box-function #"FEquals".
+| #"Box::operator!="      | Implicitly calls box-function #"FEquals".
+| #"Box::operator<"       | Implicitly calls box-function #"FIsLess".
+| #"Box::operator<="      | Implicitly calls box-functions #"FIsLess" and #"FEquals".
+| #"Box::operator>"       | Implicitly calls box-functions #"FIsLess" and #"FEquals".
+| #"Box::operator>="      | Implicitly calls box-function #"FIsLess".
 
 ## A.5 Further Methods Of Class Box: ## {#alib_boxing_appendix_quickref_5}
 
 |Method   |Description
 |------------------------------------|---------------------
-|\alib{boxing;Box::TypeID}           | Returns the \c typeid of a mapped type.
-|\alib{boxing;Box::ElementTypeID}    | Returns the \c typeid of a boxed array's element type.
-|\alib{boxing;Box::GetPlaceholderUsageLength}| Returns the bytes used in the placeholder. Usefull to write generic code, e.g., to implement default versions of box-functions.
+|#"Box::TypeID"           | Returns the \c typeid of a mapped type.
+|#"Box::ElementTypeID"    | Returns the \c typeid of a boxed array's element type.
+|#"Box::GetPlaceholderUsageLength"| Returns the bytes used in the placeholder. Usefull to write generic code, e.g., to implement default versions of box-functions.
 
 
 ## A.6 Debug Methods And Entities: ## {#alib_boxing_appendix_quickref_6}
 
 | Method                                      |Description
 |---------------------------------------------|---------------------
-| \alib{boxing::debug}                        | Namespace with tool functions to create human-readable information about the configuration of \alib_boxing_nl.
-| \alib{boxing;Box::DbgGetVTable}             | Returns the \e vtable singleton of a box.
-| \alib{boxing::detail;VTable::Functions}     | Has a set of fields whose names are prefixed \b "DbgCntInvocations" and provide the number of invocations of the corresponding built-in box-function. Likewise; method \alib{boxing;debug::GetSpecificFunctionTypes} returns the usage number with each registered custom box-function.
-| \alib{boxing::detail;VTable::DbgProduction} | Denotes if a \e vtable singleton was dynamically created or is an \ref alib_boxing_more_opt_staticvt "optimized static" object.
-| \alib{boxing::detail;VTable::DbgCntUsage}   | A usage counter for the mapped type. The counter is increased with the invocation of various unboxing methods and when a box-function invocation is performed.
+| #"boxing::debug"                        | Namespace with tool functions to create human-readable information about the configuration of \alib_boxing_nl.
+| #"Box::DbgGetVTable"             | Returns the \e vtable singleton of a box.
+| #"VTable::Functions"     | Has a set of fields whose names are prefixed \b "DbgCntInvocations" and provide the number of invocations of the corresponding built-in box-function. Likewise; method #"debug::GetSpecificFunctionTypes(const detail::VT)" returns the usage number with each registered custom box-function.
+| #"VTable::DbgProduction" | Denotes if a \e vtable singleton was dynamically created or is an #"alib_boxing_more_opt_staticvt;optimized static" object.
+| #"VTable::DbgCntUsage"   | A usage counter for the mapped type. The counter is increased with the invocation of various unboxing methods and when a box-function invocation is performed.
 
 
 ## A.7 Built-In Non-Bijective Boxing ## {#alib_boxing_appendix_quickref_7}
@@ -3512,13 +3509,13 @@ With default compilations, the following bijective boxing rules apply:
 
 |Source Type   | Mapped Type      | Unboxing/Comments
 |--------------|-----------------------|-----------------------------------------------------------------------
-|References and values of composite types (structs and classes) that either do not fit into union \alib{boxing;Placeholder} or that are not copy-constructible or trivially destructible.|Pointers to corresponding composite types| Only the pointer type can be unboxed.
-|Pointers to objects of composite types (structs and classes) that do fit into union \alib{boxing;Placeholder} and that are copy-constructible or trivially destructible.|Values of corresponding composite types| Only the value type can be unboxed.
-|Signed integral types of any size|\alib{integer}| Only type \alib{integer} can be unboxed.
-|Unsigned integral types of any size|\alib{uinteger}| Only type \alib{uinteger} can be unboxed.
+|References and values of composite types (structs and classes) that either do not fit into union #"boxing::Placeholder" or that are not copy-constructible or trivially destructible.|Pointers to corresponding composite types| Only the pointer type can be unboxed.
+|Pointers to objects of composite types (structs and classes) that do fit into union #"boxing::Placeholder" and that are copy-constructible or trivially destructible.|Values of corresponding composite types| Only the value type can be unboxed.
+|Signed integral types of any size|#"lang::integer"| Only type #"lang::integer" can be unboxed.
+|Unsigned integral types of any size|#"lang::uinteger"| Only type #"lang::uinteger" can be unboxed.
 |\c float|\c double| Only type \c double can be unboxed.
-|\c char, \c wchar_t, \c char16_t and \c char32_t|\alib{characters;wchar}| Only type \alib{characters;wchar} can be unboxed.
-|\c const pointer to any of the three character types \alib{characters;nchar}, \alib{characters;wchar} or \alib{characters;xchar}<br>string literals<br><c>char[]</c><br><c>std::string</c><br><c>std::string_view</c><br><c>std::vector<char></c><br>\alib string types|Array of corresponding character type|"Lightweight" string types like \c std::string_view or \alib{strings;TString;String} can be unboxed, "heavyweight" string types like \b AString cannot.
+|\c char, \c wchar_t, \c char16_t and \c char32_t|#"characters::wchar"| Only type #"characters::wchar" can be unboxed.
+|\c const pointer to any of the three character types #"characters::nchar", #"characters::wchar" or #"characters::xchar"<br>string literals<br><c>char[]</c><br><c>std::string</c><br><c>std::string_view</c><br><c>std::vector<char></c><br>\alib string types|Array of corresponding character type|"Lightweight" string types like \c std::string_view or #"^String" can be unboxed, "heavyweight" string types like \b AString cannot.
 
 
 
@@ -3528,7 +3525,7 @@ With default compilations, the following bijective boxing rules apply:
 
 \I{################################################################################################}
 # Appendix B: 3rd Party Library Compatibility # {#alib_boxing_appendix_compat}
-Within the list of \ref alib_manual_modules_impludes "includable headers" some
+Within the list of #"alib_manual_modules_impludes;includable headers" some
 special headers named <b>"ALib.Compatibility.Xyz"</b> are found.
 These headers are \b not included by other library headers, but instead may optionally be added
 to the using code.<br>
@@ -3537,13 +3534,13 @@ The headers concern different \alibmods, targeting different 3rd-party libraries
 
 There is no further documentation given in this user manual. However, in the reference
 documentation of this module, which is found with the documentation of namespace
-\ref alib::boxing, inner namespace \ref alib::boxing::compatibility exists, which
+#"alib::boxing", inner namespace #"alib::boxing::compatibility" exists, which
 aggregates some of the customization content.
 
 To achieve this, the documentation even sometimes "fakes" entities into this namespace, that
 technically must not be there - and in reality therefore are not there.<br>
 As a sample, take functor struct
-\ref alib::boxing::compatibility::std::hash<alib::boxing::Box>.
+#"alib::boxing::compatibility::std::hash<alib::boxing::Box>".
 While the documentation claims it to be in that deep namespace, it is a specialization of
 struct \c std::hash and therefore "in reality" is (and has to be) located in namespace \c std.
 The reference documentation of all "faked", moved entities will individually hint to this fact.
@@ -3567,14 +3564,14 @@ The following presentation of sample use cases now intent to give such justifica
 For example, it will be shown that:
 - Loosing type information and data of the original type with non-bijective boxing is very seldom
   a problem, and if it is, it can be easily bypassed using
-  \ref alib_boxing_customizing_identity "identity boxing".
+  #"alib_boxing_customizing_identity;identity boxing".
 - Loosing information about whether a source type was constant or not, and making constant the
   default for pointer types, is seldom be a problem, because processing functions usually
   perform read-only operations
 - Not performing "deep copies" of values larger than \b 16 bytes (respectively \b 8 bytes on a
   32-bit system), but instead just boxing a pointer to the original, only seldom imposes a
   life-cycle conflict.<br>
-  And if it does, box-function \alib{boxing;FClone} helps out, even in a way that
+  And if it does, box-function #"FClone" helps out, even in a way that
   reduces dynamic memory allocations to a bare minimum.
 - Box-functions enable a library to offer support for 3rd-party types, without the need of
   touching those. In other words, the processing function may reside in a library as well
@@ -3587,7 +3584,7 @@ For example, it will be shown that:
 All use-case are taken from other \alibmods, which depend on module \alib_boxing_nl.
 \I{################################################################################################}
 ## C.1 Use Case: Inner namespace "format" of Module Basecamp ## {#alib_boxing_appendix_usecases_format}
-The \ref alib::format "format types" of module \alib_format are more than a use-case.
+The #"alib::format;format types" of module \alib_format are more than a use-case.
 In fact they were the initial reason and motivation of creating \alib_boxing_nl!<br>
 That module implements the well known <em>"printf paradigm"</em>, which is available in standard libraries
 of various programming languages. A <em>printf-like</em> function interface is used to create a
@@ -3596,12 +3593,12 @@ string representation of an arbitrary amount of arguments of arbitrary type. To 
 with the arbitrary arguments. The placeholders within the format string, follow a certain syntax
 which allow various output modifications, like number formats, horizontal alignment, etc.
 
-Module \alib_format_nl provides abstract class \alib{format;Formatter} which
-offers two overloaded versions of method \alib{format::Formatter;Format}: both accept a
-target \b AString as the first argument. The first accepts a reference to class \alib{boxing;TBoxes},
+Module \alib_format_nl provides abstract class #"format::Formatter" which
+offers two overloaded versions of method #"Formatter::Format": both accept a
+target \b AString as the first argument. The first accepts a reference to class #"TBoxes",
 while the second accepts variadic template parameters besides the target string.
 How the latter invokes the first with a few lines of inlined code is explained in
-chapter \ref alib_boxing_boxes "11. Variadic Function Arguments and Class TBoxes".
+chapter #"alib_boxing_boxes".
 
 \I{################################################################################################}
 ### Most Flexible Invocation: :###
@@ -3611,14 +3608,14 @@ just as a first of the arbitrary arguments. This approach has the following adva
 - Being of type \b Box, just as the arbitrary argument list, allows any type that boxes as a
   characters string to be passed.<br>
   If the first argument is \b not of string type, then its contents is just appended to the
-  target string using box-function \alib{boxing;FAppend}. Then the next argument is checked
+  target string using box-function #"FAppend". Then the next argument is checked
   to be string type. And so on.
 - The second advantage lies in the fact that consequently, if a format string was found and all
   of it's placeholders were processed and still arguments remain in the argument list, the whole
   procedure starts from scratch. This way, a user of the method is free to perform more than
   one format operation in one invocation.
 - Out of this advantage, a next one results: the overloaded version of method \b Format that takes
-  a reference to class \alib{boxing;TBoxes} becomes very interesting: A using code might collect various
+  a reference to class #"TBoxes" becomes very interesting: A using code might collect various
   format operations during its course of execution in an object of that type and when done
   performing all formatting in one invocation. This means, depending on the branches that a code
   takes, different format strings and format arguments might be collected.<br>
@@ -3631,10 +3628,10 @@ unrivalled in respect to flexibility.
 ### Efficiency Due To Implicit Pointer-Conversion: ###
 A next aspect that this use-case nicely shows is the exclusive use of class \b Box as function arguments.
 With this, no concerns of life-cycle management of the boxed data has to be taken into account.
-(We refer to those discussed in chapter \ref alib_boxing_more_iclone). When arguments are passed
+(We refer to those discussed in chapter #"alib_boxing_more_iclone"). When arguments are passed
 and boxes are created implicitly on the stack, their life-cycle ends exactly when the function
 returns. This greatly justifies the design decision to "automatically" box pointers to objects in
-the case that given values do not fit into union \alib{boxing;Placeholder}.
+the case that given values do not fit into union #"boxing::Placeholder".
 If C++17 class \c std::any was used instead, unless the library documentation would demand its users
 to explicitly pass pointers, deep copies of "bigger" objects would be created.
 And this would be completely unnecessary overhead, because the formatters treat each argument
@@ -3648,71 +3645,71 @@ This is a negative impact on the performance, while the implicit pointerization 
 ### Support for Custom Format Syntax: ###
 Finally, the use case implemented with module \alib_format_nl shows nicely how
 \alib_boxing_nl enables to offer a library that can be extended to serve custom types
-in a most flexible way. This is shown with the provision of box-function \alib{format;FFormat}
+in a most flexible way. This is shown with the provision of box-function #"FFormat"
 by that module. This allows introducing new placeholder syntax (!) for custom types, of course
 without touching the original source code of the module.<br>
 A sample of how a custom type can be featured with a custom placeholder syntax is given in the
 Programmer's Manual of that module with chapter
-\ref alib_format_custom_types
+#"alib_format_custom_types"
 
 
 \I{################################################################################################}
 ## C.2 Use Case: ALib Exceptions   ## {#alib_boxing_appendix_usecases_exceptions}
-Module \alib_exceptions introduces class \alib{exceptions;Exception}, which is used in all
+Module \alib_exceptions introduces class #"exc Exception", which is used in all
 \alibmods_nl as \b the \e throwable.
 
 ### Use Arbitrary Scoped Enums: ###
-Class \b Exception stores a list of \alib{exceptions;Message} objects that may extend
+Class \b Exception stores a list of #"Message" objects that may extend
 the exception object with new information while the call stack is unwinded. Each message entry has
-an identifier that is implemented with field \alib{exceptions;Message::Type}. This field
-is of type \alib{boxing;Enum} and is a very good sample for using this type. With that it became
+an identifier that is implemented with field #"Message::Type;*". This field
+is of type #"boxing::Enum" and is a very good sample for using this type. With that it became
 possible that every \alibmod_nl (and likewise a using custom software) defines its own scoped
 \c enum type that enumerates all exceptions that the module (respectively custom software) may trow.
 As a result, an exception entry's type can contain \c enum elements of custom \c enum types
 transparently. A two-level hierarchy results from that. A usual \c catch handler consists of
-nested <c>if</c>-statements: The outer uses \alib{boxing;Enum::IsEnumType} to test for the
-general exception type. The inner then uses \alib{boxing;Enum::operator==} to test for a specific
+nested <c>if</c>-statements: The outer uses #"Enum::IsEnumType" to test for the
+general exception type. The inner then uses #"Enum::operator==(const)" to test for a specific
 element of that exception type.
 
 ### Attaching Arbitrary Arguments: ###
-Each \alib{exceptions;Message} of an exception may store an arbitrary amount of arbitrary
+Each #"Message" of an exception may store an arbitrary amount of arbitrary
 objects that provides further information about the entry, hence about the cause of the exception or
 about state information of the code that threw the exception.<br>
-For this, field class \b Message inherits type \alib{boxing;TBoxes} which is a container storing
-elements of type \alib{boxing;Box}.
+For this, field class \b Message inherits type #"TBoxes" which is a container storing
+elements of type #"Box".
 The information stored can (has to) be interpreted in a custom way by corresponding implementations of the
 exception handlers. A recommendation for users of this \alibmod_nl, is to prepend a
 <em>format string</em> as the first element of this list. Such format string should
 contain a placeholder for every provided message argument and together this provides the possibility
 for an exception handler to easily create a human-readable text message from an exception entry,
-by just passing the \b TBoxes object to a \alib{format;Formatter}, as discussed in the previous
+by just passing the \b TBoxes object to a #"format::Formatter", as discussed in the previous
 use-case chapter.
 
 ### Cloning Exception Arguments: ###
-In contrast to the previous use case of text formatting, with \alib{exceptions;Exception} and
-its used \alib{exceptions;Message} object, the life-cycle management of the boxed message arguments
-is a quite critical issue. To resolve this, method \alib{boxing;TBoxes::CloneAll} is used, which
-simply invokes \alib{boxing;TBoxes::CallAll;TBoxes::CallAll<FClone>} and hence clones all
+In contrast to the previous use case of text formatting, with #"exc Exception" and
+its used #"Message" object, the life-cycle management of the boxed message arguments
+is a quite critical issue. To resolve this, method #"TBoxes::CloneAll" is used, which
+simply invokes #"boxing::TBoxes::CallAll;TBoxes::CallAll<FClone>" and hence clones all
 relevant data of values that do not fit into a box, into the internal mono allocator.
 
 A code that throws an exception or while handling one, appends a new message to an exception, has
 to ensure that either of the following is true for each boxed argument attached:
 1. The argument is boxed as value type.
 2. The argument is boxed as pointer type and the object passed survives unwinding the call-stack.
-3. The argument is boxed to an array. (The default implementation of box-function \alib{boxing;FClone}
+3. The argument is boxed to an array. (The default implementation of box-function #"FClone"
    copies arrays.)
 4. The argument is boxed to a mapped type that is equipped with a proper specific implementation
-   of \alib{boxing;FClone}.
+   of #"FClone".
 
 Class \b Exception provides - and is even allocated within (!) - an object of type
-\alib{MonoAllocator}, which itself is allocated in its own first buffer of memory!
+#"MonoAllocator", which itself is allocated in its own first buffer of memory!
 If the first buffer is sufficient, then <b>only one single dynamic memory allocation</b> is
 performed for the creation of the exception, including the copies of all message arguments!
 
 
 \I{################################################################################################}
 ## C.3 Use Case: Module ALib ALox         ## {#alib_boxing_appendix_usecases_alox}
-We said \ref alib_boxing_appendix_usecases_format "in appendix C.1", that it was the original motivation
+We said #"alib_boxing_appendix_usecases_format;in appendix C.1", that it was the original motivation
 for creating module \alib_boxing_nl. The truth it, module \alib_alox was it, just as
 the whole library once started with the development of \alox.<br>
 
@@ -3734,7 +3731,7 @@ rather stored as a pointer to the original string object that then might be modi
 code entities. To achieve this and bypass the string copy feature, the string object has to
 be wrapped in \c std::reference_wrapper.<br>
 Consequently, this is a sample use-case for what is explained in chapter
-\ref alib_boxing_customizing_identity "7.9 Bypass Custom Boxing With Identity-Boxing".
+#"alib_boxing_customizing_identity".
 
 ### Overloaded Methods Using Variadic Arguments: ###
 With C++, when overloading methods that use templated variadic arguments, quite quickly
@@ -3743,16 +3740,16 @@ which of the overloaded versions to take, because two or more are matching the v
 \alib_boxing_nl solves this issue and allows \alox to offer a flexible API with
 many variants of overloaded methods that still accept variadic arguments.
 How this is done is explained in chapter
-\ref alib_boxing_boxes_advanced "11.3 Advanced Usage of Class TBoxes".
+#"alib_boxing_boxes_advanced".
 
 \I{################################################################################################}
 ## C.4 Use Case: Module ALib Expressions  ## {#alib_boxing_appendix_usecases_expressions}
 
 ### Goal of Module ALib Expressions: ###
 The aim of module \alib_expressions is to provide an easy, yet powerful C++ library that
-allows run-time compilation of expressions. Expression syntax mimics and covers the whole set
+allows runtime compilation of expressions. Expression syntax mimics and covers the whole set
 of C++ operators and like C++ is deemed to by type-safe during compilation
-(here: expression compilation performed at run-time!), while allowing custom intermediate and result types, processed by custom
+(here: expression compilation performed at runtime!), while allowing custom intermediate and result types, processed by custom
 expression identifiers and functions. Expression strings are compiled to a "program", which is
 executed by a virtual machine (a simple stack machine provided with the module) to evaluate
 an expression result. Together with the program, the virtual machine is fed with an "expression scope"
@@ -3761,7 +3758,7 @@ that provides access to custom data used by the program's identifiers and functi
 The use of \alib_boxing_nl with this module, probably provides the most uncommon - but thus even more
 exciting - use case of \alib_boxing_nl.<br>
 The full truth is, when planning that module, its authors did not expect how compelling
-and helpful the use of class \alib{boxing;Box} would be for the implementation. Only during
+and helpful the use of class #"Box" would be for the implementation. Only during
 the development it became clear that the use of \alib_boxing_nl simplifies almost every
 aspect of that library. And this is not only true for the library development itself, but also from
 the perspective of an "end-user" that incorporates that module into his own software.<br>
@@ -3770,7 +3767,7 @@ replaced later during development), turned out to tremendously easy the module's
 to boost performance, and minimize its code size.
 
 ### Transport Of Type Information: ###
-This at first considered "misuse" is documented with manual chapter \ref alib_expressions_prereq_sb.
+This at first considered "misuse" is documented with manual chapter #"alib_expressions_prereq_sb".
 Note that manual still talks of "lazy use" or even "mis-use". In fact this is not really true.
 The effect on code size and ease of use is tremendous and it was a thorough decision to keep
 this concept since the first released library version.<br>
@@ -3786,19 +3783,19 @@ All that a user needs to do is to assign a simple sample value to an object of t
 pass a reference to this box around.
 
 The reason why the other use cases presented above did not need such use is obvious: Only module
-\alib_expressions_nl deals with run-time type information "officially". It's whole goal
-is to allow the compilation of expression strings defined by end-users at run-time. Expression
-strings that a user feeds into a compiled software might result in different types - at run-time!
+\alib_expressions_nl deals with runtime type information "officially". It's whole goal
+is to allow the compilation of expression strings defined by end-users at runtime. Expression
+strings that a user feeds into a compiled software might result in different types - at runtime!
 Now the code using the library has to tell the library for example, which result type an expression
 is allowed to have. Another sample are user-defined expression functions that have a signature of
 arguments and the result value. Now, during the type-safe compilation of expression strings
-(at run-time), the compiler needs to be able to select the right overloaded functions.
+(at runtime), the compiler needs to be able to select the right overloaded functions.
 The signature of a custom expression function is defined by a simple list of sample boxes.
 
 ### Return a Value of Type Box: ###
 The previous use-cases introduced in this appendix did not include a sample where a function or
 method returns a value of type \b Box. While the principle of doing so was presented in this manual
-very early already (see chapter \ref alib_boxing_basicstut_boxing), it seems it is not too easy to
+very early already (see chapter #"alib_boxing_basicstut_boxing"), it seems it is not too easy to
 find a good real-life use case for this. But module \alib_expressions_nl has that.
 
 The module allows defining custom expression functions. When the built-in virtual machine
@@ -3810,15 +3807,15 @@ operators, auto-casts, etc) use boxes as input arguments and return a box.
 
 ### Generating Custom Expression Literals: ###
 Finally, another nice sample that module \alib_expressions_nl demonstrates is in the area of
-box-functions. The module introduces the declaration \alib{expressions;FToLiteral}. This is used
+box-functions. The module introduces the declaration #"FToLiteral". This is used
 by the expression compiler to generate an "optimized expression string". This may be wanted when
 a user passes an expression that can be optimized by the compiler to a shorter expression.
 While the optimization internally works and can be used, software might want to present an
 expression string back to the user that - if compiled - directly resulted in the optimized
 expression program.<br>
 Details on that use-case are given in chapter
-\ref alib_expressions_details_optimizations "11.5 Optimizations" of that module's Programmer's Manual,
-as well as in the reference documentation of the box-function declarator \alib{expressions;FToLiteral}.
+#"alib_expressions_details_optimizations" of that module's Programmer's Manual,
+as well as in the reference documentation of the box-function declarator #"FToLiteral".
 
 
 <br><br><br><br><br><br> */

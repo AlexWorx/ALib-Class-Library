@@ -2,32 +2,28 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
 #include "alib_test_selection.hpp"
 #if ALIB_UT_DOCS && ALIB_UT_ALOX
 
-// note last checked with C++20 module transition, 250209
-DOX_MARKER([ALoxTut_include_statement])
-#include "ALib.Lang.H"
-#include "ALib.Time.H"
-#include "ALib.EnumOps.H"
-#include "ALib.Boxing.H"
-#include "ALib.Compatibility.StdStrings.H"
-#include "ALib.Variables.H"
+// note: last checked 260422
+DOX_MARKER([ALOX_TUT_INCLUDES])
+// For using ALox logging-statments
 #include "ALib.ALox.H"
+
+// Needed when configuring ALox (what we do below)
 #include "ALib.ALox.Impl.H"
 
+// Needed for bootstrapping ALib
 #include "ALib.Bootstrap.H"
-#include "ALib.Lang.CIFunctions.H"
-DOX_MARKER([ALoxTut_include_statement])
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <list>
+// As we are in main(), we need to set caller information to C++-function-mode
+// (for method implementations, "ALib.Lang.CIMethods.H" is to be included to switch back.
+#include "ALib.Lang.CIFunctions.H"
+DOX_MARKER([ALOX_TUT_INCLUDES])
 
 
 DOX_MARKER([ALoxTut_using_statement])
@@ -62,7 +58,7 @@ void docSampleESC()
 {
 DOX_MARKER([DOX_ALOX_ESC])
 Log_Info( "The result is: ", ESC::RED, 42 )
- DOX_MARKER([DOX_ALOX_ESC])
+DOX_MARKER([DOX_ALOX_ESC])
 }
 
 
@@ -70,15 +66,6 @@ Log_Info( "The result is: ", ESC::RED, 42 )
 #define main           tutAloxMain
 int main( int, const char** );
 DOX_MARKER([ALoxTut_Minimum_Hello])
-// Get ALox module
-#include "ALib.ALox.H"
-
-// Needed for bootstrapping ALib
-#include "ALib.Bootstrap.H"
-
-// Needed because we are using caller-information macros with functions (instead of methods)
-#include "ALib.Lang.CIFunctions.H"
-
 int main( int, const char** ) {
     // bootstrap ALib
     alib::Bootstrap();
@@ -105,17 +92,17 @@ void Domains_Hierarchical();
 void Domains_Hierarchical()
 {
 DOX_MARKER([Man_DOMAINS___1])
-Log_SetVerbosity( Log::DebugLogger, Verbosity::Error,   "/" ) // could also just omit parameter "/"
+Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Error,   "/" ) // could also just omit parameter "/"
 DOX_MARKER([Man_DOMAINS___1])
 
 DOX_MARKER([Man_DOMAINS___2])
-Log_SetVerbosity( Log::DebugLogger, Verbosity::Info,    "/UI" )
-Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "/UI/DIALOGS" )
+Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Info,    "/UI" )
+Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "/UI/DIALOGS" )
 DOX_MARKER([Man_DOMAINS___2])
 
 DOX_MARKER([Man_DOMAINS___2reverse])
-Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "/UI/DIALOGS" )
-Log_SetVerbosity( Log::DebugLogger, Verbosity::Info,    "/UI" )
+Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "/UI/DIALOGS" )
+Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Info,    "/UI" )
 DOX_MARKER([Man_DOMAINS___2reverse])
 }
 
@@ -255,7 +242,7 @@ void unnamed();
 void unnamed()
 {
     DOX_MARKER([Man_DOMAINS___RelativePaths_Set])
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "./" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "./" )
     DOX_MARKER([Man_DOMAINS___RelativePaths_Set])
 }
 
@@ -686,21 +673,17 @@ UT_CLASS
 // Hello_ALox
 // #################################################################################################
 
-UT_METHOD(Hello_ALox)
-{
+UT_METHOD(Hello_ALox) {
     UT_INIT()
 
-    Log_Prune( if ( Log::DebugLogger != nullptr ) )
+    Log_Prune( if ( Log::DEBUG_LOGGER != nullptr ) )
                    Log_RemoveDebugLogger()
 
     Log_Prune( MemoryLogger memLog; )
 
-
-
-    DOX_MARKER([ALoxTut_Logger_1])
-    Log_AddDebugLogger()
-
-    DOX_MARKER([ALoxTut_Logger_1])
+DOX_MARKER([ALOX_TUT_LOGGER_1])
+Log_AddDebugLogger()
+DOX_MARKER([ALOX_TUT_LOGGER_1])
 
     Log_RemoveDebugLogger()
 
@@ -740,7 +723,7 @@ UT_METHOD(ALoxTut_Verbosity)
     DOX_MARKER([ALoxTut_Verbosity])
 
     DOX_MARKER([ALoxTut_Verbosity_SetVerbosity])
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning )
     DOX_MARKER([ALoxTut_Verbosity_SetVerbosity])
 
     DOX_MARKER([ALoxTut_Verbosity_SetVerbosity_2])
@@ -756,7 +739,7 @@ UT_METHOD(ALoxTut_Verbosity)
     DOX_MARKER([ALoxTut_Verbosity_2])
     Log_AddDebugLogger()
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning )
 
     Log_Error  ( "A severe error happened :-(" )
     Log_Warning( "This is a warning :-/ Maybe an error follows?" )
@@ -784,7 +767,7 @@ UT_METHOD(ALoxTut_Domains)
 
     DOX_MARKER([ALoxTut_Domains])
     Log_AddDebugLogger()
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose ) // the default anyhow
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose ) // the default anyhow
     //...
     Log_Verbose( "HTTP", "Connected" )
     //...
@@ -805,8 +788,8 @@ UT_METHOD(ALoxTut_Domains)
     DOX_MARKER([ALoxTut_Domains_2])
     Log_AddDebugLogger()
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose,  "HTTP" ) // our interest
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Error,    "UI"   ) // only if ouch!
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose,  "HTTP" ) // our interest
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Error,    "UI"   ) // only if ouch!
     //...
     Log_Verbose( "HTTP", "Connected" )
     //...
@@ -835,7 +818,7 @@ UT_METHOD(Tut_HierDom)
 
     DOX_MARKER([ALoxTut_DomainsHierarchical])
     Log_AddDebugLogger()
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose ) // the default anyhow
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose ) // the default anyhow
     //...
     Log_Info   ( "UI/MOUSE",   "A mouse click" )
     //...
@@ -854,12 +837,12 @@ UT_METHOD(Tut_HierDom)
     Log_RemoveDebugLogger()
 
     DOX_MARKER([ALoxTut_DomainsHierarchical_2])
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "UI"  ) // Always sets all Subdomains!
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning, "UI"  ) // Always sets all Subdomains!
     DOX_MARKER([ALoxTut_DomainsHierarchical_2])
 
     DOX_MARKER([ALoxTut_DomainsHierarchical_3])
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "UI"       ) // First set parent...
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "UI/MOUSE" ) // ...then children!
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning, "UI"       ) // First set parent...
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "UI/MOUSE" ) // ...then children!
     DOX_MARKER([ALoxTut_DomainsHierarchical_3])
 
     Log_RemoveLogger( &memLog )
@@ -1036,7 +1019,7 @@ UT_METHOD(ALoxTut_LogState)
     Log_Prune( MemoryLogger memLogger;  )
 
     // reduce meta-information to limit tutorial output width
-    Log_Prune( Log::DebugLogger->GetFormatMetaInfo().Format.Reset( A_CHAR("[%tN]%V[%D](%#): " ) );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetFormatMetaInfo().Format.Reset( A_CHAR("[%tN]%V[%D](%#): " ) );  )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
     Log_Prune( memLogger.GetFormatMetaInfo().Format.Reset(         A_CHAR("[%tN]%V[%D](%#): " ) );  )
     Log_Prune( memLogger.GetFormatMultiLine().Mode= 3; )
@@ -1093,13 +1076,13 @@ UT_METHOD(ALoxTut_LogInternalDomains)
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
 
-    Log_Prune( Log::DebugLogger->GetFormatMetaInfo().Format.Reset("[%tN]%V[%D](%#): ");   )
+    Log_Prune( Log::DEBUG_LOGGER->GetFormatMetaInfo().Format.Reset("[%tN]%V[%D](%#): ");   )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
     Log_Prune(         memLogger.GetFormatMetaInfo().Format.Reset("[%tN]%V[%D](%#): ");   )
 
     // ... with one difference: we are activating the internal domain
     Log_SetVerbosity( &memLogger,       Verbosity::Verbose, Lox::InternalDomains )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
     Log_SetDomain( "PNS"   ,   Scope::Path + 1    )
     Log_SetDomain( "PATH",     Scope::Path        )
@@ -1145,7 +1128,7 @@ UT_METHOD(ALoxTut_LogData)
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
     // set auto tabs
     {
@@ -1181,7 +1164,7 @@ UT_METHOD(Tut_Format)
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
 
     DOX_MARKER([ALoxTut_Format1])

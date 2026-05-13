@@ -1,0 +1,12 @@
+# #################################################################################################
+# doxygen-linker-exclamations.txt - ALox Tools: SourceFileCleaner
+# Copyright 2024-2025 A-Worx GmbH, Germany
+# Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+#
+# This file contains exclamation definition for running the ALib source cleaner tool on
+# ALib itself.
+# ##################################################################################################
+
+# Filepath-substring(!)  : line number : column number
+#---------------------------------------------------------------------------------------
+alib_alox_tut.html:972:11

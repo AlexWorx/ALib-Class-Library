@@ -2,23 +2,37 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_THREADMODEL
 #define H_ALIB_THREADMODEL
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 #if ALIB_THREADMODEL
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.ThreadModel;
-#   elif !defined(ALIB_INC_THREADMODEL_THREADMODEL_MPP)
-#       define ALIB_INC_THREADMODEL_THREADMODEL_MPP
-#       include "alib/threadmodel/threadmodel.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Singletons.H"
+#include "ALib.Monomem.H"
+#include "ALib.Containers.List.H"
+#include "ALib.Containers.HashTable.H"
+#include "ALib.Strings.H"
+#include "ALib.EnumRecords.H"
 
+#include <list>
+#include <map>
+#include <queue>
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.ThreadModel;
+#else
+#include "alib/threadmodel/trigger.hpp"
+#include "alib/threadmodel/jobs.hpp"
+#include "alib/threadmodel/dedicatedworker.hpp"
+#include "alib/threadmodel/threadpool.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_THREADMODEL
 #endif // H_ALIB_THREADMODEL

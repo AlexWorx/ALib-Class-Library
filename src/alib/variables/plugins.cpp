@@ -1,37 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/variables/variables.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables.Plugins;
-    import   ALib.Lang;
-#  if ALIB_VARIABLES
-    import   ALib.Variables;
-#  endif
-#  if ALIB_SYSTEM
-    import   ALib.System;
-#  endif
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Variables.H"
-#   include "ALib.System.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Variables.Plugins.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace variables {
 
 
@@ -55,7 +21,7 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target ) {
     int           argC    = alib::ARG_C;
     bool          isWide;
     const void**  argV    = (isWide= (alib::ARG_VN == nullptr)) ? reinterpret_cast<const void**>(alib::ARG_VW)
-                                                               : reinterpret_cast<const void**>(alib::ARG_VN);
+                                                                : reinterpret_cast<const void**>(alib::ARG_VN);
 
     String256 name(pName); name.SearchAndReplace( '/', '_');
     Substring varNameWithoutCategory= nullptr;
@@ -85,7 +51,7 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target ) {
             ++argsIt;
         } else {
             if (!isWide) {
-                ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
+                ALIB_ALLOW_UNREACHABLE_CODE
                 if constexpr (!std::same_as<character, char>) {
                     stringConverter.Reset( reinterpret_cast<const char**>(argV)[i] );
                     cliArg= stringConverter;
@@ -93,16 +59,16 @@ bool  CLIVariablesPlugin::Get( const String& pName, AString& target ) {
                 else
                     cliArg= reinterpret_cast<const character**>(argV)[i];
             } else {
-                ALIB_WARNINGS_ALLOW_UNREACHABLE_CODE
+                ALIB_ALLOW_UNREACHABLE_CODE
                 if constexpr (!std::same_as<character, wchar_t>) {
                     stringConverter.Reset( reinterpret_cast<const wchar_t**>(argV)[i] );
                     cliArg= stringConverter;
                 }
                 else
                     cliArg= reinterpret_cast<const character**>(argV)[i];
-                ALIB_WARNINGS_RESTORE
+                ALIB_POP_ALLOWANCE
             }
-            ALIB_WARNINGS_RESTORE
+            ALIB_POP_ALLOWANCE
         }
 
         cliArg.Trim();

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Check ALIB warnings markers are well-nested.
+Check ALIB allowance markers are well-nested.
 
-Push  = ALIB_WARNINGS_<XYZ>      (any XYZ except RESTORE)
-Pop   = ALIB_WARNINGS_RESTORE
+Push  = ALIB_ALLOW_<XYZ>         (any XYZ)
+Pop   = ALIB_POP_ALLOWANCE
 
 Usage:
   python check_alib_warnings.py /path/to/dir
@@ -25,8 +25,8 @@ import re
 import sys
 from typing import Iterable, List, Tuple
 
-# Matches ALIB_WARNINGS_<TOKEN>, capturing TOKEN (letters, digits, underscores)
-MARKER_RE = re.compile(r"ALIB_WARNINGS_([A-Z0-9_]+)")
+# Matches either ALIB_ALLOW_<TOKEN> (push, capturing TOKEN) or ALIB_POP_ALLOWANCE (pop).
+MARKER_RE = re.compile(r"ALIB_ALLOW_([A-Z0-9_]+)|ALIB_POP_ALLOWANCE")
 
 def iter_files(root: Path,
                include_globs: List[str],
@@ -66,9 +66,10 @@ def analyze_file(path: Path) -> Tuple[List[str], List[Tuple[str,int,int]]]:
         for m in MARKER_RE.finditer(line):
             token = m.group(1)
             col = m.start(0) + 1  # 1-based column
-            if token == "RESTORE":
+            if token is None:
+                # ALIB_POP_ALLOWANCE
                 if not stack:
-                    errors.append(f"{path}: line {lineno}, col {col}: RESTORE without matching push")
+                    errors.append(f"{path}: line {lineno}, col {col}: ALIB_POP_ALLOWANCE without matching push")
                 else:
                     stack.pop()
             else:
@@ -118,7 +119,7 @@ def main(argv: List[str]) -> int:
             if leftover:
                 any_error = True
                 for token, line, col in leftover:
-                    print(f"{f}: line {line}, col {col}: push '{token}' without matching RESTORE")
+                    print(f"{f}: line {line}, col {col}: push 'ALIB_ALLOW_{token}' without matching ALIB_POP_ALLOWANCE")
             if not (errors or leftover) and args.list_ok and had_markers:
                 print(f"OK: {f}")
         else:
@@ -129,7 +130,7 @@ def main(argv: List[str]) -> int:
                     txt = f.read_text(encoding="utf-8", errors="replace")
                 except Exception:
                     txt = ""
-                if "ALIB_WARNINGS_" in txt:
+                if "ALIB_ALLOW_" in txt or "ALIB_POP_ALLOWANCE" in txt:
                     files_with_markers += 1
                     print(f"OK: {f}")
 

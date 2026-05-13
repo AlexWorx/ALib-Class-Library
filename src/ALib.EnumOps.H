@@ -2,24 +2,31 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_ENUMOPS
 #define H_ALIB_ENUMOPS
 #pragma once
-
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
+
+//=========================================== Dependencies =========================================
+#include "ALib.Lang.H"
 
 #include "alib/enumops/enumops.prepro.hpp"
 
-#if ALIB_C20_MODULES && !DOXYGEN
-     import ALib.EnumOps;
-#elif !defined(ALIB_INC_ENUMOPS_MPP)
-#    define ALIB_INC_ENUMOPS_MPP
-#    include "alib/enumops/enumops.mpp"
-#endif
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.EnumOps;
+#else
+#include "alib/enumops/underlyingintegral.hpp"
+#include "alib/enumops/arithmetical.hpp"
+#include "alib/enumops/bitwise.hpp"
+#include "alib/enumops/iterable.hpp"
+#include "alib/enumops/iterablebitset.hpp"
+#include "alib/enumops/bitwise_iterable_conversion.hpp"
 
+#endif // ALIB_C20_MODULES
 #endif // H_ALIB_ENUMOPS

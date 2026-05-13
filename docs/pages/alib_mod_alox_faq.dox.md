@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALox Logging Library
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -81,7 +81,7 @@ And we think that a maximum of compatibility (e.g., with other tools or within i
 is guaranteed this way.<br>
 If you absolutely want localized meta-information, like logging the name of months in Finnish,
 you can extend \alox for that.
-Here is \ref alib_mod_alox_loggers_textlogger "how you do that"!
+Here is #"alib_mod_alox_loggers_textlogger;how you do that"!
 
 <br>
 # How is ALox related with ALib? # {#alib_alox_faq_aworx_util}
@@ -95,6 +95,6 @@ interested in logging, other \alibmods_nl can be excluded from the build.
 Of course, still those \alibmods_nl that \alox depends on, need to be included.
 
 All about what is offered and how an customized \alibbuild is built is found in the
-\ref alib_manual "ALib Programmer's Manual".
+#"alib_manual;ALib Programmer's Manual".
 
 <br><br><br><br><br><br> */

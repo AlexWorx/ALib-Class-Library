@@ -49,9 +49,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=CONTAINERS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CLI    ############################"
+echo "\n\n############################  APP    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=CLI"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=APP"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  ENUMRECORDS    ############################"
@@ -69,9 +69,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=EXPRESSIONS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  FILES    ############################"
+echo "\n\n############################  FILETREE    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=FILES"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=FILETREE"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  FORMAT    ############################"
@@ -126,9 +126,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=BITBUFFER;BOXING"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  BITBUFFER;FILES    ############################"
+echo "\n\n############################  BITBUFFER;FILETREE    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=BITBUFFER;FILES"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_SINGLE_THREADED=1" "-DCMAKE_BUILD_TYPE=Release"  "-DALIB_BUILD=BITBUFFER;FILETREE"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BOXING;MONOMEM    ############################"

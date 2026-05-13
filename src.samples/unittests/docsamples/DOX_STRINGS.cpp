@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -19,7 +19,6 @@
 #include "ALib.EnumOps.H"
 #include "ALib.Monomem.H"
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.H"
 #include "ALib.EnumRecords.H"
 #include "ALib.Exceptions.H"
@@ -30,6 +29,8 @@
 #include "ALib.Variables.H"
 
 #include "ALib.Resources.H"
+#include "ALib.Strings.StdFormatter.H"
+
 
 namespace std
 {
@@ -253,7 +254,7 @@ enum class PersonFormats
 
 ALIB_ENUMS_ASSIGN_RECORD( PersonFormats,  alib::variables::Declaration )
 
-ALIB_RESOURCED(                PersonFormats,  alib::BASECAMP.GetResourcePool().Get(),
+ALIB_RESOURCED(                PersonFormats, &alib::BASECAMP.GetResourcePool(),
                                                alib::BASECAMP.ResourceCategory,    "PersonFormats" )
 DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_MAP_1])
 
@@ -372,7 +373,7 @@ DOX_MARKER( [DOX_STRINGS_PASSING])
 }
 #endif
 
-UT_METHOD( PropertyFormatter )
+UT_METHOD( PropertyFormatterTest )
 {
     UT_INIT()
     UT_PRINT( "ALib PropertyFormatter tests and documentation sample" )
@@ -383,7 +384,7 @@ DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_4])
 Person p1= { A_CHAR("Sue") , 28, Hobbies::Hacking };
 Person p2= { A_CHAR("John"), 35, Hobbies::Hacking };
 
-// The format string. Make this changeable at run-time, e.g., load from INI-file!
+// The format string. Make this changeable at runtime, e.g., load from INI-file!
 String format= A_CHAR("{@name} is aged {@age} and his/her hobby is {@hobby}");
 
 // create a formatter
@@ -391,7 +392,7 @@ alib::PropertyFormatter  propertyFormatter( format, PersonCallbacks  );
 
 // format the two data objects
 AString target;
-{ ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+{ ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
     propertyFormatter.Format( target, p1 );
     target.NewLine();
     propertyFormatter.Format( target, p2 );
@@ -411,7 +412,7 @@ DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_4])
         bool caught= false;
         try
         {
-            alib::PropertyFormatter  propertyFormatter( A_CHAR("Test {@Unknown}"), PersonCallbacks  );
+            PropertyFormatter  propertyFormatter( A_CHAR("Test {@Unknown}"), PersonCallbacks  );
         }
         catch( Exception& e )
         {
@@ -449,7 +450,7 @@ UT_METHOD( PropertyFormatters )
 // In principle, this is completely forbidden...
 { ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
 DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_MAP_2])
-alib::BASECAMP.GetResourcePool()->BootstrapBulk( alib::BASECAMP.ResourceCategory,
+alib::BASECAMP.GetResourcePool().BootstrapBulk( alib::BASECAMP.ResourceCategory,
 
     // Enum records for enum class "PersonFormats"
     "PersonFormats",    A_CHAR( "0,FORMATS/SHORT"   ","  "S"  ","
@@ -531,8 +532,8 @@ DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_MAP_6])
 
 
 DOX_MARKER( [DOX_STRINGS_PROPERTY_FORMATTER_MAP_7])
-{ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-    Formatter::Default->Format( target,
+{ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+    Formatter::DEFAULT->Format( target,
                                 "The person is: {}",
                                 FMT_PERSON_DEFAULT( john ) );
 }

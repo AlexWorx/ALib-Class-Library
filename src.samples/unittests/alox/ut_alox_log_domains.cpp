@@ -2,14 +2,13 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
 #include "alib_test_selection.hpp"
 #if ALIB_UT_ALOX
 
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.ALox.H"
 #include "ALib.ALox.Impl.H"
 #include "ALib.EnumOps.H"
@@ -72,7 +71,7 @@ UT_METHOD(Lox_IllegalDomainNames)
     Log_AddDebugLogger()
     MemoryLogger ml;
     Log_SetVerbosity(&ml, Verbosity::Verbose )
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
     ml.GetFormatMetaInfo().Format.Reset("<%D>");
 
     Lox& lox=  *lox::Log::Get();
@@ -147,7 +146,7 @@ UT_METHOD(Log_DomainSubstitutions)
     Log_AddDebugLogger()
     MemoryLogger ml;
     Log_SetVerbosity(&ml, Verbosity::Verbose )
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Info, Lox::InternalDomains )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Info, Lox::InternalDomains )
     ml.GetFormatMetaInfo().Format.Reset("<%D>");
     Lox& lox=  *lox::Log::Get();
 
@@ -155,16 +154,16 @@ UT_METHOD(Log_DomainSubstitutions)
         LOG_CHECK( "LOC"  , "</LOC>"                 , ml,lox)
 
     // wrong rules
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Warning, Lox::InternalDomains ) integer cntLogs= Log::DebugLogger->CntLogs;
-    Log_SetDomainSubstitutionRule( "LOC"        , "X"       )  UT_TRUE( cntLogs + 1 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "*LOC/"      , "X"       )  UT_TRUE( cntLogs + 2 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "LOC/*"      , "X"       )  UT_TRUE( cntLogs + 3 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "LOC*"       , "X"       )  UT_TRUE( cntLogs + 4 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "*LOC*"      , "X"       )  UT_TRUE( cntLogs + 4 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "*/LOC*"     , "X"       )  UT_TRUE( cntLogs + 4 == Log::DebugLogger->CntLogs )
-    Log_SetDomainSubstitutionRule( "*/LOC/*"    , "X"       )  UT_TRUE( cntLogs + 4 == Log::DebugLogger->CntLogs )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Warning, Lox::InternalDomains ) integer cntLogs= Log::DEBUG_LOGGER->CntLogs;
+    Log_SetDomainSubstitutionRule( "LOC"        , "X"       )  UT_TRUE( cntLogs + 1 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "*LOC/"      , "X"       )  UT_TRUE( cntLogs + 2 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "LOC/*"      , "X"       )  UT_TRUE( cntLogs + 3 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "LOC*"       , "X"       )  UT_TRUE( cntLogs + 4 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "*LOC*"      , "X"       )  UT_TRUE( cntLogs + 4 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "*/LOC*"     , "X"       )  UT_TRUE( cntLogs + 4 == Log::DEBUG_LOGGER->CntLogs )
+    Log_SetDomainSubstitutionRule( "*/LOC/*"    , "X"       )  UT_TRUE( cntLogs + 4 == Log::DEBUG_LOGGER->CntLogs )
 
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Info, Lox::InternalDomains )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Info, Lox::InternalDomains )
 
 
     // Exact match

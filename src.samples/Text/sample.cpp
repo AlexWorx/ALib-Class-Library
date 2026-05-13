@@ -1,12 +1,11 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Framework
 //  Boxing And Strings Sample
 //
 //  Copyright 2025 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "ALib.Bootstrap.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.Format.FormatterPythonStyle.H"
 

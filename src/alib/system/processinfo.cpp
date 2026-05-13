@@ -1,52 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/system/system.prepro.hpp"
-#if !DOXYGEN
-#   if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(__ANDROID_NDK__)
-#       include <unistd.h>
-#       if defined(__APPLE__)
-#           include <unistd.h>
-#           include <sys/sysctl.h>
-#           include <libproc.h>
-#       endif
-#   elif   defined( _WIN32 )
-#      include <direct.h>
-#   else
-#      pragma message ("Unknown Platform in file: " __FILE__ )
-#   endif
-#   include <fstream>
-#endif // !DOXYGEN
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.System;
-    import   ALib.Lang;
-#   if !ALIB_SINGLE_THREADED
-    import   ALib.Threads;
-#   endif
-    import   ALib.Strings;
-    import   ALib.Strings.Tokenizer;
-#else
-#   include "ALib.Lang.H"
-#   if !ALIB_SINGLE_THREADED
-#    include "ALib.Threads.H"
-#   endif
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Tokenizer.H"
-#   include "ALib.System.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace system {
 
 // static instance representing current process
@@ -211,7 +162,7 @@ bool ProcessInfo::get( uinteger pid ) {
         PID = (uinteger)  wPID;
 
 
-        // get command line
+        // get command-line
         CmdLine.Reset( NString( GetCommandLineA()) );
 
         // get executable filename and path

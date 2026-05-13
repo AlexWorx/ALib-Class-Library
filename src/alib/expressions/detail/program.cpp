@@ -1,29 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/expressions/expressions.prepro.hpp"
-#include "ALib.Monomem.StdContainers.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-#else
-#   include "ALib.Expressions.Impl.H"
-#   include "ALib.Strings.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {  namespace expressions { namespace detail {
 
 //! @cond NO_DOX
@@ -60,8 +34,7 @@ Program::~Program()                      { if( compileStorage ) lang::Destruct( 
 //##################################################################################################
 #if !DOXYGEN
 namespace {
-struct Assembly
-{
+struct Assembly {
     using VM= VirtualMachine;
 
     StdVectorMA<VirtualMachine::Command*>& assembly;
@@ -117,7 +90,7 @@ struct Assembly
     /// @return The command inserted.
     template<typename... TArgs>
     VM::Command&  insertAt( VM::PC pc, TArgs && ... args ) {
-        auto* cmd= assembly.get_allocator().AI().New<VM::Command>(std::forward<TArgs>( args )... );
+        auto* cmd= assembly.get_allocator().AIF().New<VM::Command>(std::forward<TArgs>( args )... );
         assembly.emplace( assembly.begin() + pc,  cmd );
         return *cmd;
     }
@@ -127,9 +100,9 @@ struct Assembly
     /// @param  args    Variadic arguments forwarded to the command's constructor.
     /// @return The command inserted.
     template<typename... TArgs>
-    VM::Command& add( TArgs && ... args )
-    {
-        assembly.emplace_back( assembly.get_allocator().AI().New<VM::Command>( std::forward<TArgs>( args )... ) );
+    VM::Command& add( TArgs && ... args ) {
+        assembly.emplace_back(
+            assembly.get_allocator().AIF().New<VM::Command>( std::forward<TArgs>( args )... ) );
         return *assembly.back();
     }
 
@@ -170,7 +143,7 @@ struct Assembly
 bool Program::collectArgs( integer qty ) {
     auto& stack= getExpressionCTScope(expression)->Stack;
     ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() >= size_t( qty < 0 ? 0 : qty ),
-            "EXPR",    "Internal error. This should never happen." ) // not enaugh arguments on the stack
+            "EXPR",    "Internal error. This should never happen." ) // not enough arguments on the stack
 
     stack->clear();
     if( qty > 0 )

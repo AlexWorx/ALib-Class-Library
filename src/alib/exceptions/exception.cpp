@@ -1,54 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include <vector>
-#include <algorithm>
-#include <any>
-#include "alib/boxing/boxing.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Exceptions;
-    import   ALib.Lang;
-    import   ALib.Strings;
-    import   ALib.Strings.Tokenizer;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-    import   ALib.EnumRecords.Bootstrap;
-#  if ALIB_SYSTEM
-    import   ALib.System;
-#  endif
-#  if ALIB_FORMAT
-    import   ALib.Format;
-#  endif
-    import   ALib.Format.Paragraphs;
-#  if ALIB_CAMP
-    import   ALib.Camp.Base;
-#  endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Tokenizer.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.EnumRecords.H"
-#   include "ALib.EnumRecords.Bootstrap.H"
-#   include "ALib.System.H"
-#   include "ALib.Format.H"
-#   include "ALib.Format.Paragraphs.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Exceptions.H"
-#endif
-//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::exceptions::Exception*, vt_alib_exception )
 
 
@@ -93,10 +42,8 @@ void Exception::finalizeMessage( Message*       message,
                                           "type {!Q<>}.", message->Type.TypeID().name() )
                 } else {
                     std::sort( recordList.begin(), recordList.end(),
-                    [] (std::pair<integer,const void*>& a, std::pair<integer,const void*>& b )
-                       {
-                           return a.first < b.first;
-                       });
+                    [] ( std::pair<integer,const void*>& a, std::pair<integer,const void*>& b )
+                         { return a.first < b.first;});
                     std::vector<std::any> args; args.reserve(32);
                     args.emplace_back( "Enum record {} not found for exception enumeration type {}.\n"
                                        "The following records have been found:\n" );
@@ -160,15 +107,16 @@ AString&   Exception::Format( AString& target )                                 
     tknzr.TrimChars= A_CHAR( "\r" );
     String1K buf;
     buf.DbgDisableBufferReplacementWarning();
-    Formatter& formatter= *Formatter::Default;
+    Formatter& formatter= *Formatter::DEFAULT;
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
     formatter.GetArgContainer();
     size_t entryNo= 1;
-    for ( auto entry= begin(); entry != end(); ++entry ) {
-        text.Add( A_CHAR("{}{}: {!Q<>}"), (entry->Type.Integral() >= 0 ? 'E' : 'I'), entryNo, entry->Type );
+    for ( auto entryIt= begin(); entryIt != end(); ++entryIt ) {
+        text.Add( A_CHAR("{}{}: {!Q<>}"), (entryIt->Type.Integral() >= 0 ? 'E' : 'I'), entryNo, entryIt->Type );
         text.PushIndent( A_CHAR("    ") );
         try
         {
-            formatter.FormatArgs( buf.Reset(), *entry );
+            formatter.FormatArgs( buf.Reset(), *entryIt );
         }
         catch( Exception& e )
         {
@@ -184,7 +132,7 @@ AString&   Exception::Format( AString& target )                                 
             text.Add( tknzr.Next()  );
 
         #if ALIB_DEBUG
-            text.Add( entry->CI );
+            text.Add( entryIt->CI );
         #endif
 
         text.PopIndent();
@@ -196,19 +144,3 @@ AString&   Exception::Format( AString& target )                                 
 #endif // ALIB_FORMAT
 
 } // namespace [alib::lang]
-
-
-#if ALIB_CAMP
-namespace alib::system {
-
-Exception CreateSystemException( const CallerInfo& ci, int errNo ) {
-    auto* enumRecord= enumrecords::TryRecord( SystemErrors(errNo) );
-    if( enumRecord == nullptr )
-        return Exception( ci, SystemErrors::UNKNOWN, errNo );
-
-    return Exception( ci, SystemErrors(errNo),  // as exception
-                          SystemErrors(errNo),  // boxing the exception's name (!)
-                          errNo                    );
-}
-} // namespace [alib::lang]
-#endif

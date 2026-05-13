@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="ALib-ALox-C++" pattern="file[alox.samples]:src.cpp//*||file[alox.samples]:docs/*" />
-</component>

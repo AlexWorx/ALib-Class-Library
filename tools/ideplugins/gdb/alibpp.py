@@ -338,6 +338,54 @@ def getPPValue(value):
         return pp.to_string()
     return str(value)  # Fallback to raw string representation
 
+def getStringTreeCursorPath(cursor):
+    """
+    Builds the path of an ALib StringTree cursor by walking cursor.node->parent
+    until the root is reached and prepending each node's name.key.
+
+    This version intentionally skips root/nulled name segments, which may appear
+    as "<nulled>" or "<empty>" in the debugger.
+    """
+    try:
+        node = cursor["node"]
+        if int(node) == 0:
+            return "<null cursor>"
+
+        segments = []
+        guard = 0
+
+        while int(node) != 0:
+            try:
+                raw_name = getPPValue(node["name"]["key"])
+                segment = extractQuotation(raw_name).strip()
+            except Exception:
+                segment = "<name_error>"
+
+            # Skip root / invalid placeholders that should not become path elements.
+            if segment not in ("", "<empty>", "<nulled>", "<null>", "<name_error>"):
+                segments.append(segment)
+
+            try:
+                parent = node["parent"]
+            except Exception:
+                break
+
+            if int(parent) == 0:
+                break
+
+            node= parent
+            guard+= 1
+            if guard > 512:
+                segments.append("<cycle?>")
+                break
+
+        if len(segments) == 0:
+            return "/"
+
+        return "/" + "/".join(reversed(segments))
+
+    except Exception as e:
+        return "<StringTree cursor path error: " + str(e) + ">"
 
 def invoke(value, method):
     """
@@ -374,7 +422,7 @@ def invoke(value, method):
 
 def invokeOnPointer(value, method):
     """
-    Invoke the method on the casted address of the pointer given with the gdb value.
+    Invoke the method on the cast address of the pointer given with the gdb value.
     Exceptions are not handled here. Thus the caller can generate a specific error message.
     Args:
         value (gdb.Value): The value that represents the pointer.
@@ -436,8 +484,6 @@ class ALibPrinterSelector:
             return None
         typeName= typeName[6:]
 
-        #print("----ALib Type: " + typeNameOrig + " -> " +typeName )
-        #print( "ALib: Lookup for type >%s< " % type )
 
         if typeName.endswith(" &"):
             typeName= typeName[0:-2]
@@ -445,6 +491,8 @@ class ALibPrinterSelector:
         # declare result for our pretty printer
         display=     None
 
+        #print("----ALib Type: " + typeNameOrig + " -> " +typeName )
+        
         try:
             stdCharWidth= gdb.lookup_type("alib::character").sizeof
             #------------------------------------- strings ---------------------------------
@@ -461,34 +509,34 @@ class ALibPrinterSelector:
                     except:
                        pass
 
-                #--------------------------------- System ---------------------------------
-                elif typeName.startswith( 'system::' ):
-                    typeName= typeName[8::]
+            #--------------------------------- System ---------------------------------
+            elif typeName.startswith( 'system::' ):
+                typeName= typeName[8::]
 
-                    if typeName == "Path":
-                        cWidth= gdb.lookup_type("alib::system::PathCharType").sizeof
-                        asBuffer= getASString( value, cWidth )
-                        display= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
-                        if( cWidth != stdCharWidth ):
-                            display+= " (PathCharType)"
+                if typeName == "Path":
+                    cWidth= gdb.lookup_type("alib::PathCharType").sizeof
+                    asBuffer= getASString( value, cWidth )
+                    display= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+                    if( cWidth != stdCharWidth ):
+                        display+= " (PathCharType)"
 
 
-                    elif typeName == "CalendarDate":
-                        display=          str(   value["stamp"] >> 12       )               \
-                                + '/'  + str( ( value["stamp"] >>  8) & 15 )               \
-                                + '/'  + str( ( value["stamp"] >>  3) & 31 )               \
-                                + ' (' + getDayOfWeekString( value["stamp"] & 7 )  + ')'
+                elif typeName == "CalendarDate":
+                    display=         str(   value["stamp"] >> 12       )               \
+                            + '/'  + str( ( value["stamp"] >>  8) & 15 )               \
+                            + '/'  + str( ( value["stamp"] >>  3) & 31 )               \
+                            + ' (' + getDayOfWeekString( value["stamp"] & 7 )  + ')'
 
-                    elif typeName == "CalendarDateTime":
-                        display=   '{}/{:02}/{:02} ({}) {}:{:02}:{:02} {}ms'.format(
-                                              value["Year"       ]              , \
-                                         int( value["Month"      ] )            , \
-                                         int( value["Day"        ] )            , \
-                          getDayOfWeekString( value["DayOfWeek"  ] & 7 )        , \
-                                              value["Hour"       ]              , \
-                                         int( value["Minute"     ] )            , \
-                                         int( value["Second"     ] )            , \
-                                         int( value["Millisecond"] )            )
+                elif typeName == "CalendarDateTime":
+                    display=   '{}/{:02}/{:02} ({}) {}:{:02}:{:02} {}ms'.format(
+                                          value["Year"       ]              , \
+                                     int( value["Month"      ] )            , \
+                                     int( value["Day"        ] )            , \
+                      getDayOfWeekString( value["DayOfWeek"  ] & 7 )        , \
+                                          value["Hour"       ]              , \
+                                     int( value["Minute"     ] )            , \
+                                     int( value["Second"     ] )            , \
+                                     int( value["Millisecond"] )            )
 
 
 
@@ -549,6 +597,38 @@ class ALibPrinterSelector:
                              " Delim='" + chr(value["delim"]) + "'"
 
 
+            #------------------------------------- boxing ---------------------------------
+            elif typeName.startswith( 'boxing::' ):
+                typeName= typeName[8::]
+
+                if (typeName.startswith("Box")):
+                    display=  "int{"  + str(value["data"]["Debugger_Integral"]) + '} "'
+                    display+= "str{"  + str(value["data"]["Debugger_String"]  ) + '} "'
+                    display+= "type{" + str(value["vtable"]["Type"]["__name"] ) + '}"'
+
+                if (typeName.startswith("Enum") ):
+                    display=  "enum{" + str(value["data"]["Debugger_Integral"]) + '} "'
+                    display+= "type{" + str(value["vtable"]["Type"]["__name"] ) + '}"'
+
+            #--------------------------------- containers ---------------------------------
+            elif typeName.startswith( 'containers::' ):
+                typeName= typeName[12::]
+
+                if "StringTree" in typeName and ("TCursor<" in typeName or typeName == "Cursor"):
+                    display = getStringTreeCursorPath(value)
+
+
+            elif typeName.startswith( 'containers::' ):
+                typeName= typeName[12::]
+
+                if typeName.startswith("StringTree") or "StringTree::TCursor<" in typeName:
+                    try:
+                        # Only treat it as a cursor if the type actually owns a field named "node".
+                        field_names = [f.name for f in value.type.fields() if f.name]
+                        if "node" in field_names:
+                            display = getStringTreeCursorPath(value)
+                    except Exception:
+                        pass
 
 
             #--------------------------------- Time ---------------------------------
@@ -838,7 +918,9 @@ class ALibPrinterSelector:
 ####################################################################################################
 ### main entry point
 ####################################################################################################
+print ("ALib PrettyPrinters: Registering...")
 gdb.printing.register_pretty_printer(gdb.current_objfile(), ALibPrinterSelector())
+print ("...done (ALib PrettyPrinters.)")
 
 
 ##### For debugging: starts our test program.

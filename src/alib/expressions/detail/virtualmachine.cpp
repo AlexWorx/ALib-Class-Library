@@ -1,38 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/expressions/expressions.prepro.hpp"
-#include <vector>
-#include <stack>
-#include "ALib.Boxing.H"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-#if ALIB_DEBUG
-#    include "ALib.Format.Paragraphs.H"
-#endif
-#else
-#   include "ALib.Expressions.Impl.H"
-#   if ALIB_DEBUG
-#     include "ALib.Format.Paragraphs.H"
-#   endif
-#   include "ALib.Expressions.H"
-#endif
-//========================================== Implementation ========================================
 ALIB_BOXING_VTABLE_DEFINE( alib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
 
 namespace alib {  namespace expressions { namespace detail {
@@ -101,8 +66,8 @@ void  VirtualMachine::run( Program& program, Scope& scope )                {ALIB
 
     for( integer programCounter= 0; programCounter < program.Length() ; ++ programCounter ) {
         const Command& cmd= program.At(programCounter);
-        ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+        ALIB_ALLOW_BITWISE_SWITCH
+        ALIB_ALLOW_SPARSE_ENUM_SWITCH
         switch( cmd.OpCode() ) {
             case Command::OpCodes::Constant:
                 stack.emplace_back( cmd.ResultType );
@@ -176,8 +141,8 @@ void  VirtualMachine::run( Program& program, Scope& scope )                {ALIB
                                 }
 
                                 String512 msg;
-                                ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-                                Formatter& fmt= *Formatter::Default;
+                                ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+                                Formatter& fmt= *Formatter::DEFAULT;
                                 fmt.GetArgContainer();
                                 fmt.Format( msg, "Result type mismatch during command execution:\n"
                                                  "       In expression: {!Q} {{{}}}\n"
@@ -312,8 +277,8 @@ void  VirtualMachine::run( Program& program, Scope& scope )                {ALIB
 
             default: ALIB_ERROR("EXPR", "Illegal switch state." ) break;
         }
-        ALIB_WARNINGS_RESTORE
-        ALIB_WARNINGS_RESTORE
+        ALIB_POP_ALLOWANCE
+        ALIB_POP_ALLOWANCE
 
     } // command loop
 
@@ -362,8 +327,8 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator) {
         const Command& cmd= program.At(pc);
         integer positionInExpression= POS_IN_EXPR_STR;
 
-        ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+        ALIB_ALLOW_BITWISE_SWITCH
+        ALIB_ALLOW_SPARSE_ENUM_SWITCH
         switch( cmd.OpCode() ) {
             case Command::OpCodes::Subroutine:
             {
@@ -451,8 +416,8 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator) {
 
             default: ALIB_ERROR("EXPR", "Illegal switch state.") break;
         }
-        ALIB_WARNINGS_RESTORE
-        ALIB_WARNINGS_RESTORE
+        ALIB_POP_ALLOWANCE
+        ALIB_POP_ALLOWANCE
 
         while( !conditionalStack.empty() && conditionalStack.top() == pc ) {
             AST* F= Arg; PopNode;
@@ -575,8 +540,8 @@ AString VirtualMachine::DbgList( Program& program ) {
 
             String128 operation;
             String128 description;
-            ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-            ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+            ALIB_ALLOW_BITWISE_SWITCH
+            ALIB_ALLOW_SPARSE_ENUM_SWITCH
             switch( cmd.OpCode() ) {
                 case Command::OpCodes::Subroutine:
                 {
@@ -686,8 +651,8 @@ AString VirtualMachine::DbgList( Program& program ) {
 
                 default: ALIB_ERROR("EXPR", "Illegal switch state.") break;
             }
-            ALIB_WARNINGS_RESTORE
-            ALIB_WARNINGS_RESTORE
+            ALIB_POP_ALLOWANCE
+            ALIB_POP_ALLOWANCE
 
 
             while( !conditionalStack.empty() && conditionalStack.top() == pc ) {

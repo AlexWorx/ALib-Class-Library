@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -19,7 +19,7 @@
    
 
 \I{################################################################################################}
-# 1. Introduction # {#alib_thrmod_intro}
+# 1\. Introduction # {#alib_thrmod_intro}
 This is a rather high-level \alibmod. It is by design separated from the low-level module
 \alib_threads, which provides just fundamental functionality like a simple thread class, thread
 registration and identification and several locking and asynchronous notification mechanics.
@@ -109,13 +109,13 @@ Aspect                          | Dedicated Threads                             
 
                                  
 \I{################################################################################################}
-# 2. Class ThreadPool # {#alib_thrmod_threadpool}
+# 2\. Class ThreadPool # {#alib_thrmod_threadpool}
 The class \b ThreadPool implements the concept of pooled threads, as discussed in the introductory
 sections above.
                                             
 ## 2.1 Source-Code Sample # {#alib_thrmod_threadpool_sample}
 Let us start with a simple sample.
-The first thing to do is defining a job-type, derived from class \alib{threadmodel;Job}:
+The first thing to do is defining a job-type, derived from class #"Job":
                                                                      
 \snippet "ut_threadmodel.cpp"     DOX_THREADMODEL_MYJOB
 
@@ -126,60 +126,60 @@ With this in place, we can pass jobs of this type to a thread pool:
 This already showed the basic idea how the type can be used.
 
 ## 2.2 Implementing Derived Thread-Pools and Workers# {#alib_thrmod_threadpool_derived}
-Beside the definition of custom \alib{threadmodel;Job}-types that are implementing its virtual
-method \alib{threadmodel::Job;Do}, the classes \b ThreadPool and \b PoolWorker are also virtual
+Beside the definition of custom #"Job"-types that are implementing its virtual
+method #"Job::Do", the classes \b ThreadPool and \b PoolWorker are also virtual
 types and may be derived to allow more specialized use-cases.
 The virtual methods that may be overwritten by custom types are:
 
-- \alib{threadmodel;ThreadPool::CreateWorker}:<br>
+- #"ThreadPool::CreateWorker;*":<br>
   This method may be overwritten and return a custom derived type of class \b PoolWorker
-- \alib{threadmodel;ThreadPool::DisposeWorker}:<br>
+- #"ThreadPool::DisposeWorker;*":<br>
   Disposes a \b PoolWorker and may perform additional custom steps.
-- \alib{threadmodel;PoolWorker::PrepareJob}:<br>
+- #"PoolWorker::PrepareJob;*":<br>
   This method is called by the worker before a job is executed. It may be overwritten
   to perform additional custom steps. Especially, here, the job may be equipped with custom
   information available through the \c this pointer.
   
-\note The virtual method \alib{threadmodel;PoolWorker::Run} is inherited from class
-      \alib{threads;Thread} and should usually \b not be overridden.
+\note The virtual method #"PoolWorker::Run;*" is inherited from the class
+      #"Thread" and should usually \b not be overridden.
 
 A typical use-case for such customization is to provide a per-thread
-\alib{monomem;TMonoAllocator;MonoAllocator}, which is used to allocate memory during the
+#"monomem::TMonoAllocator;MonoAllocator", which is used to allocate memory during the
 execution of the jobs, and which is reset after each job.
 This approach allows efficient memory management without the need for locking.
 For this, the following steps are needed:
 - Define a custom \b PoolWorker type, which derives from class \b PoolWorker and which holds
   a \b MonoAllocator (and/or \b PoolAllocator) instance.
-- Override the method \alib{threadmodel;ThreadPool::CreateWorker} to create such a custom
+- Override the method #"ThreadPool::CreateWorker;*" to create such a custom
   worker. For this, copy the original implementation and just replace the type of the worker
   by the custom one.
-- Override the method \alib{threadmodel;ThreadPool::DisposeWorker} to duly destruct and
+- Override the method #"ThreadPool::DisposeWorker;*" to duly destruct and
   deallocate custom worker instances.
-- Override the method \alib{threadmodel;PoolWorker::PrepareJob} to pass the worker's
+- Override the method #"PoolWorker::PrepareJob;*" to pass the worker's
   \b MonoAllocator instance to the (anyhow) custom job type.
 - The job may now use the \b MonoAllocator instance to allocate memory.
-  When the job is done, it is responsible for \alib{monomem;MonoAllocator::Reset;resetting} the
+  When the job is done, it is responsible for #"TMonoAllocator::Reset(Snapshot);resetting" the
   allocator to its initial state.
 
 ## 2.3 Further Reading# {#alib_thrmod_threadpool_further}
 \par Please Read Now:
     To avoid redundancy, we would ask you to read the following pieces of the reference
     documentation:
-    - The reference documentation of class \alib{threadmodel;PoolWorker},
-    - The reference documentation of class \alib{threadmodel;ThreadPool}, and
-    - the reference documentation of class \alib{threadmodel;Job}.
+    - The reference documentation of class #"PoolWorker",
+    - The reference documentation of class #"ThreadPool", and
+    - the reference documentation of class #"Job".
     
 This might be all that is needed to explain in this chapter.
 
      
 \I{################################################################################################}
-# 3. Class DedicatedWorker # {#alib_thrmod_dedicatedworker}
+# 3\. Class DedicatedWorker # {#alib_thrmod_dedicatedworker}
 As discussed in the introductory sections above, one principle type of threads are ones
 that are "dedicated to a group of jobs".
-While the foundational module \alib_threads already provides the simple type \alib{threads;Thread},
+While the foundational module \alib_threads already provides the simple type #"Thread",
 which implements this concept along the design provided with class \b Thread of the
 Java programming language, this module introduces a more sophisticated implementation with the
-class \alib{threadmodel;DedicatedWorker}.
+class #"DedicatedWorker".
 
 Here is a quick sample code that demonstrates the use of this class.
 As a prerequisite we rely on the same class \b MyJob that had been introduced in the previous
@@ -197,25 +197,25 @@ and disadvantages (explained in the comments above and in the reference document
 In more complicated cases it may be necessary to receive the job to be able to periodically
 check for processing, but then the sender may "lose interest" in it.
 To enable a due deletion of an unprocessed job, the method
-\alib{threadmodel::DedicatedWorker;DeleteJobDeferred} is offered.
+#"DedicatedWorker::DeleteJobDeferred" is offered.
 This pushes a new job (of a special internal type) into the execution queue of the worker, which
 cares for deletion.
                    
 The sample furthermore showed that the very same job-type which had been used in the previous
-section with class \alib{threadmodel;ThreadPool}, can be used with the dedicated worker.
+section with class #"ThreadPool", can be used with the dedicated worker.
 If done so, the advantage lies exactly here, namely that a job can be used with both concepts.<br>
 However, this usually is neither needed nor wanted, just because the decision which thread-concept
 to use, is dependent from exactly the nature of the job-types!
 
 Therefore, the more common option of processing jobs with class \b DedicatedWorker is to override
-its virtual method \alib{threadmodel::DedicatedWorker;process} and perform execution there.
+its virtual method #"DedicatedWorker::process" and perform execution there.
 
 Here is a sample code:
 
 \snippet "ut_threadmodel.cpp"     DOX_THREADMODEL_DEDICATED_WORKER_USING_PROCESS
                                                                                 
 If the overridden method returns \c true for a job passed, then the virtual method
-\alib{threadmodel;Job::Do} is not even called. In the sample above, both implementation even
+#"Job::Do;*" is not even called. In the sample above, both implementation even
 do different things. The first doubles the input value, the second triples it.
 
 Let us summarize this:
@@ -231,13 +231,13 @@ Let us summarize this:
 \par Please Read Now:
     To avoid redundancy, for further information, we would ask you to read the following pieces
     of the reference documentation:
-    - The reference documentation of class \alib{threadmodel;DedicatedWorker},
-    - the reference documentation of class \alib{threadmodel;Job}, and
-    - the reference documentation of class \alib{threadmodel;DWManager}.
+    - The reference documentation of class #"DedicatedWorker",
+    - the reference documentation of class #"Job", and
+    - the reference documentation of class #"DWManager".
                                                                         
 
 \I{################################################################################################}
-# 4. Class Trigger and Interface class Triggered # {#alib_thrmod_trigger}
+# 4\. Class Trigger and Interface class Triggered # {#alib_thrmod_trigger}
                
 This pair of classes offers a next method to execute tasks asynchronously.
 Here is a quick sample:
@@ -247,12 +247,12 @@ Here is a quick sample:
 \par Please Read Now:
     To avoid redundancy, for further information, we would ask you to read the following pieces
     of the reference documentation:
-    - The reference documentation of class \alib{threadmodel;Trigger}, and
-    - the reference documentation of class \alib{threadmodel;Triggered}.
+    - The reference documentation of class #"Trigger", and
+    - the reference documentation of class #"Triggered".
 
-As a final not, class \alib{threadmodel;DedicatedWorker} implements the interface
+As a final note, class #"DedicatedWorker" implements the interface
 \b %Triggered in order that it can be attached to a trigger.
 If done, a trigger-job will be pushed in its command queue, and with that, the execution of
-interface method \alib{threadmodel;Triggered::Trigger} is performed asynchronously.
+interface method #"Triggered::trigger" is performed asynchronously.
 
 <br><br><br><br><br><br> */

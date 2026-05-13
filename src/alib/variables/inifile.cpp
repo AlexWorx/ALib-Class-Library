@@ -1,48 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "alib/boxing/boxing.prepro.hpp"
-#include "alib/variables/variables.prepro.hpp"
-#include <fstream>
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables.IniFile;
-    import   ALib.EnumOps;
-    import   ALib.Strings;
-    import   ALib.Strings.Tokenizer;
-    import   ALib.Strings.StdIOStream;
-    import   ALib.Boxing;
-    import   ALib.EnumRecords;
-#  if ALIB_EXCEPTIONS
-    import   ALib.Exceptions;
-#  endif
-    import   ALib.System;
-    import   ALib.Variables;
-    import   ALib.Camp.Base;
-#else
-#   include "ALib.Strings.H"
-#   include "ALib.Strings.Tokenizer.H"
-#   include "ALib.Strings.StdIOStream.H"
-#   include "ALib.Boxing.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.System.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Camp.Base.H"
-#   include "ALib.Variables.IniFile.H"
-#endif
-//========================================== Implementation ========================================
 #if ALIB_CAMP
   ALIB_BOXING_VTABLE_DEFINE( alib::variables::Exceptions                , vt_config_exceptions  )
 #endif
@@ -95,7 +50,7 @@ IniFile::Section*  IniFile::DeleteSection( const String& name ) {
             auto* section= &*secIt;
             // delete hashtable entries
             for(auto entryIt= entryTable.begin() ; entryIt != entryTable.end(); ++entryIt ) {
-                if( entryIt->second.first == section ) {
+                if( entryIt->second.SectionPointer == section ) {
                     entryIt= entryTable.erase( entryIt );
                     continue;
             }   }
@@ -123,17 +78,17 @@ IniFile::Entry*    IniFile::CreateEntry ( Section* section, const String& pName 
     Entry& newEntry= section->Entries.push_back(Entry());
     newEntry.Name.Allocate(Allocator, pName);
     entryTable.EmplaceUnique( EntryKey(section->Name, newEntry.Name),
-                              std::make_pair(section, &newEntry) );
+                              Handle{section, &newEntry} );
     return &newEntry;
 }
 
-std::pair<IniFile::Section*, IniFile::Entry*>   IniFile::SearchEntry (const String& sectionName,
+IniFile::Handle  IniFile::SearchEntry (const String& sectionName,
                                                                       const String& name         ) {
     ALIB_ASSERT_ERROR( sectionName.IsNotNull(), "VARIABLES", "Nulled section name given.")
     auto it=  entryTable.Find( EntryKey(sectionName, name ) );
     if( it != entryTable.end() )
         return it.Mapped();
-    return std::pair<Section*, Entry*>(nullptr, nullptr);
+    return Handle{nullptr, nullptr};
 }
 
 IniFile::Section*  IniFile::SearchSection( const String& sectionName ) {
@@ -169,30 +124,26 @@ void  IniFile::AddComments ( String& dest, const String& comments, const String&
     dest.Allocate(Allocator, buf);
 }
 
-integer  IniFile::Read(const CPathString&  path) {
+int  IniFile::Read(const CPathString&  path) {
     FileName.Allocate(Allocator, path);
 
   //------------------------------------------- open file ------------------------------------------
     ALIB_STRINGS_TO_NARROW(path, nPath, 256)
-    std::ifstream file( nPath );
+    std::ifstream file;
+    #if !ALIB_CAMP
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    #endif
+    errno= 0;
+    file.open( nPath );
 
-    if ( !file.is_open() ) {
-        int errNo= errno;
-
-        // file does not exist ?
-        if ( errNo == int(SystemErrors::enoent) )
-            return -1;
-
-        // other errors: throw
-        #if ALIB_CAMP
-            Exception e=   system::CreateSystemException( ALIB_CALLER_NULLED, errNo );
-                      e.Add( ALIB_CALLER_NULLED,  variables::Exceptions::ErrorOpeningFile,
-                             A_CHAR("INI-"), path                                        );
+    #if ALIB_CAMP
+    if ( !file.is_open() || errno ) {
+            Exception e=   exceptions::CreateExceptionFromSystemError( ALIB_CALLER_NULLED, errno );
+            e.Add( ALIB_CALLER_NULLED,  variables::Exceptions::ErrorOpeningFile,
+                   A_CHAR("INI-"), path                                          );
             throw e;
-        #else
-            throw std::runtime_error("ErrorOpeningFile");
-        #endif
     }
+    #endif
 
 
     if( Sections.empty() )
@@ -228,7 +179,8 @@ integer  IniFile::Read(const CPathString&  path) {
         // end of file header?
         if ( !fileHeaderRead && lineTrimmed.IsEmpty() ) {
             fileHeaderRead= true;
-            FileComments.Allocate(Allocator, actComments);
+            if (actComments.IsNotEmpty())
+                FileComments.Allocate(Allocator, actComments);
             actComments.Reset();
         }
 
@@ -298,18 +250,17 @@ integer  IniFile::Read(const CPathString&  path) {
 
             // insert entry with raw and trimmed value
             {
-                auto* entry= SearchEntry( actSection->Name, actName ).second;
+                auto* entry= SearchEntry( actSection->Name, actName ).EntryPointer;
                 if( entry == nullptr) {
                     entry=   CreateEntry( actSection, actName );
                     ++qtyEntriesRead;
-                } else {
-                    ALIB_WARNING("VARIABLES",
-                       "Variable \"{}\" was found twice in INI-file. First value will be discarded "
-                       "on writing.", String(actName) )
                 }
                 entry->Comments.Allocate(Allocator, actComments );
                 entry->RawValue.Allocate(Allocator, actRawValue );
                 entry->WriteBack= writebackFlag;
+                if(entry->LineNo>= 0 && entry->FirstLineNo == -1 )
+                    entry->FirstLineNo= entry->LineNo;
+                entry->LineNo=    lineNo;
                 writebackFlag= false;
 
                 // parse trimmed value
@@ -353,19 +304,22 @@ void IniFile::Write(const PathString&  pPath) {
            "Given Path is empty and no known filename from previous Read() operation available.")
 
     // open output file
-    std::ofstream outputFileStream( path.Terminate(), std::ios::binary );
-    if ( !outputFileStream.is_open() ) {
-        #if ALIB_CAMP
-            int errNo= errno;
-            Exception e=  CreateSystemException( ALIB_CALLER_NULLED, errNo );
-                      e.Add( ALIB_CALLER_NULLED, variables::Exceptions::ErrorWritingFile, "INI-", FileName );
+    std::ofstream file;
+    #if !ALIB_CAMP
+      file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    #endif
+    errno= 0;
+    file.open( path.Terminate(), std::ios::binary );
+    #if ALIB_CAMP
+        if ( !file.is_open() || errno ) {
+            Exception e=  exceptions::CreateExceptionFromSystemError( ALIB_CALLER_NULLED, errno );
+            e.Add( ALIB_CALLER_NULLED, variables::Exceptions::ErrorWritingFile,
+                   "INI-", FileName );
             throw e;
-        #else
-            throw std::runtime_error("ErrorWritingFile");
-        #endif
-    }
+        }
+    #endif
 
-    OStreamWriter writer( outputFileStream );
+    OStreamWriter writer( file );
 
     // write file header
     if ( FileComments.IsNotEmpty() ) {
@@ -446,7 +400,7 @@ void IniFile::Write(const PathString&  pPath) {
     }   }   }   }
 
     // close file
-    outputFileStream.close();
+    file.close();
 }
 
 

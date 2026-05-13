@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -15,7 +15,7 @@
 #include "ALib.Strings.Token.H"
 #include "ALib.Exceptions.H"
 #include "ALib.Camp.H"
-#include "ALib.Files.H"
+#include "ALib.FileTree.H"
 #include "ALib.Expressions.H"
 
 #include <cmath>
@@ -42,7 +42,7 @@ using namespace alib::expressions;
 using namespace alib::expressions::detail;
 #include "expressions/ut_expr_testfunc.hpp"
 
-ALIB_WARNINGS_MACRO_NOT_USED_OFF
+ALIB_ALLOW_UNUSED_MACRO
 
 namespace ut_aworx {
 
@@ -406,25 +406,21 @@ UT_METHOD(TokenConsistency)
 {
     UT_INIT()
 
-    #if ALIB_FILES
+    #if ALIB_FILETREE
         constexpr int FLS= 39;
     #else
         constexpr int FLS= 0;
     #endif
 
-    #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
-        constexpr int SSZ= 25;
-    #else
-        constexpr int SSZ= 24;
-    #endif
+    constexpr int SSZ= 25;
     Token tokens[9+1+58+34+SSZ+FLS];
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPA"     ,&tokens[0]             ALIB_DBG(,  9));
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPALen"  ,&tokens[9]             ALIB_DBG(,  1));
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPD"     ,&tokens[9+1]           ALIB_DBG(, 58));
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPM"     ,&tokens[9+1+58]        ALIB_DBG(, 34));
     strings::util::LoadResourcedTokens( EXPRESSIONS, "CPS"     ,&tokens[9+1+58+34]     ALIB_DBG(,SSZ));
-    #if ALIB_FILES
-    strings::util::LoadResourcedTokens( alib::FILES, "CPF"     ,&tokens[9+1+58+34+SSZ] ALIB_DBG(,FLS));
+    #if ALIB_FILETREE
+    strings::util::LoadResourcedTokens( alib::FILETREE, "CPF"     ,&tokens[9+1+58+34+SSZ] ALIB_DBG(,FLS));
     #endif
 
     // The following 10 warnings are OK, as they are overloaded with different parameter types.
@@ -449,6 +445,6 @@ UT_METHOD(TokenConsistency)
 
 } //namespace
 
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 #endif // ALIB_UT_EXPRESSIONS

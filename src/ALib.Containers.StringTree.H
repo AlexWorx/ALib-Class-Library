@@ -2,25 +2,49 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_CONTAINERS_STRINGTREE
 #define H_ALIB_CONTAINERS_STRINGTREE
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/containers/containers.prepro.hpp"
 
 #if ALIB_CONTAINERS && ALIB_STRINGS
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Containers.StringTree;
-#   elif !defined(ALIB_INC_CONTAINERS_STRINGTREE_MPP)
-#       define    ALIB_INC_CONTAINERS_STRINGTREE_MPP
-#       include "alib/containers/stringtree.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Containers.HashTable.H"
+#include "ALib.Strings.H"
 
+#include <iterator>
+#include <cmath>
+#include <algorithm>
+
+#if defined( _WIN32 ) || defined(__APPLE__)
+#include <clocale>
+#endif
+#if defined(_WIN32)
+#include <intrin.h>
+#endif
+#include <clocale>
+#include <limits>
+#include <vector>
+#include <algorithm>
+
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Containers.StringTree;
+#else
+#ifndef ALIB_GUARD_CONTAINERS_INIT
+#    define ALIB_GUARD_CONTAINERS_INIT 1
+#include "alib/containers/recycling.hpp"
+#include "alib/containers/valuedescriptor.hpp"
+#endif
+#if ALIB_STRINGS
+#include "alib/containers/detail/stringtreebase.hpp"
+#include "alib/containers/stringtree.hpp"
+#endif
+#endif // ALIB_C20_MODULES
+#endif // ALIB_CONTAINERS && ALIB_STRINGS
 #endif // H_ALIB_CONTAINERS_STRINGTREE

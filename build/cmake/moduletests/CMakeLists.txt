@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2013-2025 A-Worx GmbH, Germany
+#  Copyright 2013-2026 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
@@ -28,7 +28,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required(VERSION 3.20) # For C++ 20 module compilation, V. 3.28 is needed
+    cmake_minimum_required(VERSION 3.20)
 
     project("ALib_ModuleDepsAndHeaderTest")
 
@@ -82,7 +82,7 @@ endif()
 
 foreach( fileName IN LISTS   ALIB_H )
 
-    string(FIND ${fileName} ".inl" position REVERSE)
+    string(FIND ${fileName} ".hpp" position REVERSE)
     IF( ${position} EQUAL -1 )
         string(FIND ${fileName} "lang/plugins.hpp" position REVERSE) # depends on enums
         IF( ${position} EQUAL -1 )
@@ -106,7 +106,7 @@ endforeach()
 file( GLOB_RECURSE HCTL_SRCS            ${ALIB_TEST_HEADERS_DIR}/*.cpp         )
 
 
-add_library( HeaderCompileTestLib       ${ALIB_HPP}
+add_library( HeaderCompileTestLib       ${ALIB_MACROS}
                                         ${HCTL_SRCS}  )
 
 ALibSetCompilerAndLinker( HeaderCompileTestLib )

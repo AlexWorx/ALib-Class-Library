@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -15,7 +15,6 @@
 #include "ALib.Strings.H"
 #include "ALib.ALox.H"
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Compatibility.StdBoxtraits.H"
 
 #include "ALib.Boxing.H"
@@ -269,7 +268,7 @@ extern  void testFAppend(AWorxUnitTesting& ut, const Box& box,  const String& va
         void testFAppend(AWorxUnitTesting& ut, const Box& box,  const String& val )
 {
     asTestFAppend.Reset();
-    UT_TRUE( box.GetFunction<FAppend<character ALIB_COMMA lang::HeapAllocator>>( lang::Reach::Local ) )
+    UT_TRUE( (box.GetFunction<FAppend<character ALIB_COMMA lang::HeapAllocator>>( lang::Reach::Local ) ) )
     box.Call<FAppend<character, lang::HeapAllocator>>( asTestFAppend );
     UT_EQ( val, asTestFAppend )
 }

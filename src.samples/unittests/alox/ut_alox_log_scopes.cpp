@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -16,7 +16,6 @@
 #include "ALib.Monomem.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.Compatibility.StdBoxtraits.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.ALox.H"
 #include "ALib.ALox.H"
 #if ALOX_DBG_LOG && !ALIB_SINGLE_THREADED && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
@@ -152,17 +151,17 @@ UT_METHOD(Log_LineFormat)
     UT_INIT()
 
     Log_AddDebugLogger()
-    Log_SetVerbosity  ( Log::DebugLogger, Verbosity::Off )
+    Log_SetVerbosity  ( Log::DEBUG_LOGGER, Verbosity::Off )
     Log_Prune( MemoryLogger* testML= new MemoryLogger(); )
     Log_SetVerbosity  ( testML, Verbosity::Off )
 
     Log_SetDomain( "FMT", Scope::Method )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose)
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose)
     Log_SetVerbosity( testML,           Verbosity::Verbose)
 
     Log_Info( "This is the default ConsoleLogger meta info" )
 
-    auto& format= Log::DebugLogger->GetFormatMetaInfo().Format;
+    auto& format= Log::DEBUG_LOGGER->GetFormatMetaInfo().Format;
     format.Reset( "%SF(%SL):%SM()%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: " );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
     format.Reset( "%SF(%SL):%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: "      );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
     format.Reset( "%SF(%SL):%A3[%TD][%TC +%TL][%tN]%V[%D]<%#>: "          );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
@@ -177,8 +176,8 @@ UT_METHOD(Log_LineFormat)
     format.Reset( ""                                                      );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
 
     #if ALOX_DBG_LOG
-        auto& dateFormat= Log::DebugLogger->GetFormatDate().Date;
-        auto& timeOfDayFormat= Log::DebugLogger->GetFormatDate().TimeOfDay;
+        auto& dateFormat= Log::DEBUG_LOGGER->GetFormatDate().Date;
+        auto& timeOfDayFormat= Log::DEBUG_LOGGER->GetFormatDate().TimeOfDay;
         auto& formatML= testML->GetFormatMetaInfo().Format;
         format.Reset("%TD@");
                   formatML.Reset("%TD@");
@@ -254,7 +253,7 @@ UT_METHOD(Log_Prefix)
     MemoryLogger ml;
     Log_SetVerbosity(&ml, Verbosity::Verbose )
     ml.GetFormatMetaInfo().Format._();
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
     Log_SetDomain( "/PREFIX", Scope::Method )
 
@@ -379,7 +378,7 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
     #if ALIB_DEBUG_MEMORY
         UT_PRINT( alib::monomem::DbgDumpStatistics(LOG_LOX.DbgGetMonoAllocator()) )
     #else
-        UT_PRINT( "N/A. Use the compiler-symbol ALIB_DEBUG_MEMORY to enable this statistic." )
+        UT_PRINT( "N/A. Use the configuration macro ALIB_DEBUG_MEMORY to enable this statistic." )
     #endif
 
 }
@@ -407,7 +406,7 @@ UT_METHOD(Log_ScopeDomains)
     MemoryLogger ml;
     Log_SetVerbosity(&ml, Verbosity::Verbose )
     ml.GetFormatMetaInfo().Format.Reset("@%D#");
-    Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity(Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
     // test methods with extending names
     LSD();         UT_EQ( A_CHAR("@/LSD#"),      ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
@@ -540,7 +539,7 @@ UT_METHOD(Log_ScopeDomains)
         #if ALIB_DEBUG_MEMORY
             UT_PRINT( alib::monomem::DbgDumpStatistics(LOG_LOX.DbgGetMonoAllocator()) )
         #else
-            UT_PRINT( "N/A. Use the compiler-symbol ALIB_DEBUG_MEMORY to enable this statistic." )
+            UT_PRINT( "N/A. Use the configuration macro ALIB_DEBUG_MEMORY to enable this statistic." )
         #endif
     #endif
 }
@@ -574,7 +573,7 @@ UT_METHOD(Lox_ScopeDomains)
     Lox_ClearSourcePathTrimRules( lang::Reach::Global, false )
     Lox_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Exclude, 0, lang::Case::Ignore, "/test/test2/test3" )
 
-    alib::TextLogger* consoleLogger= Lox::CreateConsoleLogger();
+    alib::TextLogger* consoleLogger= Lox::CreateConsoleLogger("UTCL");
     MemoryLogger ml;
     Lox_SetVerbosity(&ml, Verbosity::Verbose )
     ml.GetFormatMetaInfo().Format.Reset("@%D#");
@@ -709,7 +708,7 @@ UT_METHOD(Log_Once_Test)
     MemoryLogger ml;
 
     Log_SetVerbosity ( &ml, Verbosity::Verbose )
-    Log_SetVerbosity( Log::DebugLogger,  Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER,  Verbosity::Verbose, Lox::InternalDomains )
     Log_SetDomain( "ONCE", Scope::Global )
 
     //-------------------- associated to scope method-----------------
@@ -840,7 +839,7 @@ UT_METHOD(Log_Once_Test)
         #if ALIB_DEBUG_MEMORY
             UT_PRINT( alib::monomem::DbgDumpStatistics(LOG_LOX.DbgGetMonoAllocator()) )
         #else
-            UT_PRINT( "N/A. Use the compiler-symbol ALIB_DEBUG_MEMORY to enable this statistic." )
+            UT_PRINT( "N/A. Use the configuration macro ALIB_DEBUG_MEMORY to enable this statistic." )
         #endif
     #endif
 }
@@ -855,7 +854,7 @@ UT_METHOD(Log_Store_Test)
     UT_INIT()
 
     Log_AddDebugLogger()
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
     Log_SetDomain( "STORE", Scope::Method )
 
     // without key
@@ -951,7 +950,7 @@ UT_METHOD(Log_Store_Test)
             UT_PRINT( alib::monomem::DbgDumpStatistics(LOG_LOX.DbgGetMonoAllocator()) )
 
         #else
-            UT_PRINT( "N/A. Use the compiler-symbol ALIB_DEBUG_MEMORY to enable this statistic." )
+            UT_PRINT( "N/A. Use the configuration macro ALIB_DEBUG_MEMORY to enable this statistic." )
         #endif
     #endif
     //Log_LogState( "", Verbosity::Info, "Configuration now is:" );

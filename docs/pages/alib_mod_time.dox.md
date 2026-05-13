@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -12,7 +12,7 @@
                                          
 
  \I{################################################################################################}
-# 1. Introduction # {#alib_time_intro}
+# 1\. Introduction # {#alib_time_intro}
 
 This \alibmod provides types for calendrical date and time processing as well as
 for non-calendrical steady and monotonic time measurement.
@@ -30,13 +30,13 @@ better readable interface.
   functionality.
 
 The module and its functionality are considered essential and cannot be
-\ref alib_manual_alib_build "excluded from an ALib Build", unlike higher-level
+#"alib_manual_alib_build;excluded from an ALib Build", unlike higher-level
 modules can.
 
-The module is accessed by including header \implude{Time}.
+The module is accessed by including header #"F;ALib.Time.H".
 
  \I{################################################################################################}
-# 2. Points In Time # {#alib_time_points}
+# 2\. Points In Time # {#alib_time_points}
 A human being imagines a "point in time" to be the combination of a calendar data and a clock time.
 However, calendar dates and clock times rely on very complicated definitions, if
 local time zones, daylight-savings, leap years, or even different calendar schemes are considered.<br>
@@ -47,43 +47,43 @@ and comparisons.
 The only challenge is to convert such simple point in times to the complex, human-readable calendar
 and clock values, in the case this is needed.
 
-Class \alib{time;TimePointBase} provides an "abstract", templated base type for such time points
+Class #"TimePointBase" provides an "abstract", templated base type for such time points
 that store values that represent the difference in respect to a reference point in time.
-The class provides inner type \alib{time::TimePointBase;Duration} which represents the difference
+The class provides inner type #"TimePointBase::Duration" which represents the difference
 of two values of the type and offers an extensive set of methods and operators to work with
 values of itself and that inner type.
 
 \I{################################################################################################}
-# 3. DateTime And Ticks # {#alib_time_types}
+# 3\. DateTime And Ticks # {#alib_time_types}
 
-Two specializations of class \alib{time;TimePointBase} are provided with the module:
+Two specializations of class #"TimePointBase" are provided with the module:
 
-1. Class \alib{time;DateTime} for time points that are convertible to calendrical values, and
-2. Class \alib{time;Ticks} for steady and monotonic time points.
+1. Class #"time::DateTime" for time points that are convertible to calendrical values, and
+2. Class #"Ticks" for steady and monotonic time points.
 
 The wording "steady and monotonic" means that probes (aka time measurements) taken are never influenced by
 changes of the system's clock, daylight saving changes, etc. In contrast, it is always ensured that
 the difference of two probes represents exactly the duration that passed between taking the probes.
 
-Internally, type \alib{time;DateTime} uses <c>std::chrono::system_clock</c> while
-type \alib{time;Ticks} uses <c>std::chrono::steady_clock</c>.
+Internally, type #"time::DateTime" uses <c>std::chrono::system_clock</c> while
+type #"Ticks" uses <c>std::chrono::steady_clock</c>.
 
-Type \alib{time;DateTime} provides methods to convert values to system-dependent "date types".
+Type #"time::DateTime" provides methods to convert values to system-dependent "date types".
 For example, with GNU/Linux conversion to and from \c time_t is implemented. On Windows OS, in
 addition conversion to \c FILETIME and \c SYSTEMTIME is offered.
 
 \I{################################################################################################}
-# 4. Conversion Of Ticks To DateTime Values# {#alib_time_ticks_to_dates}
+# 4\. Conversion Of Ticks To DateTime Values# {#alib_time_ticks_to_dates}
 So, why aren't there similar conversion methods to system-dependent "date types" available with
-class \alib{time;Ticks} that uses the internal monotonic timer?
+class #"Ticks" that uses the internal monotonic timer?
 The answer is that values of type \b %Ticks cannot be converted without ambiguities: Their
 conversion can only be performed using the current system clock, which means that any changes of the
 clock setting changes the result of the conversion! This is not the case with values of
-type \alib{time;DateTime} (which, as explained in the previous section, instead takes ambiguities
+type #"time::DateTime" (which, as explained in the previous section, instead takes ambiguities
 between values of the type itself into account).
 
 As it still might be suitable in special situations to convert \b Ticks to human-readable calendar
-dates and clock times, class \alib{time;TickConverter} is provided.
+dates and clock times, class #"TickConverter" is provided.
 This class allows converting values of type \b %Ticks to values of type \b %DateTime and vice versa,
 which then can be converted further.
 Of course, it is up to the software using this type, to ensure that these ambiguities are duly made
@@ -95,7 +95,7 @@ of both timers, \b %Ticks and \b %DateTime are created. Using these probe values
 is performed. This means, that the conversion is "synchronized" with the system's clock setting
 at point in time of creation of the converter. In other words, changes of the system clock
 after the creation of the converter are not reflected. The converter can be updated to using the
-current system clock setting by invoking \alib{time;TickConverter::SyncClocks}.
+current system clock setting by invoking #"TickConverter::SyncClocks;*".
 
 
 To provide an understanding for this whole issue, a sample may help: Module \alib_alox provides tools to
@@ -113,12 +113,12 @@ if the system clock was changed while a process's log file was written.
 
 Therefore, no \b %DateTime values are stored with log entries, and if calendrical display
 is needed, a conversion using class \b %TickConverter is performed. The object used for this
-is created only once and in favor to provide steady log dates, is not updated by the module.
+is created only once and in favor of providing steady log dates, is not updated by the module.
 This means, if software runs for a longer time, changes of the system clock are \b not
 reflected and therefore, the calendrical date and time values displayed may start to deviate
 from the true system clock!<br>
 software that is using the module has to decide to either actively
-\alib{time;TickConverter::SyncClocks;update the converter} (and hence introduce non steady
+#"TickConverter::SyncClocks;update the converter" (and hence introduce non steady
 log entries) or to acknowledge the user of the software of  the problem of interpreting the
 date/time values! Now in this sample, software that implements a server process, probably
 running for days, weeks or even months without a reset, would synchronize the logging module's
@@ -130,17 +130,17 @@ system's clock setting that the first log-entry showed.
 
 
 \I{################################################################################################}
-# 5. Further Support With Module Basecamp # {#alib_time_system}
+# 5\. Further Support With Module Basecamp # {#alib_time_system}
 
 Two utility classes that are directly concerned with the types of this namespace are implemented
 with camp \alib_strings. Those are:
-- \alib{strings::util;CalendarDateTime}<br>
+- #"util::CalendarDateTime"<br>
   Provides bidirectional conversions between values of class \b %DateTime and
   gregorian calendar dates and 24h clock times.<br>
   Furthermore, comprehensive features for conversion of values to human-readable strings
   (formatting) is implemented with this type.
 
-- \alib{strings::util;CalendarDuration}
+- #"util::CalendarDuration"
   Implements bidirectional conversions between duration values of classes \b %DateTime and
   \b Ticks on the one hand and human-readable durations (seconds, minutes, hours, days, etc.) on the
   other hand.<br>
@@ -148,9 +148,9 @@ with camp \alib_strings. Those are:
   implemented for this type.
 
 \I{################################################################################################}
-# 6. Utilities # {#alib_time_util}
+# 6\. Utilities # {#alib_time_util}
 To measure a set of durations and receive cumulated, average, minimum, and maximum values of
-all probes, class \alib{time;StopWatch} is provided.
+all probes, class #"StopWatch" is provided.
 
 
 Furthermore this namespace incorporates types used for conversion of "time points" and

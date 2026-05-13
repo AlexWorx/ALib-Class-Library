@@ -1,45 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/containers/containers.prepro.hpp"
-#include "alib/boxing/boxing.prepro.hpp"
-#if ALIB_DEBUG_BOXING
-#   include <vector>
-#   include <algorithm>
-#endif
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Format;
-#   if ALIB_DEBUG_BOXING
-#      include "ALib.Lang.H"
-#      include "ALib.Monomem.H"
-#       if ALIB_DEBUG_CONTAINERS
-#          include "ALib.Containers.HashTable.H"
-#       endif
-#   endif
-#else
-#   if ALIB_DEBUG_BOXING
-#      include "ALib.Lang.H"
-#      include "ALib.Monomem.H"
-#      if ALIB_DEBUG_CONTAINERS
-#         include "ALib.Containers.HashTable.H"
-#      endif
-#      include "ALib.Format.H"
-#   endif
-#endif
-
-//========================================== Implementation ========================================
 #if ALIB_DEBUG_BOXING
 #   include "ALib.Lang.CIFunctions.H"
 namespace alib::boxing::debug {
@@ -55,8 +13,7 @@ void  typeInfo( AString&                 target,
                 bool                     fitsToPlaceholder,
                 bool                     copyConstructible,
                 bool                     triviallyDestructible,
-                bool                     isUnboxable                )
-{
+                bool                     isUnboxable                ) {
     target <<indent << "Mapping:        " << (  vtable->Mapping == detail::VTable::MappingType::Pointer
                                               ? "Pointer"
                                               : vtable->Mapping == detail::VTable::MappingType::Value
@@ -65,13 +22,10 @@ void  typeInfo( AString&                 target,
                                               ? "Enum"
                                               : "Array"
                                               ) << NEW_LINE;
-    if( vtable->Mapping == detail::VTable::MappingType::Enum )
-    {
+    if( vtable->Mapping == detail::VTable::MappingType::Enum ) {
         target << indent << "Mapped Type:    "; typeName(vtable, target ); target << " (Enumeration)"  << NEW_LINE;
         target << indent << "Customized:     Not customizable (always boxed as enum value type)"       << NEW_LINE;
-    }
-    else
-    {
+    } else {
         bool valueBoxing  =  vtable->Mapping == detail::VTable::MappingType::Value;
         bool pointerBoxing=  vtable->Mapping == detail::VTable::MappingType::Pointer;
         bool arrayBoxing  =  vtable->IsArray();
@@ -179,18 +133,16 @@ void  typeInfo( AString&                 target,
 //##################################################################################################
 AString DumpFunctions( const std::vector<std::pair<const std::type_info*,uinteger>>& input,
                        const String&                                                 headline,
-                       const String&                                                 indent    )
-{
+                       const String&                                                 indent    ) {
     AString                            result;
     LocalAllocator8K                   la;
     DbgStringTable<uinteger>   tmpStrings( la );
 
     // repeat twice to get auto-tabs adjusted
-    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-    Formatter& formatter= *Formatter::Default;
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+    Formatter& formatter= *Formatter::DEFAULT;
     formatter.Reset();
-    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
-    {
+    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs ) {
         result.Reset();
         dumpFunctions( input, result, headline, indent, tmpStrings );
     }
@@ -202,12 +154,11 @@ void  dumpFunctions( const std::vector<std::pair<const std::type_info*,uinteger>
                      AString&                                                      output,
                      const String&                                                 headline,
                      const String&                                                 indent,
-                     DbgStringTable<uinteger>&                                     tmpStrings )
-{
+                     DbgStringTable<uinteger>&                                     tmpStrings ) {
     String512 buffer;
     tmpStrings.clear();
     for( auto& type : input )
-        tmpStrings.Add( removeNamespaces(buffer.Reset() << *type.first, 0), type.second );
+        tmpStrings.Add( RemoveNamespaces(buffer.Reset() << *type.first, 0), type.second );
 
     std::sort( tmpStrings.begin(), tmpStrings.end(),
                [] (std::tuple<String, uinteger>& a,
@@ -220,11 +171,10 @@ void  dumpFunctions( const std::vector<std::pair<const std::type_info*,uinteger>
     if ( headline.IsNotEmpty() )
         output << headline << NEW_LINE;
 
-    Formatter& formatter= *Formatter::Default;
+    Formatter& formatter= *Formatter::DEFAULT;
     auto& args= formatter.Reset();
     args.Add( indent, "{}  {!ATab5}{:>2})\n", nullptr, '(', nullptr );
-    for( auto& nameAndUse : tmpStrings )
-    {
+    for( auto& nameAndUse : tmpStrings ) {
         args[2]= std::get<0>(nameAndUse);
         args[4]= std::get<1>(nameAndUse) != (std::numeric_limits<uinteger>::max)()
                  ? Box( std::get<1>(nameAndUse) )
@@ -234,18 +184,16 @@ void  dumpFunctions( const std::vector<std::pair<const std::type_info*,uinteger>
     output << NEW_LINE;
 }
 
-AString  DumpVTables( bool staticVtables, bool includeFunctions )
-{
+AString  DumpVTables( bool staticVtables, bool includeFunctions ) {
     AString             result;
     LocalAllocator8K    allocator;
 
     // repeat twice to get auto-tabs adjusted
-    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-    Formatter& formatter= *Formatter::Default;
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+    Formatter& formatter= *Formatter::DEFAULT;
     formatter.Reset();
 
-    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
-    {
+    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs ) {
         result      .Reset();
         allocator   .Reset();
         DbgStringTable<const detail::VTable*>  vtableNames( allocator );
@@ -259,8 +207,7 @@ AString  DumpVTables( bool staticVtables, bool includeFunctions )
 void dumpVTables( AString&                                result,
                   DbgStringTable<const detail::VTable*>&  vtableNames,
                   bool                                    staticVtables,
-                  bool                                    includeFunctions )
-{
+                  bool                                    includeFunctions ) {
     // dump vtables and their interfaces
     result << ( staticVtables ? A_CHAR("Mapped types with static VTables")
                               : A_CHAR("Mapped types with dynamic VTables") );
@@ -274,8 +221,7 @@ void dumpVTables( AString&                                result,
     String1K temp;
     DbgLockMaps(true);
         for( int i= 0 ; i <  2; ++i )
-            for( auto& it : ( i == 0 ? DbgKnownVTables : DbgKnownVTablesArray) )
-            {
+            for( auto& it : ( i == 0 ? DbgKnownVTables : DbgKnownVTablesArray) ) {
                 if(   (it.second->DbgProduction == (staticVtables ? detail::VTable::DbgFactoryType::Static
                                                                   : detail::VTable::DbgFactoryType::Dynamic ))
                    ||  it.second->DbgProduction == detail::VTable::DbgFactoryType::Unregistered )
@@ -289,8 +235,7 @@ void dumpVTables( AString&                                result,
                         temp << "  ATTENTION: Unregistered customized VTable!!! This is an Error";
 
                     vtableNames.Add( temp, it.second );
-                }
-            }
+            }   }
     DbgLockMaps(false);
 
     std::sort( vtableNames.begin(), vtableNames.end(),
@@ -307,30 +252,24 @@ void dumpVTables( AString&                                result,
     LocalAllocator8K la;
     DbgStringTable<uinteger>                                 tempStrings( la );
     std::vector<std::pair<const std::type_info*,uinteger>>   tempFunctions;
-    for( auto& vtable: vtableNames )
-    {
+    for( auto& vtable: vtableNames ) {
         result << std::get<0>(vtable)  << NEW_LINE;
-        if( includeFunctions )
-        {
+        if( includeFunctions ) {
             getFunctionTypes(std::get<1>(vtable)->Functions, tempFunctions );
             dumpFunctions( tempFunctions, result, NULL_STRING,  A_CHAR(" "), tempStrings );
-        }
-    }
-}
+}   }   }
 
 
-AString  DumpAll()
-{
+AString  DumpAll() {
     AString  result;
 
     // Get vtables and add names to string array
     LocalAllocator8K  la;
 
     // repeat twice to get auto-tabs adjusted
-    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
-    Formatter::Default->Reset();
-    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
-    {
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
+    Formatter::DEFAULT->Reset();
+    for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs ) {
         result   .Reset();
         la.Reset();
         DbgStringTable<const detail::VTable*>   vtableNames( la );

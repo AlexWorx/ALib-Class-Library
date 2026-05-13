@@ -2,8 +2,8 @@
  * \file
  * This header-file is part of the unit tests of the \aliblong.
  *
- * \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
+ * Copyright 2013-2026 A-Worx GmbH, Germany.
+ * Published under #"mainpage_license".
  *
  * Defines some preprocessor macros and classes so that GTest and MSVC Unit Tests can live in
  * the same cpp file.
@@ -16,12 +16,9 @@
 #define HPP_ALIB_UNIT_TESTS 1
 #pragma once
 #include    "ALib.Lang.H"
-#if !ALIB_SINGLE_THREADED
-#  include  "ALib.Threads.H"
-#endif
+#include    "ALib.Threads.H"
 #include    "ALib.Strings.H"
 #include    "ALib.Boxing.H"
-#include    "ALib.Compatibility.StdStrings.H"
 #include    "ALib.Strings.StdIOStream.H"
 #include    "ALib.ALox.H"
 #include    "ALib.ALox.Impl.H"
@@ -110,7 +107,7 @@
     #define UT_INIT(...)                                                                           \
         alib::NAString utSC (__FILE__);                                                            \
         {                                                                                          \
-            alib::integer idx= utSC.LastIndexOf( alib::system::DIRECTORY_SEPARATOR );              \
+            alib::integer idx= utSC.LastIndexOf( alib::DIRECTORY_SEPARATOR );                      \
             utSC.DeleteStart( idx + 1 );                                                           \
             idx= utSC.LastIndexOf( '.' );                                                          \
             if( idx > 0 )                                                                          \
@@ -125,7 +122,7 @@
     #define UT_INIT(...)                                                                           \
         alib::NAString utSC (__FILE__);                                                            \
         {                                                                                          \
-            alib::integer idx= utSC.LastIndexOf( alib::system::DIRECTORY_SEPARATOR );              \
+            alib::integer idx= utSC.LastIndexOf( alib::DIRECTORY_SEPARATOR );              \
             utSC.DeleteStart( idx + 1 );                                                           \
             idx= utSC.LastIndexOf( '.' );                                                          \
             if( idx > 0 )                                                                          \
@@ -160,7 +157,7 @@
     #define UT_INIT(...) alib::NAString utSC (__FILE__);                                        \
                          {                                                                      \
                              alib::Bootstrap();                                                 \
-                             alib::integer idx= utSC.LastIndexOf( alib::system::DIRECTORY_SEPARATOR );  \
+                             alib::integer idx= utSC.LastIndexOf( alib::DIRECTORY_SEPARATOR );  \
                              utSC.DeleteStart( idx + 1 );                                       \
                              idx= utSC.LastIndexOf( '.' );                                      \
                              if( idx > 0 )                                                      \
@@ -179,10 +176,10 @@
 
 #define  UT_PRINT(...   )  { ut.Print (ALIB_CALLER, alib::Verbosity::Info   , __VA_ARGS__ ); }
 #define  UT_WARN(...    )  { ut.Print (ALIB_CALLER, alib::Verbosity::Warning, __VA_ARGS__ ); }
-#define  UT_EQ(    a,b  )  ut.EQ      (ALIB_CALLER,  a,b    );
-#define  UT_NEAR( a,b,d )  ut.Near    (ALIB_CALLER,  a,b, d );
-#define  UT_TRUE(  cond )  ut.IsTrue  (ALIB_CALLER,  cond   );
-#define  UT_FALSE( cond )  ut.IsFalse (ALIB_CALLER,  cond   );
+#define  UT_EQ(    a,b  )  ut.EQ      (ALIB_CALLER,  a,b, ALIB_STRINGIFY(a), ALIB_STRINGIFY(b)   );
+#define  UT_NEAR( a,b,d )  ut.Near    (ALIB_CALLER,  a,b, d, ALIB_STRINGIFY(a), ALIB_STRINGIFY(b) );
+#define  UT_TRUE(  cond )  ut.IsTrue  (ALIB_CALLER,  cond, ALIB_STRINGIFY(cond)   );
+#define  UT_FALSE( cond )  ut.IsFalse (ALIB_CALLER,  cond, ALIB_STRINGIFY(cond)   );
 
 #define UT_TEQ(T1,T2)       static_assert( std::is_same<T1 , T2>::value , "Unit test error: types not equal"); 
 #define UT_STRUE( exp )     static_assert(  exp                         , "Is not true");                      
@@ -214,9 +211,12 @@ namespace ut_aworx {
                       UTVStudioLogger();
             virtual  ~UTVStudioLogger();
 
-            virtual void logText( alib::lox::detail::Domain&     domain,     alib::lox::Verbosity verbosity,
-                                  alib::AString&               msg,
-                                  alib::lox::detail::ScopeInfo&  scope,      int                     lineNumber);
+            virtual void logText( alib::lox::detail::Domain&     domain,     
+                                  alib::lox::Verbosity           verbosity,
+                                  alib::AString&                 msg,        
+                                  alib::lox::detail::ScopeInfo&  scope,      
+                                  int                            lineNumber, 
+                                  bool                           isRecursion               );
 
             virtual void notifyMultiLineOp (alib::lang::Phase )    {  }
 
@@ -269,7 +269,8 @@ class AWorxUnitTesting
             printDo( verbosity, argsBoxed );
         }
 
-        void Failed( const alib::CallerInfo& ci, const alib::Box& exp, const alib::Box& given );
+        void Failed( const alib::CallerInfo& ci, const alib::Box& exp, const alib::Box& given,
+                     const alib::String& expStr, const alib::String& givenStr);
 
 
         template<typename T>
@@ -286,10 +287,11 @@ class AWorxUnitTesting
         requires(     ( alib::characters::ArrayTraits<TComp1, alib::character>::Access
                                                             !=alib::characters::Policy::Implicit)
                       && !std::is_base_of_v<alib::NString, TComp1> )
-        void EQ( const alib::CallerInfo& ci,  TComp1      exp , TComp2  v )
+        void EQ( const alib::CallerInfo& ci,  TComp1      exp , TComp2  v,
+                 const alib::String& expStr,  const alib::String& givenStr )
         {
             if ( v != exp)
-                Failed(ci, exp, v);
+                Failed(ci, exp, v, expStr, givenStr);
 
             #if ALIB_GTEST
                 EXPECT_EQ   ( exp, v );
@@ -301,19 +303,20 @@ class AWorxUnitTesting
         }
 
 
-        void EQ( const alib::CallerInfo& ci,  const alib::NString& exp , const alib::NString& v );
-        void EQ( const alib::CallerInfo& ci,  const alib::WString& exp , const alib::WString& v );
-        void EQ( const alib::CallerInfo& ci,  wchar_t*              exp , wchar_t*              v );
-        void EQ( const alib::CallerInfo& ci,       float            exp ,      float            v );
-        void EQ( const alib::CallerInfo& ci,       double           exp ,      double           v );
-        void EQ( const alib::CallerInfo& ci,  long double           exp , long double           v );
+        void EQ( const alib::CallerInfo& ci,  const alib::NString& exp , const alib::NString& v, const alib::String& expStr, const alib::String& givenStr );
+        void EQ( const alib::CallerInfo& ci,  const alib::WString& exp , const alib::WString& v, const alib::String& expStr, const alib::String& givenStr );
+        void EQ( const alib::CallerInfo& ci,  wchar_t*             exp , wchar_t*             v, const alib::String& expStr, const alib::String& givenStr );
+        void EQ( const alib::CallerInfo& ci,       float           exp ,      float           v, const alib::String& expStr, const alib::String& givenStr );
+        void EQ( const alib::CallerInfo& ci,       double          exp ,      double          v, const alib::String& expStr, const alib::String& givenStr );
+        void EQ( const alib::CallerInfo& ci,  long double          exp , long double          v, const alib::String& expStr, const alib::String& givenStr );
 
         template<typename TComp1, typename TComp2, typename TCompDiff>
-        void Near   ( const alib::CallerInfo& ci,  TComp1  exp , TComp2 v, TCompDiff prec )
+        void Near   ( const alib::CallerInfo& ci,  TComp1  exp , TComp2 v, TCompDiff prec,
+                                                   const alib::String& es, const alib::String& gs)
         {
             bool c= (v < exp ? exp-v : v-exp) <= prec;
             if (!c)
-                Failed(ci,exp,v);
+                Failed(ci,exp,v, es,gs);
             #if ALIB_GTEST
                 EXPECT_NEAR ( double(exp), double(v), double(prec) );
             #elif defined(_WIN32)
@@ -324,8 +327,8 @@ class AWorxUnitTesting
         }
 
 
-        void IsTrue ( const alib::CallerInfo& ci,  bool cond );
-        void IsFalse( const alib::CallerInfo& ci,  bool cond );
+        void IsTrue ( const alib::CallerInfo& ci,  bool cond, const alib::String& condStr );
+        void IsFalse( const alib::CallerInfo& ci,  bool cond, const alib::String& condStr );
 
     protected:
         void            writeResultFile(const alib::NString& name, alib::AString& output, const alib::NString& doxyTag );

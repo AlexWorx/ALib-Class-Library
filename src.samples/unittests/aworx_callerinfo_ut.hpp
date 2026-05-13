@@ -3,8 +3,8 @@
  * This header-file is part of the \aliblong. It does not belong to an \alibmod and is
  * included in any \alibbuild.
  *
- * \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
+ * Copyright 2013-2026 A-Worx GmbH, Germany.
+ * Published under #"mainpage_license".
  *
  * \note
  *   To reduce their complexity, this header is not shown in inclusion graphs of this documentation.

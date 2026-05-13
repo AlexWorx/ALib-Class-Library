@@ -1,5 +1,5 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Framework
 //  String Sample
 //
 //  Copyright 2025 A-Worx GmbH, Germany
@@ -7,7 +7,6 @@
 // #################################################################################################
 #include "ALib.Bootstrap.H"
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Compatibility.StdStrings.H"
 
 using namespace alib;
 

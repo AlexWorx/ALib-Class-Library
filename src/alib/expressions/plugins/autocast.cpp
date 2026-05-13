@@ -1,28 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/expressions/expressions.prepro.hpp"
-
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Expressions.Impl;
-    import   ALib.Characters.Functions;
-    import   ALib.Strings;
-#else
-#   include "ALib.Expressions.Impl.H"
-#endif
-//========================================== Implementation ========================================
 //! @cond NO_DOX
 
 #define ARG0           (*args)
@@ -42,8 +17,7 @@ AutoCast::AutoCast( Compiler& compiler )
 
 namespace {
 
-enum class SortedTypes
-{
+enum class SortedTypes {
     UNKNOWN     =   0,
     Bool        =   1,
     Integer     =   2,
@@ -168,6 +142,6 @@ ALIB_DBG(ciAutoCast.DbgCallbackNameRhs         = upgradeCastDBG; )
 #undef ARG0
 #undef BOL
 #undef INT
-//#undef FLT
+#undef FLT
 #undef FUNC
 //! @endcond

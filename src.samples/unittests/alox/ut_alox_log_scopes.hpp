@@ -2,8 +2,8 @@
  * \file
  * This header-file is part of the unit tests of the \aliblong.
  *
- * \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
+ * Copyright 2013-2026 A-Worx GmbH, Germany.
+ * Published under #"mainpage_license".
  **************************************************************************************************/
 #include "ALib.Lang.CIFunctions.H"
 #if ALOX_DBG_LOG

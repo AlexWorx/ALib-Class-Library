@@ -1,0 +1,301 @@
+/// \file
+// #################################################################################################
+//  ALib C++ Framework
+//  Resources of ALib Camp Expressions
+//
+//  Copyright 2025 A-Worx GmbH, Germany
+//  Published under Boost Software License (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+
+// Type names
+T_VOID      Void
+T_BOOL      Boolean
+T_INT       Integer
+T_FLOAT     Float
+T_STR       String
+T_DATE      DateTime
+T_DUR       Duration
+
+// unary ops
+UO0 ~  0   ,     NONE
+UO1 ~  1   ,     +
+UO2 ~  2   ,     -
+UO3 ~  3   ,     !
+UO4 ~  4   ,     ~
+UO5 ~  5   ,     *
+
+
+// Binary ops
+BO0  ~  0   ,     NONE    ,      0
+BO1  ~  1   ,     []      ,    100
+BO2  ~  2   ,     *       ,    900
+BO3  ~  3   ,     /       ,    900
+BO4  ~  4   ,     %       ,    900
+BO5  ~  5   ,     +       ,    800
+BO6  ~  6   ,     -       ,    800
+BO7  ~  7   ,     <<      ,    700
+BO8  ~  8   ,     >>      ,    700
+BO9  ~  9   ,     <       ,    600
+BO10 ~ 10   ,     <=      ,    600
+BO11 ~ 11   ,     >       ,    600
+BO12 ~ 12   ,     >=      ,    600
+BO13 ~ 13   ,     ==      ,    500
+BO14 ~ 14   ,     !=      ,    500
+BO15 ~ 15   ,     &       ,    470
+BO16 ~ 16   ,     ^       ,    460
+BO17 ~ 17   ,     |       ,    450
+BO18 ~ 18   ,     &&      ,    440
+BO19 ~ 19   ,     ||      ,    430
+BO20 ~ 20   ,     =       ,    300
+BO21 ~ 21   ,     ?:      ,    200
+
+// verbal operator aliases
+UOA0  ~  0   ,     Not              ,   !
+BOA0  ~  0   ,     And              ,   &&
+BOA1  ~  1   ,     Or               ,   ||
+BOA2  ~  2   ,     Sm               ,   <
+BOA3  ~  3   ,     Smaller          ,   <
+BOA4  ~  4   ,     Smeq             ,   <=
+BOA5  ~  5   ,     Smaller_Or_Equal ,   <=
+BOA6  ~  6   ,     Gt               ,   >
+BOA7  ~  7   ,     Greater          ,   >
+BOA8  ~  8   ,     Gteq             ,   >=
+BOA9  ~  9   ,     Greater_Or_Equal ,   >=
+BOA10 ~ 10   ,     Eq               ,   ==
+BOA11 ~ 11   ,     Equals           ,   ==
+BOA12 ~ 12   ,     Neq              ,   !=
+BOA13 ~ 13   ,     Not_equals       ,   !=
+
+// expression function and throw keyword
+EF     "Expression I 4"
+EFT ~  throw
+
+E<   expressions::
+
+// parse errors
+E0 ~   1,SyntaxError                            ,ED1
+E1 ~  -1,ExpressionInfo                         ,ED-1
+E2 ~  -2,StdExceptionInfo                       ,ED-2
+E3 ~   2,EmptyExpressionString                  ,ED2
+E4 ~   5,SyntaxErrorExpectation                 ,ED5
+E5 ~   6,UnknownUnaryOperatorSymbol             ,ED6
+E6 ~   7,UnknownBinaryOperatorSymbol            ,ED7
+
+// compile errors
+E7  ~   14,UnknownIdentifier                     ,ED14
+E8  ~   15,UnknownFunction                       ,ED15
+E9  ~  -15,FunctionHint                          ,ED-15
+E10 ~   16,UnaryOperatorNotDefined               ,ED16
+E11 ~   17,BinaryOperatorNotDefined              ,ED17
+
+E12 ~   22,MissingFunctionParentheses            ,ED22
+E13 ~   23,IdentifierWithFunctionParentheses     ,ED23
+
+E14 ~   25,IncompatibleTypesInConditional        ,ED25
+
+E15 ~   30,ExceptionInPlugin                     ,ED30
+E16 ~   40,ExceptionInCallback                   ,ED40
+
+
+// nested expressions
+E17 ~   50,NamedExpressionNotConstant            ,ED50
+E18 ~   51,NamedExpressionNotFound               ,ED51
+E19 ~   52,NestedExpressionNotFoundCT            ,ED52
+E20 ~   53,NestedExpressionCallArgumentMismatch  ,ED53
+E21 ~   54,NestedExpressionNotFoundET            ,ED54
+E22 ~  -54,WhenEvaluatingNestedExpression        ,ED-54
+E23 ~   55,NestedExpressionResultTypeError       ,ED55
+E24 ~   56,CircularNestedExpressions             ,ED56
+E25 ~  -56,CircularNestedExpressionsInfo         ,ED-56
+E26 ~ -500,InExpressionFormatter                 ,ED-500
+
+ED1      Syntax error parsing expression.
+ED-1     Expression: {{{}}}\n             {!F}^->
+ED-2     std::exception thrown: {!Q}.
+
+ED2      Trying to parse empty expression string.
+
+ED5      Syntax error while parsing expression{}
+ED6      Unknown unary operator {!Q'} found.
+ED7      Unknown binary operator {!Q'} found.
+
+
+ED14     Unknown identifier {!Q}.
+ED15     Unknown function '{}{}'.
+ED-15    Found function {!Q}. Arguments not applicable.
+
+ED16     Operator {!Q'} not defined for type {!Q}.
+ED17     Operator {!Q'} not defined for types {!Q} and {!Q}.
+
+
+ED22     Missing function parentheses '()' with call to function {!Q'}.
+ED23     Function parentheses '()' are not allowed on identifier {!Q'}.
+
+ED25     Incompatible types for conditional expression operator {!Q<>} : {!Q<>}.
+
+ED30     Exception caught in 'callback function' while evaluating expression {!Q}.
+
+ED40     Exception caught in 'callback function' while evaluating expression {!Q}.
+
+ED50     Expression name has to be constant, if no expression return type is given.
+ED51     Named expression {!Q} not found.
+ED52     Compile-time defined nested expression {!Q} not found.
+ED53     Erroneous arguments given with nested expression function {!Q}.
+ED54     Evaluation-time defined nested expression {!Q} not found.
+ED-54    Exception evaluating nested expression {!Q}.
+ED55     Nested expression {!Q} returned wrong result type.\nType expected: {}\nType returned: {}
+ED56     Circular nested expressions detected. Circular evaluation stack follows.
+ED-56    Expression {!Q} contains nested expression {!Q}.
+ED-500   Occurred in ExpressionFormatter expression #{}.\nof formatter string: {!Q}
+
+// exception expectation strings
+EE1     : Closing brace ')' expected.
+EE2     : Closing function parameter brace ')' expected.
+EE3     : Closing subscript brace ']' expected.
+EE4     : String literal closing quote ('\') expected.
+EE5     : Operator expected.
+EE6     : Colon ':' of conditional term expected.
+EE7     : Right-hand side binary operand expected.
+EE20    : Unexpected end of expression.
+EE21    : Misplaced closing bracket.
+EE22    : Misplaced subscript operator symbol.
+EE23    : Misplaced comma.
+
+ANON_EXPR_NAME  ANONYMOUS
+
+
+// Identifier/Function names
+CPA0 ~  true        " I 4"
+CPA1 ~  false       " I 5"
+CPA2 ~  yes         " I 3"
+CPA3 ~  no          " I 2"
+CPA4 ~  on          " I 2"
+CPA5 ~  off         " I 3"
+CPA6 ~  Boolean     " I 4"
+CPA7 ~  Integer     " I 3"
+CPA8 ~  Float       " I 5"
+
+CPALen ~ Length     " I 3"
+
+ CPM0 ~  PI          " I 2"
+ CPM1 ~  E           " I 1"
+ CPM2 ~  abs         " I 3"
+ CPM3 ~  ceil        " I 4"
+ CPM4 ~  floor       " I 5"
+ CPM5 ~  trunc       " I 5"
+ CPM6 ~  round       " I 5"
+ CPM7 ~  rint        " I 4"
+ CPM8 ~  max         " I 3"
+ CPM9 ~  min         " I 3"
+CPM10 ~  remainder   " I 6"
+CPM11 ~  random      " I 4"
+CPM12 ~  sin         " I 3"
+CPM13 ~  asin        " I 4"
+CPM14 ~  cos         " I 3"
+CPM15 ~  acos        " I 4"
+CPM16 ~  tan         " I 3"
+CPM17 ~  atan        " I 4"
+CPM18 ~  sinh        " I 4"
+CPM19 ~  asinh       " I 5"
+CPM20 ~  cosh        " I 4"
+CPM21 ~  acosh       " I 5"
+CPM22 ~  tanh        " I 4"
+CPM23 ~  atanh       " I 5"
+CPM24 ~  exp         " I 3"
+CPM25 ~  exp2        " I 4"
+CPM26 ~  exp10       " I 5"
+CPM27 ~  log         " I 3"
+CPM28 ~  log2        " I 4"
+CPM29 ~  log10       " I 5"
+CPM30 ~  pow         " I 3"
+CPM31 ~  pow10       " I 5"
+CPM32 ~  sqrt        " I 4"
+CPM33 ~  cbrt        " I 4"
+
+
+
+ CPS0 ~  NewLine         " I 1 1"
+ CPS1 ~  Tabulator       " I 3"
+ CPS2 ~  String          " I 3"
+ CPS3 ~  WildCardMatch   " I 1 1 1"
+ CPS4 ~  Format          " I 6"
+ CPS5 ~  ToUpper         " I 1 1"
+ CPS6 ~  ToLower         " I 1 1"
+ CPS7 ~  Compare         " I 4"
+ CPS8 ~  StartsWith      " I 1 1"
+ CPS9 ~  EndsWith        " I 1 1"
+CPS10 ~  Substring       " I 4"
+CPS11 ~  IndexOf         " I 3 1"
+CPS12 ~  Count           " I 5"
+CPS13 ~  Trim            " I 4"
+CPS14 ~  TrimStart       " I 4 1"
+CPS15 ~  TrimEnd         " I 4 1"
+CPS16 ~  Integer         " I 3"
+CPS17 ~  Float           " I 5"
+CPS18 ~  Token           " I 3"
+CPS19 ~  Hexadecimal     " I 3"
+CPS20 ~  Octal           " I 3"
+CPS21 ~  Binary          " I 3"
+CPS22 ~  Replace         " I 4"
+CPS23 ~  Repeat          " I 6"
+CPS24 ~  RegExMatch      " I 1 1 1"
+          
+ CPD0 ~  January                " I 3"
+ CPD1 ~  February               " I 3"
+ CPD2 ~  March                  " I 3"
+ CPD3 ~  April                  " I 3"
+ CPD4 ~  May                    " I 3"
+ CPD5 ~  June                   " I 3"
+ CPD6 ~  July                   " I 3"
+ CPD7 ~  August                 " I 3"
+ CPD8 ~  September              " I 3"
+ CPD9 ~  October                " I 3"
+CPD10 ~  November               " I 3"
+CPD11 ~  December               " I 3"
+CPD12 ~  Sunday                 " I 3"
+CPD13 ~  Monday                 " I 3"
+CPD14 ~  Tuesday                " I 3"
+CPD15 ~  Wednesday              " I 3"
+CPD16 ~  Thursday               " I 3"
+CPD17 ~  Friday                 " I 3"
+CPD18 ~  Saturday               " I 3"
+CPD19 ~  NanoSecondS            " I 1 1 0"
+CPD20 ~  MicroSecondS           " I 3 1 0"
+CPD21 ~  MilliSecondS           " I 1 1 0"
+CPD22 ~  SecondS                " I 3 0"
+CPD23 ~  MinuteS                " I 3 0"
+CPD24 ~  Hours                  " I 4"
+CPD25 ~  Days                   " I 3"
+CPD26 ~  Weeks                  " I 4"
+CPD27 ~  Months                 " I 3"
+CPD28 ~  Years                  " I 4"
+CPD29 ~  InDayS                 " I 2 1 0"
+CPD30 ~  InHourS                " I 2 1 0"
+CPD31 ~  InMinuteS              " I 2 3 0"
+CPD32 ~  InSecondS              " I 2 3 0"
+CPD33 ~  InMilliSecondS         " I 2 1 1 0"
+CPD34 ~  InMicroSecondS         " I 2 3 1 0"
+CPD35 ~  InNanoSecondS          " I 2 1 1 0"
+CPD36 ~  InHertZ                " I 2 1 1"
+CPD37 ~  DateTime               " I 1 1"
+CPD38 ~  UtcDateTime            " I 1 1 1"
+CPD39 ~  Now                    " I 3"
+CPD40 ~  Today                  " I 5"
+CPD41 ~  UtcToday               " I 1 5"
+CPD42 ~  Age                    " I 3"
+CPD43 ~  IsOlderThan            " I 2 1 1"
+CPD44 ~  GetYear                " I 1 1"
+CPD45 ~  GetMonth               " I 1 3"
+CPD46 ~  GetDay                 " I 1 1"
+CPD47 ~  GetDayOfWeek           " I 1 1 1 1"
+CPD48 ~  GetHour                " I 1 1"
+CPD49 ~  GetMinute              " I 1 3"
+CPD50 ~  GetMilliSecond         " I 1 1 1"
+CPD51 ~  GetUtcYear             " I 1 1 1"
+CPD52 ~  GetUtcMonth            " I 1 1 3"
+CPD53 ~  GetUtcDay              " I 1 1 1"
+CPD54 ~  GetUtcDayOfWeek        " I 1 1 1 1 1"
+CPD55 ~  GetUtcHour             " I 1 1 1"
+CPD56 ~  GetUtcMinute           " I 1 1 3"
+CPD57 ~  GetUtcMilliSecond      " I 1 1 1 1"

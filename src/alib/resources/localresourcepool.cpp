@@ -1,47 +1,8 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/resources/resources.prepro.hpp"
-#include <cstdarg>
-#if ALIB_DEBUG_RESOURCES
-#   include <vector>
-#   include <algorithm>
-#endif
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Resources;
-    import   ALib.Lang;
-#  if ALIB_STRINGS
-        import   ALib.Strings;
-#  endif
-#if ALIB_DEBUG_RESOURCES
-#   include "ALib.Strings.StdIOStream.H"
-#endif
-#else
-#   include "ALib.Lang.H"
-#   include "ALib.Strings.H"
-#if ALIB_DEBUG_RESOURCES
-#   include "ALib.Strings.StdIOStream.H"
-#endif
-#   include "ALib.Resources.H"
-#endif
-//========================================== Implementation ========================================
 namespace alib {
 
 /// This is the reference documentation module \alib_resources.<br>
 /// Extensive documentation for this namespace is provided with the
-/// \ref alib_mod_resources "Programmer's Manual" of that module.
+/// #"alib_mod_resources;Programmer's Manual" of that module.
 namespace resources {
 
 #if ALIB_DEBUG_RESOURCES
@@ -78,28 +39,32 @@ void LocalResourcePool::BootstrapBulk( const nchar* category, ... ) {
             break;
 
         String val = va_arg( args, const character* );
-#if ALIB_DEBUG_RESOURCES
-        if( DbgResourceLoadObserver )
-            (*DbgResourceLoadObserver) << "Bulk Resource: "  << category
-                                       << "/"           << key.Name << "=" << val << std::endl;
-#endif
+        ALIB_ASSERT_ERROR( key.Name.IndexOf(' ') < 0, "RESOURCES",
+                   "Resource key name contains spaces: {} / {} = val", category, key.Name, val )
+        ALIB_ASSERT_ERROR( key.Name.IndexOf(' ') <= 50, "RESOURCES",
+                           "Resource key length > 50: {} / {} = val",  category, key.Name, val )
+        #if ALIB_DEBUG_RESOURCES
+            if( DbgResourceLoadObserver )
+                (*DbgResourceLoadObserver) << "Bulk Resource: " << category
+                                           << "/" << key.Name << "=" << val << std::endl;
+        #endif
 
-ALIB_DBG( auto result=)
-#if !ALIB_DEBUG_RESOURCES
-        data.EmplaceOrAssign( key, val );
-#else
-        data.EmplaceOrAssign( key, std::make_pair(val,0) );
-#endif
-
-ALIB_ASSERT_WARNING( result.second, "RESOURCES",
-                     "Replacing resource with BootstrapBulk: {} / {} = val",
-                     category, key.Name, val )
-        // \checkpromise: when typed ALib assertions and warnings are available, then
-        // raise a warning if the result of above EmplaceOrAssign is an assign, aka the
-        // bulk data existed already.
+        #if ALIB_DEBUG_RESOURCES
+            auto it= data.Find(key);
+            if (it!=data.end())
+                    ALIB_MESSAGE( "RESOURCES", "Replacing resource \"{}\" in category \"{}\".\n"
+                                             "  Old value: \"{}\"\n"
+                                             "  New value: \"{}\"",
+                                        key.Name, category,  it->second, val )
+        #endif
+        #if !ALIB_DEBUG_RESOURCES
+            data.EmplaceOrAssign( key, val );
+        #else
+            data.EmplaceOrAssign( key, std::make_pair(val,0) );
+        #endif
     }
     va_end(args);
-    }
+}
 
 
 const String& LocalResourcePool::Get( const NString& category, const NString& name
@@ -115,7 +80,7 @@ const String& LocalResourcePool::Get( const NString& category, const NString& na
 #endif
     }
     ALIB_ASSERT_ERROR( !dbgAssert, "RESOURCES",
-       "Unknown resource! Category: \"{}\", Name: \"{}\".", category, name )
+       "Missing resource \"{}\" in category: \"{}\"", name, category )
     return NULL_STRING;
 
 }
@@ -124,8 +89,7 @@ const String& LocalResourcePool::Get( const NString& category, const NString& na
 #if ALIB_DEBUG_RESOURCES
 
 std::vector<std::tuple<NString, NString, String, integer>>
-ResourcePool::DbgGetList()
-{
+ResourcePool::DbgGetList() {
     ALIB_WARNING( "STRINGS",
              "ResourcePool::DbgGetList was not overridden by the ResourcePool type set. "
              "Note that type built-in ALib type LocalResourcePool does provide an implementation." )
@@ -134,8 +98,7 @@ ResourcePool::DbgGetList()
 }
 
 std::vector<std::pair<NString, integer>>
-ResourcePool::DbgGetCategories()
-{
+ResourcePool::DbgGetCategories() {
     ALIB_WARNING( "STRINGS",
              "ResourcePool::DbgGetCategories was not overridden by the ResourcePool type set. "
              "Note that type built-in ALib type LocalResourcePool does provide an implementation." )
@@ -144,13 +107,11 @@ ResourcePool::DbgGetCategories()
 }
 
 std::vector<std::tuple<NString, NString, String, integer>>
-LocalResourcePool::DbgGetList()
-{
+LocalResourcePool::DbgGetList() {
     std::vector<std::tuple<NString, NString, String, integer>> result;
 
     result.reserve( size_t( data.Size() ) );
-    for( auto& it : data )
-    {
+    for( auto& it : data ) {
         result.emplace_back(
                              it.first.Category,
                              it.first.Name,
@@ -174,16 +135,13 @@ LocalResourcePool::DbgGetList()
 }
 
 std::vector<std::pair<NString, integer>>
-LocalResourcePool::DbgGetCategories()
-{
+LocalResourcePool::DbgGetCategories() {
     std::vector<std::pair<NString, integer>> result;
 
     auto list= DbgGetList();
     NString lastCat= nullptr;
-    for( auto& entry : list )
-    {
-        if( !lastCat.Equals( std::get<0>(entry)  ) )
-        {
+    for( auto& entry : list ) {
+        if( !lastCat.Equals( std::get<0>(entry)  ) ) {
             lastCat=  std::get<0>(entry);
             result.push_back( { std::get<0>(entry), 0 } );
         }

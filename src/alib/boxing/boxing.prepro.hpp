@@ -2,18 +2,18 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_BOXING_PP
 #define HPP_ALIB_BOXING_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 //##################################################################################################
-// Symbols/macros introduced by module ALib.Boxing
+// Macros introduced by module ALib.Boxing
 //##################################################################################################
 #if !defined(ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS)
 #   define ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS     0
@@ -35,14 +35,13 @@
 #   elif !ALIB_DEBUG && ALIB_DEBUG_BOXING
 #      undef    ALIB_DEBUG_BOXING
 #      define   ALIB_DEBUG_BOXING                      0
-#      pragma message "Symbol ALIB_DEBUG_BOXING set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#      pragma message "Configuration Macro ALIB_DEBUG_BOXING set (from outside!) while ALIB_DEBUG is not. The macro got disabled."
 #   endif
 
 
 #define ALIB_BOXING_CUSTOMIZE(TSource, TMapped, ...)                                               \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{                                                                                                  \
+template<>  struct BoxTraits<TSource>  {                                                           \
     using                       Mapping=  TMapped;                                                 \
     static constexpr bool       IsArray=  false;                                                   \
                                 __VA_ARGS__                                                        \
@@ -50,8 +49,7 @@ template<>  struct BoxTraits<TSource>                                           
 
 #define ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE(TSource, TElement, ...)                                   \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{                                                                                                  \
+template<>  struct BoxTraits<TSource>  {                                                           \
     using                       Mapping=  TElement;                                                \
     static constexpr bool       IsArray=  true;                                                    \
                                 __VA_ARGS__                                                        \
@@ -60,8 +58,8 @@ template<>  struct BoxTraits<TSource>                                           
 
 #define ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING(TSource, TMapped)                                       \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{ using                         Mapping=  TMapped;                                                 \
+template<>  struct BoxTraits<TSource>  {                                                           \
+  using                         Mapping=  TMapped;                                                 \
   static constexpr bool         IsArray=  false;                                                   \
   static constexpr void         Write( Placeholder& box,  TSource const & value )  { box.Write( static_cast<TMapped>( value ) );      } \
   static constexpr TSource      Read (const Placeholder& box)                      { return static_cast<TSource>(box.Read<TMapped>());   } \
@@ -70,8 +68,8 @@ template<>  struct BoxTraits<TSource>                                           
 
 #define ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE(TSource, TMapped)                                      \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{ using                     Mapping=  TMapped;                                                     \
+template<>  struct BoxTraits<TSource>  {                                                           \
+  using                     Mapping=  TMapped;                                                     \
   static constexpr bool     IsArray=  false;                                                       \
   static constexpr void     Write( Placeholder& box,  TSource const & value )  { box.Write( static_cast<TMapped>( value ) ); } \
   static constexpr void     Read( const Placeholder& box);                                         \
@@ -80,8 +78,8 @@ template<>  struct BoxTraits<TSource>                                           
 
 #define ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE_NON_UNBOXABLE(TSource, TElement, ...)                     \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{   using                   Mapping=  TElement;                                                    \
+template<>  struct BoxTraits<TSource>  {                                                           \
+    using                   Mapping=  TElement;                                                    \
     static constexpr bool   IsArray=  true;                                                        \
     __VA_ARGS__                                                                                    \
     static constexpr void   Read( const Placeholder& box);                                         \
@@ -90,8 +88,8 @@ template<>  struct BoxTraits<TSource>                                           
 
 #define ALIB_BOXING_CUSTOMIZE_DENY_BOXING(TSource)                                                 \
 namespace alib::boxing {                                                                           \
-template<>  struct BoxTraits<TSource>                                                              \
-{ using                     Mapping=  NotBoxableTag;                                               \
+template<>  struct BoxTraits<TSource>  {                                                           \
+  using                     Mapping=  NotBoxableTag;                                               \
   static constexpr bool     IsArray=  false;                                                       \
   static constexpr void     Write( Placeholder& box,  TSource const & value );                     \
   static constexpr void     Read ( const Placeholder& box);                                        \
@@ -140,23 +138,20 @@ alib::boxing::BootstrapRegister< alib::boxing::FEquals,TComparable>(FEquals::Com
 alib::boxing::BootstrapRegister< alib::boxing::FIsLess,TComparable>(FIsLess::ComparableTypes<TComparable>);
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(TAppendable)                    \
-alib::boxing::BootstrapRegister<alib::boxing::FAppend<character, alib::lang::HeapAllocator>, TAppendable>        \
+alib::boxing::BootstrapRegister<alib::boxing::FAppend<character, alib::lang::HeapAllocator>, TAppendable> \
     (alib::boxing::FAppend<character, alib::lang::HeapAllocator>::Appendable<TAppendable>);
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(TAppendable)                  \
-alib::boxing::BootstrapRegister<alib::boxing::FAppend<nchar    , alib::lang::HeapAllocator>, TAppendable>        \
+alib::boxing::BootstrapRegister<alib::boxing::FAppend<nchar    , alib::lang::HeapAllocator>, TAppendable> \
     (alib::boxing::FAppend<nchar    , alib::lang::HeapAllocator>::Appendable<TAppendable>);
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W(TAppendable)                  \
-alib::boxing::BootstrapRegister<alib::boxing::FAppend<wchar    , alib::lang::HeapAllocator>, TAppendable>        \
+alib::boxing::BootstrapRegister<alib::boxing::FAppend<wchar    , alib::lang::HeapAllocator>, TAppendable> \
     (alib::boxing::FAppend<wchar    , alib::lang::HeapAllocator>::Appendable<TAppendable>);
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X(TAppendable)                  \
-alib::boxing::BootstrapRegister<alib::boxing::FAppend<xchar    , alib::lang::HeapAllocator>, TAppendable>        \
+alib::boxing::BootstrapRegister<alib::boxing::FAppend<xchar    , alib::lang::HeapAllocator>, TAppendable> \
     (alib::boxing::FAppend<xchar    , alib::lang::HeapAllocator>::Appendable<TAppendable>);
-
-
-
 
 #endif
 #endif // HPP_ALIB_BOXING_PP

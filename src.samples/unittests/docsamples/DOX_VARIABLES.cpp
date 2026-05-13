@@ -1,11 +1,11 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
 #include "alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_UT_FILES && ALIB_DEBUG
+#if ALIB_UT_DOCS && ALIB_UT_FILETREE && ALIB_DEBUG
 
 DOX_MARKER( [DOX_VARIABLES_HEADER])
 // Get module ALib.Variables
@@ -26,9 +26,8 @@ using namespace std;
 DOX_MARKER( [DOX_VARIABLES_HEADER])
 #include <iostream>
 #include <sstream>
-#include "ALib.Compatibility.StdStrings.H"
+#include "ALib.Strings.H"
 #include "ALib.Strings.StdIOStream.H"
-#include "ALib.Strings.Monomem.H"
 #include "ALib.Camp.H"
 #include "ALib.Camp.Base.H"
 #include "ALib.Bootstrap.H"
@@ -78,7 +77,7 @@ int main( int argc, const char** argv)
     // Declare a variable as follows:
     // - use the configuration class of the base camp
     // - name the variable "MY_VAR"
-    // - run-time type of the variable is "S", which stands for String-type
+    // - runtime type of the variable is "S", which stands for String-type
     // The shortcut function used, also locks the configuration during variable definition.
     Variable myVar= variables::CampVariable(alib::BASECAMP, A_CHAR("MY_VAR"), A_CHAR("S") );
 
@@ -97,12 +96,12 @@ int main( int argc, const char** argv)
 }
 DOX_MARKER( [DOX_VARIABLES_HELLO_WORLD])
 
-ALIB_WARNINGS_MACRO_NOT_USED_OFF
+ALIB_ALLOW_UNUSED_MACRO
 #undef main
 #undef Shutdown
 #undef cout
 #include "aworx_callerinfo_ut.hpp"
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 using namespace std;
 
@@ -189,7 +188,7 @@ DOX_MARKER( [DOX_VARIABLES_BUILTIN_TYPES2])
 cout << "Hello " << myVar.Get<AStringPA>() << endl;
 DOX_MARKER( [DOX_VARIABLES_BUILTIN_TYPES2])
 
-ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE
+ALIB_ALLOW_UNUSED_VARIABLE
 DOX_MARKER( [DOX_VARIABLES_BUILTIN_TYPES3])
 Variable varSwitch= variables::CampVariable(alib::BASECAMP, A_CHAR("MY_SWITCH"), A_CHAR("B") );
 if( varSwitch.Define() )
@@ -201,7 +200,7 @@ if( varSwitch.Define() )
 }
 DOX_MARKER( [DOX_VARIABLES_BUILTIN_TYPES3])
 }
-ALIB_WARNINGS_RESTORE
+ALIB_POP_ALLOWANCE
 
 { ALIB_LOCK_WITH(BASECAMP.GetConfig())
 DOX_MARKER( [DOX_VARIABLES_IMPORT])

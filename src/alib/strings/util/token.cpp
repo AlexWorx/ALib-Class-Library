@@ -1,37 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Strings.Token;
-    import   ALib.Characters.Functions;
-    import   ALib.EnumOps;
-#  if ALIB_RESOURCES
-     import   ALib.Resources;
-#  endif
-#   if ALIB_ENUMRECORDS
-     import   ALib.EnumRecords;
-#  endif
-#else
-#   include "ALib.Strings.Token.H"
-#   include "ALib.Characters.Functions.H"
-#   include "ALib.EnumOps.H"
-#   include "ALib.EnumRecords.H"
-#   include "ALib.Resources.H"
-#endif
-//========================================== Implementation ========================================
 // Windows.h might bring in max/min macros
 #if defined( max )
     #undef max

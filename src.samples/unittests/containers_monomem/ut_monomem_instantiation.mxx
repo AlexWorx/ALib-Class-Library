@@ -1,0 +1,15 @@
+//DOX_MARKER([ALIB_MANUAL_T_HPP_FILE_USAGE_IMPL] )
+// ================================================================================================#
+//  AWorx ALib Unit Tests
+//
+//  Copyright 2013-2026 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// ================================================================================================#
+module;
+// ======================================   Global Fragment   ======================================
+#include "alib/monomem/monomem.prepro.hpp"
+
+// ===========================================   Module   ==========================================
+module ALib.Monomem;
+
+#include "ut_monomem_instantiation.cpp"

@@ -1,0 +1,83 @@
+/// \file
+// #################################################################################################
+//  ALib C++ Framework
+//  App Sample Resources
+//
+//  Copyright 2025 A-Worx GmbH, Germany
+//  Published under Boost Software License (a free software license, see LICENSE.txt)
+// #################################################################################################
+// DOX_MARKER([DOX_ALIB_SAMPLE_ALIBRC])
+//-------------------- Help Texts --------------------
+HlpCLIAppName  sample
+HlpUsage       "sample [format=\"FORMATSPEC\" [now]|[file FILENAME]"
+AppInfo |
+    @HL-ALib App Sample V. {}.{}
+    (c) 2025-{} AWorx GmbH. Published under MIT License (Open Source).
+    For more information, see: https://alib.dev/alib_mod_app.html
+    @HL-
+
+HlpGeneral >
+  \nABOUT sample\n
+  @>>
+  This is a sample application provided with C++ library 'ALib' to demonstrate the use of its
+  module \"ALib App\"."
+  \n@<<
+
+//-------------------- CLI Commands/Options/Parameters/ExitCodes --------------------
+DateC<    datesample::Commands::
+       // enum       ident          minread     Params
+DateC ~|
+  1,         now            ,1         ,                 ,     \
+  2,         file           ,1         ,filename
+
+
+THlpCmdSht_now      "Reports the actual date/time"
+THlpCmdLng_now
+  Reports the actual date/time. May be omitted, as this is the default if no command is given.
+
+THlpCmdSht_file     Returns the date/time of a file.
+THlpCmdLng_file     Returns the last modification date/time of a file.
+
+DateO<       datesample::Options::
+//enum  ident        minread    identChar   in-arg-separ.   args to consume    ShortcutTo
+DateO ~|
+  0,    format        ,1,          f,          =               ,1                ,
+
+TOptUsg_format   --format[=]\"placeholders\"
+TOptHlp_format  >
+    Sets the output format. The format specification is given with the documentation of the
+    ALib method CalendarDateTime::Format, found here:\n
+    https://alib.dev/classalib_1_1strings_1_1util_1_1CalendarDateTime.html
+
+
+
+DateP<  datesample::Parameters::
+//enum  name           minIdentLen   identifier    in-arg-sep   delim   args to consume  isOptional
+//                                   (if empty -> mandatory!)
+DateP ~|
+ 0,    FILENAME           ,1,                             ,            =    ,    ,-1          ,0
+
+THlpParSht_FILENAME   Mandatory parameter of command \"file\".
+THlpParLng_FILENAME=>
+  Denotes the file that is used for retrieving the modification date.
+  This parameter is mandatory to be given with command 'file' and has to be appended to this
+  command, separated by '='"
+
+
+DateE<  datesample::
+//enum  name                            assoc. cli exception
+DateE ~|
+  101,ErrMissingFilename               ,-1,   
+  102,ErrFileNotFound                  ,-1,   
+  103,ErrPermissionDenied              ,-1
+
+TExit101   Command 'file' given without a filename argument.
+TExit102   File not found.
+TExit103   Permission denied.
+
+// custom resources
+FNOTFND    The file {!Q} specified with command 'file' was not found.
+FNOACC     Access denied to file {!Q} specified with command 'file'.
+MSNGFNAME  Error: no filename given with command 'file'.
+
+// DOX_MARKER([DOX_ALIB_SAMPLE_ALIBRC])

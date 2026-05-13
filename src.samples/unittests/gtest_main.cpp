@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Unit Tests - ALox Logging Library
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -57,9 +57,14 @@ int main( int argc, const char **argv )
     ARG_VN=  argv;
 
     #if !defined(_WIN32)
-        std::setlocale(LC_ALL, "en_US.UTF-8");             // C locale
-        std::locale::global(std::locale("en_US.UTF-8"));   // C++ locale
-        std::wcout.imbue(std::locale());
+        try {
+            std::setlocale(LC_ALL, "en_US.UTF-8");             // C locale
+            std::locale::global(std::locale("en_US.UTF-8"));   // C++ locale
+            std::wcout.imbue(std::locale());
+        }
+        catch( const std::exception& e ) {
+            std::cerr << "GTest: Failed to set locale 'en_US.UTF-8': " << e.what() << std::endl;
+        }
     #endif
 
     #if ALIB_DEBUG_RESOURCES
@@ -77,7 +82,6 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
     alib::boxing::compatibility::std::BootstrapStdStringBoxing();
 }    
 DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
-
 
     ::testing::InitGoogleTest( &argc, const_cast<char**>(argv));
 
@@ -160,6 +164,8 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_Lang.LangMacros*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Enums.lang_IntXX*";
 
+//    ::testing::GTEST_FLAG(filter) = "UT_Lang.Exceptions";
+
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.XAString";
@@ -171,7 +177,7 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.ConvertFloats";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.TestFormatterJavaStyle";
-//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.FormatterPythonStyle";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.TestFormatterPythonStyle";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.ConvertIntegers";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.OStreamWriterNLCorrection";
@@ -279,7 +285,7 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.ALoxTut_LogState";
 
 //    ::testing::GTEST_FLAG(filter) = "UT_*Expr*";
-//    ::testing::GTEST_FLAG(filter) = "UT_Expr*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.CompileSpeed";
 //    ::testing::GTEST_FLAG(filter) = "UT_Expr.MultiThreaded";
 //    ::testing::GTEST_FLAG(filter) = "UT_Expr.Conditional";
 //    ::testing::GTEST_FLAG(filter) = "UT_Expr.TestNormalization";
@@ -296,13 +302,12 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.FileSystemIntro";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.Nested";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.VMListings";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_CLI";
 
 //    ::testing::GTEST_FLAG(filter) = "UT_Files.*";
 //    ::testing::GTEST_FLAG(filter) = "UT_Files.Scanning";
 //    ::testing::GTEST_FLAG(filter) = "UT_Files.FileAndFTree";
 //    ::testing::GTEST_FLAG(filter) = "UT_Dox_Files.filesFexFilter";
-
-//    ::testing::GTEST_FLAG(filter) = "UT_Dox_CLI*";
 
     int result= RUN_ALL_TESTS();
 
@@ -310,7 +315,7 @@ DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
 #if ALIB_DEBUG_RESOURCES && ALIB_ALOX
     Log_Info( "---------------- Resource Pool Dump ----------------" )
-        auto categoryList= alib::BASECAMP.GetResourcePool()->DbgGetCategories();
+        auto categoryList= alib::BASECAMP.GetResourcePool().DbgGetCategories();
         integer sum= 0;
         for( auto& category : categoryList )
         {
@@ -319,7 +324,7 @@ DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
         }
         Log_Info( "This sums up to ", sum, " resource definitions"  )
 
-        auto resourceList= alib::BASECAMP.GetResourcePool()->DbgGetList();
+        auto resourceList= alib::BASECAMP.GetResourcePool().DbgGetList();
         Log_Info( resources::DbgDump( resourceList ) )
     Log_Info( "---------------- Resource Pool Dump (end) ----------" )
 #endif
@@ -343,7 +348,6 @@ DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
         cout << endl;
         cout << "---------------- Dynamic VTables (should be free of ALib types!) ----------" << endl;
         std::cout << boxing::debug::DumpVTables(false);
-
         cout << "---------------- Dynamic VTables (end)----------------" << endl;
     #endif
 
@@ -352,7 +356,7 @@ DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
 
     #if !ALIB_DEBUG
         cout << "\n*** Note: To generate the documentation samples, unit test have to be run in debug mode." << endl;
-    #elif !ALIB_CLI || !ALIB_ALOX || !ALIB_EXPRESSIONS || !ALIB_ALOX || ALIB_SINGLE_THREADED || !ALIB_BITBUFFER
+    #elif !ALIB_APP || !ALIB_ALOX || !ALIB_EXPRESSIONS || !ALIB_ALOX || ALIB_SINGLE_THREADED || !ALIB_BITBUFFER
         cout << "\n*** Note: To generate the documentation samples, all ALib modules have to be enabled." << endl;
     #elif !ALIB_DEBUG_BOXING
         cout << "\n*** Note: To generate the documentation samples, CMake flag ALIB_DEBUG_BOXING has to be true for compilation." << endl;

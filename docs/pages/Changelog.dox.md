@@ -1,17 +1,234 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
 \page alib_changelog         Change Log
-                                        
+       
+\I{################################################################################################}
+\I{##########################        Version 2605 R0 todo       ###################################}
+\I{################################################################################################}
+
+# Version 2605, Revision 0, released May 13th, 2026#
+              
+\par Change of License
+Starting with version 2605, \alib is licensed under the MIT License.<br>
+The change from the Boost Software License 1.0 to the MIT License is intended
+to simplify future integration of third-party MIT-licensed components and
+adaptations within \alib.<br>
+Previous releases remain available under the Boost Software License 1.0.
+
+\par General Changes (not module related)
+- We renamed the project from <em>A-Worx C++ Library</em> to \aliblong.
+  Although we kept all possibilities to strip-off unneeded modules and reduce the use to 
+  "library-level", our feeling is that most users prefer a larger set of modules than a smaller
+  one.<br>
+  Especially with the inclusion of the new module \alib_app (see below), the term <em>Framework</em>  
+  better represents the nature of what is provided.   
+- Experimental support for <em>C++20-Module Compilation</em> is back. 
+  Still, only the clang compiler is supported. GCC will follow once it relieves its strict 
+  interpretation of the C++20 standard (what is planned).
+- Added the script \b ALibFetch.cmake that downloads a named version of \alib from GitHub.
+  Documentation is given with the new manual chapter #"alib_manual_build_fetch". 
+- Revised the preprocessor macro documentation, which is now available with page #"alib_macros".
+  With that, the terminology of the preprocessor macros has been clarified. Formerly called
+  "compilation symbols" are now called "configuration macros".<br>
+  Consequently, the former CMake variable \b ALIB_SYMBOLS was renamed to \b ALIB_CFG_MACROS.   
+- Renamed all macros concerning compiler warnings. Those had been prefixed <b>ALIB_WARNINGS_</b> 
+  and then mostly a negation, the word <c>IGNORE</c> or <c>OFF</c> followed. Now all warnings
+  are prefixed by <c>ALIB_ALLOW_</c>. For example #"ALIB_ALLOW_SPARSE_ENUM_SWITCH".
+  The macro to restore the warning level to the previous compiler state was renamed from
+  <c>ALIB_WARNINGS_RESTORE</c> to #"ALIB_POP_ALLOWANCE".   
+- Added macro #"ALIB_ALLOW_SWITCH_WITHOUT_DEFAULT".                                        
+- Removed the former header file <c>ALib.Compatibility.StdStrings.H</c>. Most of the type traits
+  that had been set in this file are now active by default. Hence, in most cases, just remove
+  the include-statement. For the other case, see next bullet point.   
+- Added the header file #"F;ALib.Strings.StdFormatter.H", which defines type traits in respect
+  to <c>std::formatter</c>. This functionality was moved from the now removed header file
+  <c>ALib.Compatibility.StdStrings.H</c>. 
+                        
+\par Module ALox:
+- Changed the element values of the enumeration "lox::Verbosity".
+- Added the method #"Lox::GetVerbosity;2" and along with that the macros  
+  #"Lox_GetVerbosity" and #"Log_GetVerbosity".
+- Added the method #"Lox::SetVerbosityExport(detail::Logger*);2" and along with that the macros  
+  #"Lox_SetVerbosityExport" and #"Log_SetVerbosityExport".
+- Renamed fields \b Log::DebugLogger and \b Log::IDELogger to #"Log::DEBUG_LOGGER" and
+  #"Log::IDE_LOGGER"   
+                                                                     
+\par New Module App:
+- Added the new module \alib_app with its central class #"App;3".
+  While this module is not yet complete and is expected to be extended in the upcoming releases,
+  it is already a useful and reliable tool for the development of applications.
+- Moved the command-line interface types formerly found in a module called \b CLI to this new 
+  module.
+- Removed the dry-run mode options from the command-line interface. This was just too confusing
+  and complicated to handle. It is much simpler to implement an according dry-run mode
+  autonomously on the application side. (Which is in a basic form done in the new camp-module
+  \alib_app. With that the following entities have been deleted:   
+  - enum class \b DryRunModes and corresponding resources.
+  - Method \b CLIUtil::GetDryOpt. 
+  - Field \b CommandLine::DryRun.
+      
+
+\par Module BitBuffer:
+- Renamed overloaded methods <b>Read</b> and <b>Write</b> to (still overloaded)
+  -  #"BitReader::ReadInt",
+  -  #"BitReader::ReadBits()",
+  -  #"BitWriter::WriteInt(TUIntegral);WriteInt", and
+  -  #"BitWriter::WriteBits(TIntegral);WriteBits". 
+
+  This was done for technical reasons (doxygen) but also to avoid confusion and now the using code
+  is better readable. 
+     
+\par Module Boxing:
+- Added methods #"Enum::IsNull" and #"Enum::IsNotNull".    
+- Added template parameter \p{TIntegral} to the inline method #"Enum::Integral" to 
+  conveniently hide <c>static_cast</c> statements for the caller.
+
+\par Module Camp:
+- Added a compiler for external resource files. All information is given in the new manual chapter 
+  #"alib_camp_rc". 
+- Renamed macro \b ALIB_RESOURCED_IN_MODULE to #"ALIB_RESOURCED_IN_CAMP". 
+- Changed resources <c>"SE<"</c>, <c>"OSERR"</c>, and <c>"UknSE<"</c> from <em>GNU-library</em> 
+  naming to generic C/C++ naming. This reflects the possibility to link \alib against 
+  other standard libraries than that provided by \e GNU.  
+- Added debug-assertion when camps in list #"CAMPS;2" are doubly inserted. 
+                                                                         
+\par Module Camp:
+Added a pretty printer for class #"StringTree::TCursor;2" which displays the cursor's path.
+  
+\par Module CLI:
+All functionality was integrated into the new module \alib_app.
+ 
+\par Module Configuration:
+- Added the method #"Variable::IsWriteBack;*", which allows custom variable types 
+  to signal that their values should be written back to the configuration file. 
+- Fixed a bug in the method #"Variable::create", which caused presetting configuration variables
+  (what is, for example, done with #"IniFileFeeder::ImportAll;2") to overwrite values of plug-ins  
+  with higher priority, i.e. command-line arguments and environment variables.  
+  The error occurred only for variables which have not been resourced and not pre-initialized  
+  using the method #"var PreloadVariables" and thus was not detected until now. 
+                     
+\par Module Expressions:
+- Added the method #"ExpressionVal::IsConstant".
+- Fixed a bug in class #"ExpressionFormatter", which caused the expression scope to become
+  invalid during the formatting process.
+- Class #"ExpressionFormatter" now escapes all characters of the given format string. 
+  This is necessary because the \alib-formatter used internally expects escaped strings.
+  (It was a bug not to do so.) 
+ 
+\par Module FileTree (Files):
+- Renamed the former module <b>Files</b> to <b>FileTree</b>
+- Fixed a bug in Function #"ScanFiles" (POSIX version) which caused the function to consider 
+  btrfs as an artificial file system.
+- Separated former class \b FInfo, which was the node value of the tree structure of scanned files,
+  into two classes: #"FileStatus" in namespace #"alib::system;2" and #"FTValue", which extends it
+  by information that is relevant only when scanning files. 
+- With the move <c>POSIX/std stat'</c>able file information to namespace #"alib::system;2", the 
+  former macros
+  - \b ALIB_FILES_FORCE_STD_SCANNER,     
+  - \b ALIB_FILES_SCANNER_IMPL,     
+  - \b ALIB_FILES_SCANNER_STDFS, and     
+  - \b ALIB_FILES_SCANNER_POSIX,     
+     
+  are now under control of module \alib_system (see below).
+- Moved types #"TextFileLineReader" and #"TTextFile" to namespace #"alib::system;2".
+- Moved bigger parts of former type \b File to the module System, where it is now named 
+  #"FileStatus". The former type \b File is now a derived type called #"FTFile" (file-tree file).
+- Added the possibility to assemble the original symbolic path of a scanned file. While the whole
+  challenge and the solution is explained in the new manual chapter #"alib_filetree_tut_scan_realpath",
+  the following bullet points summarize the changes of the API:
+  - Added the methods #"SetSymbolicParent(FTFile);2", #"GetSymbolicParent;2"
+    and "ClearSymbolicParent;2".     
+  - The method <b>FTFile::AssemblePath</b> was renamed to #"FTFile::AssembleRealPath" 
+    and the sibling method #"FTFile::AssembleSymbolicPath" was added. 
+  - The method #"FTFile::Format;2" now supports new format-tokens <c>"nr"</c> and <c>"nx"</c>.
+  - The function #"filetree::ScanFiles" now sets the symbolic parent of scanned files accordingly.
+  - To achieve this, \alib could not continue to rely on POSIX <c>realpath</c> respectively C++ 
+    <c>std::filesystem::canonical</c>, because this loses the information about the symbolic links.
+    Instead, the new namespace function #"filetree::MakeCanonical" was introduced and 
+    now internally used by #"filetree::ScanFiles".
+  - The resulting set of start paths into the tree found by #"ScanFiles" is now collected in 
+    the new type #"CanonicalPathList". (This was a simple vector before).<br>
+    An instance of this type can optionally be passed to the function.
+     
+\par Module Lang/Monomem:
+- Renamed method \b AllocatorMember::AI to #"AllocatorMember::AIF;2" to not resemble to the acronym <c>AI</c>.
+- Added public inner helper type #"TMonoAllocator::Resetter;*".
+   
+\par Module Format:
+- Renamed static fields \b Formatter::Default and \b Formatter::DefaultLock to 
+  #"Formatter::DEFAULT;*" and #"Formatter::DEFAULT_LOCK;*".
+- Class #"R;Formatter" now duly un-escapes strings which are not processed by a plugged-in 
+  specialized formatter.
+- Class #"Paragraphs" now locks #"Formatter::DEFAULT_LOCK;*" in case
+  its field #"Paragraphs::Formatter" holds a pointer to instance 
+  #"Formatter::DEFAULT;*".  
+- Fixed a bug in class #"Paragraphs" which led to undefined behavior when the first character  
+  printed to the buffer was a newline character.
+- Class #"PropertyFormatter" now escapes all characters of the given format string. 
+  This is necessary because the \alib-formatter used internally expects escaped strings.
+  (It was a bug not to do so.) 
+ 
+
+\par Module Resources:
+- As already mentioned above, compiler for externally managed, human readable resource files 
+  is introduced with this release. However, this is implemented with module \alib_camp and 
+  #"alib_camp_rc;documented there". 
+- Introduced class #"ResourceHolder", which is now a base type of class 
+  #"Camp" and received all its functionality related to holding a specific resource-pool 
+  instance and offering an interface on it. 
+
+\par Module Strings:
+- Added the method #"InsertUninitialized" to class #"^AString".
+- Added optional parameters \p{bufferSize} and \p{bufferWidth} to the constructor of class 
+  #"IStreamReader".
+- Values of types <c>std::errc</c> and <c>std::err_code</c> are now appendable to class #"^AString". 
+  
+\par Module System:
+- Moved several type definitions like #"alib::PathString", #"NULL_PATH", or 
+  #"DIRECTORY_SEPARATOR;2" from the namespace #"alib::system;2" to namespace #"alib" to align 
+  with the #"alib_manual_appendix_typealiases;corresponding guidelines". 
+- As explained above, this module now holds the new class #"FileStatus" and with it manages the
+  (renamed) macros:
+  - #"ALIB_SYSTEM_FORCE_STD_FILE_STATUS",     
+  - #"ALIB_SYSTEM_FILE_STATUS_IMPL",     
+  - #"ALIB_SYSTEM_FILE_STD_STATUS", and     
+  - #"ALIB_SYSTEM_FILE_POSIX_STATUS".     
+- Renamed method <b>Path::MakeReal;2</b> to #"Path::MakeCanonical".
+- Added methods #"Path::Exists;2", #"Path::MakeAbsolute", and #"Path::IsUNCPath;2".
+- Fixed a bug in class #"TextFileLineReader", which prevented the detection of error codes.
+  Field #"TextFileLineReader Status" was never set. (Yes, we have no unit tests for this class
+  introduced recently.)
+- Added template parameter \p{TLocalBufferSize} to the struct #"TextFileLineReader" and the
+  class #"TTextFile" to allow specifying the size of the local buffer.
+- Added new class #"MappedFile".
+- Removed enum type \b SystemErrors from the namespace #"alib::system;2". Instead, type
+  <c>std::errc</c> is now used and supported accross \alib. 
+  Former enum element \b SystemErrors::OK should be replaced with <c>std::errc(0)</c> and 
+  \b SystemErrors::UNKNOWN by <c>std::errc(-1)</c>. 
+- The former namespace function \b system::CreateSystemException was replaced by overlaoded 
+  methods #"CreateExceptionFromSystemError(const CallerInfo&, std::error_code)" and         
+  method #"CreateExceptionFromWindowsOSError".       
+                                                                     
+\par Module Threads:
+- Renamed former class \b Condition to #"threads Event" and refactored and extended its interface.
+- Added a sequence counter to classes #"DbgLockAsserter", #"DbgSharedLockAsserter" and
+  #"DbgConditionAsserter" which further improves the debugging experience of multithreaded
+  software.
+   
+\par Module Variables:
+Changed exception handling of the method #"IniFile::Read;*". This used to return \c -1 
+in case the file could not be opened. Now, also in this case, an exception is thrown.  
+                                                                     
+
 \I{################################################################################################}
 \I{############################        Version 2511 R0       ######################################}
 \I{################################################################################################}
-
 
 # Version 2511, Revision 0, released November 14th, 2025 #
 The minimum required CMake version is <b>3.20</b>.
@@ -40,93 +257,93 @@ We removed the warning in the documentation about this module being instable and
 (Note that nothing is really stable with \alib, due to its
 \ref alib_manual_compatibility_policy "compatibility policy".)
 
-- Formerly hidden type \alib{threadmodel;PoolWorker} is now declared in the public library interface.
-- New virtual methods \alib{threadmodel;ThreadPool::CreateWorker},
-  \alib{threadmodel;ThreadPool::DisposeWorker}, and \alib{threadmodel;PoolWorker::PrepareJob}
+- Formerly hidden type #"threadmodel::PoolWorker" is now declared in the public library interface.
+- New virtual methods #"threadmodel::ThreadPool::CreateWorker",
+  #"threadmodel::ThreadPool::DisposeWorker", and #"threadmodel::PoolWorker::PrepareJob"
   enable more flexible thread pool implementations.<br>
   Details are found in the new manual chapter \ref alib_thrmod_threadpool_derived of this module's
   Programmer's Manual.
         
 \par Module Threads:
-- Fixed a bug that caused the \alib{threads;DbgLockAsserter} to raise false alarms.
+- Fixed a bug that caused the #"threads::DbgLockAsserter" to raise false alarms.
 
 \par Module Lang:
 - Added common enumeration \ref alib::lang::LineFeeds.
-- Renamed class \b lang::StdContainerAllocator to \alib{lang::StdAllocator}.
-- Renamed class \b lang::StdContainerAllocatorRecycling to \alib{lang::StdRecyclingAllocator}.
-- Class \alib{lang;Owner} and its various sibling types were equipped with an additional
+- Renamed class \b lang::StdContainerAllocator to #"lang::StdAllocator".
+- Renamed class \b lang::StdContainerAllocatorRecycling to #"lang::StdRecyclingAllocator".
+- Class #"lang::Owner" and its various sibling types were equipped with an additional
   template parameter, which allows the optional storage of an owner, hence \e nulled pointers.
   This allows enabling the guard-mechanisms depending on run-time conditions.
 
 \par Module Boxing:
-- Renamed type alias <b>alib::BoxesHA</b> to \alib{Boxes}, which is in alignment with the naming
+- Renamed type alias <b>alib::BoxesHA</b> to #"Boxes", which is in alignment with the naming
   scheme by \alib when a templated allocator becomes specified.
       
 \par Module Strings:
-- Refactored former class \b StringWriter to \alib{strings::compatibility::std::OStreamWriter}.
+- Refactored former class \b StringWriter to #"strings::compatibility::std::OStreamWriter".
   - The type is now a template and is enabled to write <c>std::wostream</c>, as well as
     into <c>std::ostream</c>.
   - With template parameter \p{TSynced}, the type now supports C++20's new
     <c>ostream</c>-synchronization mechanism (<b>std::osyncstream</b>) as well as the \alib's
-    synchronization mechanism provided with \alib{threads;STD_IOSTREAMS_LOCK}.
+    synchronization mechanism provided with #"threads::STD_IOSTREAMS_LOCK".
   - New-line character adjustment is now configurable.
   - The type now optionally uses \alib allocators for memory management.
-- Renamed class \b TIsReadLine to \alib{strings::compatibility::std;TIStreamLine}.
-- Renamed class \b StringReader to \alib{strings::compatibility::std;IStreamReader}.
-- Added optional parameter \p{offset} to method \alib{strings;TAString::DetectLength}, which allows
+- Renamed class \b TIsReadLine to #"strings::compatibility::std::TIStreamLine".
+- Renamed class \b StringReader to #"strings::compatibility::std::IStreamReader".
+- Added optional parameter \p{offset} to method #"strings::TAString::DetectLength", which allows
   faster detection if a minimum length is known. Furthermore, the method now returns the
   detected length for convenience.
-- Added the method \alib{strings;TAString::ShortenBy}.
-- Added method \alib{strings::util;RegexMatcher::SearchIn}, and slightly revised the
+- Added the method #"strings::TAString::ShortenBy".
+- Added method #"strings::util::RegexMatcher::SearchIn", and slightly revised the
   \https{boost-based,www.boost.org/doc/libs/1_68_0/libs/regex/doc/html/index.html}-based class.
     
 \par Module Monomem:
-- Fixed a bug that made method \alib{monomem;PoolAllocator::allocate} not increase the in/output
+- Fixed a bug that made method #"monomem::TPoolAllocator::allocate" not increase the in/output
   parameter \p{size}.
-- Type definitions \b SCAMono and \b SCAPool have been renamed to \alib{StdMA} and
-  \alib{StdPA} respectively.
+- Type definitions \b SCAMono and \b SCAPool have been renamed to #"StdMA" and
+  #"StdPA" respectively.
 - Furthermore, renamed type definitions:
-  - \b StdVectorMono to \alib{StdVectorMA},
-  - \b StdVectorPool to \alib{StdVectorPA},
-  - \b StdListMono to \alib{StdListMA},
-  - \b StdListPool to \alib{StdListPA},
-  - \b StdDequeMono to \alib{StdDequeMA}, and
-  - \b StdDequePoo to \alib{StdDequePA}.
+  - \b StdVectorMono to #"StdVectorMA",
+  - \b StdVectorPool to #"StdVectorPA",
+  - \b StdListMono to #"StdListMA",
+  - \b StdListPool to #"StdListPA",
+  - \b StdDequeMono to #"StdDequeMA", and
+  - \b StdDequePoo to #"StdDequePA".
                                 
 \par Module Containers:
 - The method 
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;ae406201cd8da023cf9bf50df25626153;TCursor::DeleteChild} 
+  \b TCursor::DeleteChild 
   now returns the total number of (recursively) deleted nodes. (Was \c void before.) 
 - The former inner type <b>RecursiveIterator</b> of class <b>StringTree</b> was moved out of its 
-  parent and renamed to \alib{containers;StringTreeIterator}. Availability comes with the 
-  inclusion of \implude{Containers.StringTreeIterator}. Among further changes are:
+  parent and renamed to #"containers::StringTreeIterator". Availability comes with the 
+  inclusion of \b ALib.Containers.StringTreeIterator.H. Among further changes are:
   - The type now allows including the start node in the iteration. 
   - The optional path-generation now produces absolute paths. 
   - Sorting is now implemented with a virtual type, instead of a function pointer. This allows
     sorters to use encapsulated data.<p>
 
 \par Module Files:
-- Extracted the new helper struct \alib{files;TextFileLineReader} from class \alib{files;TTextFile},
+- Extracted the new helper struct \b TextFileLineReader from class \b TTextFile,
   which allows reading lines from a text file (without storing them, as class \b TextFile does).
 
 \par Module System:
-- Added class \alib{system;TShellCommand;ShellCommand}.
-- Class \alib{system;Path} was extended by methods \alib{system::Path;Parent} and
-  \alib{system::Path;ChangeToParent}.
+- Added class #"system::TShellCommand;ShellCommand".
+- Class #"system::Path" was extended by methods #"system::Path::Parent" and
+  #"system::Path::ChangeToParent".
 
 \par Module ALox:
-- Added optional parameter \p{resultDomain} to method \alib{lox;Lox::IsActive}, which allows
+- Added optional parameter \p{resultDomain} to method #"lox::Lox::IsActive", which allows
   retrieving the resulting domain at the invocation site.
 - Parameter \p{usesStdStreams} was removed from the constructor of class
-  \alib{lox::textlogger;TextLogger} and now, each logger type is responsible for its own
+  #"lox::textlogger::TextLogger" and now, each logger type is responsible for its own
   synchronization, if wanted. Corresponding changes were made to the logger types
-  \alib{lox::loggers;AnsiLogger}, \alib{lox::loggers;ConsoleLogger} and
-  \alib{lox::loggers;TextFileLogger}.<br>
-  Those are now using the fully refactored type \alib{strings::compatibility::std::OStreamWriter}.
+  #"lox::loggers::AnsiLogger", #"lox::loggers::ConsoleLogger" and
+  #"lox::loggers::TextFileLogger".<br>
+  Those are now using the fully refactored type #"strings::compatibility::std::OStreamWriter".
 - Renamed abstract methods \b notifyLogOp and \b logSubstring in class
-  \alib{lox::textlogger;PlainTextLogger} to
-  \alib{lox::textlogger::PlainTextLogger;notifyPlainTextLogOp} and
-  \alib{lox::textlogger::PlainTextLogger;logPlainTextPart}, respectively.
+  #"lox::textlogger::PlainTextLogger" to
+  #"lox::textlogger::PlainTextLogger::notifyPlainTextLogOp" and
+  #"lox::textlogger::PlainTextLogger::logPlainTextPart", respectively.
 
                                                   
 \I{################################################################################################}
@@ -201,15 +418,15 @@ The implications are:
 - Changed the \ref alib_manual_appendix_naming "ALib naming conventions". 
   Type-trait types, which had been prefixed with <b>T_</b> are now instead suffixed by
   <b>Traits</b>. For example, this affects:
-  - <b>alib::characters::T_CharArray</b> -> \alib{characters;ArrayTraits}.  
-  - <b>alib::characters::T_ZTCharArray</b> -> \alib{characters;ZTArrayTraits}.  
-  - <b>alib::strings::T_Append</b> -> \alib{strings;AppendableTraits}.
+  - <b>alib::characters::T_CharArray</b> -> #"characters::ArrayTraits".  
+  - <b>alib::characters::T_ZTCharArray</b> -> #"characters::ZTArrayTraits".  
+  - <b>alib::strings::T_Append</b> -> #"strings::AppendableTraits".
 - Helper structs using template metaprogramming, which formerly were named with the prefix 
   <b>TT_</b> have been replaced by modern idioms like concepts, type-aliases, etc. 
   As an example, former types <b>alib::characters::TT_CharArrayType</b> and 
-  <b>alib::characters::TT_ZTCharArrayType</b>  were replaced by concepts \alib{characters;IsArray}
-  and \alib{characters;IsZTArray} along with type aliases \alib{characters;Type} and 
-  \alib{characters;ZTType}.<br>
+  <b>alib::characters::TT_ZTCharArrayType</b>  were replaced by concepts #"characters::IsArray"
+  and #"characters::IsZTArray" along with type aliases #"characters::Type" and 
+  #"characters::ZTType".<br>
   Many more similar replacements have been performed. Please, consult the reference- and 
   programmer's-manuals of the corresponding modules in case your code does not compile 
   with a type prefixed <c>T_</c>, or <c>TT_</c>.      
@@ -221,7 +438,7 @@ This replaces the former plug-in based concept implemented with now removed type
 \b Report and \b ReportWriter.<br> 
 Likewise, the former plugin \b ALoxReportWriter was removed. However, as the new assertion system
 still supports a plug-in mechanism, module \alib_alox now plugs into it with its new 
-function \alib{lox;ALoxAssertionPlugin}.<br>
+function #"lox::ALoxAssertionPlugin".<br>
 The concepts are primarily made for internal use, but can be used by any software likewise.
 Thus, a corresponding \ref alib_mod_assert "Programmer's Manual is available". 
          
@@ -235,11 +452,11 @@ in the new module \alib_bootstrap.
   from scratch.
 - Removed documentation of symbols \b ALIB_GDB_PP_FIND_POINTER_TYPES and 
   \b ALIB_GDB_PP_SUPPRESS_CHILDREN (which had been discarded in the previous release already).  
-- Added macro \ref ALIB_WARNINGS_IGNORE_DEPRECATED.  
+- Added macro \b  ALIB_WARNINGS_IGNORE_DEPRECATED.  
 - Removed macros \b ALIB_FORCE_INLINE and \b ALIB_NO_RETURN.  
 - Removed macro \b ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE because clang compiler became too strict
   with that flag and it was necessary just too often. Instead, the warning is now disabled globally.  
-- Renamed macro \b ALIB_DEBUG_MONOMEN to \ref ALIB_DEBUG_MEMORY and removed its responsibility
+- Renamed macro \b ALIB_DEBUG_MONOMEN to \b  ALIB_DEBUG_MEMORY and removed its responsibility
   from module \alib_monomem to let it have a general library association.  
 - The use of clang's \b libc++ under GNU/Linux is now supported with the new CMake variable
   \b ALIB_CLANG_USE_LIBCPP, which is used with CMake function 
@@ -247,40 +464,40 @@ in the new module \alib_bootstrap.
 - Added the compiler option \b /utf-8 for MSVC with the shipped project files. 
   
 \par Module Characters:
-- Added helper \alib{characters;ArrayLength}.
+- Added helper #"characters::ArrayLength".
 
 \par Modules EnumOps and EnumRecords:
 - Former \alibmod_nl <b>"Enums"</b> was split into the modules \alib_enumops and \alib_enumrecords.
 - Former joint namespace \c alib::enums was replaced with #alib::enumops and #alib::enumrecords.
 - The bootstrap facilities of module \alib_enumrecords_nl have been extracted and moved 
   to sub-namespace #alib::enumrecords::bootstrap.
-- The overloaded function of method \alib{enumrecords::bootstrap;Bootstrap} which accepts a 
-  \alib{camp;Camp} instance is now available only after the inclusion of the header \implude{Camp}.    
+- The overloaded function of method \b enumrecords::bootstrap::Bootstrap which accepts a 
+  #"camp::Camp" instance is now available only after the inclusion of the header \b ALib.Camp.H.    
 
 \par Module Strings:
-- The default-constructor of class \alib{strings;TCString} now does not initialize an instance
+- The default-constructor of class #"strings::TCString" now does not initialize an instance
   to be \e nulled anymore. Instead, no initialization is performed. 
-  This is now in alignment with the default constructor of base class \alib{strings;TString}.
+  This is now in alignment with the default constructor of base class #"strings::TString".
 - Pointers to instances of \ref alib_strings_assembly_ttostring "appendable" types are not
   accepted by the append-methods of class \b %AString anymore. If desired, the pointer type 
   has to be made \e appendable explicitly (optionally in parallel to the value type).          
 - The following classes had been subtypes of the removed type \b TFormat and were moved out:
-  -  \alib{strings;TField}, 
-  -  \alib{strings;TTab}, 
-  -  \alib{strings;TEscape}, 
-  -  \alib{strings;TDec}, 
-  -  \alib{strings;THex}, 
-  -  \alib{strings;TOct}, and 
-  -  \alib{strings;TBin}. 
+  -  #"strings::TField", 
+  -  #"strings::TTab", 
+  -  #"strings::TEscape", 
+  -  #"strings::TDec", 
+  -  #"strings::THex", 
+  -  #"strings::TOct", and 
+  -  #"strings::TBin". 
 
-  And, class \alib{strings;TField} has now two different implementations, depending on the inclusion
+  And, class #"strings::TField" has now two different implementations, depending on the inclusion
   of the module \alib_boxing in the \alibbuild.  
-- With the inclusion of the header \implude{Compatibility.StdStrings}, specializations of C++20 
+- With the inclusion of the header \b ALib.Compatibility.StdStrings.H, specializations of C++20 
   struct <c>std::formatter</c> are now given. This allows to use \alib string types with
   function <c>std::format</c>. 
-- Changed inner types and a few method names of classes \alib{strings;TString;String} and 
-  \alib{strings;TAString;AString} to gain compatibility with C++ container algorithms.
-- Added assign operator to class \alib{strings;TLocalString;LocalString}. (Before, assignment was
+- Changed inner types and a few method names of classes #"strings::TString;String" and 
+  #"strings::TAString;AString" to gain compatibility with C++ container algorithms.
+- Added assign operator to class #"strings::TLocalString;LocalString". (Before, assignment was
   inefficient as the move constructor was used.) 
    
 \par Module Boxing:
@@ -288,17 +505,17 @@ in the new module \alib_bootstrap.
   in \c constexpr contexts with that language version, module \alib_boxing was overhauled.
 - Some former techniques of customizations (to keep things \c constexpr) of boxing could be removed 
   and thus simplified. If this breaks your code, please consult the updated 
-  \ref alib_mod_boxing Programmer's Manual      
-- Methods \b GetRecord and \b TryRecord of class \alib{boxing;Enum} have been moved to 
-  namespace-level with functions \alib{boxing;GetRecord} and \alib{boxing;TryRecord}.
+  \ref alib_mod_boxing "Programmer's Manual"      
+- Methods \b GetRecord and \b TryRecord of class #"boxing::Enum" have been moved to 
+  namespace-level with functions #"boxing::GetRecord" and #"boxing::TryRecord".
                                                                      
 \par Module Containers:
-Changed inner types and a few method names of classes \alib{containers;List} to gain compatibility 
+Changed inner types and a few method names of classes #"containers::List" to gain compatibility 
 with C++ container algorithms.
 
 \par Module ALox:
-- Moved methods \alib{lox::Lox;Register} and \alib{lox::Lox;Get} from class \alib{lox;ALoxCamp}
-  to class \alib{lox;Lox}. 
+- Moved methods #"lox::Lox::Register" and #"lox::Lox::Get" from class #"lox::ALoxCamp"
+  to class #"lox::Lox". 
 
 \I{################################################################################################}
 \I{############################        Version 2412 R0       ######################################}
@@ -329,9 +546,9 @@ This version was successfully tested under the following platform and toolchain 
  
 \par  Preprocessor Symbols/Macros:
 - Removed compilation symbol \b ALIB_AVOID_ANALYZER_WARNINGS.
-- Added macro \ref ALIB_WARNINGS_IGNORE_UNUSED_LAMBDA_CAPTURE.  
-- Added macros \ref ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE, and 
-  \ref ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION (both only needed with unit tests and doxygen samples).
+- Added macro \b  ALIB_WARNINGS_IGNORE_UNUSED_LAMBDA_CAPTURE.  
+- Added macros \b  ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE, and 
+  \b  ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION (both only needed with unit tests and doxygen samples).
 - Fixed macro \ref ALIB_CONCAT to allow internal expansion if macros were given, and thus fixed
   macros \ref ALIB_IDENTIFIER, \ref ALIB_OWN, \ref ALIB_LOCK, \ref ALIB_LOCK_WITH, etc.
 - Added macro \ref ALIB_COMMA_CALLER_PRUNED.
@@ -339,40 +556,40 @@ This version was successfully tested under the following platform and toolchain 
  
 \par Library Core Types
 - Added types that support generic allocation mechanisms. Those are:
-  - \alib{lang;Allocator} - which is in fact only a prototype for allocators, living justin the documentation,  
-  - \alib{lang;HeapAllocator},  
-  - \alib{lang;AllocatorInterface}, and  
-  - \alib{lang;AllocatorMember}.  
-- Added type \alib{lang;Placeholder}.
-- Added type \alib{lang;Plugin} in correspondence to the existing class \alib{lang;PluginContainer} and
+  - #"lang::Allocator" - which is in fact only a prototype for allocators, living justin the documentation,  
+  - #"lang::HeapAllocator",  
+  - #"lang::AllocatorInterface", and  
+  - #"lang::AllocatorMember".  
+- Added type #"lang::Placeholder".
+- Added type #"lang::Plugin" in correspondence to the existing class #"lang::PluginContainer" and
   revised the latter in accordance.
-- Added type \alib{lang;CallerInfo} and replaced any occurrence of "file, line, func"-parameters
+- Added type #"lang::CallerInfo" and replaced any occurrence of "file, line, func"-parameters
   across the library.<br>
   This has some implications on various macros that collect caller information, especially 
   \alox logging macros, mutex lock macros and assertions. 
   Information is given with the new manual appendix chapter \ref alib_manual_appendix_callerinfo.
-- Added namespace functions \alib{lang;IsNull}, \alib{lang;IsNotNull}, and \alib{lang;SetNull}.  
+- Added namespace functions #"lang::IsNull", #"lang::IsNotNull", and #"lang::SetNull".  
 - Added method \b DbgTypeDemangler::GetShort. 
   This method is now used with functor 
   \b T_Append<std::type_info,TChar,TAllocator> to shorten default output.
   If the long output is needed, then a temporary of \b DbgTypeDemangler has to be created
   and the result of its \b Get method has to be appended.   
-- Added tag-types \alib{CHK} and \alib{NC}. 
+- Added tag-types #"CHK" and #"NC". 
    
-- Added sibling types to \alib{lang;Owner}. Those are 
-  \alib{lang;OwnerTry}, 
-  \alib{lang;OwnerTimed}, 
-  \alib{lang;OwnerRecursive}, 
-  \alib{lang;OwnerShared}, 
-  \alib{lang;OwnerTryShared}, and 
-  \alib{lang;OwnerSharedTimed}.<br>
+- Added sibling types to #"lang::Owner". Those are 
+  #"lang::OwnerTry", 
+  #"lang::OwnerTimed", 
+  #"lang::OwnerRecursive", 
+  #"lang::OwnerShared", 
+  #"lang::OwnerTryShared", and 
+  #"lang::OwnerSharedTimed".<br>
   Along with that, macros \ref ALIB_OWN_RECURSIVE and \ref ALIB_OWN_SHARED were added.  
-- Added type \alib{lang;DbgCriticalSections}.
+- Added type #"lang::DbgCriticalSections".
                                         
 \par Module Characters:
 - Moved all static methods of type <b>alib::characters::CharArray</b> to namespace level.
   The then empty type got removed.
-- Added \alib{characters;AlignedCharArray}.
+- Added #"characters::AlignedCharArray".
 - With both these changes, the header files and their names got refactored.
  
    
@@ -386,12 +603,12 @@ This version was successfully tested under the following platform and toolchain 
 - This was largely revised and now reflects the decision to drop support of standards below C++ 17.
 - Added dependency to module\alib_time.
 - Replaced former types \b ThreadLockNR and \b ThreadLock with types
-  - \alib{threads;Lock},
-  - \alib{threads;TimedLock},
-  - \alib{threads;RecursiveLock}, 
-  - \alib{threads;RecursiveTimedLock},
-  - \alib{threads;SharedLock}, and
-  - \alib{threads;SharedTimedLock}.
+  - #"threads::Lock",
+  - #"threads::TimedLock",
+  - #"threads::RecursiveLock", 
+  - #"threads::RecursiveTimedLock",
+  - #"threads::SharedLock", and
+  - #"threads::SharedTimedLock".
 - The former "safeness control"-features were dropped. 
 - Extended macros \b ALIB_LOCK and ALIB_LOCK_WITH, with corresponding new siblings: 
   ALIB_LOCK_RECURSIVE,             
@@ -399,22 +616,22 @@ This version was successfully tested under the following platform and toolchain 
   ALIB_LOCK_RECURSIVE_WITH, and  
   ALIB_LOCK_SHARED_WITH.     
 - Removed class \b SmartLock. 
-- Added class \alib{threads;Promise}. 
+- Added class #"threads::Promise". 
     
 \par Module ThreadModel (New):
 This is a new module that introduces a proposal of how to organize threads in an application. 
 
 \par  Module Boxing:
 - Fixed support for boxing of type <c>long double</c>. The rationale here was rather a bug: Without
-  us noticing, the alignment of type \alib{boxing;Box} had increased to <c>2 x alignof(void*)</c>
+  us noticing, the alignment of type #"boxing::Box" had increased to <c>2 x alignof(void*)</c>
   (on some systems). Consequently, the size of class \b Box had increased to 32 bytes
   (with 64-bit systems affected from the bug), in contrast to the 24 bytes that are documented
   (8 alignment bytes had been accidentally added).
-- Added methods \alib{boxing;Box::ExportType}, \alib{boxing;Box::ExportValue}, overloaded methods
-  \alib{boxing;Box::Import}, as well as a constructor that accepts a pair of an exported type and
-  value.
-- Former class \b Boxes is templated and called \alib{boxing;TBoxes} with type definitions
-  \b BoxesHA (equivalent to the prior type) and \alib{BoxesPA}.
+- Added methods #"boxing::Box::ExportType", #"boxing::Box::ExportValue", overloaded methods
+  #"boxing::Box::Import(TypeCode)", as well as a constructor that accepts a pair of an exported 
+  type and value.
+- Former class \b Boxes is templated and called #"boxing::TBoxes" with type definitions
+  \b BoxesHA (equivalent to the prior type) and #"BoxesPA".
 
 \par Module Enums:
 - Added namespace function \b enums::bitwise::HasOneOf.
@@ -426,49 +643,47 @@ This is a new module that introduces a proposal of how to organize threads in an
   By the same token, following this libraries' conventions, their naming was changed 
   from \e CamelCase to \e SCREAMING_SNAKE_CASE.<br>
   Please expect a lot of replacements in your code, like, for example:
-  - <b>EmptyString()</b> -> \alib{EMPTY_STRING}, or   
-  - <b>DefaultWhitespaces()</b> -> \alib{DEFAULT_WHITESPACES}.   
-- Adopted new allocation mechanics (see below) to class \alib{strings;TAString}.
-- Added methods \alib{strings;TString::Allocate}, \alib{strings;TString::Free}, and new constructor
-  \alib{strings;TString;TString(TAllocator& allocator, const TString<TChar>&)}, which allow
+  - <b>EmptyString()</b> -> #"EMPTY_STRING", or   
+  - <b>DefaultWhitespaces()</b> -> #"DEFAULT_WHITESPACES".   
+- Adopted new allocation mechanics (see below) to class #"strings::TAString".
+- Added methods #"strings::TString::Allocate", #"strings::TString::Free", and new constructor
+  #"strings::TString;TString(TAllocator& allocator, const TString<TChar>&)", which allow
   placing a copy of a given source string in an allocator and also free such allocated memory.<br>
-  The same is available for class \b CString, with \alib{strings;TCString::Allocate},
-  \alib{strings;TCString::Free}, and new constructor
-  \alib{strings;TString;TCString(TAllocator& allocator, const TString<TChar>&)}. Here an additional
+  The same is available for class \b CString, with #"strings::TCString::Allocate",
+  #"strings::TCString::Free", and new constructor
+  #"strings::TString;TCString(TAllocator& allocator, const TString<TChar>&)". Here an additional
   zero-termination character is allocated and freed.<br>
 - With the above in place, removed namespace functions <b>alib::strings::AllocateCopy</b> and
   <b>alib::strings::DeleteString</b>.
 - Changed template parameter \p{TCheck} of all methods from \c bool to \c typename with 
-  changing the default value from \c true to \alib{CHK}.  
+  changing the default value from \c true to #"CHK".  
 - Removed use of C++ 20 starship operator with string-types. It caused plenty of problems
   with the new overload resolution rules, standard strings and different results with different
   compilers. Finally the use of the original six operators results in far better compile times.       
 - Added methods
-  \doxlinkproblem{classalib_1_1strings_1_1TAString.html;a342533ac2cb261d19e3024d9d159b84d;AString::DeleteStart(const String &)} and
-  \doxlinkproblem{classalib_1_1strings_1_1TAString.html;addbbf1ca4f47f94c41fcd6d5c2aefaa5;AString::DeleteEnd(const String &)}.
-- Added optional parameter \p{endIndex} method
-  \doxlinkproblem{classalib_1_1strings_1_1TString.html;a02042c2357ac4830da72c80b169538f1;String::IndexOf} and
-  and overloaded methods \alib{strings;TAString::SearchAndReplace}.
+  \b AString::DeleteStart(const String &) and \b AString::DeleteEnd(const String &)}.
+- Added optional parameter \p{endIndex} method \b String::IndexOf and
+  and overloaded methods #"TAString::SearchAndReplace(const TString<TChar>&)".
 - Fixed a bug in class \b strings::util::TSubstringSearch, which may have caused wrong
   results.
-- Added classes \alib{strings;util::StringEscaper} and \alib{strings;util::StringEscaperStandard}.
+- Added classes #"strings::util::StringEscaper" and #"strings::util::StringEscaperStandard".
   The functionality of these was previously implemented with similar types of camp
   \b Config and got generalized now.
-- Added optional second parameter \p{includeSeparator} to \alib{strings;Substring::ConsumeToken}.
-- Added an option to set an explicit writeable name to class \alib{strings::util::Token}.
-  See methods \alib{strings::util::Token;Define} and \alib{strings::util::Token;GetExportName} for
+- Added optional second parameter \p{includeSeparator} to #"ConsumeToken".
+- Added an option to set an explicit writeable name to class #"strings::util::Token".
+  See methods #"strings::util::Token::Define" and #"strings::util::Token::GetExportName" for
   more information.
-- Changed name of method \b Token::GetRawName to \alib{strings::util;Token::GetDefinitionName}.
-- Added class \alib{strings;util::TStringVector}.
-- Utility type \alib{strings;util::AutoSizes} now tracks changes to enable session file writing on 
+- Changed name of method \b Token::GetRawName to #"strings::util::Token::GetDefinitionName".
+- Added class #"strings::util::TStringVector".
+- Utility type #"strings::util::AutoSizes" now tracks changes to enable session file writing on 
   updates.<br>
-  Furthermore, flag \alib{strings::util::AutoSizes::WriteProtected} was added.
-- Added flag \alib{strings;NumberFormatFlags;NumberFormatFlags::ReplaceLeadingZerosWithSpaces} and
+  Furthermore, flag #"strings::util::AutoSizes::WriteProtected" was added.
+- Added flag #"strings::NumberFormatFlags;NumberFormatFlags::ReplaceLeadingZerosWithSpaces" and
   corresponding functionality. Previously a similar behavior was only reachable by embedding a
   number in a field or with formatters.
 - Removed utility type <b>alib::strings::util::Spaces</b>. (A remainder from the compatibility layer
   that \alib once was with its siblings in Java and C#). More efficient replacement is possible
-  with the use of the previously mentioned new type \alib{characters;AlignedCharArray}, as well
+  with the use of the previously mentioned new type #"characters::AlignedCharArray", as well
   as with the type of the next documented change.
 - Added formatting type \b strings::TFormat::Fill.    
 - Class <b>strings::compatibility::std;StringWriter</b> now adjusts newline characters for
@@ -479,39 +694,30 @@ With the introduction of the generic allocation mechanisms (noted above), the co
 became allocator-agnosic and this way were moved from module \alib_monomem_nl to the new 
 module <b>"Containers"</b>. Due to the close relationship of topics, both modules share a joint
 \ref alib_mods_contmono "Programmer's Manual". Other changes are:
-- Added new type \alib{containers;SharedVal}.
-- Added new type \alib{containers;SharedPtr}.
-- Added new type \alib{containers;LRUCacheTable} as well as corresponding type
-  definitions \alib{containers;LRUCacheMap} and \alib{containers;LRUCacheSet}.
-- Class \alib{containers;HashTable} was refactored (simplified!) in respect to its template 
-  parameters. Type definitions \alib{containers;HashMap} and \alib{containers;HashSet} remained 
+- Added new type #"containers::SharedVal".
+- Added new type #"containers::SharedPtr".
+- Added new type #"containers::LRUCacheTable" as well as corresponding type
+  definitions #"containers::LRUCacheMap" and #"containers::LRUCacheSet".
+- Class #"containers::HashTable" was refactored (simplified!) in respect to its template 
+  parameters. Type definitions #"containers::HashMap" and #"containers::HashSet" remained 
   unchanged, so only users of the "base type" are affected by the change. Please consult the
-  \alib{containers;HashTable;reference documentation} of the type for information
+  #"containers::HashTable;reference documentation" of the type for information
   on its details of use.
-- Cursors of class \b StringTree can now be
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a394ceb5c9dfe91414ab93ce87a743cd8;exported}.
-   and constructed from exported values.
-- Added operator
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a4442b1b9eab40e7939e1e01cdedcb7ae;StringTree::TCursor::operator->}.
+- Cursors of class \b StringTree can now be \b exported and constructed from exported values.
+- Added operator \b TCursor::operator->.
   which allows easy access to the custom type stored in a \b StringTree node.
-- Added optional template parameter \p{TParent} to method
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a75140d731555edad87151e9bec346413;StringTree::TCursor::Tree}
+- Added optional template parameter \p{TParent} to method \b TCursor::Tre}
   which allows statically casting the returned object to a type derived from the tree.
-- Overloaded methods
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;add7694edb9782c64c526909dfc73113b;StringTree::TCursor::AssemblePath}.
-  now expect an \b AString of the same character type that the \b StringTree uses.
-- Added method 
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a90ca31117cef1e45de00b32f9eacf151;TCursor::Distance}.
-- Renamed the method <b>StringTree::TCursor::GoToTraversedPath</b> to 
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a72d46de8db80f0d507db8013cc41c564;GoTo}, 
-  as well as the method <b>StringTree::TCursor::TraversePath</b> to 
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TCursor.html;a55db5acb390a2d38dd8e30c123cb6e4b;operator()(const NameType&)}.
+- Overloaded methods \b TCursor::AssemblePath now expect an \b AString of the same character type 
+  that the \b StringTree uses.
+- Added method \b TCursor::Distance.
+- Renamed the method <b>StringTree::TCursor::GoToTraversedPath</b> to \b GoTo, 
+  as well as the method <b>StringTree::TCursor::TraversePath</b> to \b operator().
 - Class <b>StringTree::TRecursiveIterator</b> now correctly adds
-  a trailing path separator char to the path returned with 
-  \doxlinkproblem{classalib_1_1containers_1_1StringTree_1_1TRecursiveIterator.html;a1c4208352f97d0d4664977924c8759b7;CurrentPath},
+  a trailing path separator char to the path returned with \b CurrentPath,
   in the case it was initialized with the root node of the tree.
-- Added method \alib{containers;StringTree::Separator}.
-- Renamed method \b StringTree::DeleteRootValue to \alib{containers::StringTree;DestructRootValue}.
+- Added method #"containers::StringTree::Separator".
+- Renamed method \b StringTree::DeleteRootValue to #"containers::StringTree::DestructRootValue".
 
 \par Module Monomem:
 Largely extended and refactored monotonic allocation facilities. To reach this goal, namespace
@@ -528,21 +734,21 @@ Please refer to the \ref alib_mods_contmono "Programmer's Manual", which is almo
   - \b lang::RTTRAllocator.
 - The container types are now allocator-agnostic and have been moved to the new module 
   \alib_containers_nl.
-- Type \alib{MonoAllocator} now is just a type definition into templated type
-  \alib{monomem;TMonoAllocator}. The template parameter allows the new concept of 
+- Type #"MonoAllocator" now is just a type definition into templated type
+  #"monomem::TMonoAllocator". The template parameter allows the new concept of 
   \ref alib_contmono_chaining "allocator chaining".
-- Added the new class \alib{monomem;TLocalAllocator} which uses stack memory for (the first) allocation
+- Added the new class #"monomem::TLocalAllocator" which uses stack memory for (the first) allocation
   buffer.
-- Added the new class \alib{monomem;TPoolAllocator;PoolAllocator}, which implements a general approach
+- Added the new class #"monomem::TPoolAllocator;PoolAllocator", which implements a general approach
   to \ref alib_contmono_intro_recycling "memory recycling" applicable to a wide range of use-cases.
 - Moved namespace function \b alib::monomem::Destruct to \ref alib::lang::Destruct.
 - Former class \b SelfContained has been extended with automatic pointer mechanics and 
-  was renamed to \alib{monomem;TSharedMonoVal}. 
+  was renamed to #"monomem::TSharedMonoVal". 
 - Renamed type definition \b StdContMA to \b SCAMono and introduced sibling definitions
   \b StdVectorMono, \b StdVectorPool, \b StdListMono, \b StdListPool, 
   \b StdDequeMono, and \b StdDequePool.
-- Added \b AString type definitions for \alib{MonoAllocator} as well as for new
-  allocator type \alib{monomem;TPoolAllocator;PoolAllocator}. Those are:
+- Added \b AString type definitions for #"MonoAllocator" as well as for new
+  allocator type #"monomem::TPoolAllocator;PoolAllocator". Those are:
     \b AStringMA, \b AStringPA, \b ComplementAStringMA, \b ComplementAStringPA,
     \b StrangeAStringMA, \b StrangeAStringPA, \b NAStringMA, \b NAStringPA,
     \b WAStringMA, \b WAStringPA, \b XAStringMA} and \b XAStringPA}.<br>
@@ -550,10 +756,10 @@ Please refer to the \ref alib_mods_contmono "Programmer's Manual", which is almo
   \b MAString, \b ComplementMAString, \b StrangeMAString, \b NMAString, \b WMAString, and 
   \b XMAString were removed.
 - If the compiler symbol \ref ALIB_DEBUG_ALLOCATIONS is given, class \b MonoAllocator, as well as the
-  two new allocators and type \alib{lang;HeapAllocator}, now add padding bytes around allocations 
+  two new allocators and type #"lang::HeapAllocator", now add padding bytes around allocations 
   and test for validity when memory is freed. 
   Furthermore, freed memory is overwritten to detect illegal memory access early.
-  Likewise method \alib{monomem;MonoAllocator::Reset} now overwrites the released memory
+  Likewise method #"TMonoAllocator::Reset(Snapshot)" now overwrites the released memory
   with this special debug mode.
 - Removed <b>MonoAllocator::dbgCheckGlobalAllocatorLock</b> in favor of using the new, generic
   concept of critical sections.  
@@ -563,12 +769,12 @@ Please refer to the \ref alib_mods_contmono "Programmer's Manual", which is almo
 - Class \b lang::Exception is now copyable and movable. While it is still recommended to catch
   \b references to instances of class \b Exception, instances may now, for example, be collected in
   lists.
-- Method \alib{lang;Exception::Format} now appends the \alib{lang;CallerInfo} 
+- Method #"Exception::Format" now appends the #"lang::CallerInfo" 
   to the end of each exception entry.  
 - Renamed and refactored the former class \b Directory to \b lang::system::Path. The type was
   never really well-developed, and this was also marked in its docs. Now it is in a quite useful
   state for the first time.
-- \alib{SPFormatter} is no of new type \alib{containers;SharedPtr} (was <c>std::shared_ptr</c> before).
+- #"SPFormatter" is no of new type #"containers::SharedPtr" (was <c>std::shared_ptr</c> before).
 - Virtual method \b lang::format;Formatter::Default now returns a value of type \b SPFormat.
 - Removed static method <b>Formatter::GetDefault()</b> and instead gave public access to member
   \b lang::format::Formatter::Default. The former method <b>Formatter::ReplaceDefault()</b>
@@ -602,25 +808,23 @@ The Programmer's Manual of this module was likewise rewritten and now
 contains step-by-step tutorial sections.
 
 \par  Camp Files:
-- Added compiler symbol \ref ALIB_FILES_FORCE_STD_SCANNER and preprocessor
-  symbol \ref ALIB_FILES_SCANNER_IMPL.
-- Added class \alib{files;File} which inherits the cursor type of class \alib{files;FTree}.
+- Added compiler symbol \b ALIB_FILES_FORCE_STD_SCANNER and preprocessor
+  symbol \b ALIB_FILES_SCANNER_IMPL.
+- Added class \b File which inherits the cursor type of class #"FTree".
   This allows interfacing with entries in the file tree on different levels and paves the way
   for future features of this type that manipulate files on the system.
 - Implemented box-function \b lang::format::FFormat for new class \b %File to support
   the output of file data with formatter \b lang::format::FormatterPythonStyle.
-  The implementation makes use of method \alib{files;File::Format}, which therefore defines the
+  The implementation makes use of method \b File::Format, which therefore defines the
   format strings' syntax likewise for the python formatter.
-- Added new class \alib{files,TextFile}.
+- Added new class \b TextFile.
 
 \par  Camp Expressions:
-- Former <c>std::shared_ptr</c> \b SPExpression is now of new type \alib{containers;SharedVal}
-  and was renamed to \alib{expressions;Expression}. What was \b Expression before, is now 
-  named \alib{expressions;ExpressionVal}.
-- Various smaller changes and optimizations with class \alib{expressions;Scope}. 
-  Removed former vector \b Resources as only 
-  \doxlinkproblem{structalib_1_1expressions_1_1Scope.html;a45b12fe152f8e6a90341987ef35c958e;Scope::NamedResources}
-  seemed useful.   
+- Former <c>std::shared_ptr</c> \b SPExpression is now of new type #"containers::SharedVal"
+  and was renamed to #"expressions::Expression". What was \b Expression before, is now 
+  named #"expressions::ExpressionVal".
+- Various smaller changes and optimizations with class #"expressions::Scope". 
+  Removed former vector \b Resources as only \b NamedResources seemed useful.   
 
 \par  Camp ALox:
 - Tons of internal changes related to the rewrite of module \b Config. These are not listed
@@ -629,12 +833,12 @@ contains step-by-step tutorial sections.
   and the source code.
 - Removed configuration variable \b ALOX_LOGGERNAME_MAX_ELAPSED_TIME in favor of integrating this
   value in variable \ref alxcvALOX_LOGGERNAME_AUTO_SIZES.
-- Method \alib{lox;Log::AddDebugLogger} now sets domain <c>"ALIB"</c> to
-  \alib{lox;Verbosity;Verbosity::Warning}. This is in good alignment with the more exentsive use of
-  \alox internally since this release, for example, by camp \alib_files.
-- Added method \alib{lox;Lox::SetFileNameCacheCapacity} and removed static member
-  \b DefaultCacheSize from class \alib{lox::detail;ScopeInfo}. The cache implementation now relies
-  on the new class \alib{containers;LRUCacheTable} and is more efficient than before.
+- Method #"lox::Log::AddDebugLogger" now sets domain <c>"ALIB"</c> to
+  #"lox::Verbosity;Verbosity::Warning". This is in good alignment with the more exentsive use of
+  \alox internally since this release, for example, by camp \b Files.
+- Added method #"lox::Lox::SetFileNameCacheCapacity" and removed static member
+  \b DefaultCacheSize from class #"lox::detail::ScopeInfo". The cache implementation now relies
+  on the new class #"containers::LRUCacheTable" and is more efficient than before.
 
 \I{################################################################################################}
 \I{############################        Version 2402 R1       ######################################}
@@ -722,27 +926,24 @@ The following gives a rough overview of what have been done:
 
 
 #### Core library types: ####
-- Fixed a bug im method \alib{lang,CLZ0(TIntegral)} to return <c>sizeof(TIntegral) * 8</c> in case
+- Fixed a bug im method #"lang::CLZ0(TIntegral)" to return <c>sizeof(TIntegral) * 8</c> in case
   the given \e value is zero, just as documented. It returned \c 0 before.
-- Added functions \alib{lang,CTZ(TIntegral)} and \alib{lang,CTZ0(TIntegral)} using intrinsics.
-- Added functions \alib{lang,UpperMask<TWidth,TIntegral>(),UpperMask<TWidth,TIntegral>}
-  and \alib{lang,UpperMask<TIntegral>(ShiftOpRHS),UpperMask<TIntegral>}.
+- Added functions #"lang::CTZ(TIntegral)" and #"lang::CTZ0(TIntegral)" using intrinsics.
+- Added overloaded functions #"lang::UpperMask".
 - Removed function <b>BitCounterWidth<TIntegral>()</b> and replaced it with
-  \alib{lang,Log2OfSize,Log2OfSize<TIntegral>()}, which returns the former
-  functions result <c>-1</c>.
-- Changed functions
-  \alib{lang,LowerMask<TIntegral>(ShiftOpRHS),LowerMask<TIntegral>} and
-  \alib{lang,LowerBits<TIntegral>(ShiftOpRHS,TIntegral),LowerBits<TIntegral>}
+  #"Log2OfSize", which returns the former functions result <c>-1</c>.
+- Changed functions 
+  \b lang::LowerMask<TIntegral> and \b lang::LowerBits<TIntegral>
   to assert a width overflow. Previously this was tolerated and corrected. This approach was
   considered inefficient in most cases
-- Added preprocessor macro \ref bitsof and namespace function \alib{lang,bitsofval}.
+- Added preprocessor macro \ref bitsof and namespace function #"lang::bitsofval".
 - Added class \b lang::TBitSet to new header \b lang/bitset.hpp, which is a more
   sophisticated replica of <c>std::bitset</c>.
 - Added type definition \b enums::EnumBitSet which allows to use new type \b lang::TBitSet
   conveniently with enumeration types.
 
 #### CommonEnums: ####
-- Added common enum \alib{lang,Recursive}.
+- Added common enum #"lang::Recursive".
 
 #### Module Enums: ####
 - Added macro \b ALIB_ENUMS_UNDERLYING_TYPE.
@@ -751,49 +952,49 @@ The following gives a rough overview of what have been done:
   of the \b "Programmer's Manual" of module \b Enums.
 
 #### Module Time: ####
-- Added method \alib{time,TimePointBase::Reset}.
+- Added method #"time::TimePointBase::Reset".
 
 
 #### Module Strings: ####
-- Added type definition \alib{strings,TString::CharType}.
-- Added template parameter \p{TCheck} to method \alib{strings,TString::Equals,String::Equals}
+- Added type definition \b TString::CharType.
+- Added template parameter \p{TCheck} to method #"TString::Equals"
   to allow omitting checks for \e nulled strings if appropriate.
-- Added method \alib{strings,TAString::DetectLength}.
-- Added utility class  \alib{strings,TStringLengthResetter}.
+- Added method #"strings::TAString::DetectLength".
+- Added utility class  #"strings::TStringLengthResetter".
 - Aggregated boolean flags in class \b NumberFormat to new enum type
-  \alib{strings,NumberFormatFlags}.
+  #"strings::NumberFormatFlags".
 
 #### Module Monomem: ####
 - Removed the first three entries (11, 23 and 47) of the list of prime numbers used to determine the
-  (next higher) bucket size of class \alib{monomem,HashTable} to avoid unnecessary rehash on
+  (next higher) bucket size of class #"HashTable" to avoid unnecessary rehash on
   initial growth in the common use cases. Consequently, the minimum bucket size now is \e 97 instead
   of \e 11.<br>
-  This should be a more realistic value. And: global objects that are using the \alib{monomem,GlobalAllocator}
+  This should be a more realistic value. And: global objects that are using the \b GlobalAllocator
   can not be bootstrapped to a higher capacity (due to C++ bootstrap mess) without adding explicit
   bootstrap code. Those are now preset with a higher size.
-- Refactored class \alib{monomem,StringTree} to not request to initialize a value of
+- Refactored class #"StringTree" to not request to initialize a value of
   template type \p{T} associated with it's root node during construction. Even more, it is not
   possible anymore; instead new methods <b>monomem::StringTree::ConstructRootValue</b>.
   and <b>monomem::StringTree::DeleteRootValue</b> have to be used to 'optionally' attach
   custom data to the root node. This approach has several advantages. Further information on this
   topic \ref alib_ns_containers_stringtree_rootnodevalues "is found here".
-- Renamed \b StringTree::NodePtr to \alib{monomem,StringTree::Cursor}. (Ok, we did this once already
+- Renamed \b StringTree::NodePtr to #"StringTree::Cursor". (Ok, we did this once already
   the other way round. Well...)
-- Added types \alib{monomem,StringTree::ConstCursor} and \alib{monomem,StringTree::ConstRecursiveIterator}
+- Added types \b StringTree::ConstCursor and \b StringTree::ConstRecursiveIterator
   to allow to the read-only traverse of objects type <c>const StringTree</c>.
 - Added methods {monomem,StringTree::NodeTable} to allow access to the internal node storage.
   Of-course, this object has to be used with caution.
-- Method \alib{monomem,StringTree::TCursor::AssemblePath} was optimized in respect to performance
+- Method #"TCursor::AssemblePath(const TCursor<true>&)" was optimized in respect to performance
   and with that, now returns an absolute path. With other words, the path separation character is
   prepended.<br>
   An alternative method, which again returns a relative path from the root node, was added
   as an overloaded version. In addition, this overload allows to create relative paths not only from
   the root node, but from any other parent node.
 - Removed unnecessary intermediate dynamic allocations that occurred when using \b StringTree with
-  template node maintainer \alib{monomem,StringTreeNamesDynamic}. On the same token, added
-  debug statistic variables \alib{monomem,DbgStatsStringTreeNames} and
-  \alib{monomem,DbgStatsStringTreeNameOverflows} to support choosing a reasonable internal
-  buffer size, which is application dependent.
+  template node maintainer #"StringTreeNamesDynamic". On the same token, added
+  debug statistic variables \b monomem::DbgStatsStringTreeNames and
+  \b monomem::DbgStatsStringTreeNameOverflows to support choosing a reasonable internal
+  buffer size, which is application-dependent.
 
 #### Module BASECAMP: ####
 - As explained above, \b Basecamp is a new module aggregating the contents of other former modules.
@@ -804,7 +1005,7 @@ The following gives a rough overview of what have been done:
 
 #### Module Files: ####
 This is a new module which provides powerful directory and file scanning capabilities.
-Still an initial version but equipped with a tutorial-style \ref alib_mod_files "Programmer's Manual".
+Still an initial version but equipped with a tutorial-style Programmer's Manual.
 
 #### Module ALox: ####
 This release finally integrated all artifacts of documentation and things that had remained on
@@ -839,7 +1040,7 @@ have been reviewed and overhauled.
 - Fixed the meanwhile lost ability to generate a static \alib library. Obviously a change in the
   CMake default behaviour caused to build and link a shared library with the use of
   provided method \ref alib_manual_build_cmake_5 "ALibAddStaticLibrary".
-- Added setting <b>set(Boost_USE_STATIC_LIBS   ON)</b> in \alibfile{build/cmake/ALib.cmake}.
+- Added setting <b>set(Boost_USE_STATIC_LIBS   ON)</b> in script ALib.cmake.
   This avoids rebuilding a project on systems that update \e Boost libraries.
 - Renamed CMake variables \e ALIB_COMPILE_FLAGS to \b ALIB_COMPILER_OPTIONS and
   \e ALIB_LINKER_FLAGS to \b ALIB_LINKER_OPTIONS.
@@ -855,14 +1056,14 @@ have been reviewed and overhauled.
 - Renamed symbol \c ALIB_CONSTEXPR_IF to \b ALIB_CONSTEXPR17 for usage in other situations
   besides C++ 17 const-expression if-statements.
 - Added further macros to temporarily suppress compiler warnings:
-  - \ref ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
+  - \b ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
   - \b ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-  - \ref ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
-  - \ref ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
-  - \ref ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
-  - \ref ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
-  - \ref ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
-  - \ref ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER
+  - \b ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
+  - \b ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+  - \b ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
+  - \b ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
+  - \b ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+  - \b ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER
 
 - Other changes in macros:
   - Added symbol \ref ALIB_BASE_DIR
@@ -944,54 +1145,52 @@ have been reviewed and overhauled.
   - \c std::type_info
   - \b results::Exception
   - \b results::Report::Types}
-  - \alib{strings::util,Token}
+  - #"strings::util::Token"
   - \alib string types when wrapped in \c std::reference_wrapper.
-  - Added convenience method \alib{boxing,Box::UnboxMutable}.
+  - Added convenience method #"boxing::Box::UnboxMutable".
 
 #### Module Strings: ####
 - Fixed comparison operators to be compatible with ambiguities that occur with C++ 20 language
   standard. Likewise, with C++ 20 the spaceship operator <c>'<=>'</c> is now used instead.
-- Added method \alib{strings,TAString::Reverse,AString::Reverse} and underlying implementation
-  \alib{characters,CharArray<TChar>::Reverse}.
+- Added method #"TAString::Reverse" and underlying implementation \b CharArray::Reverse.
 - Added checks for field \b ostream with output methods of class
-  \alib{strings,compatibility::std::StringWriter}.
+  \b strings::compatibility::std::StringWriter.
 - Fixed a bug in floating point number conversion, which in rare cases caused an
   \alib exception in debug builds and a falsely rounded output string in release builds.
-- Fixed move constructor of class \alib{strings,TAString,AString} not also reset the capacity,
+- Fixed move constructor of class \b TAString not also reset the capacity,
   but also the length of the moved string to \c 0.
-- Method \alib{strings,TString::WStringLength,String::WStringLength} now, in case of failure, returns the strings'
-  unconverted length instead of -1.
+- Method \b TString::WStringLength now, in case of failure, returns the strings' unconverted length 
+  instead of -1.
 
 #### Module Time: ####
-- Added method \alib{time,TimePointBase::Unset}.
-- Added methods \alib{time::TimePointBase,Duration::SetMinimum}
-  and           \alib{time::TimePointBase,Duration::SetMaximum}.
-- Renamed method <c>TimePointBase::Raw</c> to \alib{time,TimePointBase::ToRaw}.
-- Added method \alib{time,TimePointBase::SetFromRaw}.
-- Renamed method <c>TimePointBase::NativeValue</c> to \alib{time,TimePointBase::Export}.
+- Added method #"time::TimePointBase::Unset".
+- Added methods #"time::TimePointBase::Duration::SetMinimum"
+  and           #"time::TimePointBase::Duration::SetMaximum".
+- Renamed method <c>TimePointBase::Raw</c> to #"time::TimePointBase::ToRaw".
+- Added method #"time::TimePointBase::SetFromRaw".
+- Renamed method <c>TimePointBase::NativeValue</c> to #"time::TimePointBase::Export".
   Changed its signature to being \c const and changed return value to a copy of the internal value
   instead of a reference to it.
-- Added method \alib{time,TimePointBase::Import}.
+- Added method #"time::TimePointBase::Import".
 
 
 #### Module Threads: ####
-- Changed signature of most methods of class \alib{threads,Thread} to being \c virtual.
-- Added method \alib{threads,Thread::Terminate}, which has to be called prior to destructing
+- Changed signature of most methods of class #"threads::Thread" to being \c virtual.
+- Added method \b threads::Thread::Terminate, which has to be called prior to destructing
   a thread.
-- Added enum \alib{threads,Thread::State} and method \alib{threads,Thread::GetState},
+- Added enum #"threads::Thread::State" and method #"threads::Thread::GetState",
   which replace removed boolean field <c>Thread::isAliveFlag</c> and method <c>Thread::IsAlive</c>.
-- Added static method \alib{threads,Thread::YieldToSystem}
-- Added static methods \alib{threads,Thread::Sleep} and \alib{threads,Thread::SleepUntil}
-- Added class \alib{threads,Sleeper}.
-- Improved debug assertions of class \alib{threads,ThreadLockNR}
+- Added static method #"threads::Thread::YieldToSystem"
+- Added static methods \b threads::Thread::Sleep and \b threads::Thread::SleepUntil
+- Added class \b threads::Sleeper.
+- Improved debug assertions of class \b threads::ThreadLockNR
 
 
 #### Module Monomem: ####
-- Fixed method \alib{monomem,List::ElementAt} (and added missing unit test).
-- Added constructor parameter \p chunkGrowthInPercent to
-  \alib{monomem,MonoAllocator::MonoAllocator(size_t, unsigned int),MonoAllocator}
-  which allows exponential growth of allocated chunk sizes.
-- Fixed a bug in method \alib{monomem,HashTable::Erase(ConstIterator, ConstIterator) }
+- Fixed method \b monomem::List::ElementAt (and added missing unit test).
+- Added constructor parameter \p chunkGrowthInPercent to the class
+  \b MonoAllocator which allows exponential growth of allocated chunk sizes.
+- Fixed a bug in method \b HashTable::Erase(ConstIterator, ConstIterator)
   which lead to a double invocation of a destructor of the first element removed.
   Improved unit tests to detect problems of this kind in the future.
 - Added container type <b>monomem::util::FixedCapacityVector</b> and type definition
@@ -999,13 +1198,13 @@ have been reviewed and overhauled.
 - Removed method \b HashTable::Rehash. See
   \ref alib_ns_containers_hashtable_rehashing "reference documentation" for the rationale.
 - Added parameter \p{reference} to methods
-  \alib{monomem,HashTable::Reserve},
-  \alib{monomem,HashTable::ReserveRecyclables} and
-  \alib{monomem,StringTree::ReserveRecyclables}.
-- Constructor of \alib{monomem,StringTree} now reserves a minimum number of internal buckets
+  \b HashTable::Reserve,
+  \b HashTable::ReserveRecyclables and
+  #"StringTree::ReserveRecyclables".
+- Constructor of #"StringTree" now reserves a minimum number of internal buckets
   to prevent the creation of a non-recyclable bucket list on future growth.
 - Added missing template parameter \c TLocalCapacity to alias name \b aworx::StringTreeNamesDynamic.
-- Fixed bug in overloaded variant of \alib{monomem,HashTable::EmplaceOrAssign} which
+- Fixed bug in overloaded variant of \b HashTable::EmplaceOrAssign which
   could generate a compiler error due to not properly forwarding the hash functor.
 
 #### Module "Results": ####
@@ -1054,18 +1253,18 @@ have been reviewed and overhauled.
 - Fixed special shortcut header \b alox.hpp to include \b distribution.hpp
   to allow single inclusion of "alib/alox.hpp" to automatically bootstrap and use
   \alox functionality as instructed in the tutorial.
-- Added method \alib{lox,Lox::IsActive} to detect the number of loggers that are active
+- Added method #"lox::Lox::IsActive" to detect the number of loggers that are active
   for a combination of domain and verbosity.<br>
   Likewise added macros #Lox_IsActive and #Lox_IsActive.
-- Class \alib{lox::loggers,TextFileLogger} now tests file for possible access during construction.
-  Errors may be evaluated with new field \alib{lox::loggers,TextFileLogger::LastSystemError}, which
+- Class #"lox::loggers::TextFileLogger" now tests file for possible access during construction.
+  Errors may be evaluated with new field #"lox::loggers::TextFileLogger::LastSystemError", which
   replaced former boolean field \b hasIoError that only was set after a (first) log operation.
 
 #### Module Expressions: ####
 - Moved mechanics to implement \ref alib_expressions_nested_config "automated named expressions"
-  into new dedicated abstract interface class \alib{expressions,ExpressionRepository}.<br>
-  A standard implementation for it is provided with \alib{expressions,StandardRepository}.
-  Implementations are to be set to new field \alib{expressions,Compiler::Repository}.
+  into new dedicated abstract interface class #"expressions::ExpressionRepository".<br>
+  A standard implementation for it is provided with #"expressions::StandardRepository".
+  Implementations are to be set to new field #"expressions::Compiler::Repository".
   Consequently, all corresponding former entities in class \b Compiler
   (namely \b Config, \b DefaultCategories, \b VariablesLoaded, \b StoreLoadedExpressions and
   \b getExpressionString) have been removed.
@@ -1076,17 +1275,17 @@ have been reviewed and overhauled.
 
 #### New Module CLI: ####
 This module is not completely new, but with this version it comes in its first "release" state.
-Along with it, a brief Programmer's Manual \alib_cli is provided.
+Along with it, a brief Programmer's Manual is provided.
 This manual includes a step-by-steb sample, which can well be used as a jump-start template for your
 own project.
 
 #### New module "BitBuffer": ####
 This \alib release introduces a new module \alib_bitbuffer_nl which provides mechanism to serialize
 application data into streams of bits. The following classes are included:
-- \alib{bitbuffer,BitBuffer}, \alib{bitbuffer,BitBufferMA} and \alib{bitbuffer,BitBufferLocal}
-- \alib{bitbuffer,BitWriter} and \alib{bitbuffer,BitReader},
-- \alib{bitbuffer::ac_v1,ArrayCompressor}, \alib{bitbuffer::ac_v1,HuffmanEncoder}
-  and \alib{bitbuffer::ac_v1,HuffmanDecoder}
+- #"bitbuffer::BitBuffer", #"bitbuffer::BitBufferMA" and #"bitbuffer::BitBufferLocal"
+- #"bitbuffer::BitWriter" and #"bitbuffer::BitReader",
+- #"bitbuffer::ac_v1::ArrayCompressor", #"bitbuffer::ac_v1::HuffmanEncoder"
+  and #"bitbuffer::ac_v1::HuffmanDecoder"
 
 A \ref alib_mod_bitbuffer "brief manual" explains the use of this new module.
 
@@ -1213,7 +1412,7 @@ Various changes have been made, for example:
 - Most types now use underlying type <c>bool</c>.
 
 #### Fileset "Plugins": ####
-- Class \b PluginContainer does not inherit from \alib{threads,ThreadLock} any more.
+- Class \b PluginContainer does not inherit from \b ThreadLock any more.
 
 #### Fileset "Lists" (new): ####
 This new fileset starts with providing types
@@ -1226,22 +1425,21 @@ This new fileset starts with providing types
 doubly-linked lists.
 
 #### Module Characters: ####
-- Added methods \alib{characters,CharArray::ToUpper(TChar*, integer)} and
-  \alib{characters,CharArray::ToLower(TChar*, integer)}.
+- Added methods \b CharArray::ToUpper and\b CharArray::ToLower(TChar*, integer).
 
 #### Module Boxing: ####
-- It is now allowed to invoke \alib{boxing,Box::TypeID} on uninitialized boxes.
+- It is now allowed to invoke #"boxing::Box::TypeID" on uninitialized boxes.
   For those, <c>typeid(void)</c> is returned.
 - The constraint to box a type by default "as value" was extended to types being trivially
   destructible.
-- Class \alib{boxing,Boxes}:
-  - Now optionally accepts a \alib{monomem,MonoAllocator} with construction
+- Class \b Boxes:
+  - Now optionally accepts a #"MonoAllocator" with construction
   - The constructor taking variadic arguments was removed.
     This intentionally disables implicit construction of an instance of the class with the invocation
     of methods that expect a parameter of type <b>const Boxes&</b>.
-  - Methods \alib{boxing,Boxes::Add} now return a reference to the invoked object.
+  - Methods \b Boxes::Add now return a reference to the invoked object.
 - Renamed namespace function \b EnumValue to \b enums::UnderlyingIntegral.
-- Renamed method \b Enum::Value to \alib{boxing,Enum::Integral}.
+- Renamed method \b Enum::Value to #"boxing::Enum::Integral".
 - Fixed a minor memory leak with custom box-functions that were not deleted on program termination.
   (This was only an issue for mem checking tools like \http{Valgrind,valgrind.org}.)
 - Added compilation symbol \ref ALIB_DEBUG_BOXING. Without this being given,
@@ -1249,8 +1447,8 @@ doubly-linked lists.
   debug-builds.
 - Renamed macro \b ALIB_BOXING_VTABLE_REGISTER to \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
 - Removed debug tables \b DBG_KNOWN_VTABLES and \b DBG_KNOWN_VTABLES.
-  Instead, method \alib{boxing,DbgBoxing::GetKnownVTables} was added and along with that, method
-  \alib{boxing,DbgBoxing::GetKnownFunctionTypes} is now available also in \alib Distributions that only
+  Instead, method \b GetKnownVTables was added and along with that, method
+  \b GetKnownFunctionTypes is now available also in \alib Distributions that only
   contain module \b Boxing.
 - Changed management of custom box functions to using one global hash table instead of
   many linked lists. This might slightly decrease performance with small applications
@@ -1259,7 +1457,7 @@ doubly-linked lists.
 
 
 #### Module Strings: ####
-- \b Attention: The default constructor of class \alib{strings,TString,String} now is default-implemented
+- \b Attention: The default constructor of class \b TString now is default-implemented
   and leaves an instance in uninitialized state. (Formerly the instance was in <em>nulled</em> state
   with default construction.)<br>
   The rational for this is to avoid redundant initializations and with that, type \b String is now
@@ -1268,27 +1466,26 @@ doubly-linked lists.
   (Note: within all of \alib, only a handful of explicit initializations had
   to be added. By using analyzer tool \http{Valgrind,valgrind.org/}, those could be detected with
   little effort.)
-- Fixed a bug in  method \alib{strings,TString::indexOfString}, which could cause illegal memory
+- Fixed a bug in  method #"strings::TString::indexOfString", which could cause illegal memory
   access and other undefined behavior in seldom cases.
 - Removed class <b>strings::util::StringTable</b>. Its only use was in module boxing to implement
-  debug output and consequently was moved to \alib{boxing::detail,DbgStringTable}.
+  debug output and consequently was moved to \b boxing::detail::DbgStringTable.
 - Removed the simple templated inline namespace functions <b>strings::util::FindStringInTupleVector</b> and
   <b>strings::util::FindStringStartInTupleVector</b>.
   They got replaced by anonymous (local) definitions.
-- Removed constructor and methods \b Format and \b FormatArgs from class \alib{strings,TAString,AString}.
+- Removed constructor and methods \b Format and \b FormatArgs from class \b AString.
   Those methods and constructors had formerly allowed to use an \b AString as an interface to string
   format operations which used the default formatter. The rational to remove this functionality
   is to reduce module dependencies, construction parameter ambiguities and to have a more explicit
   API.
-- Moved class \alib{monomem,StringTree} from module \alib_strings_nl to module \alib_monomem_nl
+- Moved class #"StringTree" from module \alib_strings_nl to module \alib_monomem_nl
   and completely overhauled its implementation, aiming to optimize memory consumption, performance,
   flexibility and ease of use.
   This overhaul implies a complete change in its interface, public inner types, etc, which are not
   listed here one by one.<br>
-- Added inline namespace method \alib{strings,AllocateCopy} and \alib{strings,DeleteString}.
+- Added inline namespace method \b strings::AllocateCopy and \b strings::DeleteString.
 - Moved methods \b ConsumeEnum, \b ConsumeEnumBitwise and \b ConsumeEnumOrBool from
-  class \alib{strings,TSubstring,Substring} to corresponding functions in namespace
-  \b aworx::lib::enums.
+  class \b TSubstring to corresponding functions in namespace \b aworx::lib::enums.
 
 
 #### Module Threads: ####
@@ -1303,28 +1500,28 @@ doubly-linked lists.
   if module \alib_threads was \b not included in an \alib Distribution. Now in addition, these macros will
   invoke test function \b DbgAssertSingleThreaded in debug-compilations, that asserts
   if a second thread visits library code that needs protection.
-- Re-implemented bigger parts of \alib{threads,ThreadLock} with slight changes in its interface.
+- Re-implemented bigger parts of \b ThreadLock with slight changes in its interface.
 
 #### Module Monomem (formerly Memory): ####
 - Renamed module \b Memory to \b Monomem, which is now found in namespace \b aworx::lib::monomem
   and received an own \ref alib_mods_contmono "Programmer's Manual".
-- Class \b MemoryBlocks was renamed to \alib{monomem,MonoAllocator} and received tons of changes
+- Class \b MemoryBlocks was renamed to \b MonoAllocator and received tons of changes
   and extensions. Among them:
-    - Renamed method MonoAllocator::Construct to \alib{monomem,MonoAllocator::Emplace}.
-    - Changed (simplified) the internal allocation code of object \alib{monomem,MonoAllocator::Chunk}.
-    - Added overloaded methods \alib{monomem,MonoAllocator::TakeSnapshot} and
-      \alib{monomem,MonoAllocator::Reset(const Snapshot&)} which allow to reset the allocator
+    - Renamed method \b MonoAllocator::Construct to \b Emplace.
+    - Changed (simplified) the internal allocation code of object \b MonoAllocator::Chunk.
+    - Added overloaded methods \b MonoAllocator::TakeSnapshot and
+      \b Reset(const Snapshot&) which allow to reset the allocator
       to a certain state and dispose intermediate objects.
-- Added struct \alib{monomem,SelfContained}.
-- Added class \alib{monomem,List}.
-- Moved class \alib{monomem,StringTree} from module \alib_strings_nl, performing a 100% overhaul.
-- Added class \alib{monomem,HashTable} and with it type definitions
-  - \alib{monomem,HashSet} and
-  - \alib{monomem,HashMap}.
-- Added class \alib{monomem,TMAString}.
-- Added classes \alib{monomem,StdContMA}, \alib{monomem,StdContMAOptional} and
-  \alib{monomem,StdContMARecycling} to support monotonic allocation with C++ standard containers.
-- Added allocator instance \alib{monomem,GlobalAllocator}, which is used during bootstrap by
+- Added struct \b SelfContained.
+- Added class \b List.
+- Moved class \b StringTree from module \alib_strings_nl, performing a 100% overhaul.
+- Added class \b HashTable and with it type definitions
+  - \b HashSet and
+  - \b HashMap.
+- Added class \b monomem::TMAString.
+- Added classes \b StdContMA, \b StdContMAOptional and \b StdContMARecycling to support monotonic 
+  allocation with C++ standard containers.
+- Added allocator instance \b GlobalAllocator, which is used during bootstrap by
   various modules.
 - Added compiler symbol \b ALIB_DEBUG_MONOMEM to enable debug-features for this module.
 - Added a verbose \ref alib_mods_contmono "Programmer's Manual" for this module.
@@ -1350,11 +1547,11 @@ doubly-linked lists.
 
 #### Module Results: ####
 - Adopted concept \ref alib_enums_records "ALib Enum Records".
-- Changed class \b results::Message to derive from class \alib{boxing,Boxes}, instead of
+- Changed class \b results::Message to derive from class #"TBoxes", instead of
   owning a field \b Args of that type.
 - With the change of class \b Boxes as documented above, a message may optionally now use monotonic
   allocation.
-- Changed class \b results::Exception to derive from new struct \alib{monomem,SelfContained}
+- Changed class \b results::Exception to derive from new struct \b SelfContained
   (and removed corresponding proprietary code that previously stored the type's fields inside the
   allocator). Together with the above, this fulfills a former promise to have a typical
   \alib exception perform only one single memory allocation.
@@ -1376,19 +1573,19 @@ doubly-linked lists.
   is given with hexadecimal output, 16 digits are printed on a 64-bit platform.
 - Extended conversion option <b>{!Quote}</b> of formatter \b lang::format::FormatterPythonStyle
   to optionally specify the quote character(s) that an argument should be surrounded by.
-- Removed creation of class \alib{boxing,Boxes} with method
+- Removed creation of class #"TBoxes" with method
   \b lang::format::Formatter::Format(AString, const TArgs&...).
   (This was accidentally inserted and totally superfluous.)
 
 #### Module Configuration: ####
 - Adopted concept \ref alib_enums_records "ALib Enum Records".
-- Class \b config::Variable now inherits new struct \alib{monomem,SelfContained} and thus
+- Class \b config::Variable now inherits new struct \b SelfContained and thus
   is very memory efficient. This caused various interface changes in the area of getting and
   setting variable attributes and values.
 - Constructors of class \b config::Variable as well as method \b lang::config::Variable::Declare
-  now accepts a single \alib{boxing,Box} instead of variadic template arguments to define
+  now accepts a single #"boxing::Box" instead of variadic template arguments to define
   replacement information. In the case that more than one replacement object should be passed,
-  those have to be encapsulated in an instance of class \alib{boxing,Boxes}.
+  those have to be encapsulated in an instance of class #"TBoxes".
 - Class \b config::InMemoryPlugin was rewritten and changes adopted by derived type
   \b config::IniFile.
   It now uses \ref alib_mods_contmono "monotonic allocation" and shows better performance.
@@ -1406,10 +1603,10 @@ doubly-linked lists.
 - Reorganized code structure to reduce header dependencies. Header file \b alox.hpp
   is now a shortcut to \b alox.hpp, which now only includes
   things needed to perform basic debug- and release-log operations.<br>
-  Class \alib{lox,ALox} is not included by default anymore. If needed (e.g. for
+  Class \b lox::ALox is not included by default anymore. If needed (e.g. for
   initialization of the module or for registration of instances of \b %Lox), header file
   "alox/aloxmodule.hpp" has to be explicitly included.<br>
-  To allow the reduction, class \alib{lox,Lox} was implemented using the
+  To allow the reduction, class #"lox::Lox" was implemented using the
   \https{Pimpl Idiom,en.cppreference.com/w/cpp/language/pimpl}.
 - Header file \b alib/alox.hpp is now included in all \alib Distributions, even those that do \b not
   include module \alib_alox_nl. If \b ALox is not available, this header will define the logging
@@ -1421,7 +1618,7 @@ doubly-linked lists.
   that was raised.
 - Uses \ref alib_mods_contmono "monotonic allocation" in various places and this way a further
   reduced use dynamic memory allocations was achieved.
-- Moved field \b ALox::InternalDomains to \alib{lox,Lox::InternalDomains}.
+- Moved field \b ALox::InternalDomains to #"lox::Lox::InternalDomains".
 
 #### Module Expressions: ####
 - Dropped the support of using
@@ -1430,13 +1627,13 @@ doubly-linked lists.
   considered not important due to the huge constraints this library is subject to.
 - Various internal changes to replace dynamic memory allocations with
   \ref alib_mods_contmono "monotonic allocation", by adding
-  \alib{monomem,MonoAllocator} to type \alib{expressions,Compiler} and by using
+  \b MonoAllocator to type #"expressions::Compiler" and by using
   new container types of module \alib_monomem wherever possible.
-- Changed method name \b Scope::Clear to \alib{expressions,Scope::Reset}.
-- Renamed field \b Scope::nestedExpressionStack to \alib{expressions,Scope::NestedExpressions}
-- Moved the compile-time scope object from class \alib{expressions,detail::Program} to
-  \alib{expressions,Expression::ctScope}.
-- Simplified class \alib{expressions::plugins,Calculus}, which now treats unary and binary
+- Changed method name \b Scope::Clear to #"expressions::Scope::Reset".
+- Renamed field \b Scope::nestedExpressionStack to \b Scope::NestedExpressions
+- Moved the compile-time scope object from class #"expressions::detail::Program" to
+  \b Expression::ctScope.
+- Simplified class #"expressions::plugins::Calculus", which now treats unary and binary
   operators merely the same. As a consequence, almost all fields and methods of the class that
   formerly had the words "unary" or "binary" in their name are replaced by generically named
   version that now handle both operator types.
@@ -1447,10 +1644,10 @@ doubly-linked lists.
   expression usage.
 - On the same token, removed all internal thread-locking mechanics. Consequently, those are now
   an obligation of the using code to be performed. This is a much easier and clearer design.
-- Removed class \b ScopeString and replaced with new class \alib{monomem,TMAString}.
+- Removed class \b ScopeString and replaced with new class \b monomem::TMAString.
 - Renamed enum flag \b AllowBitwiseBooleanOperations to
-  \alib{expressions::Compilation,AllowBitwiseBooleanOperators}.
-- Resourced (externalized) names of built-in types \alib{expressions,Types}.
+  #"expressions::Compilation::AllowBitwiseBooleanOperators".
+- Resourced (externalized) names of built-in types #"expressions::Types".
 
 #### Compatibility Headers: ####
 - Moved overloads of <c>operator<<</c> given with \b std_strings_iostream.hpp
@@ -1522,7 +1719,7 @@ The following provides a high level list of changes.
   Apart from the former terminated string type \b %TString, which is now named \c %CString,
   code adoptions should be required mostly in the fields of adopting 3rd-party types to
   be transparently accepted as strings and to make 3rd-party types compatible (appendable) to
-  class \alib{strings,TAString,AString}.<br>
+  class \b TAString.<br>
   Default character width of strings can now be adjusted to \b 1, \b 2 or \b 4 bytes.
   <b>Tons of further small changes</b> have been implemented, including a change of all internal TMP
   programming.<br>
@@ -1534,7 +1731,7 @@ this time is only given for module \alib_expressions:
 
 - Added auto-cast option for casting arguments of unary operators (which was available only to
   binary operator and ternary operator <c>Q ? T : F</c> only).
-- Added auto-cast feature to helper class \alib{expressions,plugins::Calculus} for easy
+- Added auto-cast feature to helper class #"expressions::plugins::Calculus" for easy
   implementation of custom type auto-casting.<br>
   Added manual chapter
   \ref alib_expressions_tut_ffext_autocasts_using_calculus "6.5.2 Implementing Auto-Casts Using Class Calculus"
@@ -1542,22 +1739,22 @@ this time is only given for module \alib_expressions:
 - Changed name of ternary operator <c>Q ? T : F</c> when given with
   \b CompilerPlugin::CIAutoCast::Op from \b "?:" to \b "Q?T:F" to make it distinguishable from the
   binary "Elvis-operator".
-- Renamed fields \b DbgCallBackName and \b DbgCallBackNameRhs in \alib{expressions,CompilerPlugin},
+- Renamed fields \b DbgCallBackName and \b DbgCallBackNameRhs in #"expressions::CompilerPlugin",
   respectively in derived types, to use a lower case letter \b 'b'.
-- Changed field \alib{expressions::plugins,Calculus::FunctionEntry::ResultType} to being a pointer
+- Changed field #"expressions::plugins::Calculus::FunctionEntry::ResultType" to being a pointer
   to a sample box, instead of a sample box (shorter footprint and slightly faster).
-- Added static struct \alib{expressions,Signatures} which contains expression function signatures
+- Added static struct #"expressions::Signatures" which contains expression function signatures
   for all built-in functions. On the one hand, this reduced the footprint of the library (slightly)
   and on the other hand these static objects can be also used by custom plug-ins (in case a
   matching signature is found in the list).
 - Renamed fields \b CastExpressionFunctionName and \b CastExpressionFunctionNameRhs to
-  \alib{expressions::plugins::Calculus,CIAutoCast::ReverseCastFunctionName}, respectively
-  \alib{expressions::plugins::Calculus,CIAutoCast::ReverseCastFunctionNameRhs}.
+  \b Calculus::CIAutoCast::ReverseCastFunctionName, respectively
+  \b Calculus::CIAutoCast::ReverseCastFunctionNameRhs.
 - Fixed internal assertions that had been raised with malformed expression input. In these instances,
-  now exceptions of type \alib{expressions,Exceptions::SyntaxErrorExpectation} are thrown.
-- Fixed the meta data of \alib{expressions,Exception::NestedExpressionResultTypeError} to
+  now exceptions of type \b Exceptions::SyntaxErrorExpectation are thrown.
+- Fixed the meta data of \b Exception::NestedExpressionResultTypeError to
   display the expected and given types correctly (had been reversed).
-- Removed class \b FunctionNameDescriptor and replaced it with new class \alib{strings::util,Token}.
+- Removed class \b FunctionNameDescriptor and replaced it with new class #"strings::util::Token".
   This has two compatibility consequences:
   - Custom expression plug-in resources have to be adopted to the new parsing format of identifier
     and function names.
@@ -1566,9 +1763,9 @@ this time is only given for module \alib_expressions:
 - Added class \b expressions::util::ExpressionFormatter which is similar to existing
   \b lang::format::PropertyFormatter, but supports the use of expressions instead of just
   simple property callbacks.
-- Removed division and modulo operators from compiler plug-in \alib{expressions::plugins,Arithmetics}
+- Removed division and modulo operators from compiler plug-in #"expressions::plugins::Arithmetics"
   with boolean divisor type (not useful and dangerous in respect to division by zero exceptions).
-- Fixed minor formatting issues of program listings generated by \alib{expressions::detail,VirtualMachine::DbgList}.
+- Fixed minor formatting issues of program listings generated by #"expressions::detail::VirtualMachine::DbgList".
 - Corrected a longer list of typos and small errors of the module's manual. Added some notes
   about how sample boxes of abstract types can be created.
 
@@ -1576,7 +1773,7 @@ this time is only given for module \alib_expressions:
 We very much hope that this overhaul and "refactoring orgy" now finally led to a stable structure
 that will not dramatically change in the future. The foundation set in this release allows
 growth and extension of the library by new independent and optional \alibmods, similar to
-modules \alib_alox, \alib_expressions and \alib_cli.
+modules \alib_alox, \alib_expressions and \b CLI.
 
 We think that the library is now well prepared to support the future C++ language feature
 of modularization (see for example the [current clang draft](https://clang.llvm.org/docs/Modules.html))
@@ -1620,10 +1817,10 @@ Support for preconfigured QTCreator project files was dropped.
 
 #### Module Core: ####
 - Removed virtual base class \b %Ownable. Instead, class \b Owner now is templated.
-  This allowed several classes to be non-virtual, for example \alib{threads,ThreadLock} or
-  \alox{Lox}.
+  This allowed several classes to be non-virtual, for example \b ThreadLock or
+  \b Lox.
 - Added method \b ThreadLock::Owner.
-- Renamed method \b %DbgCountAcquirements to \alib{threads,ThreadLock::CountAcquirements}, removed
+- Renamed method \b %DbgCountAcquirements to \b ThreadLock::CountAcquirements, removed
   its former parameter. The former behaviour can be accomplished using by comparing result of
   new method \b ThreadLock::Owner with \b Threads::CurrentThread.
 - Fixed infinite recursion with method \b Enum::IsType.
@@ -1667,7 +1864,7 @@ This release introduces new module \alib_expressions.
 
 #### Module CLI: ####
 
-This release introduces new module \alib_cli. However the programmer's manual of that module was
+This release introduces new module \b CLI. However the programmer's manual of that module was
 not written, yet. Due to the lack of documentation, we can not really recommend to use this module.
 As we are using it with other projects already, the code itself is considered stable and tested.
 
@@ -1685,4 +1882,4 @@ Please consult this project's [Change-Log](http://alexworx.github.io/ALox-Loggin
 for information on changes since the initial release in May 2013.
 
 <br><br><br><br><br><br> */
-
+                                                 

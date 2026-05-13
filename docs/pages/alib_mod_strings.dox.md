@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,7 +11,7 @@
 \tableofcontents
 
 \I{################################################################################################}
-# 1. Introduction # {#alib_strings_intro}
+# 1\. Introduction # {#alib_strings_intro}
 
 C++ developers do not need to get motivated much about using a 3rd-party string library. This is
 because the language itself does not offer powerful built-in types.
@@ -89,7 +89,7 @@ The design goals of module \alib_strings_nl are:
 ## 1.2 Module ALib Characters ## {#alib_strings_intro_characters}
 
 The primary goals listed in the previous section are reachable best with the use of
-the design pattern which is quickly introduced in chapter \ref alib_manual_appendix_tca.
+the design pattern which is quickly introduced in chapter #"alib_manual_appendix_tca".
 
 In earlier versions of this library, type-traits needed to implement powerful string classes had
 been introduced along with the \alib string types. However, it turned out that
@@ -109,7 +109,7 @@ to separate module \alib_characters. While this module \alib_strings_nl builds o
 does not "know" about module \alib_strings_nl.
 
 For a thorough understanding of all aspects, reading the
-\ref alib_mod_characters "Programmer's Manual Of ALib Module Characters" before the manual you
+#"alib_mod_characters;Programmer's Manual Of ALib Module Characters" before the manual you
 are currently reading, is of course helpful. But for a normal, straight forward use of the string
 classes, this is not needed.
 Therefore, the advice for the reader is to continue reading this manual about strings, and only
@@ -117,31 +117,31 @@ start investigating into module \alib_characters, when noted in later chapters.
 
 This brief summary of what module \alib_characters_nl offers may suffice for the time being:
 1. Character Types:
-   - As the width of wide character type \c wchar_t is compiler dependent, type \alib{characters;wchar}
+   - As the width of wide character type \c wchar_t is compiler dependent, type #"characters::wchar"
      is introduced.
      This may be equivalent to \c wchar_t but may also be one of \c char16_t or \c char32_t.
      With type \b wchar, the responsibility of what a wide character is removed from the compiler
      and given to \alib (and its platform defaults and compilation options).
    - The "other" wide character type, which has different width than \c wchar_t is aliased
-     by type \alib{characters;xchar}.
-   - Finally, just for completion, an alias type for \c char is given with \alib{characters;nchar}.
+     by type #"characters::xchar".
+   - Finally, just for completion, an alias type for \c char is given with #"characters::nchar".
    - Together, this makes three new character types that denote the width:
      \b nchar, \b wchar and \b xchar.
 
 2. Logical Types:
    - Usually a programmer should not be bothered with choosing character width. Therefore,
-     type \alib{characters;character} is given as the first "logical" character type.
+     type #"characters::character" is given as the first "logical" character type.
      This one is the most important and frequently used.<br>
-     Type \b character either corresponds to type \alib{characters;nchar} or \alib{characters;wchar},
+     Type \b character either corresponds to type #"characters::nchar" or #"characters::wchar",
      again depending on platform and \alib compilation options.
-   - To explicitly address the non-standard character type, type \alib{characters;complementChar}
+   - To explicitly address the non-standard character type, type #"characters::complementChar"
      is given. This type is equivalent to type \b nchar if type \b character is equivalent to
      type \b wchar - and vice versa.
    - To finalize the set of \alib character types, a logical type name for the "strange", non-standard
-     wide type is given with \alib{characters;strangeChar}. This is of 2-byte size when type \b wchar
+     wide type is given with #"characters::strangeChar". This is of 2-byte size when type \b wchar
      is of 4-byte size and vice versa.
    - Together, this makes three logical character types that do not provide any information about
-     the actual width: \b character, \b complementChar and \b strangeChar.<br>
+     the actual width: \b character, \b #"characters::complementChar" and \b strangeChar.<br>
      Similar to the fact that explicit type \b nchar is always equivalent to built-in type \c char,
      the logical type \b strangeChar is always equivalent to explicit type \b xchar.
 
@@ -160,7 +160,7 @@ This brief summary of what module \alib_characters_nl offers may suffice for the
 
 \I{################################################################################################}
 ## 1.3 UTF Encoding ## {#alib_strings_intro_utf}
-The use of UTF encoding was named a "design goal" in section \ref alib_strings_intro_goals.
+The use of UTF encoding was named a "design goal" in section #"alib_strings_intro_goals".
 In fact, this is much more: It is a mandatory constrain that the software process that invokes
 code of this \alibmod, uses UTF in general. The module has to rely on that fact, because unfortunately
 most of today's operating systems and system class libraries (that \alib builds on), use a
@@ -176,12 +176,12 @@ On GNU/Linux, such settings are made with function \c setlocale.
 
 This should not be seen to be a huge restriction, because there are no good reasons for any modern
 software to use any other character encoding than UTF.
-However, environment variables (or \alib variable \alib{camp::Variables;LOCALE} in a configuration
+However, environment variables (or \alib variable #"Variables::LOCALE" in a configuration
 source) has to be set to a UTF-8 encoding.
 
 
 \I{################################################################################################}
-# 2. ALib String Classes # {#alib_strings_classes}
+# 2\. ALib String Classes # {#alib_strings_classes}
 
 This module provides five different string classes:
 - \b String
@@ -191,21 +191,21 @@ This module provides five different string classes:
 - \b LocalString<TCapacity>
 
 A string object's underlying character type is defined using a template parameter named \p{TChar}.
-The different string classes are located in namespace #alib::strings and their type names
+The different string classes are located in namespace #"alib::strings;2" and their type names
 include a prefix letter <b>'T'</b>.
 As a result, the list of base classes is:
 
-- \ref alib::strings::TString<TChar>
-- \ref alib::strings::TCString<TChar>
-- \ref alib::strings::TAString<TChar>
-- \ref alib::strings::TSubstring<TChar>
-- \ref alib::strings::TLocalString<TChar,TCapacity>
+- #"TString;*"
+- #"TCString;*"
+- #"TAString;*"
+- #"TSubstring;*"
+- #"TLocalString;*"
 
 As it is described in the documentation of outer namespace #alib, it is common practice for
 any \alibmod to define "alias types" of all important classes in that namespace. For each of the string
 classes, \b four alias types are defined which are using character types
-\alib{characters;character}, \alib{characters;nchar}, \alib{characters;wchar} and \alib{characters;xchar}.
-With the latter three \ref alib_characters_chars_by_width "explicit character types", the alias
+#"characters::character", #"characters::nchar", #"characters::wchar" and #"characters::xchar".
+With the latter three #"alib_characters_chars_by_width;explicit character types", the alias
 names replace the prefix letter <b>'T'</b> by letters <b>'N'</b>, <b>'W'</b> and <b>'X'</b>.
 
 As a result, the following table lists all alias names in namespace #alib:
@@ -221,7 +221,7 @@ TLocalString<TChar,N>   | LocalString<N>  | NLocalString<N>   | WLocalString<N> 
 Within this manual, most of the time, the simple names like \b String, \b CString or \b AString are
 used, even when the corresponding templated class is meant. Likewise, if the names are linked, then the
 link target resolves the template type and not the simple alias.
-For example, this link: \alib{strings;TAString;AString}, links to class \b TAString.
+For example, this link: #"^AString", links to class \b TAString.
 
 The following subsections of this chapter introduce the main string types. This is done without
 going into the details of each type's functionality but rather by explaining the principal
@@ -235,7 +235,7 @@ string is a pointer to the start of the array. Otherwise, along with that pointe
 of the string has to be given.
 
 These two values, the pointer to the first character and the length of the string, are the only two
-field members of class \alib{strings;TString;String}.
+field members of class #"^String".
 It could be said, that the main purpose of this class is to provide a pair of the two values, which
 comprise a non-zero-terminated string and hence the type should be considered a
 <b>"lightweight pointer to constant string data"</b>.
@@ -277,7 +277,7 @@ themselves.
 \I{################################################################################################}
 ## 2.2 Class CString ## {#alib_strings_classes_cstring}
 
-A first type derived of class \b String is class \alib{strings;TCString;CString}.
+A first type derived of class \b String is class #"^CString".
 The name of the class means "C language string": objects of this class represent zero-terminated
 character arrays.
 
@@ -294,7 +294,7 @@ cut portions from the front of a \b String are likewise not allowed.
 \I{################################################################################################}
 ## 2.3 Class AString ## {#alib_strings_classes_astring}
 
-A second type derived of class \b String is class \alib{strings;TAString;AString}.
+A second type derived of class \b String is class #"^AString".
 The prefix character <b>"A"</b> here simply stands for <b>"ALib"</b>. The class implements a
 "heavy weight" string type, namely one that does not only "represent a string" but actively
 allocates memory for the string data and manages that resource internally.
@@ -306,7 +306,7 @@ contents of the array, and if the content is inserted that exceeds the capacity 
 buffer, a larger buffer is allocated and that allows storing the concatenated string data.
 
 Cutting data from the end of the string is performed in constant time (<b>"O(1)"</b>) as only the
-value of inherited field \alib{strings::TString;Length} needs to be decreased.
+value of inherited field #"TString::Length" needs to be decreased.
 Cutting data from the start of the string is "linear" effort (<b>"O(N)"</b>): The remaining portion
 of the string is copied to the start of the buffer and the string's length is adjusted.
 
@@ -318,8 +318,7 @@ of the string is copied to the start of the buffer and the string's length is ad
 \I{################################################################################################}
 ## 2.4 Class Substring ## {#alib_strings_classes_substring}
 
-Finally, a third type derived of class \b String is implemented with class
-\alib{strings;TSubstring;Substring}.
+Finally, a third type derived of class \b String is implemented with class #"^Substring".
 
 It has in all respects the same properties as its base class \c String, especially it has the same
 lightweight nature, it "represents" strings rather than "implementing" those and the string data
@@ -343,13 +342,11 @@ the substring are removed from it.
 \I{################################################################################################}
 ## 2.5 Summary Of String Types ## {#alib_strings_classes_summary}
 
-In the previous three sections, base class \alib{strings;TString;String} and three derived types
-\alib{strings;TCString;CString},
-\alib{strings;TAString;AString} and
-\alib{strings;TSubstring;Substring} have been introduced.
+In the previous three sections, base class #"^String" and three derived types
+#"^CString", #"^AString" and #"^Substring" have been introduced.
 
-\note A fifth type, class \alib{strings;TLocalString;LocalString} is only introduced in later
-      chapter \ref alib_strings_assembly_localstring.
+\note A fifth type, class #"strings::TLocalString;LocalString" is only introduced in later
+      chapter #"alib_strings_assembly_localstring".
 
 With that introduction, it was explained why the base class is limited in respect to changing the
 string: Simply spoken, derived type \b CString disallows cutting substrings from the back, because
@@ -389,7 +386,7 @@ To recap:
 
 
 \I{################################################################################################}
-# 3. String Construction and Type Conversion # {#alib_strings_cc}
+# 3\. String Construction and Type Conversion # {#alib_strings_cc}
 
 \I{################################################################################################}
 ## 3.1 Construction ## {#alib_strings_cc_construction}
@@ -399,12 +396,12 @@ To recap:
 
 This module makes use of the "character array traits" defined with dependency module \alib_characters.
 For the use of the string classes, a developer does not need to know all details of these traits and
-it is sufficient to understand what is said in the introductory chapter \ref alib_strings_intro_characters
+it is sufficient to understand what is said in the introductory chapter #"alib_strings_intro_characters"
 of this manual.
 
 The following table lists the constructors of class \b String. All constructors are inline
 and mostly are compiled in the shortest code possible, which only copies the right values to
-fields \alib{strings::TString;buffer} and \alib{strings::TString;length}.
+fields #"TString::buffer" and #"TString::length".
 
 No|Parameter(s) | Description
 -|-------------|------------
@@ -416,8 +413,8 @@ No|Parameter(s) | Description
 6|\c T\c & with<br><c>ArrayTraits<T>::Access == Policy::MutableOnly</c>|Same as 4) but using keyword <c>explicit</c> and a mutable parameter.
 
 Constructors \c 4, \c 5 and \c 6 are selected by the compiler in the case that an object of template
-type \b T is given and an according specialization of type trait \alib{characters;ArrayTraits}
-exists. Each of these constructors implements one the three elements of enumeration \alib{characters;Policy}
+type \b T is given and an according specialization of type trait #"ArrayTraits"
+exists. Each of these constructors implements one the three elements of enumeration #"Policy"
 that classify the possible access of the character array data given with type \b T.
 
 This set of constructors allow very intuitive and convenient construction of \alib strings
@@ -443,17 +440,17 @@ With this, an invocation passing just any string type (that allows implicit acce
 
 \note
    Therefore, this feature is in perfect alignment with the
-   \ref alib_strings_intro_goals "primary design goal" of this module, which is to
+   #"alib_strings_intro_goals;primary design goal" of this module, which is to
    "Mitigate the C++ string problem", as well with one of the overall design goals of \alib
-   to be \ref mainpage_goals "least-intrusive".
+   to be #"mainpage_goals;least-intrusive".
 
 
 \I{################################################################################################}
 ### 3.1.2 CString Construction### {#alib_strings_cc_construction_cstring}
 The exact same set of constructors that are listed in the table of the previous section for
-class \alib{strings;TString;String}, are implemented with class \alib{strings;TCString;CString}.
+class #"^String", are implemented with class #"^CString".
 The only difference is that constructors \c 4 to \c 6 are testing for a specialization of
-struct \alib{characters;ZTArrayTraits} instead of \alib{characters;ArrayTraits}.
+struct #"ZTArrayTraits" instead of #"ArrayTraits".
 
 Therefore, all that was explained in respect to construction of type \b String from templated types
 that represent character arrays, is equivalently true for the construction of type \b CString
@@ -461,34 +458,34 @@ from types that represent <em>zero-terminated</em> character arrays!
 
 \I{################################################################################################}
 ### 3.1.3 AString Construction ### {#alib_strings_cc_construction_astring}
-In contrast to \b String and \b CString, type \alib{strings;TAString;AString} does not allow
-implicit construction. All constructors are explicit with the exception of the move-constructor.
+In contrast to \b String and \b CString, type #"^AString" does not allow implicit construction. 
+All constructors are explicit with the exception of the move-constructor.
 This design decision was made because of the heavy-weight nature of the class.
 
 Apart from the need to be explicit, construction of the class is even more flexible than the
-construction of the lightweight string types: Type-traits functor \alib{strings;AppendableTraits} allows
+construction of the lightweight string types: Type-traits functor #"AppendableTraits" allows
 creating string representations for objects of custom types. In addition to the character array types
 that base class \b %String accepts, these types are accepted by a templated constructor of the class
 as well.
 All details about this template struct are given with chapter
-\ref alib_strings_assembly "5. String Assembly".
+#"alib_strings_assembly".
 
 \see
-   Paragraph \ref alib_ns_strings_astring_copymove "Copy/Move Constructor and Assignment"
+   Paragraph #"alib_ns_strings_astring_copymove;Copy/Move Constructor and Assignment"
    of this class's reference documentation. This provides some rationale for the explicit
    nature of \b AString construction.
 
 \I{################################################################################################}
 ### 3.1.4 Substring Construction ### {#alib_strings_cc_construction_substring}
 Class \b Substring simply inherits all constructors of its base class \b String and therefore,
-all that had been written in previous chapter \ref alib_strings_cc_construction_string, is
+all that had been written in previous chapter #"alib_strings_cc_construction_string", is
 true for this class. This includes that the type <c>const alib::Substring&</c> may be used as
 method arguments to accept any type of string of fitting character size, without explicit
 conversion.
 
 \note
   The rationale for this design decision is as follows:
-  As explained before, class \alib{strings;TSubstring;Substring} specializes class \b String
+  As explained before, class #"^Substring" specializes class \b String
   by adding features that remove characters from the start and the end of the string.
   If class \c String did not play the role of being the base class for types \c CString and \c AString,
   these features could be implemented with class \c String itself and class \b Substring would not
@@ -505,9 +502,9 @@ This chapter now discusses the opposite: the string types implement C++ cast ope
 construct values of arbitrary string types from those.
 
 Again, the cast is performed using the type-traits defined with dependency module \alib_characters.
-This time, the value of field \alib{characters::ArrayTraits;Construction} of specializations
-of \alib{characters;ArrayTraits} respectively \alib{characters;ZTArrayTraits} are tested.
-Possible values are given with enumeration \alib{characters;Policy}. With that
+This time, the value of field #"ArrayTraits::Construction" of specializations
+of #"ArrayTraits" respectively #"ZTArrayTraits" are tested.
+Possible values are given with enumeration #"Policy". With that
 casting string types to a specific custom type is either not allowed, implicitly allowed or
 allowed only if explicitly performed.
 
@@ -516,20 +513,20 @@ allowed only if explicitly performed.
 ### 3.2.1 Casting From String And Substring ### {#alib_strings_cc_cast_string}
 
 Class \b String implements an implicit cast operator to values of template type \b T if
-a specialization of \alib{characters;ArrayTraits} exists that defines field \b Construction
-to be \alib{characters;Policy::Implicit}. Likewise, an explicit operator is available
-if \alib{characters;Policy::ExplicitOnly} is given.<br>
-Of course, the construction of the casted object is performed by invoking
-\alib{characters;ArrayTraits::Construct}, passing the string's fields \b buffer and \b length.
+a specialization of #"ArrayTraits" exists that defines field \b Construction
+to be #"Policy::Implicit;*". Likewise, an explicit operator is available
+if #"Policy::ExplicitOnly;*" is given.<br>
+Of course, the construction of the cast object is performed by invoking
+#"ArrayTraits::Construct;*", passing the string's fields \b buffer and \b length.
 
-With the same rationale as given in \ref alib_strings_cc_construction_substring, class
+With the same rationale as given in #"alib_strings_cc_construction_substring", class
 \b Substring behaves 100% the same as parent class \b String in respect to casting options.
 
 \I{################################################################################################}
 ### 3.2.2 Casting From CString ### {#alib_strings_cc_cast_cstring}
 
 Class \b CString implements the very same casts operators as class \b String, with the only difference
-that the struct \alib{characters;ZTArrayTraits} is used instead of \b ArrayTraits.
+that the struct #"ZTArrayTraits" is used instead of \b ArrayTraits.
 
 \note
   With the built-in specialization of \b ZTArrayTraits for C++ type <c>const char*</c> that
@@ -553,7 +550,7 @@ implicitly or explicitly creating external character array types.
 Casts, especially implicit ones, in some situations may impose ambiguities, which lead to
 compilation failures. To mitigate such, the implicit cast implementations of all three classes
 \b %String, \b %CString and \b %AString are conditionally selected by the compiler using the struct
-\alib{strings;NoAutoCastTraits}.
+#"NoAutoCastTraits".
 
 \alib specializes this struct to prevent the casting of \b AString objects to types
 \c String and \b CString, which the type-traits \b %ArrayTraits and \b %ZTArrayTraits of course,
@@ -571,7 +568,7 @@ specializations of the structs \b ArrayTraits and \b ZTArrayTraits given in depe
 \alib_characters.
 
 While these specializations are described in the corresponding Programmer's Manual section
-\ref alib_characters_builtintraits "4. Built-In Character Array Traits" of that module,
+#"alib_characters_builtintraits" of that module,
 only a summary of the rules from the perspective of \alib string classes is given here.
 
 <b>Fixed-length Character Arrays</b>:<br>
@@ -603,7 +600,7 @@ Therefore, all conversion functions are explicit.
   zero-terminates it.
 - Implicit cast from \b String and \b CString although heap-memory allocation and the copying
   of string data is involved. The rationale for this decision lies in technical reasons,
-  as \ref alib_characters_builtintraits_std "explained here".
+  as #"alib_characters_builtintraits_std;explained here".
 
 <c>std::vector<TChar></c>:<br>
 - Implicit construction of \b String objects.
@@ -647,13 +644,13 @@ Therefore, all conversion functions are explicit.
 In the previous sections a quite remarkable and unique feature of this module, namely the
 possibility of (implicit) conversions of arbitrary C++ string types to and from \alib string types,
 has been described.
-These features contribute fundamentally to a major \ref alib_strings_intro_goals "design goal"
+These features contribute fundamentally to a major #"alib_strings_intro_goals;design goal"
 of this module, by relieving a programmer from the burden to convert string types when mixing
 libraries that expect different strings.
 
 \note
   This is true at least for the case that the string types that become mixed are based on the
-  same \ref alib_characters_chars "character type".
+  same #"alib_characters_chars;character type".
   In later chapters of this manual, further tool types are introduced, which in addition
   mitigate the problem of necessary string conversions if different character widths are involved.
 
@@ -664,27 +661,27 @@ To adopt custom string types to become "compatible" with \alib strings all that 
 is to specialize the type trait \b ArrayTraits and, in the case that a type represents zero-terminated
 strings, also struct \b ZTArrayTraits.
 While this is done with only a few lines of code, still it is advised to start reading the
-\ref alib_mod_characters "Programmer's Manual of module ALib Characters". If not from the beginning
-then at least chapter \ref alib_characters_arrays "4. Character Arrays". Together with the
+#"alib_mod_characters;Programmer's Manual of module ALib Characters". If not from the beginning
+then at least chapter #"alib_characters_arrays". Together with the
 information provided in the previous sections of this manual, the complete picture should
-be given and the adoption of own types be a straight forward task.
+be given and the adaptation of own types be a straight forward task.
 
 In addition header-files
 - "alib/compatibility/chararray_std.hpp" and
 - "alib/compatibility/chararray_qt.hpp"
 
-can be used as a good template to use for the adoption of own string types.
+can be used as a good template to use for the adaptation of own string types.
 
 \note
    The approach taken here is suitable only for types that are something very close to a string
    type. While the concept might be "misused" to implement a sort of <b>"ToString()"</b> function
    for custom types, this is not recommended. For the latter, the suitable mechanism is
    provided with "appending objects to type AString", which is described in chapter
-   \ref alib_strings_assembly "5. String Assembly".
+   #"alib_strings_assembly".
 
 
 \I{################################################################################################}
-# 4. Non-Zero-Terminated String Detection # {#alib_strings_nzt}
+# 4\. Non-Zero-Terminated String Detection # {#alib_strings_nzt}
 
 \I{################################################################################################}
 ## 4.1 Ambiguities With Overloaded Functions ## {#alib_strings_nzt_problem}
@@ -726,7 +723,7 @@ string type \b %String can be implicitly constructed from zero-terminated string
 ## 4.2 Class StringNZT ## {#alib_strings_nzt_solution}
 
 As a way out of the ambiguity described in the previous section, class
-\alib{strings;TStringNZT;StringNZT} is given with the library.
+#"strings::TStringNZT;StringNZT" is given with the library.
 The "NZT" suffix stands for "non-zero-terminated". The type extends class \b String and all it does
 is to deny implicit construction by objects of types that would likewise construct type \b CString.
 
@@ -743,10 +740,10 @@ becomes zero-terminated on the fly when converted to \b CString.
 \I{################################################################################################}
 ## 4.3 Summary ## {#alib_strings_nzt_summary}
 The following bullets summarize and refine what was sampled in this chapter:
-- Class \alib{strings;TStringNZT;StringNZT} can be constructed from types with corresponding
-  specialization of the struct \alib{characters;ArrayTraits}, but only if complementary struct
-  \alib{characters;ZTArrayTraits} is not specialized in parallel.
-- This is in contrast to its base class \alib{strings;TString;String} which constructs if either
+- Class #"strings::TStringNZT;StringNZT" can be constructed from types with corresponding
+  specialization of the struct #"ArrayTraits", but only if complementary struct
+  #"ZTArrayTraits" is not specialized in parallel.
+- This is in contrast to its base class #"^String" which constructs if either
   of the type-traits is given.
 - Therefore, offering \b StringNZT and alternatively \b CString in two overloaded functions
   avoids ambiguities and allows explicit treatment of zero-terminated and non-zero-terminated
@@ -755,15 +752,15 @@ The following bullets summarize and refine what was sampled in this chapter:
 - Consequently, the existence of an interface method using type \b StringNZT for an argument type
   indicates the existence of an overloaded alternative using \b CString.
 
-Finally it should be mentioned that the use of zero-terminated strings is not recommended. \alib itself
-does that only in very specific situations. An example is class \alib{system;Path}. The class
-interfaces with the operating system that expects zero-terminated strings, like it was sampled in
-the previous section.
+Finally it should be mentioned that the use of zero-terminated strings is not recommended. 
+\alib itself does that only in very specific situations. An example is class #"system::Path". 
+The class interfaces with the operating system that expects zero-terminated strings, like it was 
+sampled in the previous section.
 
 
 
 \I{################################################################################################}
-# 5. String Assembly # {#alib_strings_assembly}
+# 5\. String Assembly # {#alib_strings_assembly}
 
 Often, software needs to assemble strings. May it be human-readable text, data serialization
 or for the implementation of communication protocols. For that, a string type is needed that
@@ -771,8 +768,8 @@ manages a data buffer and provides interface methods that allow the concatenatio
 existing strings. Furthermore typical methods like searching and replacing substrings, letter
 case conversion, etc. has to be offered.
 
-As already introduced, for this purpose class \alib{strings;TAString;AString} is provided with
-this module. Therefore, this chapter dedicated to the topic of string assembly is mostly a chapter
+As already introduced, for this purpose class #"^AString" is provided with this module. 
+Therefore, this chapter dedicated to the topic of string assembly is mostly a chapter
 about class \b AString.
 
 
@@ -787,7 +784,7 @@ and \b ZTArrayTraits. The character array type-traits are introduced with module
 
 Some high level object-oriented programming languages offer a root class which provides a common
 interface for just any derived type and such interface may contain a method that creates a
-string representation from an instance. For example, the \b JAVA language defines class \c Object
+string representation from an instance. For example, the \b Java language defines class \c Object
 which provides method \c toString() for such purpose.<br>
 
 The two concepts (\alib character array traits and the <c>Object.toString()</c> method of \b Java)
@@ -806,44 +803,44 @@ of any object to an \b AString.
   Class \b AString supports the direct use of such formatters to write into its buffer.
   (Meaning without the need of creating an intermediate <c>std::string</c>.)
   Furthermore, specializations made for custom types to support <c>std::format</c> can be used
-  directly with class \alib{strings;TAString} and, the other way round, the customizations
+  directly with class #"TAString" and, the other way round, the customizations
   explained in the upcomming sections, likewise allow to use the custom type with
   <c>std::format</c>.
   <br>
   Thus, only one customization has to be made, as long as no placeholder format string
   is to be parsed.
-  All about this is explained in the later chapter \ref alib_strings_stdformat.
+  All about this is explained in the later chapter #"alib_strings_stdformat".
  
 \I{################################################################################################}
 ### 5.1.2 Type-Traits Functor AppendableTraits ### {#alib_strings_assembly_ttostring_ttostring}
 
-Type-traits "functor" \alib{strings;AppendableTraits<TAppendable,TChar,TAllocator>} by default is empty.
-To allow the creation of a string representation of objects of a custom type \b TAppendable, a
+Type-traits "functor" #"<>AppendableTraits" by default is empty.
+To assemble a string representation of objects of a custom type \b TAppendable, a
 specialization of the struct has to be defined that implements method
-\doxlinkproblem{structalib_1_1strings_1_1T__Append.html;a3266f5aa56dcdb368c9b2aa269f346b9;AppendableTraits::operator\(\)(TAString<TChar>&); const TAppendable&)}.
+#"AppendableTraits::operator()(TAString<TChar>&); const TAppendable&)".
 
 Besides specifying the type that is adopted with template type \b TAppendable, the character type
 \b TChar of the destination \b AString object may be given with a specialization.
-If omitted, it defaults to type \alib{characters;character}.
+If omitted, it defaults to type #"characters::character".
 
 As the name of functor \b AppendableTraits suggests, the implementation of the operator usually
 appends a string representation of the object given with parameter \p{src} to the \b AString given
 with parameter \p{target}.
 Nevertheless, an implementation is free to modify the given \b AString in any way.
-For example, built-in type \alib{strings;TEscape;Escape} searches and replaces
+For example, built-in type #"strings::TEscape;Escape" searches and replaces
 "escape-characters" when "appended" to an <b>AString</b>!
 
 \I{################################################################################################}
 ### 5.1.3 Method AString::Append (And Aliases)### {#alib_strings_assembly_ttostring_append}
 
-Once type-traits functor \alib{strings;AppendableTraits<TAppendable,TChar,TAllocator>} is specialized for
+Once the type-traits functor #"<>AppendableTraits" is specialized for
 a type \b TAppendable, objects of that type may be appended to objects of
 \b TAString<TChar,TAllocator>. This can be done using the following methods:
 
-- \alib{strings;TAString::TAString(const TAppendable&);AString(const TAppendable&)} (A constructor taking the appendable type)
-- \alib{strings;TAString::Append(const TAppendable&);Append(const TAppendable&)}
-- \alib{strings;TAString::_(const TAppendable&);_(const TAppendable&)} (A method named solely <c>"_"</c>. Provided for compatibility with JAVA and C# versions of \alib.)
-- \alib{strings;TAString::operator<<(const TAppendable&);operator<<(const TAppendable&)}
+- #"TAString::TAString(const TAppendable&)" (A constructor taking the appendable type)
+- #"TAString::Append(const TAppendable&)"
+- #"TAString::_(const TAppendable&)" (A method named solely <c>"_"</c>. Provided for compatibility with Java and C# versions of \alib.)
+- #"TAString::operator<<(const TAppendable&)"
 
 Methods \b Append and <b>'_'</b>, as well as operator <b>'<<'</b>, each return a reference to the \b AString
 that they were invoked on. This allows concatenated calls, like in:
@@ -863,10 +860,10 @@ Specializations for all fundamental C++ types like \b int, \b double, etc. are p
 <b>2. Special Formatting Helpers:</b><br>
 A set of types exist that can be used to wrap values that are to be appended
 to a string, with the single aim to change their formatting.
-For integral and floating point numbers, such formatters are \alib{strings;TDec},
-\alib{strings;TBin}, \alib{strings;THex} and \alib{strings;TOct}.
+For integral and floating point numbers, such formatters are #"TDec",
+#"TBin", #"THex" and #"TOct".
 
-Further similar types are \alib{strings;TTab}, \alib{strings;TField} and \alib{strings;TEscape}.
+Further similar types are #"TTab", #"TField" and #"TEscape".
 
 All these types are very lightweight and are supposed to be created locally, right with the
 invocation of the append-methods.
@@ -878,7 +875,7 @@ For example, with class \b TTab, the types
 
 come along.
  
-As a quick example, the use of \alib{strings;TField} is showcased:
+As a quick example, the use of #"TField" is showcased:
 
 \snippet "DOX_ASTRING_APPEND.cpp"     DOX_APPEND_FIELD
 The code above which produces the following output:
@@ -889,29 +886,29 @@ The code above which produces the following output:
 <b>3. Other ALib Types:</b><br>
 For various types found in other \alibmods, specializations of \b AppendableTraits are provided.<br>
 All elements of important enum types are appendable.For more information,
-see the section \ref alib_enums_records_details_serialization "4.3.1 Serialization/Deserialization"
+see the section #"alib_enums_records_details_serialization"
 of the Programmer's Manual of module \alib_enumrecords.
 
 
 <b>4. 3rd-Party Types:</b><br>
-The special \ref alib_manual_modules_impludes_further "compatibility headers" contain
+The special #"alib_manual_modules_impludes_further;compatibility headers" contain
 specializations of \b AppendableTraits for types of the C++ standard library (namespace \c std),
 as well of types of 3rd-party libraries.
 
 \note
   While the C++ language demands to implement specializations of templated structs within the
   namespace that the original struct was defined in, the reference documentation "fakes" these
-  specializations into the (otherwise non-existent!) inner namespace \ref alib::strings::APPENDABLES.
+  specializations into the (otherwise non-existent!) inner namespace #"alib::strings::APPENDABLES;3".
   Other \alib modules do the same documentation trick, and hence all specializations of \b AppendableTraits
   (of all four areas described above) can be found with the
-  \ref alib::strings::APPENDABLES "reference documentation" of that namespace (and inner namespaces).
+  #"alib::strings::APPENDABLES;reference documentation" of that namespace (and inner namespaces).
 
 
 \I{################################################################################################}
 ### 5.1.5 Sample Implementation ### {#alib_strings_assembly_ttostring_sample}
 
 The following code snippet demonstrates how to implement the specialization of functor
-\b AppendableTraits for internal \alib class \alib{time;DateTime} to print out a formatted date:
+\b AppendableTraits for internal \alib class #"time::DateTime" to print out a formatted date:
 
 \snippet "DOX_ASTRING_APPEND.cpp"     DOX_APPEND_DEFINITION
 
@@ -924,15 +921,15 @@ The output would be for example:
 
 The following macros are provided to simplify the specialization of \b AppendableTraits and make the code
 more readable:
-- \ref ALIB_STRINGS_APPENDABLE_TYPE
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_N
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_W
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF_N
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF_W
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE_N
-- \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE_W
+- #"ALIB_STRINGS_APPENDABLE_TYPE"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_N"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_W"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_DEF"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_DEF_N"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_DEF_W"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_INLINE"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_INLINE_N"
+- #"ALIB_STRINGS_APPENDABLE_TYPE_INLINE_W"
 
 
 
@@ -956,9 +953,9 @@ as= "This will compile";
 \endcode
 
 
-As already noticed in chapter \ref alib_strings_assembly_ttostring, with templated constructor
-\alib{strings;TAString::TAString(const TAppendable&);AString(const TAppendable&)},
-class \b %AString accepts any type of object that a specialization of functor \alib{strings;AppendableTraits}
+As already noticed in chapter #"alib_strings_assembly_ttostring", with templated constructor
+#"TAString::TAString(const TAppendable&);AString(const TAppendable&)",
+class \b %AString accepts any type of object that a specialization of functor #"AppendableTraits"
 exists for. This makes construction very flexible.<br>
 
 Copy constructor, move constructor and move assignment are well defined, which allows \b %AString
@@ -971,39 +968,37 @@ As mentioned before, class \b %AString provides logic to manage its own buffer.
 During the assembly of strings, the buffer "automatically" grows as needed. If a certain minimum
 size can be foreseen as a result of a string assembly, before performing the assembly operations,
 the necessary buffer size might be reserved by invoking method
-\alib{strings::TAString;SetBuffer;SetBuffer(integer)}. This avoids the automatic growth process
+#"TAString::SetBuffer(integer)". This avoids the automatic growth process
 which may take place in several steps and each steps may involve to copy the current buffer to
 a new memory location.
 
 Once grown, the allocated buffer size is never reduced, unless method
-\alib{strings::TAString;SetBuffer;SetBuffer(integer)} is explicitly invoked providing a smaller
+#"TAString::SetBuffer(integer)" is explicitly invoked providing a smaller
 size than currently allocated.
 
 Besides this internal, automatic memory allocation, the class can also work on <b>external buffers</b>.
-For this, overloaded method
-\doxlinkproblem{classalib_1_1strings_1_1TAString.html;a55cf0dcbe43b1563f8a6b006e52685a0;TAString::SetBuffer;TAString::SetBuffer(TAString::SetBuffer)}.
-allows providing such external memory.
+For this, the method #"TAString::SetBuffer(TChar*, integer, integer, lang::Responsibility)" allows providing such external memory.
 The life-cycle of an external buffer is not bound to the life-cycle of the \b %AString object itself.
 At the moment that the size of an external buffer is not sufficient to allow a requested extension
 of the managed string, the class replaces the external buffer by a larger, self-managed one.
 
-For details on using external buffers, see the reference documentation of overloaded method
-\doxlinkproblem{classalib_1_1strings_1_1TAString.html;a55cf0dcbe43b1563f8a6b006e52685a0;TAString::SetBuffer;TAString::SetBuffer(TAString::SetBuffer)}.
-Class \alib{strings;TLocalString;LocalString}, which is discussed in the next section, makes use
+For details on using external buffers, see the reference documentation of method
+#"TAString::SetBuffer(TChar*, integer, integer, lang::Responsibility)".
+Class #"strings::TLocalString;LocalString", which is discussed in the next section, makes use
 of this feature and provides the possibility to have local (stack based) allocations of strings.
 
 \I{################################################################################################}
 ## 5.4 Class LocalString ## {#alib_strings_assembly_localstring}
 
-Template class \alib{strings;TLocalString;LocalString<TChar, TCapacity>}, derived from class \b %AString
-uses an internal character array of a length specified by template parameter \p{TCapacity}
-to store the string data. During construction, the memory address of this character array member is
-passed to method
-\doxlinkproblem{classalib_1_1strings_1_1TAString.html;a55cf0dcbe43b1563f8a6b006e52685a0;TAString::SetBuffer;TAString::SetBuffer(TAString::SetBuffer)}.
-The huge benefit of using the class lies in performance: The performance impact of <em>heap allocations</em> is often
-underestimated by software developers. Therefore, for local string operations with foreseeable
-maximum string buffer sizes, class \b %LocalString should be considered as a faster
-alternative of class \b %AString.
+Template class #"TLocalString;LocalString<TChar, TCapacity>", derived from class 
+\b %AString uses an internal character array of a length specified by template parameter 
+\p{TCapacity} to store the string data. 
+During construction, the memory address of this character array member is passed to the method 
+#"TAString::SetBuffer(TChar*, integer, integer, lang::Responsibility)".
+The huge benefit of using the class lies in performance: The performance impact of 
+<em>heap allocations</em> is often underestimated by software developers. 
+Therefore, for local string operations with foreseeable maximum string buffer sizes, class 
+\b %LocalString should be considered as a faster alternative of class \b %AString.
 
 
 \I{################################################################################################}
@@ -1012,8 +1007,8 @@ Although the internal buffer size is fixed at compile-time and hence cannot be e
 of the class must not fear '<em>buffer overflows</em>'. If the internal buffer capacity
 is exceeded, a new buffer from the <em>free memory</em> (aka '\e heap') will be allocated.
 
-With debug-builds of \alib, parent class \alib{strings;TAString;AString} provides a
-\alib{strings;TAString::DbgDisableBufferReplacementWarning;warning mechanism} that allows the
+With debug-builds of \alib, parent class #"^AString" provides a
+#"TAString::DbgDisableBufferReplacementWarning;warning mechanism" that allows the
 easy detection of such (probably unwanted) replacements of the local buffer.
 There are two scenarios how this mechanism might be used during development:
 - If the buffer should never be replaced, the capacity of a %LocalString has to be increased
@@ -1026,12 +1021,12 @@ There are two scenarios how this mechanism might be used during development:
   Having this explicit information helps to understand the intentions of the software developer.
 
 If the latter case applies, then the warning can be disabled using the inherited method
-\alib{strings::TAString;DbgDisableBufferReplacementWarning}. This inline method is empty in
+#"TAString::DbgDisableBufferReplacementWarning". This inline method is empty in
 release-compilations and this way optimized out by the compiler.
 
 \I{################################################################################################}
 ### 5.4.2 Implicit construction ### {#alib_strings_assembly_localstring_construction}
-While class \b %AString (as \ref alib_strings_assembly_astringconstr "noted above") does not provide
+While class \b %AString (as #"alib_strings_assembly_astringconstr;noted above") does not provide
 implicit construction, class \b LocalString re-implements the common constructors of
 \b %AString and exposes them as <em>implicit</em>.
 The rationale here is that although the data is copied (which might not be a very lightweight task),
@@ -1062,14 +1057,14 @@ very determined and it should not be subject to copy and move operations.
 
 \I{################################################################################################}
 ### 5.4.4 Aliases For Frequently Used Sizes ### {#alib_strings_assembly_localstring_aliases}
-Within namespace \ref alib, some convenient alias type definitions are available that define
+Within namespace #"alib", some convenient alias type definitions are available that define
 local strings of frequently uses sizes:
-- \alib{String8}, \alib{String16},  \alib{String32},\alib{String64},\alib{String128},\alib{String256},\alib{String512}, \alib{String1K},  \alib{String2K},  \alib{String4K},
-- \alib{NString8},\alib{NString16}, \alib{NString32},\alib{NString64},\alib{NString128},\alib{NString256},\alib{NString512}, \alib{NString1K}, \alib{NString2K}, \alib{NString4K}, and
-- \alib{WString8},\alib{WString16}, \alib{WString32},\alib{WString64},\alib{WString128},\alib{WString256},\alib{WString512}, \alib{WString1K}, \alib{WString2K}, \alib{WString4K}.
+- #"String8", #"String16",  #"String32",#"String64",#"String128",#"String256",#"String512", #"String1K",  #"String2K",  #"String4K",
+- #"NString8",#"NString16", #"NString32",#"NString64",#"NString128",#"NString256",#"NString512", #"NString1K", #"NString2K", #"NString4K", and
+- #"WString8",#"WString16", #"WString32",#"WString64",#"WString128",#"WString256",#"WString512", #"WString1K", #"WString2K", #"WString4K".
 
 \I{################################################################################################}
-# 6. Other Aspects Of ALib String Types # {#alib_strings_details}
+# 6\. Other Aspects Of ALib String Types # {#alib_strings_details}
 
 \I{################################################################################################}
 ## 6.1 Nulled Strings ## {#alib_strings_details_nulled}
@@ -1099,11 +1094,11 @@ empty strings are not necessarily \e nulled. An empty string that is not \e null
 an empty string that is \e nulled.
 
 Inline methods
-\alib{strings;TString::IsNull;IsNull},
-\alib{strings;TString::IsNotNull;IsNotNull},
-\alib{strings;TString::IsEmpty;IsEmpty} and
-\alib{strings;TString::IsNotEmpty;IsNotEmpty}
-of base class \alib{strings;TString;String} test strings objects for being \e nulled
+#"strings::TString::IsNull;IsNull",
+#"strings::TString::IsNotNull;IsNotNull",
+#"strings::TString::IsEmpty;IsEmpty" and
+#"strings::TString::IsNotEmpty;IsNotEmpty"
+of base class #"^String" test strings objects for being \e nulled
 or \e empty.
 
 The following code runs fine (with no assertion):
@@ -1116,10 +1111,9 @@ from an empty string.
 \I{################################################################################################}
 ### 6.1.2 Nulled AStrings ### {#alib_strings_details_nulled_astrings}
 
-The concept of having \e nulled strings is equally available with derived string type
-\alib{strings;TAString;AString}:
+The concept of having \e nulled strings is equally available with derived string type #"^AString":
 An object of type \b AString is \e nulled when no internal buffer is allocated and likewise no
-\ref alib_strings_assembly_buffermgmnt "external buffer" is set.
+#"alib_strings_assembly_buffermgmnt;external buffer" is set.
 
 If default constructed, constructed with zero size, with keyword \c nullptr or any other \e nulled
 string, no buffer is created.
@@ -1130,8 +1124,8 @@ Consequently, it makes a difference if an \b %AString is constructed using <c>%A
       and thus does not support a \e nulled state.
 
 The allocated buffer of a \e non-nulled \b AString can be disposed by invoking
-\alib{strings;TAString::SetBuffer;SetBuffer(0)} or by invoking
-\alib{strings;TAString::SetBuffer;SetNull} on the instance.
+#"TAString::SetBuffer(integer);SetBuffer(0)" or by invoking
+#"strings::TAString::SetNull" on the instance.
 
 To make this more clear, note the following <b>sample code</b> which does not throw an assertion:
 \snippet "DOX_STRINGS.cpp"    DOX_ASTRING_NULLED
@@ -1175,29 +1169,28 @@ More on this topic is given in the next section.
 
 Several of the methods found in the different string classes of \alib are templated with
 a boolean template parameter named \p{TCheck}. This template parameter is defaulted with
-the tag-type \alib{CHK} which hides the whole concept it in "normal" code. Consider the following
+the tag-type #"CHK;2" which hides the whole concept it in "normal" code. Consider the following
 snippet:
 \snippet "DOX_STRINGS.cpp"     DOX_STRINGS_NONCHECKING_1
 
 Two string methods are used in this code sample:
-\doxlinkproblem{classalib_1_1strings_1_1TString.html;a7c6e1eba65efe930eedd3f64d8e70540;TString::IndexOf;TString::IndexOf(const TString&,integer)}
-and
-\alib{strings;TSubstring::ConsumeChars;Substring::ConsumeChars}. Both methods support templated parameter
-\p{TCheck}! The following code provides the parameter in its default value, and hence for the
-compiler is equivalent to the previous snippet:
+#"TString::IndexOf(const TString&, integer)" and
+#"TSubstring::ConsumeChars(integer, TSub);Substring::ConsumeChars". 
+Both methods support templated parameter \p{TCheck}! 
+The following code provides the parameter in its default value, and hence for the compiler is 
+equivalent to the previous snippet:
 
 \snippet "DOX_STRINGS.cpp"     DOX_STRINGS_NONCHECKING_11
 
 The exact impact of the value of template parameter \p{TCheck} is documented with each function that
 supports it.
-In general, with \alib{CHK}, the string object that a method is invoked on is checked, for example,
+In general, with #"CHK;2", the string object that a method is invoked on is checked, for example,
 for not being \e nulled.
 Furthermore the parameters given are checked, for example, to not being \e nulled, to be in valid
 ranges, and so on.
 
-In the sampled case of method
-\doxlinkproblem{classalib_1_1strings_1_1TString.html;a7c6e1eba65efe930eedd3f64d8e70540;TString::IndexOf;TString::IndexOf(const TString&,integer)},
-the documentation tells us that
+In the sampled case of the method #"IndexOf(const TString&,integer)", the documentation tells us
+that
 - parameter \p{needle} must not be empty.
 - Parameter \c startIdx must be in the range of \c 0 and the string's length minus the needle's
   length.
@@ -1208,9 +1201,9 @@ because in the case that the given string is shorter than the token <c>"<start>"
 method returns \c -1.
 This way, no user code for checking the input argument is needed in this sample code.
 
-The implementation of method \alib{strings::TSubstring;ConsumeChars} by default checks if the string
-is long enough to cut the given number of characters from the front. In other words, it tests
-whether parameter \p{regionLength} is in the range of \c zero and the length of the string.
+The implementation of method #"TSubstring::ConsumeChars(integer, TSubstring*)" by default checks 
+if the string is long enough to cut the given number of characters from the front. In other words, 
+it tests whether parameter \p{regionLength} is in the range of \c zero and the length of the string.
 Obviously, this check is \b redundant in this sample. The method is invoked only if method
 \b IndexOf had found the token <c>"<start>"</c> in the string!<br>
 To avoid the redundant check, for this invocation the non-checking version of
@@ -1274,10 +1267,10 @@ In release compilations, invoking non-checking method versions with a breach of 
 \I{################################################################################################}
 ### 6.3.1 NULL_STRING ### {#alib_strings_details_constants_nullstring}
 The following <c>constexpr</c> variables are defined in namespace #alib:
-- \alib{NULL_STRING}, \alib{NULL_COMPLEMENT_STRING}, \alib{NULL_STRANGE_STRING},
-  \alib{NULL_NSTRING}, \alib{NULL_WSTRING}, \alib{NULL_XSTRING}, and
-- \alib{EMPTY_STRING}, \alib{EMPTY_COMPLEMENT_STRING}, \alib{EMPTY_STRANGE_STRING},
-  \alib{EMPTY_NSTRING}, \alib{EMPTY_WSTRING} and \alib{EMPTY_XSTRING}.
+- #"NULL_STRING", #"NULL_COMPLEMENT_STRING", #"NULL_STRANGE_STRING",
+  #"NULL_NSTRING", #"NULL_WSTRING", #"NULL_XSTRING", and
+- #"EMPTY_STRING", #"EMPTY_COMPLEMENT_STRING", #"EMPTY_STRANGE_STRING",
+  #"EMPTY_NSTRING", #"EMPTY_WSTRING" and #"EMPTY_XSTRING".
 
 Each simply represents a \e nulled, respectively an empty string.
 The rationale for the provision of the \c nulled versions is purely to increase the readability
@@ -1288,31 +1281,31 @@ The following lines of code are equivalent in all respects:
         String  myString= nullptr;
         String  myString= NULL_STRING;
         
-With variable \alib{EMPTY_STRING} and its siblings things are a little more complicated: Here
+With variable #"EMPTY_STRING" and its siblings things are a little more complicated: Here
 the right C++ string literal has to be chosen.
-This is achieved with the template type \alib{strings;StringConstantsTraits} and its specializations
-for character types \alib{characters;nchar}, \alib{characters;wchar}, and \alib{characters;xchar}.
+This is achieved with the template type #"StringConstantsTraits" and its specializations
+for character types #"characters::nchar", #"characters::wchar", and #"characters::xchar".
 If a user of this library writes entities that are templated on the character type, then
 the use of this helper-struct is advised.
 
 ### 6.3.2 CString Constants ### {#alib_strings_details_constants_cstrings}
-Templated helper-struct \alib{strings;CStringConstantsTraits} provides static \c constexpr methods
+Templated helper-struct #"CStringConstantsTraits" provides static \c constexpr methods
 for a few frequently used string constants.
 
 While the methods can be explicitly accessed by providing the templated character type, in
 addition, for each six character types a corresponding is variable given in namespace #alib.
-For example, for member method \alib{strings;CStringConstantsTraits<TChar>::DefaultWhitespaces},
+For example, for member method #"CStringConstantsTraits<TChar>::DefaultWhitespaces;*",
 corresponding variables
-- \alib{DEFAULT_WHITESPACES},
-- \alib{COMPLEMENT_DEFAULT_WHITESPACES},
-- \alib{STRANGE_DEFAULT_WHITESPACES},
-- \alib{NDEFAULT_WHITESPACES},
-- \alib{WDEFAULT_WHITESPACES}, and
-- \alib{XDEFAULT_WHITESPACES}
+- #"DEFAULT_WHITESPACES",
+- #"COMPLEMENT_DEFAULT_WHITESPACES",
+- #"STRANGE_DEFAULT_WHITESPACES",
+- #"NDEFAULT_WHITESPACES",
+- #"WDEFAULT_WHITESPACES", and
+- #"XDEFAULT_WHITESPACES"
 
 are defined.
 
-Same as with helper-struct \alib{strings;StringConstantsTraits} introduced in the previous chapter,
+Same as with helper-struct #"StringConstantsTraits" introduced in the previous chapter,
 if a user of the library writes entities that are templated on the character type, the
 use of helper-struct \b CStringConstantsTraits is advised.
 
@@ -1323,16 +1316,16 @@ In some situations additional debug checking is helpful when working with \alib 
 Among such situations are:
 - Development of the library module itself.
 - Development of types derived from \alib string types.
-- Specializing template struct \alib{characters;ArrayTraits} or functor \alib{strings;AppendableTraits}
+- Specializing template struct #"ArrayTraits" or functor #"AppendableTraits"
   to add support for user-defined string types or append operations to class \b %AString.
 - External manipulation of \b AString buffer retrieved with method
-  \alib{strings;TAString::VBuffer;AString::VBuffer}.
+  #"strings::TAString::VBuffer;AString::VBuffer".
 - The provision of external data buffers to class \b %AString.
 
-In these and similar situations, it may be helpful to define preprocessor symbol
-\ref ALIB_DEBUG_STRINGS. This symbol enables internal consistency checks with almost any method
-invoked on string types. By default this feature is disabled, as it consumes quite a lot of run-time
-performance. When string debugging is enabled, macro \ref ALIB_STRING_DBG_CHK can be used to check
+In these and similar situations, it may be helpful to define configuration macro
+#"ALIB_DEBUG_STRINGS". This symbol enables internal consistency checks with almost any method
+invoked on string types. By default this feature is disabled, as it consumes quite a lot of runtime
+performance. When string debugging is enabled, macro #"ALIB_STRING_DBG_CHK" can be used to check
 the consistency of \alib string classes.
 
 With string debugging, the string buffer allocated by class \b %AString is extended by 32 characters,
@@ -1341,23 +1334,24 @@ padding memory, and accidental (illegal) write operations across the borders of 
 space are detected.
 
 Therefore, code that:
-1. Uses method \alib{strings;TAString::SetBuffer;AString::SetBuffer} to set an external buffer, and
-2. transfers responsibility to \alib by setting parameter \p{responsibility} of that method,
+1. Uses method #"strings::TAString::SetBuffer(TChar*);AString::SetBuffer" to set an external buffer,
+    and that  
+2. transfers the responsibility to \alib by setting parameter \p{responsibility} of that method,
 
 has to allocate the buffer passed accordingly.
 This means the buffer has to be 32 characters larger than specified and the starting address of the
 heap allocation has to be 16 characters before what parameter \p{extBuffer} points to.<br>
 Such external buffer allocation should therefore be conditionally implemented using code selection
-symbol \ref ALIB_DEBUG_STRINGS.
+symbol #"ALIB_DEBUG_STRINGS".
 
 Further details of the built-in debug mechanisms are not documented.
 Please refer to the source code of the \alib string classes, especially by investigating to code
-locations that use selection symbol \ref ALIB_DEBUG_STRINGS.
+locations that use selection macro #"ALIB_DEBUG_STRINGS".
 
 
 \I{################################################################################################}
 ## 6.5 Signed String Length ## {#alib_strings_details_signedlength}
-The string types introduced with this module are using type \alib{integer} to store the
+The string types introduced with this module are using type #"lang::integer" to store the
 string's length. This is a signed type - in contrast to what the C++ standard library suggests by
 using type \c size_t for the length of the type \c std::string!
 
@@ -1375,38 +1369,39 @@ and that also uses a similar restrictive warning policy with compilation.
 However, besides this confession of a certain level of laziness, there is also a true benefit in
 this decision: Types derived from class \b String may use this unused sign bit, to encode a
 binary piece of information in it.
-As a sample, \alib class \alib{strings;TAString;AString} leverages this option already:
-The information if a currently used buffer is of \alib{strings;TAString::SetBuffer;external or internal}
-allocation is determined by storing a positive or negative value in the likewise signed field \b capacity.
-This way, no additional boolean value is needed, which of course reduces the memory footprint of the class.
+As a sample, \alib class #"^AString" leverages this option already:
+The information if a currently used buffer is of #"TAString::SetBuffer(TChar*);external or internal"
+allocation is determined by storing a positive or negative value in the likewise signed field 
+\b capacity. This way, no additional boolean value is needed, which of course reduces the memory 
+footprint of the class.
 
 
 \I{################################################################################################}
-# 7. Strings And Character Widths # {#alib_strings_width}
+# 7\. Strings And Character Widths # {#alib_strings_width}
 
 \I{################################################################################################}
 ## 7.1 String Literals ## {#alib_strings_width_literals}
 
-As elaborated in the introductory chapter \ref alib_strings_intro_characters, in respect to
+As elaborated in the introductory chapter #"alib_strings_intro_characters", in respect to
 character type definitions and character array traits, this module completely relies
 on module \alib_characters_nl. While all string classes are templated, the character types
 that are used by the template instantiations are all defined in this underlying module.
 
 The alias types for each string class (defined in namespace #alib) enumerate all possible types
-by adding a prefix character or word, for example, \alib{NString}, \alib{WString} or
-\alib{ComplementString}.
-The aliases without any prefix, like \alib{String}, \alib{Substring} or \alib{AString} use the
-width of the generic and "agnostic" type \alib{characters;character}.
+by adding a prefix character or word, for example, #"NString", #"WString" or
+#"ComplementString".
+The aliases without any prefix, like #"alib::String;2", #"alib::Substring;2" or #"AString;2" use the
+width of the generic and "agnostic" type #"characters::character".
 
 Now, when using string literals, the following code is not platform agnostic::
 
         String myString= "Hello World";
 
-While it might compile on some platforms or with the right compiler-symbols for \alib in place,
+While it might compile on some platforms or with the right configuration macros for \alib in place,
 in the case that type \b character is a wide type, a compilation error is generated. Therefore,
 all non-narrow string literals need to be given by using a corresponding macro. The set of macros
 are also provided with the underlying module \alib_characters_nl. The "agnostic" macro
-needed in the sample above is simply \ref A_CHAR "A_CHAR":
+needed in the sample above is simply #"A_CHAR;A_CHAR":
 
         String myString= A_CHAR( "Hello World" );
 
@@ -1414,17 +1409,17 @@ As long as only strings of standard width are used, all that is needed to know i
 and every C++ string literal needs to be enclosed in this macro.
 
 Further macros that define string literals of specific width are given with
-- \ref A_CCHAR,
-- \ref A_SCHAR,
-- \ref A_NCHAR,
-- \ref A_WCHAR and
-- \ref A_XCHAR.
+- #"A_CCHAR",
+- #"A_SCHAR",
+- #"A_NCHAR",
+- #"A_WCHAR" and
+- #"A_XCHAR".
 
 \see
-- For more information on the macros, please consult chapter \ref alib_characters_prepro_literals
-  of the \ref alib_mod_characters "Programmer's Manual" of module \alib_characters_nl.
+- For more information on the macros, please consult chapter #"alib_characters_prepro_literals"
+  of the #"alib_mod_characters;Programmer's Manual" of module \alib_characters_nl.
 - For information about how to change the default character width, see chapter
-  \ref alib_characters_prepro "3. Type Selection And Character Literals".
+  #"alib_characters_prepro".
 - To really grasp all aspects of \alib characters and strings, of course both Programmer's
  Manuals should be reviewed. This might be a good point in time to do this.
 
@@ -1435,18 +1430,18 @@ types, or vice versa. For example, if an interface method accepts standard strin
 internally narrow strings are used.
 
 In such situations, the straight forward approach to this could be to use code selector
-symbol \ref ALIB_CHARACTERS_WIDE and provide two different code versions.
+symbol #"ALIB_CHARACTERS_WIDE" and provide two different code versions.
 
 To avoid this, the following macros are provided:
 
-- \ref ALIB_STRINGS_TO_NARROW
-- \ref ALIB_STRINGS_TO_NARROW_ARG
-- \ref ALIB_STRINGS_TO_WIDE
-- \ref ALIB_STRINGS_TO_WIDE_ARG
-- \ref ALIB_STRINGS_FROM_NARROW
-- \ref ALIB_STRINGS_FROM_NARROW_ARG
-- \ref ALIB_STRINGS_FROM_WIDE
-- \ref ALIB_STRINGS_FROM_WIDE_ARG
+- #"ALIB_STRINGS_TO_NARROW"
+- #"ALIB_STRINGS_TO_NARROW_ARG"
+- #"ALIB_STRINGS_TO_WIDE"
+- #"ALIB_STRINGS_TO_WIDE_ARG"
+- #"ALIB_STRINGS_FROM_NARROW"
+- #"ALIB_STRINGS_FROM_NARROW_ARG"
+- #"ALIB_STRINGS_FROM_WIDE"
+- #"ALIB_STRINGS_FROM_WIDE_ARG"
 
 In principal the macros define a new identifier, which in the case that a conversion is needed,
 uses a local string where the source string is appended, while in the case that the character widths
@@ -1456,7 +1451,7 @@ by a C++ compiler and thus, no performance penalty occurs.
 For details, consult the reference documentation of the macros.
 
 \I{################################################################################################}
-# 8. String Utility Classes # {#alib_strings_util}
+# 8\. String Utility Classes # {#alib_strings_util}
 This user manual concentrates on the general and fundamental aspects of the string types provided
 by this module.
 
@@ -1469,16 +1464,16 @@ To separate the fundamental string types from the utility classes, a dedicated i
 
 To investigate into the functionality and tools offered in the area of string handling, please
 consult the class list provided in the reference documentation of inner namespace
-\ref alib::strings::util.
+#"alib::strings::util;3".
 
 \I{################################################################################################}
-# 9. C++20 std::format # {#alib_strings_stdformat}
-With the inclusion of the header \implude{Compatibility.StdStrings}, specializations of
-the traits \alib{characters;ArrayTraits} are given, which allow string types of the
+# 9\. C++20 std::format # {#alib_strings_stdformat}
+With the inclusion of the header #"F;ALib.Strings.StdFormatter.H", specializations of
+the traits #"ArrayTraits" are given, which allow string types of the
 C++ Standard Library to be implicitly or explicitly converted to and from different
 \alib string types.
 \note
-  This was already explained in the previous chapter \ref alib_strings_cc_builtin.
+  This was already explained in the previous chapter #"alib_strings_cc_builtin".
 
 In addition, this header makes \alib string types compatible with the C++20 function
 <c>std::format</c>. And this is done in <b>three ways</b>, each covered by a next subsection.
@@ -1492,19 +1487,19 @@ their use in formatting calls like this:
 
 Due to their implicit conversion to class <c>std::string_view</c>, any \alib string type can also
 be used as a format string.
-The following sample uses a \alib{strings;TSubstring}:
+The following sample uses a #"TSubstring":
 
 \snippet "DOX_STRINGS.cpp"     DOX_STRINGS_STDFORMAT_ARGS_FMT
 
 \I{################################################################################################}
 ## 9.2 Using TAppend with std::format # {#alib_strings_stdformat_appendables}
-In Chapter \ref alib_strings_assembly_ttostring it was demonstrated how custom types can be
-made "appendable" to class TAString by specializing traits struct \alib{strings;AppendableTraits}.
+In Chapter #"alib_strings_assembly_ttostring" it was demonstrated how custom types can be
+made "appendable" to class TAString by specializing traits struct #"AppendableTraits".
 
-Now, with the inclusion of the header file \implude{Compatibility.StdStrings} any of such
+Now, with the inclusion of the header file #"F;ALib.Strings.StdFormatter.H" any of such
 custom type can be used with <c>std::format</c>, without specializing struct <c>std::formatter</c>.
 For this, the objects to format have to be wrapped in the special wrapper-type
-\alib{strings::APPENDABLES;Appendable}.
+#"APPENDABLES::Appendable".
 
 \note
   Due to a limitation in C++, it isn’t possible to conditionally specialize \c std::formatter
@@ -1515,7 +1510,7 @@ For this, the objects to format have to be wrapped in the special wrapper-type
   To avoid such ambiguities and ensure clear, unambiguous formatting behavior, it is required
   that types meant to work with \b AString be explicitly wrapped when used with std::format.
 
-As a simple sample, we use \c std::format to write an \ref alib_enums_records "ALib Enum Record"
+As a simple sample, we use \c std::format to write an #"alib_enums_records;ALib Enum Record"
 into a <c>std::string</c>:
 
 \snippet "DOX_STRINGS.cpp"     DOX_STRINGS_STDFORMAT_APPENDABLE
@@ -1528,8 +1523,8 @@ get motivated to make their own types printable by specializing the type traits 
 <c>std::formatter</c> - just as we demonstrated for the \alib string types in the previous
 section.
  
-Such an effort is very similar to what class \alib{strings;TAString} provides with traits struct
-\alib{strings;AppendableTraits} (see chapter \ref alib_strings_assembly_ttostring).
+Such an effort is very similar to what class #"TAString" provides with traits struct
+#"AppendableTraits" (see chapter #"alib_strings_assembly_ttostring").
 
 Because class \b TAString supports appending instances of type <c>std::string</c> the result
 of C++20 formatting operations can right away be appended to a \b %TAString, as shown
@@ -1547,14 +1542,14 @@ The following change of code prevents this:
 \snippet "DOX_STRINGS.cpp"     DOX_STRINGS_STDFORMAT_APPEND_STDFORMAT
 
 So, what is going on here? Let us walk through it step-by step:
-- Templated struct \alib{strings::APPENDABLES;TStdFormat}, with its
-  aliases \ref alib::StdFormat, \ref alib::NStdFormat and \ref alib::WStdFormat, is a small helper
-  type defined in the header \implude{Compatibility.StdStrings}.
+- Templated struct #"APPENDABLES::TStdFormat", with its
+  aliases #"StdFormat;2", #"NStdFormat;2" and #"WStdFormat;2", is a small helper
+  type defined in the header #"F;ALib.Strings.StdFormatter.H".
 - The type is enabled to collect a format string together with a set of variadic template types,
   just as accepted by the function <c>std::format</c>.
 - To allow comfortable construction of the type, the header in addition provides a
   \https{C++17 deduction guide,en.cppreference.com/w/cpp/language/class_template_argument_deduction}.
-- Next, the header specializes the type traits struct \alib{strings;AppendableTraits}.
+- Next, the header specializes the type traits struct #"AppendableTraits".
   Its implementation then calls <c>std::vformat_to</c> passing the \b AString as an output iterator.
 
 With that, the unnecessary creation of a <c>std::string</c> is avoided, and any custom type
@@ -1562,7 +1557,7 @@ that has a specialization of <c>std::formatter</c> can be likewise formatted tar
 \b AString with the same efficiency.
 
 \I{################################################################################################}
-# 10. String Formatting # {#alib_strings_format}
+# 10\. String Formatting # {#alib_strings_format}
 Almost any standard library of modern programming languages provides functionality that allows
 formatting a list of variadic arguments using a format string that follows a certain
 "placeholder syntax".
@@ -1573,7 +1568,7 @@ with its module \alib_boxing. Now, to keep module \alib_strings_nl independent o
 \alib_boxing_nl, formatting features as described above have been placed in a separated
 module, namely \alib_format. With that, a powerful implementation of formatting tools
 is provided. These are even supporting different standards of a format string's placeholder syntax,
-namely \alib{format;FormatterJavaStyle;printf and Java style} as well as
-\alib{format;FormatterPythonStyle;Python style}.
+namely #"FormatterJavaStyle;printf and Java style" as well as
+#"FormatterPythonStyle;Python style".
 
 <br><br><br><br><br><br> */

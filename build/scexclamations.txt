@@ -1,0 +1,25 @@
+# #################################################################################################
+# scexclamations.txt - ALox Tools: SourceFileCleaner
+# Copyright 2024-2025 A-Worx GmbH, Germany
+# Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+#
+# This file contains exclamation definition for running the ALib source cleaner tool on
+# ALib itself.
+# ##################################################################################################
+
+#    Filepath-substring(!)                       , ALGO [,start [, end]]
+#-------------------------------------------------------------------------------------------
+expressions/compilerplugin.hpp                   , DOX     ,  280,  286
+expressions/expressionscamp.hpp                  , DOX     ,  759
+characters/chartraits.hpp                        , MF      ,  375,  490
+strings/string.hpp                               , INDENT  ,  104
+system/filestatus.hpp                            , MF      ,  288
+boxing/box.cpp                                   , INDENT  ,  128
+boxing/placeholder.hpp                           , INDENT  ,   57,   93
+format/bytesize.hpp                              , INDENT  ,   14,   43
+threads/locks.cpp                                , MF      ,  528,  531
+lang/bitset.hpp                                  , MF      ,  381,  385
+lang/bitset.hpp                                  , RACNO   ,  382
+variables/vmeta.cpp                              , RACNO   ,   25  
+textlogger/variables.hpp                         , INDENT  ,  372,  379
+aloxcamp.hpp                                     , INDENT  ,  192,  199

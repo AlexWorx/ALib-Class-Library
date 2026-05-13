@@ -1,29 +1,3 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/strings/strings.prepro.hpp"
-#include "ALib.Strings.Vector.H"
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Strings.Escaper;
-    import   ALib.Strings.Tokenizer;
-#else
-#   include "ALib.Strings.Escaper.H"
-#   include "ALib.Strings.Tokenizer.H"
-#endif
-
-//========================================== Implementation ========================================
 namespace alib::strings::util {
 
 //==================================================================================================

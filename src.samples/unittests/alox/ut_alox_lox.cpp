@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -17,10 +17,7 @@
 #include "ALib.Variables.H"
 #include "ALib.Camp.H"
 #include "ALib.Lang.CIMethods.H"
-
-#if !ALIB_SINGLE_THREADED
-#   include   "ALib.Threads.H"
-#endif
+#include "ALib.Threads.H"
 
 using namespace std;
 using namespace alib;
@@ -116,13 +113,13 @@ void check_MemLogContains( const alib::CString& exp, AWorxUnitTesting& ut, Memor
     }
     if( DIRECTORY_SEPARATOR == '/' )
     {
-        UT_TRUE( memlog.MemoryLog.IndexOf<CHK ALIB_COMMA lang::Case::Ignore>( exp, 0 ) >=0 )
+        UT_TRUE((memlog.MemoryLog.IndexOf<CHK ALIB_COMMA lang::Case::Ignore>( exp, 0 ) >=0 ))
     }
     else
     {
         String256 expCorrected( exp );
         expCorrected.SearchAndReplace( '/', '\\'  );
-        UT_TRUE( memlog.MemoryLog.IndexOf<CHK ALIB_COMMA lang::Case::Ignore>( expCorrected, 0 ) >=0 )
+        UT_TRUE(( memlog.MemoryLog.IndexOf<CHK ALIB_COMMA lang::Case::Ignore>( expCorrected, 0 ) >=0 ))
     }
 
     memlog.MemoryLog.Reset();
@@ -185,69 +182,69 @@ UT_METHOD(Log_LogLevelSetting)
     Log_SetDomain( "TLLS_DF", Scope::Method )
 
     // Test Verbosity setting
-    integer  logLinesBefore= Log::DebugLogger->CntLogs;
+    integer  logLinesBefore= Log::DEBUG_LOGGER->CntLogs;
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "" )
     Log_Verbose  (          "This Verbose line should be logged" )
     Log_Info     (          "This Info    line should be logged" )
     Log_Warning  (          "This WARN    line should be logged" )
     Log_Error    (          "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Info, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Info, "" )
     Log_Verbose  (          "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     (          "This Info    line should be logged" )
     Log_Warning  (          "This Warning line should be logged" )
     Log_Error    (          "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning, "" )
     Log_Verbose  (          "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     (          "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  (          "This Warning line should be logged" )
     Log_Error    (          "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Error, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Error, "" )
     Log_Verbose  (          "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     (          "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  (          "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Error    (          "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Off, "" )
     Log_Verbose  (          "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     (          "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  (          "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Error    (          "This Error   line should NOT be logged. !!!!!Test Error!!!!!" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "/TLLS" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "/TLLS" )
     Log_Verbose  ( "/TLLS", "This Verbose line should be logged" )
     Log_Info     ( "/TLLS", "This Info    line should be logged" )
     Log_Warning  ( "/TLLS", "This WARN    line should be logged" )
     Log_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Info, "/TLLS" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Info, "/TLLS" )
     Log_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     ( "/TLLS", "This Info    line should be logged" )
     Log_Warning  ( "/TLLS", "This Warning line should be logged" )
     Log_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "/TLLS" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Warning, "/TLLS" )
     Log_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  ( "/TLLS", "This Warning line should be logged" )
     Log_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Error, "/TLLS" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Error, "/TLLS" )
     Log_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off, "/TLLS" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Off, "/TLLS" )
     Log_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
     Log_Error    ( "/TLLS", "This Error   line should NOT be logged. !!!!!Test Error!!!!!" )
 
-    UT_EQ( 20, Log::DebugLogger->CntLogs - logLinesBefore )
+    UT_EQ( 20, Log::DEBUG_LOGGER->CntLogs - logLinesBefore )
 }
 #endif
 
@@ -260,7 +257,7 @@ UT_METHOD(Log_SimpleScopeDomain)
     UT_INIT()
 
     integer  cntLL;
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
     Log_Error("No domain and nothing set")
 
     Log_SetDomain( "REPLACED",  Scope::Method )
@@ -270,26 +267,26 @@ UT_METHOD(Log_SimpleScopeDomain)
     String testERR= A_CHAR("This line must not appear");
 
     // Test Verbosity setting
-    Log_SetVerbosity( Log::DebugLogger,    Verbosity::Warning, "" )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Info       ( testERR )    UT_EQ( 0, Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Warning    ( testOK  )    UT_EQ( 1, Log::DebugLogger->CntLogs - cntLL )
+    Log_SetVerbosity( Log::DEBUG_LOGGER,    Verbosity::Warning, "" )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Info       ( testERR )    UT_EQ( 0, Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Warning    ( testOK  )    UT_EQ( 1, Log::DEBUG_LOGGER->CntLogs - cntLL )
 
-    Log_SetVerbosity( Log::DebugLogger,   Verbosity::Error )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Warning    ( testERR )    UT_EQ( 0, Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Error      ( testOK  )    UT_EQ( 1, Log::DebugLogger->CntLogs - cntLL )
+    Log_SetVerbosity( Log::DEBUG_LOGGER,   Verbosity::Error )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Warning    ( testERR )    UT_EQ( 0, Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Error      ( testOK  )    UT_EQ( 1, Log::DEBUG_LOGGER->CntLogs - cntLL )
 
     // test subdomains
     Log_Prune( MemoryLogger* testML= new MemoryLogger(); )
     Log_SetVerbosity( testML, Verbosity::Off )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
     Log_LogState ( "/TEST",      Verbosity::Info, A_CHAR("Dumping Log Configuration:") )
 
     Log_SetVerbosity ( testML,           Verbosity::Info       , "/DFLT"      )
     Log_SetVerbosity ( testML,           Verbosity::Warning    , "/DFLT/WARN" )
     Log_SetVerbosity ( testML,           Verbosity::Error      ,       "ERR"  )
-    Log_SetVerbosity ( Log::DebugLogger, Verbosity::Info       , "/DFLT"      )
-    Log_SetVerbosity ( Log::DebugLogger, Verbosity::Warning    , "/DFLT/WARN" )
-    Log_SetVerbosity ( Log::DebugLogger, Verbosity::Error      ,       "ERR"  )
+    Log_SetVerbosity ( Log::DEBUG_LOGGER, Verbosity::Info       , "/DFLT"      )
+    Log_SetVerbosity ( Log::DEBUG_LOGGER, Verbosity::Warning    , "/DFLT/WARN" )
+    Log_SetVerbosity ( Log::DEBUG_LOGGER, Verbosity::Error      ,       "ERR"  )
 
     Log_LogState ( "/TEST",      Verbosity::Info, A_CHAR("Dumping Log Configuration:") )
 
@@ -363,7 +360,7 @@ UT_METHOD(Log_Threads)
     UT_INIT()
 
     Log_SetDomain( "/TEST/THREAD1", Scope::Method )
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "" )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, "" )
 
     // if this gets commented out, the test might crash. At least the console will
     // become scrambled!
@@ -400,8 +397,8 @@ UT_METHOD(Log_TestAssertAndIf)
 
     // Test Verbosity setting
     Log_AddDebugLogger()
-    integer cntLL= Log::DebugLogger->CntLogs;
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Info, "ASSERT")
+    integer cntLL= Log::DEBUG_LOGGER->CntLogs;
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Info, "ASSERT")
 
     #ifdef ALOX_DBG_LOG
         int oneLine= 1;
@@ -411,23 +408,23 @@ UT_METHOD(Log_TestAssertAndIf)
 
     Log_SetDomain( "/ASSERT", Scope::Method )
 
-    cntLL= Log::DebugLogger->CntLogs;    Log_Assert( true,  "/ASSERT",                  testERR )  UT_EQ( 0,        Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Assert( false, "/ASSERT",                  testOK  )  UT_EQ( oneLine,  Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Assert( true,                              testERR )  UT_EQ( 0,        Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_Assert( false,                             testOK  )  UT_EQ( oneLine,  Log::DebugLogger->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Assert( true,  "/ASSERT",                  testERR )  UT_EQ( 0,        Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Assert( false, "/ASSERT",                  testOK  )  UT_EQ( oneLine,  Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Assert( true,                              testERR )  UT_EQ( 0,        Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_Assert( false,                             testOK  )  UT_EQ( oneLine,  Log::DEBUG_LOGGER->CntLogs - cntLL )
 
 
-    cntLL= Log::DebugLogger->CntLogs;    Log_If(     true,  "/ASSERT", Verbosity::Info, testOK  )  UT_EQ( oneLine,  Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_If(     false, "/ASSERT", Verbosity::Info, testERR )  UT_EQ( 0,        Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_If(     true,             Verbosity::Info, testOK  )  UT_EQ( oneLine,  Log::DebugLogger->CntLogs - cntLL )
-    cntLL= Log::DebugLogger->CntLogs;    Log_If(     false,            Verbosity::Info, testERR )  UT_EQ( 0,        Log::DebugLogger->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_If(     true,  "/ASSERT", Verbosity::Info, testOK  )  UT_EQ( oneLine,  Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_If(     false, "/ASSERT", Verbosity::Info, testERR )  UT_EQ( 0,        Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_If(     true,             Verbosity::Info, testOK  )  UT_EQ( oneLine,  Log::DEBUG_LOGGER->CntLogs - cntLL )
+    cntLL= Log::DEBUG_LOGGER->CntLogs;    Log_If(     false,            Verbosity::Info, testERR )  UT_EQ( 0,        Log::DEBUG_LOGGER->CntLogs - cntLL )
 }
 #endif
 
 /** ********************************************************************************************
  * Log_ScopeInfoCacheTest
  **********************************************************************************************/
-#if ALOX_DBG_LOG_CI
+#if ALOX_DBG_LOG_CI 
 UT_METHOD(Log_ScopeInfoCacheTest)
 {
     UT_INIT()
@@ -464,7 +461,7 @@ UT_METHOD(Log_ScopeInfoCacheTest)
 /** ********************************************************************************************
  * Log_SetSourcePathTrimRuleTest
  **********************************************************************************************/
-#if ALOX_DBG_LOG_CI
+#if ALOX_DBG_LOG_CI && !defined(ALIB_MINGW_CROSSCOMPILING)
 UT_METHOD(Log_SetSourcePathTrimRuleTest)
 {
     UT_INIT()
@@ -718,7 +715,7 @@ UT_METHOD(Log_MultipleLogables)
 
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
-    Log_SetVerbosity  ( Log::DebugLogger, Verbosity::Verbose, "BOXES" )
+    Log_SetVerbosity  ( Log::DEBUG_LOGGER, Verbosity::Verbose, "BOXES" )
     Log_SetVerbosity  ( &memLogger      , Verbosity::Verbose, "BOXES" )
     Log_Prune( memLogger.GetFormatMetaInfo().Format.Reset( A_CHAR("") );   )
 
@@ -768,15 +765,15 @@ UT_METHOD(Log_ChangeStartTime)
     UT_INIT()
 
     Log_AddDebugLogger()
-    Log_SetVerbosity  ( Log::DebugLogger, Verbosity::Verbose, "/S-TIME" )
+    Log_SetVerbosity  ( Log::DEBUG_LOGGER, Verbosity::Verbose, "/S-TIME" )
 
     Log_Info ( "/S-TIME", "This is the first log with normal start time" )
 
     Log_Prune( Ticks newTime;                     )
     Log_Prune( newTime-= Ticks::Duration::FromMinutes(20);   )
-    Log_SetStartTime( newTime, Log::DebugLogger->GetName() )
+    Log_SetStartTime( newTime, Log::DEBUG_LOGGER->GetName() )
     Log_Info ( "/S-TIME", "Starttime set to 20 minutes ago" )
-    Log_SetStartTime( Ticks(),  Log::DebugLogger->GetName() )
+    Log_SetStartTime( Ticks(),  Log::DEBUG_LOGGER->GetName() )
     Log_Info ( "/S-TIME", "Starttime set to 'now'" )
 }
 
@@ -791,7 +788,7 @@ UT_METHOD(Log_GetState)
     Log_Prune( MemoryLogger memLogger;  )
 
     // reduce meta-information to limit output width
-    Log_Prune( Log::DebugLogger->GetFormatMetaInfo().Format.Reset( A_CHAR("[%tN]%V[%D](%#): ") );  )
+    Log_Prune( Log::DEBUG_LOGGER->GetFormatMetaInfo().Format.Reset( A_CHAR("[%tN]%V[%D](%#): ") );  )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
     Log_Prune(         memLogger.GetFormatMetaInfo().Format.Reset( A_CHAR("[%tN]%V[%D](%#): ") );  )
     Log_Prune(         memLogger.GetFormatMultiLine().Mode= 3; )
@@ -854,9 +851,9 @@ UT_METHOD(Log_DumpStateOnExit)
 
 
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    UT_EQ( 1, Log::DebugLogger->CntLogs )
+    UT_EQ( 1, Log::DEBUG_LOGGER->CntLogs )
     Log_RemoveLogger( &memLogger )
-    UT_EQ(1, Log::DebugLogger->CntLogs )
+    UT_EQ(1, Log::DEBUG_LOGGER->CntLogs )
 
     integer cntLogs;
 
@@ -866,27 +863,27 @@ UT_METHOD(Log_DumpStateOnExit)
     vc= String(A_CHAR("domain=/TEST, verbosity = e, sptr, basic"));
 
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    cntLogs= Log::DebugLogger->CntLogs;
+    cntLogs= Log::DEBUG_LOGGER->CntLogs;
     Log_RemoveLogger( &memLogger )
-    UT_TRUE( Log::DebugLogger->CntLogs > cntLogs )
+    UT_TRUE( Log::DEBUG_LOGGER->CntLogs > cntLogs )
 
     vc= String(A_CHAR("verbosity = e, domains, basic"));
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    cntLogs= Log::DebugLogger->CntLogs;
+    cntLogs= Log::DEBUG_LOGGER->CntLogs;
     Log_RemoveLogger( &memLogger )
-    UT_TRUE( Log::DebugLogger->CntLogs > cntLogs )
+    UT_TRUE( Log::DEBUG_LOGGER->CntLogs > cntLogs )
 
     vc= String(A_CHAR("domains, loggers"));
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    cntLogs= Log::DebugLogger->CntLogs;
+    cntLogs= Log::DEBUG_LOGGER->CntLogs;
     Log_RemoveLogger( &memLogger )
-    UT_TRUE( Log::DebugLogger->CntLogs > cntLogs )
+    UT_TRUE( Log::DEBUG_LOGGER->CntLogs > cntLogs )
 
     vc= String(A_CHAR(""));
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
-    cntLogs= Log::DebugLogger->CntLogs;
+    cntLogs= Log::DEBUG_LOGGER->CntLogs;
     Log_RemoveLogger( &memLogger )
-    UT_TRUE( Log::DebugLogger->CntLogs == cntLogs )
+    UT_TRUE( Log::DEBUG_LOGGER->CntLogs == cntLogs )
 
    Log_RemoveDebugLogger()
 }
@@ -901,7 +898,7 @@ UT_METHOD(Log_WriteVerbosities)
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger("MYLGGR") ;  )
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
+    Log_SetVerbosity( Log::DEBUG_LOGGER, Verbosity::Verbose, Lox::InternalDomains )
 
     Log_SetVerbosity( &memLogger, Verbosity::Verbose )
     Log_RemoveLogger( &memLogger )

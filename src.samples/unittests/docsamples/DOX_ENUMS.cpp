@@ -1,6 +1,6 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -12,7 +12,6 @@
 #include <assert.h>
 #include "ALib.ALox.H"
 #include "ALib.Monomem.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.EnumOps.H"
 DOX_MARKER( [DOX_ENUMS_RECORDS_HEADER_COMPAT_IOSTREAM])
 #include "ALib.Strings.StdIOStream.H"
@@ -529,16 +528,14 @@ DOX_MARKER([DOX_ENUMS_ARITHMETIC_2])
 
 DOX_MARKER([DOX_ENUMS_ITER_SAMPLE_LOOP])
 // loop over pets
-for( auto element : { Pets::Cat, Pets::Dog, Pets::Bird, Pets::Snake } )
-{
+for( auto element : { Pets::Cat, Pets::Dog, Pets::Bird, Pets::Snake } ) {
     // do something...
     cout << int(element) << endl;
 }
 DOX_MARKER([DOX_ENUMS_ITER_SAMPLE_LOOP])
 
 DOX_MARKER([DOX_ENUMS_ITER_SAMPLE_LOOP_NEW])
-for( auto element : enumops::EnumIterator<Pets>() )
-{
+for( auto element : enumops::EnumIterator<Pets>() ) {
     // do something...
     cout << int(element) << endl;
 }
@@ -845,9 +842,9 @@ DOX_MARKER([DOX_ENUMS_OPERATORS_SAMPLE_1])
                                                                                                             + BitsParsable::Two           )             UT_EQ( A_CHAR("x")      , s)
         bits= BitsParsable(0);  UT_TRUE ( enumrecords::ParseBitwise( s= A_CHAR("f")        , bits) )       UT_TRUE( bits== BitsParsable::Four  )         UT_EQ( A_CHAR("")       , s)
         bits= BitsParsable(0);  UT_TRUE ( enumrecords::ParseBitwise( s= A_CHAR("f , murx") , bits)                                              )        UT_TRUE( bits== BitsParsable::Four   )  UT_EQ( A_CHAR(", murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA true >( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" , murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Trim ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR("murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f, murx" ), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" murx") , s)
+        bits= BitsParsable(0);  UT_TRUE ((enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA true >( s= A_CHAR("f , murx"), bits )))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" , murx"), s)
+        bits= BitsParsable(0);  UT_TRUE ((enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Trim ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f , murx"), bits )))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR("murx")   , s)
+        bits= BitsParsable(0);  UT_TRUE ((enumrecords::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f, murx" ), bits )))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" murx")  , s)
     }
 
     UT_METHOD( lang_enumops_Arithmetic )

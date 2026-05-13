@@ -1,0 +1,88 @@
+/// \file
+// #################################################################################################
+//  ALib C++ Framework
+//  App Sample Resources
+//
+//  Copyright 2025 A-Worx GmbH, Germany
+//  Published under Boost Software License (a free software license, see LICENSE.txt)
+// #################################################################################################
+// DOX_MARKER([DOX_ALIB_SAMPLE_ALIBRC])
+
+AppInfo |
+    @HL-ALib Resource Compiler V. {}.{}
+    (c) 2023-{} AWorx GmbH. Published under MIT License (Open Source).
+    For more information, see: https://alib.dev/alib_mod_resources.html
+    @HL-
+
+MSNGRCFILE   No resource file name given.
+MSNGCPPFILE  No C++ file name given.
+
+NOTACCESSIBLE  File {!Q} is not accessible.
+UKNFILE        Unknown error with file {!Q}.
+ISDIR          Given path {!Q} is a directory instead of a file.
+
+DryRunStart    ALibRC dry-run mode.
+DryRunEnd      ALibRC dry-run done.
+
+//-------------------- CLI Commands/Options/Parameters/ExitCodes --------------------
+ARCO<       ALibRC::Options::
+//enum  ident        minread    identChar   in-arg-separ.   args to consume    ShortcutTo
+ARCO ~|
+  1,    validate      ,1,          v,          =               ,0                ,
+
+
+ARCE<  ALibRC::ExitCodes::
+ARCE ~|
+  101,ErrMissingRCFilename     ,
+  102,ErrRCFileNotFound        ,
+  103,ErrRCFileNotAccessible   ,
+  104,ErrMissingCPPFilename    ,
+  105,ErrCPPFileNotFound       ,
+  106,ErrCPPFileNotAccessible  ,
+  107,ErrInResources
+
+TExit101   No input resource file name given.
+TExit102   Given resource file not found.
+TExit103   Resource file is not readable.
+TExit104   No C++ source file to patch given.
+TExit105   Given C++ resource file not found.
+TExit106   C++ file is not writable.
+TExit107   The resource file is erroneous.
+
+//-------------------- Help Texts --------------------
+HlpCLIAppName  ALibRC
+
+HlpUsage       "alibrc resourcefile cppfile"
+
+HlpGeneral >
+  \nABOUT ALibRC\n
+  @>>This is a tool provided by the C++ Framework ALib that compiles external resources and inserts
+  a corresponding code snippet into a C++ source file.
+  The resources are specified in a resource file, while the C++ source file must exist and
+  contain special markers for the insertion position.\n
+  All details are given in the documentation of the ALib C++ Framework at:\n
+    https://alib.dev/
+  \n\n@<<
+
+THlpCmdSht_validate     Parses the given resource file and checks for errors.
+THlpCmdLng_validate >   Parses the given resource file and reports any errors.
+                        No C++ code is generated and the cpp-file (if given) is not modified.
+
+TOptUsg_validate        --validate resourcefile [cppfile]
+TOptHlp_validate >
+  If this option is given (anywhere in the command line), the resource file is only parsed and no
+  C++ code is generated. The cpp-file parameter is ignored and can be omitted.
+
+
+TOptUsg_format   --format[=]\"placeholders\"
+TOptHlp_format  >
+    Sets the output format. The format specification is given with the documentation of the
+    ALib method CalendarDateTime::Format, found here:\n
+    https://alib.dev/classalib_1_1strings_1_1util_1_1CalendarDateTime.html
+
+THlpParSht_rc-file The '*.alibrc' input file.
+THlpParLng_rc-file  =>
+  Denotes the input file, usually of extension '*.alibrc'. This is a mandatory parameter to give.
+
+
+// DOX_MARKER([DOX_ALIB_SAMPLE_ALIBRC])

@@ -1,5 +1,5 @@
 // #################################################################################################
-//  ALib C++ Library
+//  ALib C++ Framework
 //  Singleton Sample
 //
 //  Copyright 2025 A-Worx GmbH, Germany
@@ -63,7 +63,7 @@ int main()
     // We can't create a second one, constructor is private
 
 
-    // The dump function is only available if symbol ALIB_FEAT_SINGLETON_MAPPED is true.
+    // The dump function is only available if configuration macro ALIB_FEAT_SINGLETON_MAPPED is true.
     // On GNU/Linux and mac this defaults to false. (On Windows OS to true.)
     // The sample's cmake file however overwrites the default value for demonstration purpose!
     #if ALIB_DEBUG && ALIB_FEAT_SINGLETON_MAPPED

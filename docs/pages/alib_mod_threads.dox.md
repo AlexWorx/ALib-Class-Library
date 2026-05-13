@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALib C++ Library
+//  Documentation - ALib C++ Framework
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,9 +11,10 @@
 \tableofcontents
       
 \I{################################################################################################}
-# 1. Introduction # {#alib_threads_intro}
+# 1\. Introduction # {#alib_threads_intro}
 
-The fundamental two topics that a class library dedicated "multithreaded programming" adress are:
+The fundamental two topics that a C++ class library that is dedicated to "multithreaded programming"
+addresses are:
 1. Launching and managing threads, and
 2. protecting data against corruption caused by uncontrolled concurrent access
    (racing conditions on critical sections).
@@ -46,45 +47,45 @@ Therefore, we give a red signal for this rule:
   In other words: A user might use any other library to create and manage threads.
   Nevertheless, as soon as parallel calls into \alib are made, this module has to be included.
 
-It has to be ensured that namespace functions #alib::threads::bootstrap and
-#alib::threads::shutdown are duly called with the start, respectively the termination of an
+It has to be ensured that namespace functions #"alib::threads::bootstrap;3" and
+#"alib::threads::shutdown;3" are duly called with the start, respectively the termination of an
 application.
-This is done with \ref alib_mod_bs "bootstrapping the library".
+This is done with #"alib_mod_bs;bootstrapping the library".
    
 # 1.2 Threading-Agnostic Software # {#alib_threads_intro_agnostic}
 The term used in the headline of this section needs to be explained: As a general-purpose library,
 \alib aims to support both use with single threaded and multithreaded environments.
 To achieve this, three guidelines are followed:
 
-1. When the \alib preprocessor symbol \ref ALIB_SINGLE_THREADED is not set, critical sections become
+1. When the \alib configuration macro #"ALIB_SINGLE_THREADED" is not set, critical sections become
    internally protected.
 2. Only those sections that the using code cannot protect by himself have built-in protection.
-   \note As an example, container class \alib{containers;HashTable} is not protected because
+   \note As an example, container class #"HashTable" is not protected because
          a using code can protect interfacing with an instance by itself.
-         On the other hand, accessing the \alib{format;Formatter::Default;default formatter instance}
+         On the other hand, accessing the #"Formatter::DEFAULT;default formatter instance"
          is protected because it may be used internally with some higher level functionality,
-         for example, with \alib{exceptions;Exception::Format}.
+         for example, with #"Exception::Format;*".
 3. When the symbol \b ALIB_SINGLE_THREADED is set, all protection is pruned to maximize
    execution performance.
                                     
 To achieve this, some sort of "cooperation" between the core of \alib and this module is necessary.
 This cooperation means: Even if \b ALIB_SINGLE_THREADED is given, still some skeleton of types and
 macros of this module remain existent.
-As samples for this, take macro \ref ALIB_LOCK_WITH or debug-type
-#alib::lang::DbgCriticalSections.
-As seen, the latter type is placed in core namespace #alib::lang and in the absence of this module,
-remains there as an empty type. Usages of it are optimized out.
+As samples for this, take macro #"ALIB_LOCK_WITH" or debug-type 
+#"alib::lang::DbgCriticalSections;3".
+With being placed in core namespace #"alib::lang;2", in the absence of this module, it remains there 
+as an empty type and continued usages of it are not causing an error but are optimized out.
 
 "Cooperation" here is a positive wording.
 Negatively expressed, it could be said that "the isolation rules were broken".
 The benefit of this design decision is that all other code can use the macros and types independent
 from the \alibbuild_nl. This avoids code clutter in \alib as well as in custom code that
-opts in to using these features for themselves, which means, custom code can support both,
+opts in to using these features for themselves, which means custom code can support both 
 single-threaded and multithreaded compilation.
  
  
 # 1.3 Pruning # {#alib_threads_intro_pruning}
-This section lists entities placed in #alib::lang instead of #alib::threads
+This section lists entities placed in #"alib::lang;2" instead of #"alib::threads;2"
 and macros that are likewise always available regardless if this module is included in an
 \alibbuild or not.
 If it is not included, the macros are defined <em>"empty"</em>, so that their use is pruned.
@@ -92,49 +93,49 @@ If it is not included, the macros are defined <em>"empty"</em>, so that their us
 Please consult the reference documentation of the listed entities for more information.
 
 - Owner types (also used in other areas, but especially valuable to safely lock mutexes):
-  - \alib{lang;Owner},
-  - \alib{lang;OwnerTry},
-  - \alib{lang;OwnerTimed},
-  - \alib{lang;OwnerRecursive},
-  - \alib{lang;OwnerShared},
-  - \alib{lang;OwnerTryShared}, and
-  - \alib{lang;OwnerSharedTimed}.
+  - #"lang::Owner",
+  - #"OwnerTry",
+  - #"OwnerTimed",
+  - #"OwnerRecursive",
+  - #"OwnerShared",
+  - #"OwnerTryShared", and
+  - #"OwnerSharedTimed".
 
 <p>
 - Macros using the owner types:
-  - \ref ALIB_LOCK,
-  - \ref ALIB_LOCK_WITH,
-  - \ref ALIB_LOCK_RECURSIVE,
-  - \ref ALIB_LOCK_RECURSIVE_WITH,
-  - \ref ALIB_LOCK_SHARED, and
-  - \ref ALIB_LOCK_SHARED_WITH,
+  - #"ALIB_LOCK",
+  - #"ALIB_LOCK_WITH",
+  - #"ALIB_LOCK_RECURSIVE",
+  - #"ALIB_LOCK_RECURSIVE_WITH",
+  - #"ALIB_LOCK_SHARED", and
+  - #"ALIB_LOCK_SHARED_WITH",
        
 <p>
-- Class \alib{lang;DbgCriticalSections} (discussed in the next section.)
+- Class #"lang::DbgCriticalSections" (discussed in the next section.)
   - Macros for owning critical sections:
-    - \ref ALIB_DCS,
-    - \ref ALIB_DCS_SHARED, and
-    - \ref ALIB_DCS_WITH,
-    - \ref ALIB_DCS_SHARED_WITH,
+    - #"ALIB_DCS",
+    - #"ALIB_DCS_SHARED", and
+    - #"ALIB_DCS_WITH",
+    - #"ALIB_DCS_SHARED_WITH",
          
   - Macros for acquiring and releasing critical sections:
-    - \ref ALIB_DCS_ACQUIRE
-    - \ref ALIB_DCS_ACQUIRE_WITH(CS)
-    - \ref ALIB_DCS_RELEASE
-    - \ref ALIB_DCS_RELEASE_WITH(CS)
-    - \ref ALIB_DCS_ACQUIRE_SHARED
-    - \ref ALIB_DCS_ACQUIRE_SHARED_WITH(CS)
-    - \ref ALIB_DCS_RELEASE_SHARED
-    - \ref ALIB_DCS_RELEASE_SHARED_WITH(CS)
+    - #"ALIB_DCS_ACQUIRE"
+    - #"ALIB_DCS_ACQUIRE_WITH(CS")
+    - #"ALIB_DCS_RELEASE"
+    - #"ALIB_DCS_RELEASE_WITH(CS")
+    - #"ALIB_DCS_ACQUIRE_SHARED"
+    - #"ALIB_DCS_ACQUIRE_SHARED_WITH(CS")
+    - #"ALIB_DCS_RELEASE_SHARED"
+    - #"ALIB_DCS_RELEASE_SHARED_WITH(CS")
     
 # 1.4 Assertions With Debug-Builds  ## {#alib_threads_intro_assert}
 ## 1.4.1 Background Considerations  ## {#alib_threads_intro_assert_background}
 The few fundamental types offered by this module provide typical assertions in debug-builds,
 as found with similar types provided elsewhere.
-For example, if a \alib{threads;Lock} is destructed, it is asserted that it is not locked.
+For example, if a #"threads::Lock" is destructed, it is asserted that it is not locked.
 
 Besides those, \alib proposes a rather uncommon type of assertion mechanic. This is implemented
-with class \alib{lang::DbgCriticalSections} (explicitly located not in this module) and
+with class #"lang::DbgCriticalSections" (explicitly located not in this module) and
 those preprocessor macros listed in the previous section whose name starts with \b ALIB_DCS.
 The approach taken is simply to mark certain code segments as being critical.
 Critical sections vary by use case, making it impossible for "lower-level" code entities to
@@ -192,14 +193,14 @@ But it can! For that turn, two things are necessary:
                                                                            
                           
 ## 1.4.2 Asserting Critical Sections' Entry And Exit ## {#alib_threads_intro_assert_entry}
-With this theory discussed, type \alib{lang;DbgCriticalSections} can now be quickly explained.
+With this theory discussed, type #"lang::DbgCriticalSections" can now be quickly explained.
 - A combined approach of asserting sections that might get protected by standard locks,
   recursive locks, and shared locks is implemented with this single type.
 - The type usually is inherited publicly by types that are typical candidates to impose critical
   sections and multithreaded access.
-  For example, within \alib among such types are \ref #alib::monomem "allocators" and
-  \ref #alib::containers "container types".<br>
-  If the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, these types conditionally derive
+  For example, within \alib among such types are #"alib::monomem;allocators" and
+  #"alib::containers;container types".<br>
+  If the configuration macro #"ALIB_DEBUG_CRITICAL_SECTIONS" is set, these types conditionally derive
   from \b DbgCriticalSections or add a corresponding member.
 - Acquirement, normal or shared, is always recursive with this debug-type.
   Otherwise, its use would become too complicated, because, for example, the container types
@@ -214,30 +215,30 @@ With this theory discussed, type \alib{lang;DbgCriticalSections} can now be quic
   The write methods of container types likewise check for full access, while their read
   methods check for shared access only.<br>
 - If a type inherited from \b DbgCriticalSections, the easiest way to acquire, is to use
-  macros \ref ALIB_DCS or \ref ALIB_DCS_SHARED.<br>
-  If \b DbgCriticalSections is implemented as a member, alternative macros \ref ALIB_DCS_WITH and
-  \ref ALIB_DCS_SHARED_WITH are to be used. <br>
-  These macros create an anonymous instance of class \alib{lang;Owner}
-  (respectively \alib{lang;OwnerShared}), which assures the release of the section, even if
+  macros #"ALIB_DCS" or #"ALIB_DCS_SHARED".<br>
+  If \b DbgCriticalSections is implemented as a member, alternative macros #"ALIB_DCS_WITH" and
+  #"ALIB_DCS_SHARED_WITH" are to be used. <br>
+  These macros create an anonymous instance of class #"lang::Owner"
+  (respectively #"OwnerShared"), which assures the release of the section, even if
   exceptions are thrown.
-- Alternative macros, which do not rely on the automation mechanics of class \alib{lang;Owner}
+- Alternative macros, which do not rely on the automation mechanics of class #"lang::Owner"
   and it siblings, are given with:
-  - \ref ALIB_DCS_ACQUIRE
-  - \ref ALIB_DCS_ACQUIRE_WITH(CS)
-  - \ref ALIB_DCS_RELEASE
-  - \ref ALIB_DCS_RELEASE_WITH(CS)
-  - \ref ALIB_DCS_ACQUIRE_SHARED
-  - \ref ALIB_DCS_ACQUIRE_SHARED_WITH(CS)
-  - \ref ALIB_DCS_RELEASE_SHARED
-  - \ref ALIB_DCS_RELEASE_SHARED_WITH(CS)
+  - #"ALIB_DCS_ACQUIRE"
+  - #"ALIB_DCS_ACQUIRE_WITH(CS")
+  - #"ALIB_DCS_RELEASE"
+  - #"ALIB_DCS_RELEASE_WITH(CS")
+  - #"ALIB_DCS_ACQUIRE_SHARED"
+  - #"ALIB_DCS_ACQUIRE_SHARED_WITH(CS")
+  - #"ALIB_DCS_RELEASE_SHARED"
+  - #"ALIB_DCS_RELEASE_SHARED_WITH(CS")
 - Finally, if module \alib_threads_nl is not included in an \alibbuild_nl, then with
-  debug-compilations, the macros above \alib{assert;SingleThreaded;assert single threaded use}
+  debug-compilations, the macros above #"SingleThreaded;assert single threaded use"
   of \alib.
                                   
 The output written with assertions should be 'clickable' inside a users' IDE.
 The default output string is optimized for \https{JetBrains CLion,www.jetbrains.com/clion} and can
 be changed by manipulating the static field member
-\alib{lang;DbgCriticalSections::ASSERTION_FORMAT}.
+#"DbgCriticalSections::ASSERTION_FORMAT;*".
 
 ## 1.4.3 Asserting Critical Section Locks   ## {#alib_threads_intro_assert_locks}
 
@@ -248,32 +249,32 @@ compromising cases.
 
 It is clear that the underlying code even more has no knowledge about which instance of a
 mutex has to be locked when entering a critical section.
-Class \alib{lang;DbgCriticalSections} allows receiving this knowledge.
-This is done using \alib{lang::DbgCriticalSections;AssociatedLock}, which is a virtual struct
+Class #"lang::DbgCriticalSections" allows receiving this knowledge.
+This is done using #"DbgCriticalSections::AssociatedLock", which is a virtual struct
 that allows answering the question about whether or not "something" is acquired.
-With the compiler-symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS set, the six lock types of \alib
+With the configuration macro #"ALIB_DEBUG_CRITICAL_SECTIONS" set, the six lock types of \alib
 inherit this interface and thus can be optionally set to member
-\alib{lang::DbgCriticalSections;DCSLock}.
+#"DbgCriticalSections::DCSLock".
 If done, with the acquisition and release of the section, the state of the lock provided is
 asserted.
 
 Three samples introduced by other \alibmods_nl quickly demonstrate this:
 \par Sample 1:
-  Unique namespace instance \alib{monomem;GLOBAL_ALLOCATOR} is accompanied by mutex
-  \alib{monomem;GLOBAL_ALLOCATOR_LOCK}.
-  During \ref alib_mod_bs "bootstrap",
+  Unique namespace instance #"GLOBAL_ALLOCATOR" is accompanied by mutex
+  #"GLOBAL_ALLOCATOR_LOCK".
+  During #"alib_mod_bs;bootstrap",
   this lock is attached to the allocator instance like this:
    \snippet "bootstrap/bootstrap.cpp"           DOX_CRITICAL_SECTIONS_ADD_LOCK
 \par
   Consequently, assertions are raised, if:
   - It is a debug-compilation,
   - Module \alib_threads_nl is included in the \alibbuild,
-  - Compiler symbol \ref ALIB_DEBUG_CRITICAL_SECTIONS is set, and
+  - Configuration macro #"ALIB_DEBUG_CRITICAL_SECTIONS" is set, and
   - the \b GLOBAL_ALLOCATOR is used without prior acquisition of \b GLOBAL_ALLOCATOR_LOCK.
           
 \par Sample 2:
-  Static member \alib{format;Formatter::Default} is accompanied by mutex
-  \alib{format;Formatter::DefaultLock}.
+  Static member #"Formatter::DEFAULT;*" is accompanied by mutex
+  #"Formatter::DEFAULT_LOCK;*".
   During bootstrap, this lock is attached to the formatter instance like this:
    \snippet "bootstrap/bootstrap.cpp"    DOX_CRITICAL_SECTIONS_ADD_LOCK2
 \par
@@ -281,10 +282,10 @@ Three samples introduced by other \alibmods_nl quickly demonstrate this:
   of the default-formatter asserts that the corresponding mutex is acquired.
   
 \par Sample 3:
-  Class \alib{threads;TCondition} is a next candidate for a potential lock usable with
+  Class #"TCondition" is a next candidate for a potential lock usable with
   critical section testing. But because the type is a template and designed to be usable
   as a base type only, it technically cannot implement the debugging interface \b AssociatedLock.
-  But derived types can. This is, for example, the case with class \alib{threadmodel;ThreadPool}.
+  But derived types can. This is, for example, the case with class #"ThreadPool".
   When critical section debugging is active, it attaches itself with field \b DCSLock of
   its \b MonoAllocator member. This ensures that allocations are only performed when the
   thread pool is locked.
@@ -318,7 +319,7 @@ Three samples introduced by other \alibmods_nl quickly demonstrate this:
 \divend
  
 \I{################################################################################################}
-# 2. Thread Creation And Management# {#alib_threads_creation}
+# 2\. Thread Creation And Management# {#alib_threads_creation}
 This module provides only basic support for thread creation, registration, and termination.
 The reason is that, this module (as elaborated in the introduction), has the role of switching
 the whole library to have thread support - or not.
@@ -326,16 +327,16 @@ the whole library to have thread support - or not.
 More sophisticated thread management is found with the higher-level module \alib_threadmodel.
 
 All that is available is
-- class \alib{threads;Thread} and
-- abstract class \alib{threads;Runnable}.
+- class #"Thread" and
+- abstract class #"Runnable".
 
 Their use is quite self-explanatory and documented with reference documentation of the types.
 
 \note
   It is no problem to have threads started using different methods and libraries than the
   one found here, as long as such threads become "native" operating system threads.
-  If later such a thread uses method \alib{threads;Thread::GetCurrent}, a corresponding
-  \alib{threads;Thread} object of \alib is created internally and returned.
+  If later such a thread uses method #"Thread::GetCurrent;*", a corresponding
+  #"Thread" object of \alib is created internally and returned.
   This way, the externally created thread is automatically "registered" with \alib.
 \note
   If not stated differently in the detailed documentation, from this point in time,
@@ -344,19 +345,19 @@ Their use is quite self-explanatory and documented with reference documentation 
   The same or similar should be \c true for the opposite situation.
 
 \I{################################################################################################}
-# 3. Locks# {#alib_threads_locks}
+# 3\. Locks# {#alib_threads_locks}
 In the area of data protection and controlling concurrent access to critical code sections,
 this module provides the following six types,
 which are wrappers around corresponding C++ Standard Library types:
                                                                                     
 ALib Type                         | Wrapped C++ Standard Library Type
 ----------------------------------|------------------------------------------
-\alib{threads;Lock}               | <c>std::mutex</c>
-\alib{threads;TimedLock}          | <c>std::timed_mutex</c>
-\alib{threads;RecursiveLock}      | <c>std::recursive_mutex</c>
-\alib{threads;RecursiveTimedLock} | <c>std::recursive_timed_mutex</c>
-\alib{threads;SharedLock}         | <c>std::shared_mutex</c>
-\alib{threads;SharedTimedLock}    | <c>std::shared_timed_mutex</c>
+#"threads::Lock"               | <c>std::mutex</c>
+#"threads::TimedLock"          | <c>std::timed_mutex</c>
+#"threads::RecursiveLock"      | <c>std::recursive_mutex</c>
+#"threads::RecursiveTimedLock" | <c>std::recursive_timed_mutex</c>
+#"threads::SharedLock"         | <c>std::shared_mutex</c>
+#"threads::SharedTimedLock"    | <c>std::shared_timed_mutex</c>
 
 The timed methods (of the timed lock versions), detect spurious wake-ups and mitigate those.
                                           
@@ -375,18 +376,18 @@ Furthermore, the timed versions have the same footprint on these platforms.
 
 ## 3.2 Debug Features ## {#alib_threads_locks_dbg}
 With debug-compilations, each lock receives a member called \b Dbg, which is of type
-\alib{threads;DbgLockAsserter}, respectively for the two shared-locks of type
-\alib{threads;DbgSharedLockAsserter}.
-This type stores \alib{lang;CallerInfo;caller information} of recent acquisition and release
+#"DbgLockAsserter", respectively for the two shared-locks of type
+#"DbgSharedLockAsserter".
+This type stores #"CallerInfo;caller information" of recent acquisition and release
 actions.
 The information includes source code location, caller type-info, and the calling thread.
 Assertions produce exhaustive information, which tremendously helps to quickly identify
 many problems.
 \note The output should be "clickable" in your development environment.
       If it is not, the format can be changed so that it is recognized by a users' IDE.
-      It is given with static fields \alib{threads;DbgLockAsserter::ASSERTION_FORMAT}
+      It is given with static fields #"DbgLockAsserter::ASSERTION_FORMAT;*"
       for the non-shared lock types and with
-      \alib{threads;DbgSharedLockAsserter::ASSERTION_FORMAT_SHARED} for the two shared lock types.
+      #"DbgSharedLockAsserter::ASSERTION_FORMAT_SHARED;*" for the two shared lock types.
 
 Assertions are raised, when
 - nested acquisitions on non-recursive locks are performed,
@@ -399,15 +400,15 @@ Furthermore, two sorts of warnings are given:
   C++ Library.
   With that, they optionally write debug-warning messages about waiting times higher than a given
   threshold.
-  This threshold is found with debug-member \alib{threads;DbgLockAsserter::WaitTimeLimit}.
-- A maximum recursion threshold is provided with field \alib{threads;DbgLockAsserter::WaitTimeLimit}
-- Field \alib{threads;DbgLockAsserter::RecursionLimit} provides a threshold for the number of
+  This threshold is found with debug-member #"DbgLockAsserter::WaitTimeLimit;*".
+- A maximum recursion threshold is provided with field #"DbgLockAsserter::WaitTimeLimit;*"
+- Field #"DbgLockAsserter::RecursionLimit;*" provides a threshold for the number of
   nested acquisitions, which defaults to \c 10.
   Note that recursion sometimes is not easily avoidable, but if a recursive lock is in fact needed,
   it should still not be overused.
   Of course the threshold can be lifted if needed.
           
-\note Similar assertions are implemented with type \alib{threads;TCondition}.
+\note Similar assertions are implemented with type #"TCondition".
 
 ## 3.3 Automatic Locking ## {#alib_threads_locks_auto}
 ### 3.3.1 Class Owner And Its Siblings ## {#alib_threads_locks_auto_owner}
@@ -415,30 +416,30 @@ Furthermore, two sorts of warnings are given:
 in this module. It is strongly advised to use their
 \https{RAII automation mechanics,https://en.cppreference.com/w/cpp/language/raii} whenever possible.
 
-The main type of this set is class \alib{lang;Owner} which on construction invokes a method called
+The main type of this set is class #"lang::Owner" which on construction invokes a method called
 \b Acquire with its templated type \p{TOwnable} and \b Release on destruction.
 
 Along with the different <em>Owner</em>-types come three macros that makes their use easier by
 creating an "anonymous local variable". Those are:
-- \ref ALIB_OWN,
-- \ref ALIB_OWN_RECURSIVE, and
-- \ref ALIB_OWN_SHARED.
+- #"ALIB_OWN",
+- #"ALIB_OWN_RECURSIVE", and
+- #"ALIB_OWN_SHARED".
  
 \note Anonymous local variables are not available by the C++ language.
-      The macros do the trick, by internally using macro \ref ALIB_IDENTIFIER.
+      The macros do the trick, by internally using macro #"ALIB_IDENTIFIER".
 
 The following table lists all <em>Owner</em>-types, the functions they call on their templated
 owned object, and the macro to use:
   
 Owner Type                  | Constructor Call         | Destructor Call                   | Macro To Use
 ----------------------------|--------------------------|-----------------------------------|---------------------
-\alib{lang;Owner}           | \b Acquire               | \b Release                        | \ref ALIB_OWN
-\alib{lang;OwnerTry}        | \b TryAcquire            | \b Release or \b ReleaseRecursive | <em>Not applicable</em>
-\alib{lang;OwnerTimed}      | \b TryAcquireTimed       | \b Release or \b ReleaseRecursive | <em>Not applicable</em>
-\alib{lang;OwnerRecursive}  | \b AcquireRecursive      | \b Release                        | \ref ALIB_OWN_RECURSIVE
-\alib{lang;OwnerShared}     | \b AcquireShared         | \b Release                        | \ref ALIB_OWN_SHARED
-\alib{lang;OwnerTryShared}  | \b TryAcquireShared      | \b Release                        | <em>Not applicable</em>
-\alib{lang;OwnerSharedTimed}| \b TryAcquireSharedTimed | \b Release                        | <em>Not applicable</em>
+#"lang::Owner"           | \b Acquire               | \b Release                        | #"ALIB_OWN"
+#"OwnerTry"        | \b TryAcquire            | \b Release or \b ReleaseRecursive | <em>Not applicable</em>
+#"OwnerTimed"      | \b TryAcquireTimed       | \b Release or \b ReleaseRecursive | <em>Not applicable</em>
+#"OwnerRecursive"  | \b AcquireRecursive      | \b Release                        | #"ALIB_OWN_RECURSIVE"
+#"OwnerShared"     | \b AcquireShared         | \b Release                        | #"ALIB_OWN_SHARED"
+#"OwnerTryShared"  | \b TryAcquireShared      | \b Release                        | <em>Not applicable</em>
+#"OwnerSharedTimed"| \b TryAcquireSharedTimed | \b Release                        | <em>Not applicable</em>
 
 The owners and their use are best explained with an example. Consider you have custom type
 \b MyAcquirable along with a global instance of this type:
@@ -452,68 +453,68 @@ Using macros makes things much simpler:
   \snippet "ut_lang.cpp"    DOX_LANG_OWNER3
 
 Those <em>Owner</em>-types that have the word <em>"Try"</em> in their name provide
-methods to receive the result of the acquisition, for example, \alib{lang;OwnerTry::IsOwning}.
+methods to receive the result of the acquisition, for example, #"OwnerTry::IsOwning;*".
 Hence they must not be used anonymously, because the using code needs to check if a tried acquisition
 succeeded. For this reason, no corresponding macros are provided.
 
 Note that the use of the macros from within static methods and namespace functions
 need one line of code as preparation.
-This is explained in chapter \ref alib_manual_appendix_callerinfo of the General
+This is explained in chapter #"alib_manual_appendix_callerinfo" of the General
 Programmer's Manual.
 
 Further note that all owner types support a template parameter \p{TOptional}.
-With that, it can be decided at run-time whether an object should be guarded at all.
+With that, it can be decided at runtime whether an object should be guarded at all.
 This is useful, for example, if the object is not available at construction time or if its use
-depends on conditions that can be checked at run-time only.
+depends on conditions that can be checked at runtime only.
       
 ### 3.3.2 Lock-Macros ## {#alib_threads_locks_auto_macros}
-The different lock types introduced in previous section \ref alib_threads_locks, are "compatible"
+The different lock types introduced in previous section #"alib_threads_locks", are "compatible"
 with the <em>Owner</em>-types that \alib provides.
 Instead of the accompanying macros, aliased versions are recommended to be used:
 
 Owner Type                  | Original Macro           | Aliased Macros
 ----------------------------|--------------------------|--------------------------
-\alib{lang;Owner}           | \ref ALIB_OWN            | \ref ALIB_LOCK <br> \ref ALIB_LOCK_WITH
-\alib{lang;OwnerRecursive}  | \ref ALIB_OWN_RECURSIVE  | \ref ALIB_LOCK_RECURSIVE <br> \ref ALIB_LOCK_RECURSIVE_WITH
-\alib{lang;OwnerShared}     | \ref ALIB_OWN_SHARED     | \ref ALIB_LOCK_SHARED <br> \ref ALIB_LOCK_SHARED_WITH
+#"lang::Owner"           | #"ALIB_OWN"            | #"ALIB_LOCK" <br> #"ALIB_LOCK_WITH"
+#"OwnerRecursive"  | #"ALIB_OWN_RECURSIVE"  | #"ALIB_LOCK_RECURSIVE" <br> #"ALIB_LOCK_RECURSIVE_WITH"
+#"OwnerShared"     | #"ALIB_OWN_SHARED"     | #"ALIB_LOCK_SHARED" <br> #"ALIB_LOCK_SHARED_WITH"
 
 The alias macros do not only increase readability, but they also prune their contents in case
 that module \alib_threads_nl is not included in the \alibbuild.
-Hence they support the creation of \ref alib_threads_intro_agnostic "threading-agnostic software".
+Hence they support the creation of #"alib_threads_intro_agnostic;threading-agnostic software".
 
 \note As a background information:<br>
-      Classes \alib{threads;RecursiveLock} and \alib{threads;RecursiveTimedLock}
+      Classes #"RecursiveLock" and #"RecursiveTimedLock"
       come with methods \b AcquireRecursive and \b ReleaseRecursive, instead of just \b Acquire and
       \b Release.
       This is a design decision.
       If this was not chosen, the standard \b Owner and corresponding macros could be used.
-      However, the specific owner type \alib{lang;OwnerRecursive} was necessary to satisfy the
-      different method names found with class \alib{lang;DbgCriticalSections},
+      However, the specific owner type #"OwnerRecursive" was necessary to satisfy the
+      different method names found with class #"lang::DbgCriticalSections",
       where both acquirement functions are found in just one type.
       With that, the decision was taken to also use these function names also with the recursive
       lock types. This way, the using code has a more explict language.
 
 Note that the use of the macros from within static methods and namespace functions,
 needs one line of code as preparation.
-This is explained in chapter \ref alib_manual_appendix_callerinfo of the General
+This is explained in chapter #"alib_manual_appendix_callerinfo" of the General
 Programmer's Manual.
        
 \I{################################################################################################}
 ## 3.4. Specific Locks Found Across ALib## {#alib_threads_alib}
 The following locks are found across this library.
 While their namespace and type names should hint to their use-case, for details, please consult
-their reference documentation.
+their reference documentation:
  
-- #alib::monomem::GLOBAL_ALLOCATOR_LOCK
-- #alib::format::Formatter::DefaultLock
+- #"alib::monomem::GLOBAL_ALLOCATOR_LOCK;3", and
+- #"alib::format::Formatter::DEFAULT_LOCK;3"
 
 \I{################################################################################################}
-# 4. Other Types Introduced # {#alib_threads_other}
+# 4\. Other Types Introduced # {#alib_threads_other}
 
 Two more fundamental types are introduced by this module. Those are:
 
-- \alib{threads;TCondition}, and
-- \alib{threads;Promise}.
+- #"TCondition", and
+- #"Promise".
 
 Because this module is considered to be fundamental and low-level, other tools to manage threads and
 concurrency are not in its domain.<br>

@@ -2,25 +2,28 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef H_ALIB_STRINGS_TOKENIZER
 #define H_ALIB_STRINGS_TOKENIZER
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
-
-#include "alib/strings/strings.prepro.hpp"
 
 #if ALIB_STRINGS
-#   if ALIB_C20_MODULES && !DOXYGEN
-        import ALib.Strings.Tokenizer;
-#   elif !defined(ALIB_INC_STRINGS_UTIL_TOKENIZER_MPP)
-#       define ALIB_INC_STRINGS_UTIL_TOKENIZER_MPP
-#       include "alib/strings/util/tokenizer.mpp"
-#   endif
-#endif
+//=========================================== Dependencies =========================================
+#include "ALib.Strings.H"
 
+#include <vector>
+
+//============================================= Imports ============================================
+#if ALIB_C20_MODULES
+import ALib.Strings.Tokenizer;
+#else
+#include "alib/strings/util/tokenizer.hpp"
+
+#endif // ALIB_C20_MODULES
+#endif // ALIB_STRINGS
 #endif // H_ALIB_STRINGS_TOKENIZER

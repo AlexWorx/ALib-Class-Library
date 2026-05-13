@@ -2,19 +2,19 @@
 /// \file
 /// This header-file is part of the \aliblong.
 ///
-/// \emoji :copyright: 2013-2025 A-Worx GmbH, Germany.
-/// Published under \ref mainpage_license "Boost Software License".
+/// Copyright 2013-2026 A-Worx GmbH, Germany.
+/// Published under #"mainpage_license".
 //==================================================================================================
 #ifndef HPP_ALIB_STRINGS_PP
 #define HPP_ALIB_STRINGS_PP
 #pragma once
-#ifndef INL_ALIB
-#   include "alib/alib.inl"
+#ifndef HPP_ALIB
+#   include "alib/alib.prepro.hpp"
 #endif
 
 
 //##################################################################################################
-// Symbols introduced by module ALib.Strings
+// Macro  introduced by module ALib.Strings
 //##################################################################################################
 
 //  ALIB_DEBUG_STRINGS
@@ -25,7 +25,7 @@
 #elif !ALIB_DEBUG && ALIB_DEBUG_STRINGS
 #   undef    ALIB_DEBUG_STRINGS
 #   define   ALIB_DEBUG_STRINGS 0
-#   pragma message "Symbol ALIB_DEBUG_STRINGS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#   pragma message "Configuration Macro ALIB_DEBUG_STRINGS set (from outside!) while ALIB_DEBUG is not. The macro got disabled."
 #endif
 
 #if ALIB_STRINGS
@@ -110,11 +110,11 @@ template<> struct       AppendableTraits<TYPE,alib::wchar, alib::lang::HeapAlloc
 alib::strings::TStringLengthResetter<                                                              \
             std::remove_reference_t<decltype(astring)>::value_type,                                \
             std::remove_reference_t<decltype(astring)>::AllocatorType >                            \
-                                                                   ALIB_IDENTIFIER(astring)(astring)
+                                                                  ALIB_IDENTIFIER(astring)(astring);
 
 
 //##################################################################################################
-// Symbols introduced by module ALib.Strings.StdIOStream
+// Macro  introduced by module ALib.Strings.StdIOStream
 //##################################################################################################
 
 #define ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(TYPE)                                           \

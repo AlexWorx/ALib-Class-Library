@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -53,69 +53,79 @@ UT_METHOD(Lox_TestVerbositySetting)
 {
     UT_INIT()
     Lox lox("ReleaseLox");
-    TextLogger*  cl= Lox::CreateConsoleLogger();
+    TextLogger*  cl= Lox::CreateConsoleLogger("UTCL");
 
     Lox_SetDomain( "TLLS_DF", Scope::Method )
 
     // Test Verbosity setting
     integer  logLinesBefore= cl->CntLogs;
     int cntLoggers= 0;
-
+    Verbosity  verbosity;
     Lox_SetVerbosity( cl, Verbosity::Verbose )
+    Lox_GetVerbosity(verbosity ) UT_EQ( Verbosity::Verbose, verbosity )
     Lox_Verbose  (         "This Verbose line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Verbose ) UT_EQ( 1, cntLoggers )
     Lox_Info     (         "This Info    line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Info    ) UT_EQ( 1, cntLoggers )
     Lox_Warning  (         "This WARN    line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Warning ) UT_EQ( 1, cntLoggers )
     Lox_Error    (         "This Error   line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Error   ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Info )
+    Lox_GetVerbosity(verbosity ) UT_EQ( Verbosity::Info, verbosity )
     Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Verbose ) UT_EQ( 0, cntLoggers )
     Lox_Info     (         "This Info    line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Info    ) UT_EQ( 1, cntLoggers )
     Lox_Warning  (         "This Warning line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Warning ) UT_EQ( 1, cntLoggers )
     Lox_Error    (         "This Error   line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Error   ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Warning )                                                  Lox_IsActive(cntLoggers, Verbosity::Verbose ) UT_EQ( 0, cntLoggers )
+    Lox_GetVerbosity(verbosity ) UT_EQ( Verbosity::Warning, verbosity )
     Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Info    ) UT_EQ( 0, cntLoggers )
     Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Warning ) UT_EQ( 1, cntLoggers )
     Lox_Warning  (         "This Warning line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Error   ) UT_EQ( 1, cntLoggers )
     Lox_Error    (         "This Error   line should be logged" )
 
     Lox_SetVerbosity( cl, Verbosity::Error )
+    Lox_GetVerbosity(verbosity ) UT_EQ( Verbosity::Error, verbosity )
     Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Verbose ) UT_EQ( 0, cntLoggers )
     Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Info    ) UT_EQ( 0, cntLoggers )
     Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Warning ) UT_EQ( 0, cntLoggers )
     Lox_Error    (         "This Error   line should be logged" )                               Lox_IsActive(cntLoggers, Verbosity::Error   ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Off )
+    Lox_GetVerbosity(verbosity ) UT_EQ( Verbosity::Off, verbosity )
     Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Verbose ) UT_EQ( 0, cntLoggers )
     Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Info    ) UT_EQ( 0, cntLoggers )
     Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Warning ) UT_EQ( 0, cntLoggers )
     Lox_Error    (         "This Error   line should NOT be logged. !!!!!Test Error!!!!!" )     Lox_IsActive(cntLoggers, Verbosity::Error   ) UT_EQ( 0, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Verbose, "/TLLS" )
+    Lox_GetVerbosity(verbosity, "/TLLS" ) UT_EQ( Verbosity::Verbose, verbosity )
     Lox_Verbose  ( "/TLLS", "This Verbose line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Verbose, "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Info     ( "/TLLS", "This Info    line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Info   , "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Warning  ( "/TLLS", "This WARN    line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Warning, "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Error    ( "/TLLS", "This Error   line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Error  , "/TLLS" ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Info, "/TLLS" )
+    Lox_GetVerbosity(verbosity, "/TLLS" ) UT_EQ( Verbosity::Info, verbosity )
     Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Verbose, "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Info     ( "/TLLS", "This Info    line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Info   , "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Warning  ( "/TLLS", "This Warning line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Warning, "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Error    ( "/TLLS", "This Error   line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Error  , "/TLLS" ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Warning, "/TLLS" )
+    Lox_GetVerbosity(verbosity, "/TLLS" ) UT_EQ( Verbosity::Warning, verbosity )
     Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Verbose, "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Info   , "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Warning  ( "/TLLS", "This Warning line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Warning, "/TLLS" ) UT_EQ( 1, cntLoggers )
     Lox_Error    ( "/TLLS", "This Error   line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Error  , "/TLLS" ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Error, "/TLLS" )
+    Lox_GetVerbosity(verbosity, "/TLLS" ) UT_EQ( Verbosity::Error, verbosity )
     Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Verbose, "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Info   , "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Warning, "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Error    ( "/TLLS", "This Error   line should be logged" )                              Lox_IsActive(cntLoggers, Verbosity::Error  , "/TLLS" ) UT_EQ( 1, cntLoggers )
 
     Lox_SetVerbosity( cl, Verbosity::Off, "/TLLS" )
+    Lox_GetVerbosity(verbosity, "/TLLS" ) UT_EQ( Verbosity::Off, verbosity )
     Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Verbose, "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Info   , "/TLLS" ) UT_EQ( 0, cntLoggers )
     Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )    Lox_IsActive(cntLoggers, Verbosity::Warning, "/TLLS" ) UT_EQ( 0, cntLoggers )
@@ -238,7 +248,7 @@ UT_METHOD(Lox_TestAssert)
     UT_INIT()
 
     Lox lox("ReleaseLox");
-    TextLogger*  cl= Lox::CreateConsoleLogger();
+    TextLogger*  cl= Lox::CreateConsoleLogger("UTCL");
 
     Lox_Prune( String testOK=  A_CHAR("OK");    )
     Lox_Prune( String testERR= A_CHAR("Error"); )
@@ -270,7 +280,7 @@ UT_METHOD(Lox_ChangeStartTime)
     UT_INIT()
 
     Lox lox("ReleaseLox");
-    TextLogger*  cl= Lox::CreateConsoleLogger();
+    TextLogger*  cl= Lox::CreateConsoleLogger("UTCL");
 
     Lox_SetVerbosity( cl, Verbosity::Verbose, "/S-TIME" )
 

@@ -2,7 +2,7 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -28,11 +28,11 @@
 #include <assert.h>
 
 #if defined(_MSC_VER)
-    ALIB_WARNINGS_RESERVED_MACRO_NAME_OFF
-    ALIB_WARNINGS_MACRO_NOT_USED_OFF
+    ALIB_ALLOW_MACROS_WITH_RESERVED_NAME
+    ALIB_ALLOW_UNUSED_MACRO
         #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING // MSVC to20do
-    ALIB_WARNINGS_RESTORE
-    ALIB_WARNINGS_RESTORE
+    ALIB_POP_ALLOWANCE
+    ALIB_POP_ALLOWANCE
 #endif
 
 #include <chrono>
@@ -78,7 +78,6 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamN;    } }
 #endif
 
 #include "ALib.Expressions.H"
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "ALib.Format.Paragraphs.H"
 #include "ALib.Lang.H"
@@ -1658,9 +1657,9 @@ DOX_MARKER([DOX_EXPR_TUT_FF_FALSE])
 
 
 DOX_MARKER([DOX_EXPR_TUT_FF_Name1])
-cout << "--- Files using expression {name == \"compiler.hpp\"}: ---" << endl;
+cout << "--- Files using expression {name == \"compiler.inc\"}: ---" << endl;
 
-step5::FileFilter filter1(A_CHAR("name == \"compiler.hpp\""));
+step5::FileFilter filter1(A_CHAR("name == \"compiler.inc\""));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter1.Includes( directoryEntry ) )
@@ -1673,9 +1672,9 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name1])
 
 
 DOX_MARKER([DOX_EXPR_TUT_FF_Name2])
-cout << "--- Files using expression {WildcardMatch(name, \"*.hpp\"}: ---" << endl;
+cout << "--- Files using expression {WildcardMatch(name, \"*.inc\"}: ---" << endl;
 
-step5::FileFilter filter2(A_CHAR("WildcardMatch(name, \"*.hpp\")"));
+step5::FileFilter filter2(A_CHAR("WildcardMatch(name, \"*.inc\")"));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter2.Includes( directoryEntry ) )
@@ -1701,7 +1700,7 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name3])
 
     // test if step6 implementation works
     int cnt= 0;
-    step6::FileFilter filter61(A_CHAR("name * \"compiler.inl\""));
+    step6::FileFilter filter61(A_CHAR("name * \"compiler.hpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter61.Includes( directoryEntry ) )
             ++cnt;
@@ -1712,14 +1711,14 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name3])
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter62.Includes( directoryEntry ) )
             ++cnt;
-    UT_EQ(5, cnt)
+    UT_EQ(11, cnt)
 
     cnt= 0;
-    step6::FileFilter filter63(A_CHAR("name * \"*.inl\""));
+    step6::FileFilter filter63(A_CHAR("name * \"*.hpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter63.Includes( directoryEntry ) )
             ++cnt;
-    UT_EQ(7, cnt)
+    UT_EQ(8, cnt)
 
     //---------------- samples after more  functionality was added ------------------
     cout << "--- Filter Expression {IsDirectory}: ---" << endl;
@@ -1740,8 +1739,8 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name3])
     ut.WriteResultFile( "DOX_EXPR_TUT_FF_More-2.txt", testOutputStreamN.str() ,"");
     testOutputStreamN.str("");
 
-    cout << "--- Filter Expression {date > DateTime(2019,2,5)}: ---" << endl;
-    step7::FileFilter filter73(A_CHAR("date > DateTime(2019,2,5)"));
+    cout << "--- Filter Expression {date > DateTime(2026,3,1)}: ---" << endl;
+    step7::FileFilter filter73(A_CHAR("date > DateTime(2026,3,1)"));
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter73.Includes( directoryEntry ) )
@@ -1785,7 +1784,7 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name3])
         step9::FileFilter filter91(A_CHAR("(permissions & OwnerExecute) != 0"));
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
 
         ut.WriteResultFile( "DOX_EXPR_TUT_FF_Operators-1.txt", e.Format() );
     }
@@ -1793,11 +1792,11 @@ DOX_MARKER([DOX_EXPR_TUT_FF_Name3])
     //---------------- samples  added fs::permissions type: better exception ------------------
     cout << "--- Filter Expression {(permissions & OwnerExecute) != 0}: ---" << endl;
     try
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         step10::FileFilter filter101(A_CHAR("(permissions & OwnerExecute) != 0"));
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_TUT_FF_Operators-2.txt", e.Format() );
     }
 
@@ -1886,7 +1885,7 @@ Expression expression= compiler.Compile( A_CHAR("\"Hexadecimal: 0x{:x}\" {} 42")
 DOX_MARKER([DOX_EXPR_OPS_1])
 }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_OPS_1.txt", e.Format() );
         testOutputStreamN.str("");
     }
@@ -1904,7 +1903,7 @@ Expression expression= compiler.Compile( A_CHAR("\"Hexadecimal: 0x{:x}\" {} 42")
 DOX_MARKER([DOX_EXPR_OPS_2])
 }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_OPS_2.txt", e.Format() );
         testOutputStreamN.str("");
     }
@@ -1929,7 +1928,7 @@ DOX_MARKER([DOX_EXPR_OPS_3])
     testOutputStreamN.str("");
 }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_OPS_3.txt", e.Format() );
     }
 
@@ -1976,7 +1975,7 @@ cout << "Result: " << expression->Evaluate( scope );
 //! [DOX_EXPR_NESTED_OP_1]
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_NESTED_OP_1.txt", e.Format() );
     }
 
@@ -2060,7 +2059,7 @@ Expression expression= compiler.Compile(A_CHAR(R"(    *("MyNested" + ( random >=
 
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_NESTED_OP_5.txt", e.Format(), "" );
     }
 
@@ -2167,7 +2166,7 @@ cout << "Result: " << expression->Evaluate( scope ) << endl;
 //! [DOX_EXPR_NESTED_FUNC_5]
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_NESTED_FUNC_5.txt", e.Format(), "" );
     }
 
@@ -2209,7 +2208,7 @@ cout << "Result: " << expression->Evaluate( scope ) << endl;
 //! [DOX_EXPR_NESTED_FUNC_41]
     }
     catch(Exception& e)
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( "DOX_EXPR_NESTED_FUNC_41.txt", e.Format() );
     }
 
@@ -2241,7 +2240,7 @@ void printProgram( AWorxUnitTesting& ut, const String& expressionString, const N
 
     }
     catch( Exception& e )
-    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
         ut.WriteResultFile( outputfilename, e.Format() );
         assert(!ut.AssertOnFailure);
     }

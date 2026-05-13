@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib_precompile.hpp"
@@ -18,7 +18,8 @@ DOX_MARKER( [DOX_APPEND_DEFINITION])
 
 namespace alib::strings {
 
-    template<> struct AppendableTraits<alib::time::DateTime, character, lang::HeapAllocator>
+    template<>
+    struct AppendableTraits<alib::time::DateTime, character, lang::HeapAllocator>
     {
         void operator()( AString& target, const alib::time::DateTime& appendable )
         {
@@ -105,7 +106,6 @@ DOX_MARKER( [DOX_APPEND_FIELD])
 #undef cout
 
 //----------- Now to the unit tests -------------
-#include "ALib.Compatibility.StdStrings.H"
 #include "ALib.Strings.StdIOStream.H"
 #include "aworx_unittests.hpp"
 

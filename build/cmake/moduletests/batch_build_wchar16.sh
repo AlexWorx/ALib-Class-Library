@@ -49,9 +49,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=CONTAINERS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  CLI    ############################"
+echo "\n\n############################  APP    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=CLI"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=APP"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  ENUMRECORDS    ############################"
@@ -69,9 +69,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=EXPRESSIONS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  FILES    ############################"
+echo "\n\n############################  FILETREE    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILES"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILETREE"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  FORMAT    ############################"
@@ -131,9 +131,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;BOXING"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  BITBUFFER;FILES    ############################"
+echo "\n\n############################  BITBUFFER;FILETREE    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;FILES"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=BITBUFFER;FILETREE"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BOXING;MONOMEM    ############################"
@@ -151,9 +151,9 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=EXCEPTIONS;VARIABLES"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  FILES;THREADMODEL    ############################"
+echo "\n\n############################  FILETREE;THREADMODEL    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILES;THREADMODEL"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1"  "-DALIB_BUILD=FILETREE;THREADMODEL"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  FORMAT;THREADMODEL    ############################"

@@ -1,54 +1,13 @@
-//##################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2025 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//##################################################################################################
-#include "alib_precompile.hpp"
-#if !defined(ALIB_C20_MODULES) || ((ALIB_C20_MODULES != 0) && (ALIB_C20_MODULES != 1))
-#   error "Symbol ALIB_C20_MODULES has to be given to the compiler as either 0 or 1"
-#endif
-#if ALIB_C20_MODULES
-    module;
-#endif
-//========================================= Global Fragment ========================================
-#include "alib/variables/variables.prepro.hpp"
-#include <fstream>
-//============================================== Module ============================================
-#if ALIB_C20_MODULES
-    module ALib.Variables.IniFile;
-    import   ALib.Strings.StdIOStream;
-#  if ALIB_EXCEPTIONS
-    import   ALib.Exceptions;
-#  endif
-    import   ALib.System;
-    import   ALib.Variables;
-#  if ALIB_FORMAT
-    import   ALib.Format;
-    import   ALib.Format.Paragraphs;
-#  endif
-#else
-#   include "ALib.Strings.StdIOStream.H"
-#   include "ALib.Exceptions.H"
-#   include "ALib.Containers.StringTree.H"
-#   include "ALib.Containers.StringTreeIterator.H"
-#   include "ALib.System.H"
-#   include "ALib.Variables.H"
-#   include "ALib.Format.H"
-#   include "ALib.Format.Paragraphs.H"
-#   include "ALib.Variables.IniFile.H"
-#endif
-//========================================== Implementation ========================================
 
 namespace alib::variables {
 
 //##################################################################################################
 // helpers
 //##################################################################################################
-std::pair<IniFile::Section*, IniFile::Entry*>   IniFileFeeder::SearchEntry ( const String& path ) {
+IniFile::Handle   IniFileFeeder::SearchEntry ( const String& path ) {
     if(iniFile == nullptr) {
         ALIB_ERROR( "VARIABLES", "No INI-file loaded when trying to search data." )
-        return std::pair<IniFile::Section*, IniFile::Entry*>(nullptr, nullptr);
+        return IniFile::Handle{nullptr, nullptr};
     }
 
     // separate section/entry name
@@ -60,7 +19,7 @@ std::pair<IniFile::Section*, IniFile::Entry*>   IniFileFeeder::SearchEntry ( con
     return iniFile->SearchEntry(sectionName, entryName);
 }
 
-std::pair<IniFile::Section*, IniFile::Entry*>   IniFileFeeder::SearchEntry ( const Variable& var ) {
+IniFile::Handle   IniFileFeeder::SearchEntry ( const Variable& var ) {
     ALIB_ASSERT_ERROR( var.IsDeclared(), "VARIABLES", "Given Variable not declared." )
     ALIB_ASSERT_ERROR( &var.GetConfiguration() == &configuration, "VARIABLES",
                         "Variable belongs to different configuration: ", var )
@@ -170,7 +129,7 @@ bool         IniFileFeeder::Export( const Variable& var) {
         return false;
     }
     ALIB_ASSERT_ERROR(var.IsDeclared(), "VARIABLES", "Variable to export not declared: ", var)
-
+    
     String256 name(var);
 
     // separate section/entry name
@@ -179,16 +138,19 @@ bool         IniFileFeeder::Export( const Variable& var) {
     String entryName  = (sectionSeparator != -1) ? name.Substring<NC>(sectionSeparator + 1, name.Length() - sectionSeparator - 1) : name;
 
     // search for existing entry
-    auto pair= iniFile->SearchEntry(sectionName, entryName);
-    auto* entry= pair.second;
+    auto handle= iniFile->SearchEntry(sectionName, entryName);
+    auto* entry= handle.EntryPointer;
     if( entry ) {
         // exists and no write back?
-        if( !entry->WriteBack && !pair.first->WriteBack )
+        if(    !entry                ->WriteBack
+            && !handle.SectionPointer->WriteBack )
             return false;
     } else {
         // create entry
         auto sectionIt= iniFile->SearchOrCreateSection( sectionName );
         entry  = iniFile->CreateEntry( sectionIt.first, entryName );
+        if ( var.IsWriteBack() )
+            entry->WriteBack= true;
     }
     
     {String4K buf;
@@ -213,19 +175,15 @@ int  IniFileFeeder::ExportSubTree( Configuration::Cursor cursor, bool directChil
         return 0;
     }
     int cnt= 0;
-    // check cursor itself first
-    if( !cursor.IsRoot() ) {
-        Variable var(cursor);
-        if( var.IsDeclared() )
-            if( Export( var ) )
-                cnt++;
-    }
-
     StringTreeIterator<Configuration> stit;
     stit.SetPathGeneration( lang::Switch::On );
-    stit.SetMaxDepth( directChildrenOnly ? 0 : (std::numeric_limits<unsigned>::max)() );
-    stit.Initialize( cursor, lang::Inclusion::Exclude );
+    stit.SetMaxDepth( directChildrenOnly ? 1 : (std::numeric_limits<unsigned>::max)() );
+    stit.Initialize( cursor, lang::Inclusion::Include );
     while ( stit.IsValid() ) {
+        if ( stit.Node().IsRoot()) {
+            stit.Next();
+            continue;
+        }
         if( stit.Node().Name().Equals(A_CHAR("$PRESETS")) ) {
             stit.NextSibling();
             continue;
@@ -262,7 +220,7 @@ int  IniFileFeeder::AddResourcedSectionComments( ResourcePool&    resourcePool,
 
             ++cnt;
             Paragraphs text;
-            {ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+            {ALIB_LOCK_RECURSIVE_WITH(Formatter::DEFAULT_LOCK)
                 text.LineWidth= LineWidth;
                 text.Buffer._(NEW_LINE);
                 text.AddMarked( comment );
@@ -274,12 +232,12 @@ int  IniFileFeeder::AddResourcedSectionComments( ResourcePool&    resourcePool,
 #endif
 
 bool   IniFileFeeder::SetWriteBackFlag(const String& path) {
-    auto entry= SearchEntry( path );
-    ALIB_ASSERT_WARNING( entry.second , "VARIABLES",
+    auto handle= SearchEntry( path );
+    ALIB_ASSERT_WARNING( handle.EntryPointer , "VARIABLES",
         "Variable \"{}\" to be marked as 'writeback' not found.",  path )
 
-    if(  entry.second && entry.second->RawValue.IsEmpty() ) {
-        entry.second->WriteBack= true;
+    if(  handle.EntryPointer && handle.EntryPointer->RawValue.IsEmpty() ) {
+        handle.EntryPointer->WriteBack= true;
         return true;
     }
     return false;

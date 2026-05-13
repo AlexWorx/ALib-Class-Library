@@ -1,35 +1,27 @@
 @font-face {
-  font-family: "ALibSerif";
-  font-style: normal;
-  font-weight: 400;
+  font-family: "AWorxSerif";
   src: local("Merriweather"), local("Merriweather-Regular"), url("Merriweather-Regular.ttf");
 }
 
 @font-face {
-  font-family: "ALibSans";
-  font-style: normal;
-  font-weight: 400;
+  font-family: "AWorxSans";
   src: local("Lato"), url("Lato-Regular.ttf")
 }
 
 @font-face {
-  font-family: "ALibSansBold";
-  font-style: normal;
-  font-weight: 400;
+  font-family: "AWorxSansBold";
   src: local("Lato-Bold"), url("Lato-Bold.ttf")
 }
 
 @font-face {
-  font-family: "ALibCode";
+  font-family: "AWorxCode";
   font-style: monospace;
-  font-weight: 400;
   src: local("FiraMono"), url("FiraMono-Regular.ttf");
 }
 
 @font-face {
-  font-family: "ALibProject";
+  font-family: "AWorxProject";
   font-style: monospace;
-  font-weight: 400;
   src: src: local("Merriweather-Bold"), local("Merriweather-Bold"), url("Merriweather-Bold.ttf");
 }
 
@@ -38,14 +30,12 @@ ul {
 }
 
 div.toc a {
-     font-family: "ALibSerif";
+     font-family: "AWorxSans";
 }
 
 div.toc h3 {
-     font-family: "ALibSansBold";
+     font-family: "AWorxSansBold";
 }
-
-
 
 
 .sm-dox {
@@ -54,7 +44,7 @@ div.toc h3 {
 }
 
 .sm-dox a, .sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
-     font-family: "ALibSerif";
+     font-family: "AWorxSerif";
      font-size: 13px;
      font-weight: bold;
      line-height: 36px;
@@ -141,7 +131,7 @@ div.toc h3 {
 }
 
 .sm-dox a, .sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     font-size: 13px;
     font-weight: bold;
     line-height: 30px;
@@ -190,24 +180,6 @@ div.toc h3 {
 .sm-dox a.highlighted span.sub-arrow:before {
     display: block;
     content: '-'
-}
-
-.sm-dox > li:first-child > a, .sm-dox > li:first-child > :not(ul) a {
-    -moz-border-radius: 0px 0px 0 0;
-    -webkit-border-radius: 0px;
-    border-radius: 0px 0px 0 0
-}
-
-.sm-dox > li:last-child > a, .sm-dox > li:last-child > *:not(ul) a, .sm-dox > li:last-child > ul, .sm-dox > li:last-child > ul > li:last-child > a, .sm-dox > li:last-child > ul > li:last-child > *:not(ul) a, .sm-dox > li:last-child > ul > li:last-child > ul, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul {
-    -moz-border-radius: 0 0 0px 0px;
-    -webkit-border-radius: 0;
-    border-radius: 0 0 0px 0px
-}
-
-.sm-dox > li:last-child > a.highlighted, .sm-dox > li:last-child > *:not(ul) a.highlighted, .sm-dox > li:last-child > ul > li:last-child > a.highlighted, .sm-dox > li:last-child > ul > li:last-child > *:not(ul) a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > a.highlighted, .sm-dox > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > ul > li:last-child > *:not(ul) a.highlighted {
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
-    border-radius: 0
 }
 
 .sm-dox ul {
@@ -546,7 +518,7 @@ div.toc h3 {
 }
 
 .alib-menu {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     font-size: 15px;
     font-weight: bold;
     text-shadow: rgba(0, 0, 0, 0.6) 0px 2px 2px;
@@ -557,7 +529,7 @@ div.toc h3 {
 }
 
 .alib-menu_hl {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     font-size: 15px;
     font-weight: bold;
     text-shadow: rgba(255, 255, 255, 0.6) 0px 2px 2px;
@@ -567,6 +539,10 @@ div.toc h3 {
     background-color: #51637b;
 
     color: #9E2544;
+}
+
+#main-menu > li:last-child {
+    height: 30px;
 }
 
 /* Make the hamburger-menu button white */
@@ -579,7 +555,7 @@ div.toc h3 {
 /* The standard CSS for doxygen 1.8.4 */
 
 body, table, div, p, dl {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
 }
 
 /* @group Heading Levels */
@@ -589,7 +565,7 @@ h1.groupheader {
 }
 
 .title {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
     font-size: 160%;
     font-weight: bold;
     margin: 0px 8px;
@@ -610,7 +586,7 @@ h3.groupheader {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
     color: black;
     font-weight: 500;
 
@@ -710,57 +686,103 @@ div.navtab {
 
 /* @group Link Styling */
 
-a {
-    font-family: "ALibSerif";
-    font-size: 100%;
-    text-decoration: none;
-    color: #7e0015;
+
+
+/* #####################################################################
+   DoxygenXLinks Semantic Styling
+   ##################################################################### */
+
+/* remove doxygen settings */
+a.el, a.elRef, a.el:visited, a.elRef:visited,a.el:hover, a.elRef:hover {
+    color: inherit;
+    font-weight: inherit;
 }
 
-.contents a:visited {
-color: #9E2544;
-}
-
-a:hover {
+/* Underline all el/elRef on hoover */
+a.el:hover, a.elRef:hover {
     text-decoration: underline;
 }
 
-a.qindex {
-    font-weight: bold;
-}
-
-a.qindexHL {
-    font-weight: bold;
-    background-color: #9CAFD4;
-    color: #ffffff;
-    border: 1px double #869DCA;
-}
-
-.contents a.qindexHL:visited {
-        color: #ffffff;
-}
-
-a.el {
-    font-family: "ALibSerif";
-    font-weight: normal;
-}
-
+/* Add underline to all external docs */
 a.elRef {
+    text-decoration: underline;
 }
 
-a.code, a.code:visited {
-    color: rgb(51, 102, 204);
-}
+/* --------------------------- DOX_MARKER( [DOX_STYLESHEET]) ---------------------------*/
 
-a.codeRef, a.codeRef:visited {
-    color: rgb(51, 102, 204);
-}
+/* XL doc */
+a.el.xl-doc                 , a.elRef.xl-doc       { color: #9E2544; font-family: "AWorxSerif"; font-style: italic; }
 
+/* XL files/dirs */
+a.el.xl-filedir             , a.elRef.xl-filedir   { color: #396c0b;                                                }
+a.el.xl-dir                 , a.elRef.xl-dir       {                 font-family: "AWorxSansBold";                  }
+a.el.xl-file                , a.elRef.xl-file      {                 font-family: "AWorxSans";                      }
+
+/* XL entities */
+a.el.xl-entity              , a.elRef.xl-entity    { font-family: "AWorxCode";                                      }
+a.el.xl-ns                  , a.elRef.xl-ns        { color: #0531b6;                                                }
+a.el.xl-module              , a.elRef.xl-module    { color: darkblue; font-weight: bold;                            }
+a.el.xl-record              , a.elRef.xl-record    { font-weight: bold;                                             }
+a.el.xl-union               , a.elRef.xl-union     { color: chocolate;                                              }
+a.el.xl-class               , a.elRef.xl-class     { color: darkblue;                                               }
+a.el.xl-struct              , a.elRef.xl-struct    { color: darkslateblue;                                          }
+a.el.xl-enum                , a.elRef.xl-enum      { color: #976c06; font-weight: bold;                             }
+a.el.xl-enumelem            , a.elRef.xl-enumelem  { color: goldenrod; font-weight: bold;   font-style:  italic;      }
+a.el.xl-typedef             , a.elRef.xl-typedef   { color: darkblue;font-weight: bold;   font-style:  italic;      }
+a.el.xl-func                , a.elRef.xl-func      { color: #360f88;                                                }
+a.el.xl-var                 , a.elRef.xl-var       { color: #923c01;                                              }
+a.el.xl-concept             , a.elRef.xl-concept   {                 font-family: "AWorxCode";  font-weight: bold;  }
+a.el.xl-macro               , a.elRef.xl-macro     { color: #b98601;                                              }
+
+/* XL variables and functions in namespace get colored like namespaces, but bold */
+a.el.xl-var.xl-in-ns        , a.elRef.xl-var.xl-in-ns  { color: #0531b6; font-weight: bold; }
+a.el.xl-func.xl-in-ns       , a.elRef.xl-func.xl-in-ns { color: #0531b6; font-weight: bold; }
+a.el.xl-indirect            , a.elRef.xl-indirect      { font-style:  italic;               }
+
+/* If a display text is given, then the font goes back to the main documentation font */
+a.el.xl-display             , a.elRef.xl-display       { font-family: "AWorxSerif";         }
+
+/* --------------------------- DOX_MARKER( [DOX_STYLESHEET]) ---------------------------*/
+
+/* --------------------------- DOX_MARKER( [DOX_STYLESHEET_NOLINKS]) ---------------------------*/
+
+/* XL doc */
+.xl-doc                 , .xl-doc       { color: #022E34; font-family: "AWorxSerif"; font-style: italic; }
+
+/* XL files/dirs */
+.xl-filedir             , .xl-filedir   { color: #022E34;                                               }
+.xl-dir                 , .xl-dir       {                 font-family: "AWorxSansBold";                 }
+.xl-file                , .xl-file      {                 font-family: "AWorxSans";                     }
+
+/* XL entities */
+.xl-entity              , .xl-entity    { color: #022E34;  font-family: "AWorxCode";                    }
+.xl-ns                  , .xl-ns        { color: #022E34;                                               }
+.xl-record              , .xl-record    { font-weight: bold;                                            }
+.xl-union               , .xl-union     { color: #022E34;                                               }
+.xl-class               , .xl-class     { color: #022E34;                                               }
+.xl-struct              , .xl-struct    { color: #022E34;                                               }
+.xl-enum                , .xl-enum      { color: #022E34; font-weight: bold;                            }
+.xl-enumelem            , .xl-enumelem  { color: #022E34; font-weight: bold;   font-style:  italic;     }
+.xl-typedef             , .xl-typedef   { color: #022E34; font-weight: bold;   font-style:  italic;     }
+.xl-func                , .xl-func      { color: #022E34                                                }
+.xl-var                 , .xl-var       { color: #022E34;                                               }
+.xl-concept             , .xl-concept   { color: #022E34; font-family: "AWorxCode";  font-weight: bold; }
+.xl-macro               , .xl-macro     { color: #022E34;                                               }
+
+/* XL variables and functions in namespace get colored like namespaces, but bold */
+.xl-var.xl-in-ns        , .xl-var.xl-in-ns  { color: #022E34; font-weight: bold;   }
+.xl-func.xl-in-ns       , .xl-func.xl-in-ns { color: #022E34; font-weight: bold;   }
+.xl-indirect            , .xl-indirect      { font-style:  italic;                 }
+
+/* If a display text is given, then the font goes back to the main documentation font.
+   But in-fact, with %-links this should not be used at all. */
+.xl-display             , .xl-display       { font-family: "AWorxSerif";           }
+/* --------------------------- DOX_MARKER( [DOX_STYLESHEET_NOLINKS]) ---------------------------*/
 /* @end */
 
 a.code
 {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-size: 100%;
     white-space: nowrap;
     vertical-align: unset;
@@ -789,8 +811,8 @@ pre.fragment {
     padding: 6px 10px;
     overflow: auto;
     word-wrap: break-word;
-
-    font-family: "ALibCode", monospace;
+ 
+    font-family: "AWorxCode", monospace;
     font-size:  80%;
     line-height: 110%;
     color: #000030;
@@ -804,13 +826,13 @@ div.fragment {
 
     background-color: rgb(248, 248, 248);
     color: #000030;
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-size:  90%;
     line-height: 110%;
 }
 
 div.line {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-size:  90%;
     line-height: 110%;
     color: #000030;
@@ -993,14 +1015,24 @@ div.center img {
 
 /* AWorx dox uses <span></span> to mark parameter names in texts.*/
 span {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-weight: bold;
     font-style: italic;
     font-size: 100%;
     vertical-align: middle;
     white-space: nowrap;
-    color: #bc8a0d;
+    color: #4f3600;
 }
+
+span.emoji {
+    color: black;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 100%;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
 
 /* @group Code Colorization */
 
@@ -1136,7 +1168,7 @@ table.memberdecls {
     border: none;
     margin: 4px;
     padding: 1px 0 0 8px;
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
 }
 
 .mdescLeft, .mdescRight {
@@ -1145,7 +1177,7 @@ table.memberdecls {
     //color: #555;
     color: black;
 
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     font-style: normal;
 }
 
@@ -1217,7 +1249,7 @@ table.memberdecls {
 /* end:  new with doxygen 1.8.13 */
 
 .memtemplate {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-size: 100%;
     color: black;
     font-weight: normal;
@@ -1255,7 +1287,7 @@ table.memberdecls {
 }
 
 .memname {
-       font-family: "ALibCode", monospace;
+       font-family: "AWorxCode", monospace;
        font-weight: bold;
        font-size: 110%;
        color: #2f3a70;
@@ -1347,19 +1379,19 @@ dl.reflist dd {
 }
 
 .paramname {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-size: 100%;
     font-weight: bold;
     font-style: italic;
     vertical-align: middle;
     white-space: nowrap;
-    color: #bc8a0d
+    color: #4f3600
 }
 .paramname em {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     font-weight: bold;
     vertical-align: middle;
-    color: #bc8a0d;
+    color: #4f3600;
 }
 .paramname code {
     line-height: 14px;
@@ -1371,8 +1403,8 @@ dl.reflist dd {
 }
 
 .params .paramname, .retval .paramname {
-    font-family: "ALibCode", monospace;
-    color: #bc8a0d;
+    font-family: "AWorxCode", monospace;
+    color: #4f3600;
     font-size: 100%;
 }
 
@@ -1383,7 +1415,7 @@ dl.reflist dd {
 }
 
 .params .paramdir {
-    font-family: "ALibCode", monospace;
+    font-family: "AWorxCode", monospace;
     vertical-align: middle;
 }
 
@@ -1494,45 +1526,21 @@ div.directory {
     color: #3D578C;
 }
 
-div.dynheader {
-        margin-top: 8px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
 
-address {
-    font-style: normal;
-    color: #2A3D61;
-}
 
 table.doxtable {
     border-collapse:collapse;
-        margin-top: 4px;
-        margin-bottom: 4px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
-table.doxtable td, table.doxtable th {
-    border: 1px solid #2D4068;
-    padding: 3px 7px 2px;
-}
 
 table.doxtable th {
     background-color: #2f3a48;
-    color: #FFFFFF;
-    font-size: 110%;
-    padding-bottom: 4px;
-    padding-top: 5px;
 }
 
 table.fieldtable {
         /*width: 100%;*/
-        margin-bottom: 10px;
-        border: 1px solid #A8B8D9;
-        border-spacing: 0px;
         -moz-border-radius: 0px;
         -webkit-border-radius: 0px;
         border-radius: 0px;
@@ -1541,75 +1549,25 @@ table.fieldtable {
         box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.15);
 }
 
-.fieldtable td, .fieldtable th {
-        padding: 3px 7px 2px;
-}
 
-.fieldtable td.fieldtype, .fieldtable td.fieldname {
-        white-space: nowrap;
-        border-right: 1px solid #A8B8D9;
-        border-bottom: 1px solid #A8B8D9;
-        vertical-align: top;
-}
-
-.fieldtable td.fieldname {
-        padding-top: 3px;
-}
-
-.fieldtable td.fielddoc {
-        border-bottom: 1px solid #A8B8D9;
-        /*width: 100%;*/
-}
-
-.fieldtable td.fielddoc p:first-child {
-        margin-top: 0px;
-}
-
-.fieldtable td.fielddoc p:last-child {
-        margin-bottom: 2px;
-}
-
-.fieldtable tr:last-child td {
-        border-bottom: none;
-}
 
 .fieldtable th {
         background-image: none;
-        font-size: 90%;
         color: white;
         background-color: #2f3a48;
-        padding-bottom: 4px;
-        padding-top: 5px;
-        text-align:left;
         -moz-border-radius-topleft: 0px;
         -moz-border-radius-topright: 0px;
         -webkit-border-top-left-radius: 0px;
         -webkit-border-top-right-radius: 0px;
         border-top-left-radius: 0px;
         border-top-right-radius: 0px;
-        border-bottom: 1px solid #A8B8D9;
 }
 
 
-.tabsearch {
-    top: 0px;
-    left: 10px;
-    height: 36px;
-    background-image: url('tab_b.png');
-    z-index: 101;
-    overflow: hidden;
-    font-size: 13px;
-}
-
-.navpath {
-    border: none;
-    line-height: 20px;
-}
-
-.navpath ul
+#nav-path ul
 {
-    background-image: none;
     background-color: #51637b;
+    background: #51637b;
     border:     none;
     font-size:  11px;
     color:      #8AA0CC;
@@ -1619,20 +1577,11 @@ table.fieldtable {
     padding:    1px;
     padding-bottom: 3px;
     line-height:11px;
-    height:      13px;
+    height:      25px;
 }
 
-
-.navpath li
-{
-    list-style-type:none;
-    float:left;
-    padding-left:30px;
-    padding-right:10px;
-    background-image:url('aworx_navelem.png');
-    background-repeat:no-repeat;
-    background-position: 12px 36%;
-    color:#364D7C;
+.navpath li {
+    color: white;
 }
 
 .navpath li.navelem a
@@ -1640,38 +1589,41 @@ table.fieldtable {
     display:block;
     text-decoration: none;
     outline: none;
-    font-family: "ALibSerif";
-    background-image: none;
-    color: white;
-    text-shadow: none;
+    font-family: "AWorxCode";
+    color: white;                               
     height: 11px
 }
 
-.navpath li.navelem:last-child a
+.navpath li.navelem:hover a
+{
+    text-decoration: underline;
+}
+#nav-path li.navelem:after
+{
+    background: #51637b;
+    box-shadow: 2px -2px 0 2px #7e0015;
+}
+
+#nav-path li.navelem:hover:after
+{
+    background: #51637b;
+    box-shadow: 2px -2px 0 2px #7e0015;
+}
+
+#nav-path li.navelem:hover {
+    background: #51637b;
+	background-color: #51637b;
+}
+
+#navpath li.navelem:last-child a
 {
     display:block;
     text-decoration: none;
     outline: none;
-    font-family: "ALibSerif";
-    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);
     background-image: none;
     color: #9E2544;
     text-shadow: rgba(200, 200, 200, 0.6) 1px 2px 2px;
 }
-
-.navpath li.navelem a:hover {
-    color: white;
-    text-shadow: none;
-    text-decoration: underline;
-}
-
-.navpath li.navelem:last-child a:hover {
-    color: #9E2544;
-    text-shadow: rgba(200, 200, 200, 0.6) 1px 2px 2px;
-    text-decoration: underline;
-}
-
-
 
 
 .navpath li.footer {
@@ -1686,38 +1638,17 @@ table.fieldtable {
         font-size: 8pt;
 }
 
-
-
 div.summary
 {
-    float: right;
-    font-size: 8pt;
-    padding-right: 5px;
+    visibility: hidden;
     width: auto;
-    text-align: right;
 }
 
-div.summary a
-{
-    white-space: nowrap;
-}
 
-div.ingroups
-{
-    font-size: 8pt;
-    width: 50%;
-    text-align: left;
-}
-
-div.ingroups a
-{
-    white-space: nowrap;
-}
 
 div.header
 {
     background-image: none;
-    margin:  0px;
     border: none;
 }
 
@@ -1730,13 +1661,12 @@ div.headertitle
 
 dl
 {
-        padding: 0 0 0 10px;
+    padding: 0 0 0 10px;
 }
 
-/* dl.note, dl.warning, dl.attention, dl.pre, dl.post, dl.invariant, dl.deprecated, dl.to-do, dl.test, dl.bug */
 dl.section
 {
-    font-family: "ALibSans";
+    font-family: "AWorxSans";
     font-weight: normal;
     margin-left: 0px;
     padding-left: 0px;
@@ -1744,7 +1674,7 @@ dl.section
 
 dl.note
 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
        margin-left: 0px;
        padding: 6px 0px 3px 8px;
        border-left:  10px solid;
@@ -1753,7 +1683,7 @@ dl.note
 
 div.alib-key-takeaways
 {
-       font-family: "ALibSansBold";
+       font-family: "AWorxSansBold";
        font-size: 120%;
        border-radius: 4px;
        margin-left: 0px;
@@ -1764,7 +1694,7 @@ div.alib-key-takeaways
 }
 div.alib-key-takeaways-inner
 {
-       font-family: "ALibSans";
+       font-family: "AWorxSans";
        margin-left: 18px;
        margin-bottom: 6px;
        margin-left: 18px;
@@ -1772,18 +1702,17 @@ div.alib-key-takeaways-inner
 
 dl.warning, dl.attention
 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
     margin-left: 0px;
     padding: 6px 0px 3px 8px;
 
-    //border-left:4px solid;
     border-left: 10px solid;
     border-color: #FF0000;
 }
 
 dl.pre, dl.post, dl.invariant
 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
     margin-left:-7px;
     padding-left: 3px;
     border-left:4px solid;
@@ -1792,7 +1721,7 @@ dl.pre, dl.post, dl.invariant
 
 dl.deprecated
 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
     margin-left: 0px;
     padding: 6px 0px 3px 8px;
     border-left: 6px solid;
@@ -1801,7 +1730,7 @@ dl.deprecated
 
 dl.deprecated dt a.el
 {
-    font-family: "ALibSansBold";
+    font-family: "AWorxSansBold";
 }
 
 dl.todo
@@ -1829,7 +1758,7 @@ dl.bug
 }
 
 dl.section dd {
-    font-family: "ALibSans";
+    font-family: "AWorxSans";
 
     margin-bottom: 6px;
     margin-left: 18px;
@@ -1840,36 +1769,47 @@ dl.section dd {
 {
     text-align: center;
     border-collapse: separate;
-    vertical-align: top;
+    vertical-align: middle;
     horizontal-align: left;
     padding-top: 4px;
 }
 
+#projectlogo_by
+{
+    color: #51637b;
+    width: 30px;
+    text-align: center;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
 #projectlogo img
 {
+    width: 150px;
+    height: 30px;
 }
 
 #projectname
 {
-    font-family: "ALibProject";
+    font-family: "AWorxProject";
     font-weight: bold;
     margin: 0px;
     padding-top:   0px;
-    padding-left: 30px;
+    padding-left: 0px;
     horizontal-align: right;
-    font-size: 330%
+    font-size: 200%
 }
 
 #projectbrief
 {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     margin: 0px;
     padding: 50px;
 }
 
 #projectnumber
 {
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     margin: 0px;
     padding: 0px;
     padding-right: 5px;
@@ -1953,7 +1893,7 @@ div.toc li {
 
 div.toc h3 {
     font: bold 12px/1.2
-    font-family: "ALibSerif";
+    font-family: "AWorxSerif";
     font-size: 150%;
     text-align: center;
     color: #4665A2;
@@ -1968,25 +1908,21 @@ div.toc ul {
 }
 
 div.toc li.level1 {
-        margin-left: 0px;
         margin-top: 12px;
         font-size: 100%;
         font-weight: bold;
 }
 
 div.toc li.level2 {
-        margin-left: 15px;
         font-size: 90%;
 }
 
 div.toc li.level3 {
-        margin-left: 25px;
-        font-size: 80%;
+        font-size: 90%;
 }
 
 div.toc li.level4 {
-        margin-left: 40px;
-        font-size: 70%;
+        font-size: 90%;
 }
 
 .inherit_header {

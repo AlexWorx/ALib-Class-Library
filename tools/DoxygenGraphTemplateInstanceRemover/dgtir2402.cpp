@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib C++ Library Tools - DoxygenGraphTemplateInstanceRemover
+//  ALib C++ Framework Tools - DoxygenGraphTemplateInstanceRemover
 //
-//  Copyright 2013-2025 A-Worx GmbH, Germany
+//  Copyright 2013-2026 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -61,7 +61,7 @@ int main2402()
         //String debugFile( "classalib_1_1lox_1_1loggers_1_1AnsiConsoleLogger__coll__graph.dot" );
         String debugFile( "classalib_1_1expressions_1_1detail_1_1ParserImpl_a68c8954b9b5e3de7d582dc1129a4139f_cgraph.dot.corrected.dot" );
 
-        FileName.Reset("/home/dev/A-Worx/ALib/html/") << '/' << debugFile;
+        FileName.Reset("/hub/projects/ALib/html/") << '/' << debugFile;
     }
 
     errno= 0;
@@ -116,19 +116,19 @@ int main2402()
 
             label.SearchAndReplace("\\l"                      , "" ); // new label characters
             label.SearchAndReplace("alib::"                   , "" );
+            label.SearchAndReplace("app::"                    , "" );
             label.SearchAndReplace("assert::"                 , "" );
             label.SearchAndReplace("bitbuffer::"              , "" );
             label.SearchAndReplace("boxing::"                 , "" );
             label.SearchAndReplace("camp::"                   , "" );
             label.SearchAndReplace("characters::"             , "" );
             label.SearchAndReplace("containers::"             , "" );
-            label.SearchAndReplace("cli::"                    , "" );
             label.SearchAndReplace("compatibility::"          , "" );
             label.SearchAndReplace("enumops::"                , "" );
             label.SearchAndReplace("enumrecords::"            , "" );
             label.SearchAndReplace("exceptions::"             , "" );
             label.SearchAndReplace("expressions::"            , "" );
-            label.SearchAndReplace("files::"                  , "" );
+            label.SearchAndReplace("filetree::"               , "" );
             label.SearchAndReplace("format::"                 , "" );
             label.SearchAndReplace("lang::"                   , "" );
             label.SearchAndReplace("lox::textlogger::"        , "" );
@@ -139,9 +139,9 @@ int main2402()
             label.SearchAndReplace("singletons::"             , "" );
             label.SearchAndReplace("strings::"                , "" );
             label.SearchAndReplace("system::"                 , "" );
-            label.SearchAndReplace("threadmodel"              , "" );
-            label.SearchAndReplace("threads"                  , "" );
-            label.SearchAndReplace("time"                     , "" );
+            label.SearchAndReplace("threadmodel::"            , "" );
+            label.SearchAndReplace("threads::"                , "" );
+            label.SearchAndReplace("time::"                   , "" );
             label.SearchAndReplace("variables::"              , "" );
 
             label.SearchAndReplace("std::",      "" );
@@ -184,6 +184,7 @@ int main2402()
     {
         cerr << "Error invoking command: `" << dotCommand << '`'  << endl;
         cerr << "              returned: "  << result             << endl;
+        cerr << "              file:     "  << FileName << ":1:1" << endl;
 
         return 2;
     }
