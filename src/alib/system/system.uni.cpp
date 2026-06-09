@@ -83,7 +83,7 @@
 #if !defined(_WIN32)
   #include <fcntl.h>
   #include <sys/stat.h>
-  #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+  #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
     #include <sys/mman.h>
   #endif
 #else

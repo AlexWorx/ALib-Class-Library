@@ -592,10 +592,10 @@ Copy this into your project's \e CMakeLists.txt:
     
     # Fetch ALib in your desired version
         include("${ALIB_FETCH_FILE}")
-        ALibEnsureSourceAvailable( VERSION_TAG V2603R0 )
+        ALibEnsureSourceAvailable( VERSION_TAG V2605R1 )
     
     # Select ALib modules and set ALib features
-        list( APPEND  ALIB_BUILD               "APP" )
+        list( APPEND  ALIB_BUILD               "ALL" )
         set(  ALIB_SINGLE_THREADED             "On"  )
         set(  ALIB_CAMP_RESOURCE_COMPILATION   "On"  )
     
@@ -631,10 +631,10 @@ Then your \e CMakeLists.txt could look like this:
     
     # Fetch ALib in your desired version
         include("${CMAKE_CURRENT_LIST_DIR}/cmake/ALibFetch.cmake")
-        ALibEnsureSourceAvailable(VERSION_TAG V2603R0)  
+        ALibEnsureSourceAvailable(VERSION_TAG V2605R1)  
     
     # Select ALib modules and set ALib Features
-        list( APPEND  ALIB_BUILD               "APP" )
+        list( APPEND  ALIB_BUILD               "ALL" )
         set(  ALIB_SINGLE_THREADED             "On"  )
         set(  ALIB_CAMP_RESOURCE_COMPILATION   "On"  )
     
@@ -655,7 +655,7 @@ Then your \e CMakeLists.txt could look like this:
 
 Notes:
 - The requested tag must name the exact version and release, like they are published by the 
-  maintainers of \alib. For example, <c>V2605R0</c>. ALib releases are 
+  maintainers of \alib. For example, <c>V2605R1</c>. ALib releases are 
   #"alib_manual_compatibility_policy;intentionally not backwards-compatible". When switching to a
   new release of \alib, be sure to read the #"alib_changelog" and make adaptations to your codebase.
 - The download/source-cache folder always includes the version tag as a subdirectory to allow
@@ -1017,7 +1017,7 @@ in the previous section.
 If not provided, the name will be assembled according to the following set of rules:
 
 - The name starts with \c "alib_".
-- The library version is appended, for example, \c "2605R0".
+- The library version is appended, for example, \c "2605R1".
 - In the case of debug-builds, the term \c "_DBG" is appended.
 - In the case of release-builds with debug information, the term \c "_DBGREL" is appended.
 - In the case that variable \b ALIB_SINGLE_THREADED is set, the term \c "_ST" is appended.

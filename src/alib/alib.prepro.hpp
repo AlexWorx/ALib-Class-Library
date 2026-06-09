@@ -17,8 +17,8 @@
 #define HPP_ALIB 1
 #pragma once
 
-#define ALIB_VERSION    2511
-#define ALIB_REVISION   0
+#define ALIB_VERSION    2605
+#define ALIB_REVISION   1
 
 #ifndef DOXYGEN
 #   define DOXYGEN 0
@@ -26,7 +26,7 @@
   //################################################################################################
   //### Definitions of Configuration Macros needed by doxygen
   //################################################################################################
-#  define ALIB_BASE_DIR
+#   define ALIB_BASE_DIR
 #   define ALIB_GCC
 #   define ALIB_EXT_LIB_THREADS_AVAILABLE
 #   define ALIB_C20_MODULES

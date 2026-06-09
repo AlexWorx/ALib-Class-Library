@@ -4,7 +4,7 @@
 # Usage:
 #   include("${CMAKE_CURRENT_LIST_DIR}/cmake/ALibFetch.cmake")
 #   ALibEnsureSourceAvailable(
-#     VERSION_TAG V2605R0
+#     VERSION_TAG V2605R1
 #     # optional:
 #     # FETCH_ROOT "/path/to/cache"
 #     # DOWNLOAD_TIMEOUT 60
@@ -40,7 +40,7 @@ function(ALibEnsureSourceAvailable)
     endif()
   endif()
   if(NOT ALIB_FETCH_VERSION_TAG)
-    message(FATAL_ERROR "ALibEnsureSourceAvailable: missing VERSION_TAG (example: V2605R0).")
+    message(FATAL_ERROR "ALibEnsureSourceAvailable: missing VERSION_TAG (example: V2605R1).")
   endif()
 
   if(NOT ALIB_FETCH_FETCH_ROOT)

@@ -465,7 +465,7 @@ Its output for command `help` may look as follows:
 
 \verbatim
 ----------------------------------------------------------------------
-ALib Resource Compiler V. 2605.0
+ALib Resource Compiler V. 2605.1
 (c) 2023-2026 AWorx GmbH. Published under MIT License (Open Source).
 For more information, see: https://alib.dev/alib_mod_resources.html
 ----------------------------------------------------------------------

@@ -14,11 +14,11 @@
 
     # --------- ALib Version  ---------
 
-    set( ALIB_VERSION                   "2605R0"                                CACHE STRING
+    set( ALIB_VERSION                   "2605R1"                                CACHE STRING
          "The ALib version. Not modifiable (will be overwritten on generation!)"        FORCE )
 
     set( ALIB_VERSION_NO                "2605" )
-    set( ALIB_VERSION_REV               "0" )
+    set( ALIB_VERSION_REV               "1" )
 
     # C++20-Module support (optional)
     if( NOT DEFINED  ALIB_C20_MODULES )
@@ -955,7 +955,8 @@ endif()
 # Display result summary
 # -------------------------------------------------------------------------------------------------
 message( "ALib CMake Configuration:"                               )
-    message( "  Modules requested  : ${ALIB_BUILD}"         )
+    message( "  ALib Base Directory: ${ALIB_BASE_DIR}"         )
+    message( "  Modules Requested  : ${ALIB_BUILD}"         )
 IF( NOT ALibAllModules )
     message( "  Resulting Selection: ${ALibBuild}"          )
     message( "  Omitted Modules    : ${ALibOmittedModules}"        )
@@ -965,7 +966,7 @@ ENDIF()
 
     message( "  Single-Threaded    : ${ALIB_SINGLE_THREADED}"       )
 
-    message( "  Library filename   : ${ALIB_LIBRARY_FILENAME}"      )
+    message( "  Library Filename   : ${ALIB_LIBRARY_FILENAME}"      )
     message( "  Compiler ID        : ${CMAKE_CXX_COMPILER_ID}"      )
 
 IF( NOT ALIB_CMAKE_VERBOSE )

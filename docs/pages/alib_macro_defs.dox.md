@@ -593,6 +593,11 @@
   implementation using the Posix library calls.<br>
   Must not be set from outside.
 
+\def ALIB_POSIX_MAPPED_FILES
+  This is directly derived from the posix variable \b _POSIX_MAPPED_FILES and thus determines if
+  mapped files are supported by the operating system. This is never true on Windows OS and true
+  with most other operating systems.
+
 \I{################################################################################################}
 \I{###################################          ALox         ####################################  }
 \I{################################################################################################}

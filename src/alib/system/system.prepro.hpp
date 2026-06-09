@@ -15,7 +15,7 @@
 #if ALIB_SYSTEM
 
 //##################################################################################################
-// Macro  introduced by module ALib.System
+// Macros introduced by module ALib.System
 //##################################################################################################
 // Configuration Macro ALIB_PATH_CHARACTERS_WIDE and macro A_PATH for literals
 #if !defined(ALIB_PATH_CHARACTERS_WIDE)
@@ -74,9 +74,16 @@
 #   define ALIB_SYSTEM_FILE_STATUS_IMPL     ALIB_SYSTEM_FILE_STD_STATUS
 #endif
 
-
-
-
-
+// set ALIB_POSIX_MAPPED_FILES
+#if !defined(_WIN32)
+#   include <unistd.h>
 #endif
+
+#if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+#   define ALIB_POSIX_MAPPED_FILES 1
+#else
+#   define ALIB_POSIX_MAPPED_FILES 0
+#endif
+
+#endif // ALIB_SYSTEM
 #endif // HPP_ALIB_SYSTEM_PP

@@ -101,7 +101,7 @@ class MappedFile {
   protected:
     std::size_t                     size        = 0;       ///< Size of the loaded data.
     std::vector<std::max_align_t>   noMMapBuf;             ///< Internal buffer used for fallback read mode.
-    #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+    #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
     void*                           mapAddr     = nullptr; ///< Address of the memory-mapped region.
     #endif
 
@@ -136,7 +136,7 @@ class MappedFile {
 
     /// @return \c true if the file was read with \e mmap mode, \c false otherwise.
     bool            IsMMap()                                                        const noexcept {
-        #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+        #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
             return mapAddr != nullptr;
         #else
             return false;
@@ -150,7 +150,7 @@ class MappedFile {
     Data<T>        GetData()                                                        const noexcept {
         static_assert( alignof(T) <= alignof(std::max_align_t),
                        "MappedFile fallback buffer cannot guarantee this over-alignment." );
-        #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+        #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
             return Data<T>(mapAddr ? mapAddr : noMMapBuf.data(), size);
         #else
             return Data<T>(noMMapBuf.data(), size);

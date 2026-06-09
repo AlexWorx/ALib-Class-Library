@@ -40,13 +40,13 @@ For many C++20 applications, \alib might be the better-integrated alternative.
 - long-lived enterprise codebases
 - diagnostic-heavy development environments
  
-## New In this Version ##
+## New In Version 2605 ##
 Introduced the new module [ALib App](https://alib.dev/alib_mod_app.html) which aggregates several
 features of lower-level modules and orchestrates bootstrapping. 
 With this addition, we felt it was appropriate to rename \alib from a "class library" to 
 a "framework".
-Furthermore the optional C++20-Module compilation is back. Nevertheless, it is only supported on
-GNU/Linux platform with the newest Clang compiler version. 
+Furthermore, the optional C++20-Module compilation is back. Nevertheless, it is only supported on
+a GNU/Linux platform with the newest Clang compiler version. 
 We are waiting for GCC to relax its currently restrictive interpretation of the standard.
 
 In addition to many smaller improvements, we added an external resource format definition and

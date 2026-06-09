@@ -31,7 +31,7 @@ std::errc MappedFile::Open( const CPathString& path, std::size_t knownSize,
     if (knownSize == 0)
         return errc;
 
-    #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+    #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
         if (!disableMMap) {
             int fd = ::open(path, O_RDONLY | O_CLOEXEC);
             if (fd != -1) {
@@ -121,7 +121,7 @@ std::errc MappedFile::Open( const CPathString& path, std::size_t knownSize,
 }
 
 void MappedFile::Close()                                                                  noexcept {
-    #if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+    #if defined(ALIB_POSIX_MAPPED_FILES) && ALIB_POSIX_MAPPED_FILES > 0
         if (IsMMap() && size) {
             ::munmap(mapAddr, size);
             mapAddr = nullptr;

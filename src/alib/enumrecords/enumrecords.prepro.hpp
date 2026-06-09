@@ -17,7 +17,7 @@
 // Macro  introduced by module ALib.Enums
 //##################################################################################################
 #define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                                                \
-namespace alib::enumrecords {                                                                            \
+namespace alib::enumrecords {                                                                      \
 template<> struct RecordsTraits<TEnum>     { using  Type=  TRecord; };   }
 
 #endif

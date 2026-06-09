@@ -9,8 +9,17 @@
 \page alib_changelog         Change Log
        
 \I{################################################################################################}
-\I{##########################        Version 2605 R0 todo       ###################################}
+\I{##########################        Version 2605R0/R1          ###################################}
 \I{################################################################################################}
+
+# Version 2605, Revision 1, released June 9th, 2026#
+- Fixed a serious issue with the include dependencies of new class #"MappedFile". This caused
+  failure when #"alib_camp_rc;in-place resource compilation" was activated.
+- The variable #"ALIB_VERSION" is now set to \b2605 (was still \b 2511).                                                   
+  #"ALIB_REVISION" is now set to \b 1. 
+- Fixed the CMake snippets in the documentation chapter #"alib_manual_build_fetch"                                                  
+- Script #"^F;ALib.cmake" now displays the value of variable #"ALIB_BASE_DIR".
+                                                     
 
 # Version 2605, Revision 0, released May 13th, 2026#
               
